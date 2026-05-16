@@ -4094,15 +4094,7 @@ function handleSignUp() {
     .then(() => { loadingDiv.textContent = ''; })
     .catch(error => {
       loadingDiv.textContent = '';
-      let msg = error.message;
-      if (error.code === 'auth/email-already-in-use') {
-        msg = 'An account with this email already exists. Try logging in instead.';
-      } else if (error.code === 'auth/invalid-email') {
-        msg = 'Please enter a valid email address';
-      } else if (error.code === 'auth/weak-password') {
-        msg = 'Password is too weak. Use at least 6 characters.';
-      }
-      errorDiv.textContent = msg;
+      errorDiv.textContent = error.message;
       errorDiv.classList.add('show');
     });
 }
@@ -4126,17 +4118,7 @@ function handleLogIn() {
     .then(() => { loadingDiv.textContent = ''; })
     .catch(error => {
       loadingDiv.textContent = '';
-      let msg = error.message;
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-        msg = 'Incorrect email or password. Try again or reset your password.';
-      } else if (error.code === 'auth/wrong-password') {
-        msg = 'Incorrect password. Click "Forgot password?" to reset it.';
-      } else if (error.code === 'auth/invalid-email') {
-        msg = 'Please enter a valid email address';
-      } else if (error.code === 'auth/too-many-requests') {
-        msg = 'Too many failed attempts. Please try again later or reset your password.';
-      }
-      errorDiv.textContent = msg;
+      errorDiv.textContent = error.message;
       errorDiv.classList.add('show');
     });
 }
@@ -4150,53 +4132,6 @@ function handleLogOut() {
       document.getElementById('loadingMsg').textContent = '';
     });
   }
-}
-
-function handlePasswordReset() {
-  const email = document.getElementById('resetEmail').value.trim();
-  const errorDiv = document.getElementById('resetErrorMsg');
-  const successDiv = document.getElementById('resetSuccessMsg');
-  const loadingDiv = document.getElementById('resetLoadingMsg');
-  
-  errorDiv.classList.remove('show');
-  successDiv.classList.remove('show');
-  
-  if (!email) {
-    errorDiv.textContent = 'Please enter your email address';
-    errorDiv.classList.add('show');
-    return;
-  }
-  
-  // Basic email validation
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    errorDiv.textContent = 'Please enter a valid email address';
-    errorDiv.classList.add('show');
-    return;
-  }
-  
-  loadingDiv.textContent = 'Sending reset link...';
-  
-  auth.sendPasswordResetEmail(email)
-    .then(() => {
-      loadingDiv.textContent = '';
-      successDiv.textContent = 'Reset link sent! Check your email inbox (and spam folder).';
-      successDiv.classList.add('show');
-      document.getElementById('resetEmail').value = '';
-    })
-    .catch(error => {
-      loadingDiv.textContent = '';
-      let msg = error.message;
-      // Friendlier error messages
-      if (error.code === 'auth/user-not-found') {
-        msg = 'No account found with this email address';
-      } else if (error.code === 'auth/invalid-email') {
-        msg = 'Please enter a valid email address';
-      } else if (error.code === 'auth/too-many-requests') {
-        msg = 'Too many attempts. Please try again later.';
-      }
-      errorDiv.textContent = msg;
-      errorDiv.classList.add('show');
-    });
 }
 
 auth.onAuthStateChanged(user => {
