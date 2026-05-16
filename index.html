@@ -21,6 +21,264 @@
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/compromise@14.14.0/builds/compromise.min.js"></script>
+<!-- Firebase Scripts -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<style>
+/* ══════════════════════════════════════════════
+   Login Screen — Scholarly Ink Theme
+   ══════════════════════════════════════════════ */
+.login-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: var(--bg);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.login-box {
+  background: var(--surface);
+  padding: 44px 40px 36px;
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 380px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+  animation: loginFadeIn 0.4s ease;
+}
+
+@keyframes loginFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.login-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.login-logo-mark {
+  width: 36px;
+  height: 36px;
+  background: var(--accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  font-family: 'Source Serif 4', serif;
+  font-weight: 600;
+  font-size: 20px;
+}
+
+.login-title {
+  font-family: 'Source Serif 4', serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.login-subtitle {
+  text-align: center;
+  color: var(--text2);
+  margin-bottom: 28px;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+}
+
+.login-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg2);
+  border-radius: var(--radius);
+  padding: 3px;
+  margin-bottom: 20px;
+}
+
+.login-tab {
+  flex: 1;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all var(--tr);
+  letter-spacing: 0.03em;
+}
+
+.login-tab.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.login-field {
+  margin-bottom: 12px;
+}
+
+.login-field label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text3);
+  display: block;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.login-field input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg2);
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  transition: border-color var(--tr), background var(--tr);
+  box-sizing: border-box;
+}
+
+.login-field input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--surface);
+}
+
+.login-field input::placeholder { color: var(--text3); }
+
+.login-primary-btn {
+  width: 100%;
+  padding: 11px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  margin-top: 8px;
+  transition: background var(--tr);
+  font-family: inherit;
+  letter-spacing: 0.02em;
+}
+
+.login-primary-btn:hover { background: var(--accent-h); }
+.login-primary-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.login-link {
+  display: block;
+  text-align: center;
+  margin-top: 16px;
+  color: var(--text2);
+  font-size: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color var(--tr);
+  background: none;
+  border: none;
+  width: 100%;
+  font-family: inherit;
+  padding: 4px;
+}
+
+.login-link:hover { color: var(--accent); }
+
+.login-error {
+  color: var(--must);
+  font-size: 12px;
+  margin-bottom: 12px;
+  padding: 9px 12px;
+  background: var(--must-dim);
+  border-left: 2px solid var(--must);
+  border-radius: var(--radius-sm);
+  display: none;
+}
+.login-error.show { display: block; }
+
+.login-success {
+  color: var(--green);
+  font-size: 12px;
+  margin-bottom: 12px;
+  padding: 9px 12px;
+  background: rgba(42, 107, 68, 0.08);
+  border-left: 2px solid var(--green);
+  border-radius: var(--radius-sm);
+  display: none;
+}
+.login-success.show { display: block; }
+
+.login-loading {
+  text-align: center;
+  color: var(--text3);
+  font-size: 11px;
+  margin-top: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.login-footer {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  color: var(--text3);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.login-theme-toggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 12px;
+  color: var(--text2);
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  transition: all var(--tr);
+}
+.login-theme-toggle:hover { color: var(--text); border-color: var(--border2); }
+
+.login-back-btn {
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 12px;
+  cursor: pointer;
+  margin-bottom: 16px;
+  padding: 4px 0;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color var(--tr);
+}
+.login-back-btn:hover { color: var(--accent); }
+
+/* Hidden views */
+.login-view { display: none; }
+.login-view.active { display: block; }
+</style>
 <template id="__bundler_thumbnail" data-bg-color="#131210">
   <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
     <rect width="120" height="120" fill="#131210"/>
@@ -40,7 +298,141 @@
 </template>
 </head>
 <body>
-<div class="app">
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="loginScreen">
+  <button class="login-theme-toggle" onclick="toggleLoginTheme()" id="loginThemeBtn">Dark</button>
+  
+  <div class="login-box">
+    <!-- LOGIN / SIGNUP VIEW -->
+    <div class="login-view active" id="authView">
+      <div class="login-logo">
+        <div class="login-logo-mark">J</div>
+        <div class="login-title">Jay's Hub</div>
+      </div>
+      <div class="login-subtitle">ACADEMIC PLANNER · FOCUS · HABITS</div>
+      
+      <div class="login-tabs">
+        <button class="login-tab active" id="tabLogin" onclick="switchTab('login')">Log In</button>
+        <button class="login-tab" id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
+      </div>
+      
+      <div class="login-error" id="errorMsg"></div>
+      <div class="login-success" id="successMsg"></div>
+      
+      <div class="login-field">
+        <label>Email</label>
+        <input id="email" type="email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      
+      <div class="login-field">
+        <label>Password</label>
+        <input id="password" type="password" placeholder="At least 6 characters" autocomplete="current-password">
+      </div>
+      
+      <button class="login-primary-btn" id="submitBtn" onclick="handleAuthSubmit()">Log In</button>
+      
+      <button class="login-link" id="forgotLink" onclick="showForgotPassword()">Forgot password?</button>
+      
+      <div class="login-loading" id="loadingMsg"></div>
+      
+      <div class="login-footer">Synced across all your devices</div>
+    </div>
+    
+    <!-- FORGOT PASSWORD VIEW -->
+    <div class="login-view" id="forgotView">
+      <button class="login-back-btn" onclick="showAuthView()">← Back to login</button>
+      
+      <div class="login-logo" style="margin-bottom:16px;">
+        <div class="login-title">Reset Password</div>
+      </div>
+      <div class="login-subtitle">We'll email you a reset link</div>
+      
+      <div class="login-error" id="resetErrorMsg"></div>
+      <div class="login-success" id="resetSuccessMsg"></div>
+      
+      <div class="login-field">
+        <label>Email Address</label>
+        <input id="resetEmail" type="email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      
+      <button class="login-primary-btn" id="resetBtn" onclick="handlePasswordReset()">Send Reset Link</button>
+      
+      <div class="login-loading" id="resetLoadingMsg"></div>
+      
+      <div class="login-footer">Check spam folder if email doesn't arrive</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// LOGIN UI HELPERS (must be inline so they work before focus-logic.js loads)
+let currentAuthMode = 'login';
+
+function switchTab(mode) {
+  currentAuthMode = mode;
+  document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
+  document.getElementById('tabSignup').classList.toggle('active', mode === 'signup');
+  document.getElementById('submitBtn').textContent = mode === 'login' ? 'Log In' : 'Create Account';
+  document.getElementById('errorMsg').classList.remove('show');
+  document.getElementById('successMsg').classList.remove('show');
+}
+
+function showForgotPassword() {
+  document.getElementById('authView').classList.remove('active');
+  document.getElementById('forgotView').classList.add('active');
+  // Pre-fill with login email if entered
+  const loginEmail = document.getElementById('email').value;
+  if (loginEmail) document.getElementById('resetEmail').value = loginEmail;
+}
+
+function showAuthView() {
+  document.getElementById('forgotView').classList.remove('active');
+  document.getElementById('authView').classList.add('active');
+  document.getElementById('resetErrorMsg').classList.remove('show');
+  document.getElementById('resetSuccessMsg').classList.remove('show');
+}
+
+function handleAuthSubmit() {
+  if (currentAuthMode === 'login') {
+    handleLogIn();
+  } else {
+    handleSignUp();
+  }
+}
+
+function toggleLoginTheme() {
+  const current = document.documentElement.dataset.theme;
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  document.getElementById('loginThemeBtn').textContent = next === 'dark' ? 'Light' : 'Dark';
+  try { localStorage.setItem('login_theme', next); } catch(e){}
+}
+
+// Apply saved login theme
+(function(){
+  try {
+    const saved = localStorage.getItem('login_theme');
+    if (saved) {
+      document.documentElement.dataset.theme = saved;
+      const btn = document.getElementById('loginThemeBtn');
+      if (btn) btn.textContent = saved === 'dark' ? 'Light' : 'Dark';
+    }
+  } catch(e){}
+})();
+
+// Allow Enter key to submit
+document.addEventListener('DOMContentLoaded', () => {
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const resetInput = document.getElementById('resetEmail');
+  if (emailInput) emailInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleAuthSubmit(); });
+  if (passwordInput) passwordInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleAuthSubmit(); });
+  if (resetInput) resetInput.addEventListener('keydown', e => { if (e.key === 'Enter') handlePasswordReset(); });
+});
+</script>
+
+<div class="app" id="appScreen" style="display:none;">
 
   <!-- ═══ SIDEBAR ═══ -->
   <aside class="sidebar">
