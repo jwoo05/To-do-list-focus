@@ -25,11 +25,25 @@ To move an old local planner into a public account:
 1. Open `focus-app.html` locally and go to **Settings → Backup Data → Export backup**.
 2. In Firebase Console, enable **Authentication → Sign-in method → Email/Password**.
 3. Copy your Firebase web app config into `firebase-config.js`.
-4. Deploy the standalone planner files to Netlify/Firebase Hosting/GitHub Pages.
-5. Open the deployed URL, create an account with email/password, then go to **Settings → Backup Data → Import backup** and select the exported JSON.
-6. Future saves for that browser use `jay_hub_v3:user:<firebase uid>` instead of the shared `jay_hub_v3` key.
+4. In Firebase Console, create/enable **Realtime Database**.
+5. Set Realtime Database rules so each signed-in user can read/write only their own planner:
 
-For true cross-device sync, store that exported JSON under the authenticated user id in Firestore or your Netlify/Firebase function, then load it into the same state shape before calling `save()`.
+```json
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    }
+  }
+}
+```
+
+6. Deploy the standalone planner files to Netlify/Firebase Hosting/GitHub Pages.
+7. Open the deployed URL, create an account with email/password, then go to **Settings → Backup Data → Import backup** and select the exported JSON.
+8. Future saves write to `users/<firebase uid>/plannerState` in Realtime Database and also keep a local browser cache.
 
 ### What you need
 

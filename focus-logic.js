@@ -29,6 +29,9 @@ let pomoTimer = null;
 let pendingFocusReport = null;
 let sessionTaskSnapshot = {};
 let sessionDistractionLog = []; // {ts, phase, elapsed} per distraction event
+let cloudReady = false;
+let cloudSaveTimer = null;
+let suppressCloudSave = false;
 let editSelectedPri = 'medium';
 let editSelectedDays = [];
 let editModalSubtasks = [];
@@ -151,7 +154,22 @@ function normalizeState(state){
   state.events = (state.events||[]).map(e=>Object.assign({type:'event', color:eventColorForType(e.type||'event')}, e));
   return state;
 }
-function save(){ localStorage.setItem(currentStorageKey(), JSON.stringify(S)); }
+function save(){
+  localStorage.setItem(currentStorageKey(), JSON.stringify(S));
+  scheduleCloudSave();
+}
+function scheduleCloudSave(){
+  if(suppressCloudSave || !cloudReady || activeUser?.mode!=='firebase' || !window.JayFirebaseAuth?.enabled) return;
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer=setTimeout(async ()=>{
+    try{
+      await window.JayFirebaseAuth.saveState(activeUser.uid, S);
+      setAuthStatus('Saved to cloud.');
+    }catch(err){
+      setAuthStatus('Cloud save failed. Check Realtime Database rules.');
+    }
+  },700);
+}
 
 function isArchivedForTodo(t){
   return !!(t && (t.archived || (!t.isHabit && t.completed)));
@@ -381,6 +399,7 @@ function shouldCommitTextInput(event){
 // ════════════════════════════════════════════════════════════
 function render(){
   if(archiveCompletedOneOffTasks(S)) save();
+  updateBranding();
   mountInteractiveSurface();
   renderBank();
   renderCenter();
@@ -971,6 +990,20 @@ function toggleBankLimit(){
 
 function priLabel(p){
   return {MUST:'⚡ MUST', high:'🔥 High', medium:'✅ Med', low:'💧 Low'}[p]||p;
+}
+function appOwnerName(){
+  return String(S.settings?.name || activeUser?.name || 'Jay').trim() || 'Jay';
+}
+function appDisplayName(){
+  const name=appOwnerName();
+  return `${name}${name.endsWith('s') ? "'" : "'s"} Hub`;
+}
+function updateBranding(){
+  const appName=appDisplayName();
+  document.querySelectorAll('.logo-text,.auth-title').forEach(el=>{ el.textContent=appName; });
+  const sub=document.querySelector('.logo-sub');
+  if(sub) sub.textContent=activeUser?.signedIn ? 'Synced academic planner' : 'Academic planner';
+  if(!pomoState?.running) document.title=appName;
 }
 
 function renderCenter(){
@@ -4181,13 +4214,17 @@ function openSettings(){
 }
 function saveSettings(){
   S.settings.name=document.getElementById('sName').value.trim()||'Jay';
+  if(activeUser?.signedIn && activeUser.name!==S.settings.name){
+    activeUser.name=S.settings.name;
+    localStorage.setItem(AUTH_KEY, JSON.stringify(activeUser));
+  }
   S.settings.theme=document.getElementById('sDark').checked?'dark':'light';
   S.settings.pomo.focus=+document.getElementById('sPomoFocus').value||25;
   S.settings.pomo.shortBreak=+document.getElementById('sPomoShort').value||5;
   S.settings.pomo.longBreak=+document.getElementById('sPomoLong').value||15;
   S.settings.pomo.cycles=+document.getElementById('sPomoCycles').value||4;
   S.settings.alarmSound=document.getElementById('sAlarmSound').value||'chime';
-  applyTheme(); save(); closeModal('mSettings'); resetPomo();
+  applyTheme(); save(); updateBranding(); closeModal('mSettings'); resetPomo();
 }
 
 // ════════════════════════════════════════════════════════════
@@ -4203,6 +4240,7 @@ function setupAuthUI(){
   if(name) name.value=activeUser?.name && activeUser.name!=='Local user' ? activeUser.name : (S.settings.name||'');
   if(email) email.value=activeUser?.email||'';
   if(label) label.textContent=activeUser?.signedIn ? `${activeUser.email||activeUser.name||'Signed in'}${activeUser.mode==='firebase'?' (Firebase)':''}` : 'Local browser data';
+  updateBranding();
   setAuthStatus(window.JayFirebaseAuth?.enabled
     ? 'Firebase Auth ready. Use your email and password.'
     : 'Firebase is not configured yet. Fill firebase-config.js, then refresh.');
@@ -4230,9 +4268,9 @@ function useLocalMode(){
   document.getElementById('authGate')?.classList.remove('show');
   showToast('Using local browser data. You can link an account from Settings.');
 }
-function applyAuthenticatedUser(user,shouldRender=true){
+async function applyAuthenticatedUser(user,shouldRender=true){
   if(!user?.uid) return;
-  save();
+  const previousState=JSON.parse(JSON.stringify(S));
   const nextUser={
     uid:user.uid,
     email:user.email||'',
@@ -4241,16 +4279,30 @@ function applyAuthenticatedUser(user,shouldRender=true){
     signedIn:true,
     linkedAt:Date.now()
   };
-  const targetKey=storageKeyForUser(nextUser);
-  if(!localStorage.getItem(targetKey)){
-    localStorage.setItem(targetKey, JSON.stringify(S));
-  }
   activeUser=nextUser;
   localStorage.setItem(AUTH_KEY, JSON.stringify(activeUser));
   localStorage.setItem(KEY+'_auth_dismissed','1');
-  S=loadState();
-  S.settings.name=S.settings.name || activeUser.name;
-  save();
+  const targetKey=storageKeyForUser(nextUser);
+  suppressCloudSave=true;
+  let remoteState=null;
+  try{
+    if(window.JayFirebaseAuth?.enabled) remoteState=await window.JayFirebaseAuth.loadState(activeUser.uid);
+  }catch(err){
+    setAuthStatus('Cloud load failed. Using this browser data.');
+  }
+  if(remoteState){
+    S=normalizeState(Object.assign({},DEF,remoteState));
+    localStorage.setItem(targetKey, JSON.stringify(S));
+    setAuthStatus('Loaded your cloud data.');
+  }else{
+    S=normalizeState(Object.assign({},DEF,previousState));
+    if(activeUser.name && (!S.settings.name || S.settings.name==='Jay')) S.settings.name=activeUser.name;
+    localStorage.setItem(targetKey, JSON.stringify(S));
+    setAuthStatus('No cloud data yet. Seeded this account from this browser.');
+  }
+  suppressCloudSave=false;
+  cloudReady=true;
+  if(!remoteState) scheduleCloudSave();
   document.getElementById('authGate')?.classList.remove('show');
   if(shouldRender){
     setupAuthUI();
@@ -4289,7 +4341,7 @@ async function signInLocalAccount(event){
     const user=action==='signup'
       ? await window.JayFirebaseAuth.signUp(email,password,name)
       : await window.JayFirebaseAuth.signIn(email,password);
-    applyAuthenticatedUser(user,true);
+    await applyAuthenticatedUser(user,true);
   }catch(err){
     const msg=String(err?.message||err||'Authentication failed.').replace(/^Firebase:\s*/,'');
     setAuthStatus(msg);
@@ -4298,6 +4350,7 @@ async function signInLocalAccount(event){
 }
 async function signOutLocalAccount(callFirebase=true){
   save();
+  cloudReady=false;
   if(callFirebase && window.JayFirebaseAuth?.enabled && activeUser?.mode==='firebase'){
     try{ await window.JayFirebaseAuth.signOut(); }catch(e){}
   }

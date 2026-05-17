@@ -8,6 +8,12 @@ import {
   signOut,
   updateProfile
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import {
+  get,
+  getDatabase,
+  ref,
+  set
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
 const config = window.JAY_FIREBASE_CONFIG || {};
 const configured = !!(
@@ -49,13 +55,28 @@ window.JayFirebaseAuth = {
   async signOut() {
     if (!configured) return;
     await signOut(auth);
+  },
+  async loadState(uid) {
+    if (!configured || !db || !uid) return null;
+    const snapshot = await get(ref(db, `users/${uid}/plannerState`));
+    return snapshot.exists() ? snapshot.val()?.state || null : null;
+  },
+  async saveState(uid, state) {
+    if (!configured || !db || !uid || !state) return;
+    await set(ref(db, `users/${uid}/plannerState`), {
+      state,
+      updatedAt: Date.now(),
+      version: 1
+    });
   }
 };
 
 let auth = null;
+let db = null;
 if (configured) {
   const app = initializeApp(config);
   auth = getAuth(app);
+  db = getDatabase(app, config.databaseURL);
   onAuthStateChanged(auth, user => {
     const next = publicUser(user);
     window.JayFirebaseAuth.currentUser = next;
