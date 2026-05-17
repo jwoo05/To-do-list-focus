@@ -33,6 +33,8 @@ let sessionDistractionLog = []; // {ts, phase, elapsed} per distraction event
 let cloudReady = false;
 let cloudSaveTimer = null;
 let suppressCloudSave = false;
+let cloudUnsubscribe = null;
+let lastPushedTimestamp = 0;
 let editSelectedPri = 'medium';
 let editSelectedDays = [];
 let editModalSubtasks = [];
@@ -170,12 +172,42 @@ function scheduleCloudSave(){
       return;
     }
     try{
+      lastPushedTimestamp = S.lastModified || 0;
       await window.JayFirebaseAuth.saveState(snapshotUid, S);
       setAuthStatus('Saved to cloud.');
     }catch(err){
       setAuthStatus('Cloud save failed. Check Realtime Database rules.');
     }
   },700);
+}
+function startCloudSubscription(uid){
+  if(!uid || uid==='local') return;
+  if(!window.JayFirebaseAuth?.subscribeToState) return;
+  stopCloudSubscription();
+  cloudUnsubscribe = window.JayFirebaseAuth.subscribeToState(uid, remoteState=>{
+    if(!cloudReady) return;
+    if(activeUser?.mode!=='firebase' || activeUser.uid!==uid) return;
+    if(!remoteState) return;
+    const remoteTime = remoteState.lastModified || 0;
+    const localTime = S.lastModified || 0;
+    if(remoteTime <= localTime) return;
+    if(remoteTime === lastPushedTimestamp) return;
+    suppressCloudSave = true;
+    try{
+      S = normalizeState(Object.assign({}, DEF, remoteState));
+      localStorage.setItem(currentStorageKey(), JSON.stringify(S));
+      render();
+      setAuthStatus('Synced from another device.');
+    }finally{
+      suppressCloudSave = false;
+    }
+  });
+}
+function stopCloudSubscription(){
+  if(typeof cloudUnsubscribe === 'function'){
+    try{ cloudUnsubscribe(); }catch(e){}
+  }
+  cloudUnsubscribe = null;
 }
 
 function isArchivedForTodo(t){
@@ -4379,6 +4411,8 @@ async function applyAuthenticatedUser(user,shouldRender=true){
   }
   suppressCloudSave=false;
   cloudReady=true;
+  lastPushedTimestamp = S.lastModified || 0;
+  startCloudSubscription(activeUser.uid);
   if(shouldPushLocal) scheduleCloudSave();
   document.getElementById('authGate')?.classList.remove('show');
   if(shouldRender){
@@ -4429,6 +4463,7 @@ async function signOutLocalAccount(callFirebase=true){
   save();
   cloudReady=false;
   clearTimeout(cloudSaveTimer);
+  stopCloudSubscription();
   const wasFirebase=activeUser?.mode==='firebase';
   activeUser={uid:'local', email:'', name:'Local user', mode:'local', signedIn:false};
   if(callFirebase && window.JayFirebaseAuth?.enabled && wasFirebase){

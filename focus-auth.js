@@ -11,6 +11,7 @@ import {
 import {
   get,
   getDatabase,
+  onValue,
   ref,
   set
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
@@ -67,6 +68,18 @@ window.JayFirebaseAuth = {
       state,
       updatedAt: Date.now(),
       version: 1
+    });
+  },
+  subscribeToState(uid, callback) {
+    if (!configured || !db || !uid || typeof callback !== "function") return () => {};
+    const stateRef = ref(db, `users/${uid}/plannerState`);
+    return onValue(stateRef, snapshot => {
+      if (!snapshot.exists()) {
+        callback(null);
+        return;
+      }
+      const val = snapshot.val();
+      callback(val?.state || null);
     });
   }
 };
