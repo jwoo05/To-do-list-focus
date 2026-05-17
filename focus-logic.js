@@ -311,6 +311,7 @@ function isHabitDueToday(t, dateStr){
   if(!t.isHabit) return false;
   if(t.habitStart && dateStr < t.habitStart) return false;
   if(t.habitEnd && dateStr > t.habitEnd) return false;
+  if(Array.isArray(t.skippedDates) && t.skippedDates.includes(dateStr)) return false;
   const d = new Date(dateStr+'T00:00:00');
   const dow = d.getDay();
   return t.scheduledDays.includes(dow);
@@ -351,7 +352,11 @@ function removeCalendarDateFromTask(t,dateStr,opts={}){
 function moveTaskWorkDate(t,targetDate,sourceDate){
   if(!t || !targetDate) return;
   if(!Array.isArray(t.scheduledDates)) t.scheduledDates=[];
-  if(sourceDate && sourceDate!==targetDate) removeCalendarDateFromTask(t,sourceDate);
+  if(sourceDate && sourceDate!==targetDate){
+    removeCalendarDateFromTask(t,sourceDate,{moveDue:true});
+    if(t.completedDates) delete t.completedDates[sourceDate];
+    if(t.dueCompletedDates) delete t.dueCompletedDates[sourceDate];
+  }
   t.scheduledDates=uniqueDates([...t.scheduledDates,targetDate]);
   if(t.completedDates && targetDate) t.completedDates[targetDate]=false;
 }
@@ -1170,7 +1175,7 @@ function dueSignalHTML(t,dateStr=todayStr()){
       <button class="task-action play" onclick="startPomoTask('${t.id}')" title="Focus">▶</button>
       <button class="task-action" onclick="duplicateTask('${t.id}')" title="Duplicate">⧉</button>
       <button class="task-action" onclick="editTask('${t.id}')" title="Edit">✎</button>
-      <button class="task-action del" onclick="removeTask('${t.id}')" title="Delete">×</button>
+      <button class="task-action del" onclick="removeTaskFromDate('${t.id}','${dateArg}')" title="Remove from this day">×</button>
     </div>
   </div>`;
 }
@@ -1270,7 +1275,7 @@ function taskItemHTML(t, section, dateStr=todayStr()){
       <button class="task-action" onclick="toggleTaskDetails(event,'${t.id}')" title="Subtasks">▤</button>
       <button class="task-action" onclick="duplicateTask('${t.id}')" title="Duplicate">⧉</button>
       <button class="task-action" onclick="editTask('${t.id}')" title="Edit">✎</button>
-      <button class="task-action del" onclick="removeTask('${t.id}')" title="Delete">×</button>
+      <button class="task-action del" onclick="removeTaskFromDate('${t.id}','${dateArg}')" title="Remove from this day">×</button>
     </div>
     <div class="task-details">
       <div class="task-detail-card">
@@ -1411,6 +1416,52 @@ function softDeleteTask(id){
   S.deleted.unshift(entry);
   save(); render();
   showToast(`Deleted "${task.title}". You can retrieve it in Settings > Deleted Items.`, 'Undo', ()=>restoreDeleted(entry.id));
+}
+
+function removeTaskFromDate(id, dateStr){
+  const t=S.tasks.find(x=>x.id===id);
+  if(!t) return;
+  if(!dateStr){ softDeleteTask(id); return; }
+  if(t.isHabit){
+    const prevSkipped=Array.isArray(t.skippedDates) ? t.skippedDates.slice() : null;
+    const prevCompleted=t.completedDates ? Object.assign({},t.completedDates) : null;
+    if(!Array.isArray(t.skippedDates)) t.skippedDates=[];
+    if(!t.skippedDates.includes(dateStr)) t.skippedDates.push(dateStr);
+    if(t.completedDates) delete t.completedDates[dateStr];
+    save(); render();
+    showToast(`Skipped "${t.title}" for ${fmtDate(dateStr)}.`, 'Undo', ()=>{
+      t.skippedDates = prevSkipped ? prevSkipped : [];
+      if(prevCompleted) t.completedDates=prevCompleted;
+      save(); render();
+    });
+    return;
+  }
+  const hadScheduled=Array.isArray(t.scheduledDates) && t.scheduledDates.includes(dateStr);
+  const hadDue=t.due===dateStr;
+  if(!hadScheduled && !hadDue){ softDeleteTask(id); return; }
+  if(hadScheduled) t.scheduledDates=t.scheduledDates.filter(d=>d!==dateStr);
+  if(hadDue){ t.due=''; }
+  const prevDueCompleted = t.dueCompletedDates ? t.dueCompletedDates[dateStr] : undefined;
+  if(t.dueCompletedDates) delete t.dueCompletedDates[dateStr];
+  const prevCompleted = t.completedDates ? t.completedDates[dateStr] : undefined;
+  if(t.completedDates) delete t.completedDates[dateStr];
+  save(); render();
+  showToast(`Removed "${t.title}" from ${fmtDate(dateStr)}.`, 'Undo', ()=>{
+    if(hadScheduled){
+      if(!Array.isArray(t.scheduledDates)) t.scheduledDates=[];
+      if(!t.scheduledDates.includes(dateStr)) t.scheduledDates.push(dateStr);
+    }
+    if(hadDue) t.due=dateStr;
+    if(prevDueCompleted!==undefined){
+      if(!t.dueCompletedDates) t.dueCompletedDates={};
+      t.dueCompletedDates[dateStr]=prevDueCompleted;
+    }
+    if(prevCompleted!==undefined){
+      if(!t.completedDates) t.completedDates={};
+      t.completedDates[dateStr]=prevCompleted;
+    }
+    save(); render();
+  });
 }
 
 function duplicateTask(id){
