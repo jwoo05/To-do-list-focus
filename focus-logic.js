@@ -4343,12 +4343,15 @@ async function applyAuthenticatedUser(user,shouldRender=true){
   }
   const localRaw=localStorage.getItem(targetKey);
   const localParsed=localRaw ? (() => { try{ return JSON.parse(localRaw); }catch(e){ return null; } })() : null;
+  const stateIsEmpty=(s)=>!s || ((s.tasks||[]).length===0 && (s.events||[]).length===0 && (s.sessions||[]).length===0);
+  let shouldPushLocal=false;
   if(remoteState && localParsed){
     const remoteTime=remoteState.lastModified||0;
     const localTime=localParsed.lastModified||0;
-    if(localTime>=remoteTime){
+    if(localTime>remoteTime && !stateIsEmpty(localParsed)){
       S=normalizeState(Object.assign({},DEF,localParsed));
       setAuthStatus('Synced. (Local data was up to date.)');
+      shouldPushLocal=true;
     }else{
       S=normalizeState(Object.assign({},DEF,remoteState));
       localStorage.setItem(targetKey, JSON.stringify(S));
@@ -4362,11 +4365,16 @@ async function applyAuthenticatedUser(user,shouldRender=true){
     S=normalizeState(Object.assign({},DEF,previousState));
     if(activeUser.name && (!S.settings.name || S.settings.name==='Jay')) S.settings.name=activeUser.name;
     localStorage.setItem(targetKey, JSON.stringify(S));
-    setAuthStatus('No cloud data yet. Seeded this account from this browser.');
+    if(stateIsEmpty(S)){
+      setAuthStatus('No cloud data yet. Add tasks to start syncing.');
+    }else{
+      setAuthStatus('No cloud data yet. Seeded this account from this browser.');
+      shouldPushLocal=true;
+    }
   }
   suppressCloudSave=false;
   cloudReady=true;
-  scheduleCloudSave();
+  if(shouldPushLocal) scheduleCloudSave();
   document.getElementById('authGate')?.classList.remove('show');
   if(shouldRender){
     setupAuthUI();
