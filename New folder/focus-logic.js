@@ -3,6 +3,9 @@
 //  DATA
 // ════════════════════════════════════════════════════════════
 const KEY = 'jay_hub_v3';
+const AUTH_KEY = KEY + '_auth';
+const LEGACY_KEY = KEY + '_legacy_imported';
+const POMO_RUNTIME_KEY = KEY + '_pomo_runtime';
 const DEF = {
   tasks:[], sessions:[], events:[], icalImports:[],
   nlpCorrections:{}, eoprLog:[], deleted:[], focusReports:[],
@@ -13,6 +16,7 @@ const DEF = {
   }
 };
 
+let activeUser = loadActiveUser();
 let S = loadState();
 let calViewDate = new Date();
 let calSelectedDate = todayStr();
@@ -35,7 +39,7 @@ let scheduleDragMode = 'add';
 let currentPage = 'dashboard';
 let bankVisibleCount = 10;
 let bankSort = 'due';
-let dailySort = 'section';
+let dailySort = 'custom';
 let calHoverTimer = null;
 let draggedTaskId = null;
 let draggedTaskDate = '';
@@ -48,25 +52,56 @@ let calViewResizeObserver = null;
 // ════════════════════════════════════════════════════════════
 //  PERSISTENCE
 // ════════════════════════════════════════════════════════════
+function safeUserKey(value){
+  return String(value||'guest').trim().toLowerCase().replace(/[^a-z0-9._-]+/g,'_').slice(0,80) || 'guest';
+}
+function loadActiveUser(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(AUTH_KEY)||'null');
+    if(raw && raw.uid) return raw;
+  }catch(e){}
+  return {uid:'local', email:'', name:'Local user', mode:'local', signedIn:false};
+}
+function storageKeyForUser(user=activeUser){
+  return user && user.uid && user.uid !== 'local' ? `${KEY}:user:${safeUserKey(user.uid)}` : KEY;
+}
+function currentStorageKey(){
+  return storageKeyForUser(activeUser);
+}
 function loadState(){
   try{
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(currentStorageKey());
     if(raw){
       const normalized = normalizeState(Object.assign({},DEF, JSON.parse(raw)));
-      localStorage.setItem(KEY, JSON.stringify(normalized));
+      localStorage.setItem(currentStorageKey(), JSON.stringify(normalized));
       return normalized;
     }
   }catch(e){}
+  migrateLegacyStateToUser();
   // Migrate v1
   try{
     const v1 = JSON.parse(localStorage.getItem('jay_hub_v1'));
     if(v1){
       const normalized = normalizeState(migrateV1(v1));
-      localStorage.setItem(KEY, JSON.stringify(normalized));
+      localStorage.setItem(currentStorageKey(), JSON.stringify(normalized));
       return normalized;
     }
   }catch(e){}
   return normalizeState(JSON.parse(JSON.stringify(DEF)));
+}
+function migrateLegacyStateToUser(){
+  if(!activeUser?.uid || activeUser.uid==='local') return false;
+  const target=currentStorageKey();
+  if(localStorage.getItem(target)) return false;
+  if(localStorage.getItem(`${LEGACY_KEY}:${safeUserKey(activeUser.uid)}`)) return false;
+  const legacy=localStorage.getItem(KEY);
+  if(!legacy) return false;
+  try{
+    localStorage.setItem(target, JSON.stringify(normalizeState(Object.assign({},DEF,JSON.parse(legacy)))));
+    localStorage.setItem(`${LEGACY_KEY}:${safeUserKey(activeUser.uid)}`,'1');
+    return true;
+  }catch(e){}
+  return false;
 }
 function normalizeState(state){
   state.dailySections = (Array.isArray(state.dailySections) && state.dailySections.length ? state.dailySections : ['Study']).filter(s=>s && s !== 'Admin');
@@ -74,7 +109,7 @@ function normalizeState(state){
   state.tasks = (state.tasks||[]).map(t=>Object.assign({
     type:'task', priority:'medium', due:'', scheduledDates:[], scheduledDays:[],
     dailySection:'Study', calendarSignal:'auto', subtasks:[], progress:0, customOrder:0,
-    completedDates:{}, dueCompletedDates:{}, habitStart:'', habitEnd:'', archived:false, completed:false, focusPoints:0
+    completedDates:{}, dueCompletedDates:{}, habitStart:'', habitEnd:'', archived:false, completed:false, completedDate:'', focusPoints:0
   }, t));
   state.tasks.forEach((t,i)=>{
     if(t.dailySection==='Admin') t.dailySection='Study';
@@ -116,7 +151,7 @@ function normalizeState(state){
   state.events = (state.events||[]).map(e=>Object.assign({type:'event', color:eventColorForType(e.type||'event')}, e));
   return state;
 }
-function save(){ localStorage.setItem(KEY, JSON.stringify(S)); }
+function save(){ localStorage.setItem(currentStorageKey(), JSON.stringify(S)); }
 
 function isArchivedForTodo(t){
   return !!(t && (t.archived || (!t.isHabit && t.completed)));
@@ -282,6 +317,63 @@ function isTaskDone(t, dateStr=todayStr()){
 }
 function isDueSignalDone(t,dateStr){
   return !!(t?.dueCompletedDates && t.dueCompletedDates[dateStr]);
+}
+function uniqueDates(dates){
+  return [...new Set((dates||[]).filter(Boolean))].sort();
+}
+function removeCalendarDateFromTask(t,dateStr,opts={}){
+  if(!t || !dateStr) return;
+  if(Array.isArray(t.scheduledDates)){
+    t.scheduledDates=t.scheduledDates.filter(ds=>ds!==dateStr);
+  }
+  if(opts.moveDue && t.due===dateStr){
+    t.due='';
+  }
+}
+function moveTaskWorkDate(t,targetDate,sourceDate){
+  if(!t || !targetDate) return;
+  if(!Array.isArray(t.scheduledDates)) t.scheduledDates=[];
+  if(sourceDate && sourceDate!==targetDate) removeCalendarDateFromTask(t,sourceDate);
+  t.scheduledDates=uniqueDates([...t.scheduledDates,targetDate]);
+  if(t.completedDates && targetDate) t.completedDates[targetDate]=false;
+}
+function moveTaskDueDate(t,targetDate,sourceDate){
+  if(!t || !targetDate) return;
+  if(!t.dueCompletedDates) t.dueCompletedDates={};
+  if(sourceDate && sourceDate!==targetDate && t.dueCompletedDates[sourceDate]!==undefined){
+    delete t.dueCompletedDates[sourceDate];
+  }
+  t.due=targetDate;
+  t.calendarSignal='due';
+}
+function clearTaskFromCalendar(t){
+  if(!t) return;
+  t.scheduledDates=[];
+  if(t.completedDates) t.completedDates={};
+}
+function dateFromTs(ts){
+  if(!ts) return '';
+  const d=new Date(ts);
+  return Number.isNaN(d.getTime()) ? '' : localISO(d);
+}
+function taskArchiveDate(t){
+  return t?.completedDate || t?.archivedDate || dateFromTs(t?.completedAt) || dateFromTs(t?.archivedAt);
+}
+function isArchivedForDate(t,dateStr){
+  if(!isArchivedForTodo(t)) return false;
+  if(t?.completedDates && t.completedDates[dateStr]) return true;
+  return taskArchiveDate(t)===dateStr;
+}
+function isComposingInput(event){
+  return !!(event && (event.isComposing || event.keyCode===229 || event.which===229));
+}
+function shouldCommitTextInput(event){
+  if(!event) return true;
+  if(event.key && event.key!=='Enter') return false;
+  if(isComposingInput(event)) return false;
+  event.preventDefault?.();
+  event.stopPropagation?.();
+  return true;
 }
 
 // ════════════════════════════════════════════════════════════
@@ -729,8 +821,10 @@ function carryTaskToday(id, dateOverride){
   if(!t) return;
   const today=dateOverride || todayStr();
   if(!t.scheduledDates) t.scheduledDates=[];
-  if(!t.scheduledDates.includes(today)) t.scheduledDates.push(today);
+  const carriedFrom=[...(t.scheduledDates||[]), t.due].filter(Boolean).filter(ds=>ds<today).sort()[0]||'';
+  t.scheduledDates=uniqueDates(t.scheduledDates.filter(ds=>!ds || ds>=today).concat(today));
   t.carriedAt=Date.now();
+  t.carryFromDate=carriedFrom;
   calSelectedDate=today;
   save(); render(); showPage('todo');
 }
@@ -751,6 +845,7 @@ function completeCarryTask(id){
   if(!t) return;
   t.completed=true;
   t.completedAt=Date.now();
+  t.completedDate=calSelectedDate || todayStr();
   if(!t.isHabit){
     t.archived=true;
     t.archivedAt=Date.now();
@@ -882,12 +977,12 @@ function renderCenter(){
   const today = calSelectedDate || todayStr();
   const scheduledWork = S.tasks.filter(t=>!isArchivedForTodo(t) && (isHabitDueToday(t,today) || ((t.scheduledDates||[]).includes(today))));
   const dueSignals = S.tasks.filter(t=>!isArchivedForTodo(t) && !t.isHabit && t.due===today && !isTaskDone(t,today) && !isDueSignalDone(t,today));
-  const must = scheduledWork.filter(t=>t.priority==='MUST' && !isArchivedForTodo(t));
+  const must = sortTasks(scheduledWork.filter(t=>t.priority==='MUST' && !isArchivedForTodo(t)),'custom');
   const regularRaw = scheduledWork.filter(t=>t.priority!=='MUST' && !t.isHabit && !isArchivedForTodo(t));
-  const regular = dailySort==='section' ? regularRaw : sortTasks(regularRaw,dailySort);
-  const habits = scheduledWork.filter(t=>t.isHabit && !isArchivedForTodo(t));
-  const archivedTasks = S.tasks.filter(isArchivedForTodo);
-  const archivedDueSignals = completedDueSignals();
+  const regular = dailySort==='section' ? sortTasks(regularRaw,'custom') : sortTasks(regularRaw,dailySort);
+  const habits = sortTasks(scheduledWork.filter(t=>t.isHabit && !isArchivedForTodo(t)),'custom');
+  const archivedTasks = S.tasks.filter(t=>isArchivedForDate(t,today));
+  const archivedDueSignals = completedDueSignals(today);
   syncSortControls();
 
   const mustIncomplete = must.some(t=>!isTaskDone(t,today));
@@ -983,18 +1078,18 @@ function renderCenter(){
           ondragend="onTaskDragEnd(event)">
           <div class="archived-check">✓</div>
           <div class="archived-title">${esc(t.title)}</div>
-          <div class="archived-time">${t.completedAt?new Date(t.completedAt).toLocaleDateString():''}</div>
+              <div class="archived-time">${fmtDate(taskArchiveDate(t)||today)}</div>
           <button class="task-action" onclick="unarchiveTask('${t.id}')" title="Restore">↩</button>
         </div>`).join('')}
         </div>` : ''}`
     : `<div class="empty">Archive is empty.</div>`;
 }
 
-function completedDueSignals(){
+function completedDueSignals(dateStr=''){
   const rows=[];
   (S.tasks||[]).forEach(task=>{
     Object.keys(task.dueCompletedDates||{}).forEach(date=>{
-      if(task.dueCompletedDates[date]) rows.push({task,date});
+      if(task.dueCompletedDates[date] && (!dateStr || date===dateStr)) rows.push({task,date});
     });
   });
   return rows.sort((a,b)=>b.date.localeCompare(a.date) || String(a.task.title||'').localeCompare(String(b.task.title||'')));
@@ -1051,13 +1146,21 @@ function completeDueDate(event,id,dateStr){
   event?.stopPropagation?.();
   const task=S.tasks.find(t=>t.id===id);
   if(!task) return;
+  const before=JSON.parse(JSON.stringify(task));
   if(!task.dueCompletedDates) task.dueCompletedDates={};
-  const wasDone=!!task.dueCompletedDates[dateStr];
   task.dueCompletedDates[dateStr]=true;
+  if(!task.isHabit){
+    task.completed=true;
+    task.completedAt=Date.now();
+    task.completedDate=dateStr;
+    task.archived=true;
+    task.archivedAt=Date.now();
+    clearTaskFromCalendar(task);
+  }
   save(); render();
   showToast(`Due date cleared for "${task.title}"`,'Undo',()=>{
     const live=S.tasks.find(t=>t.id===id);
-    if(live?.dueCompletedDates) live.dueCompletedDates[dateStr]=wasDone;
+    restoreTaskSnapshot(live,before);
     save(); render();
   });
 }
@@ -1144,10 +1247,10 @@ function taskItemHTML(t, section, dateStr=todayStr()){
               <div class="subtask-line ${st.done?'done':''}">
                 <div class="task-cb" style="width:16px;height:16px;margin:0;border-radius:5px" onclick="toggleSubtask('${t.id}',${i})">${st.done?'✓':''}</div>
                 <span>${esc(st.text)}</span>
-              </div>`).join('') : `<div class="empty" style="padding:6px 0;text-align:left">No subtasks yet.</div>`}
+            </div>`).join('') : `<div class="empty" style="padding:6px 0;text-align:left">No subtasks yet.</div>`}
             <div class="subtask-add">
-              <input id="subAdd-${t.id}" placeholder="Add a small next step" onkeydown="if(event.key==='Enter')addSubtask('${t.id}')">
-              <button onclick="addSubtask('${t.id}')">Add</button>
+              <input id="subAdd-${t.id}" placeholder="Add a small next step" onkeydown="if(shouldCommitTextInput(event))addSubtask('${t.id}',event)">
+              <button onclick="addSubtask('${t.id}',event)">Add</button>
             </div>
           </div>
           <div class="progress-editor">
@@ -1184,6 +1287,7 @@ function toggleTask(id,dateStr){
   }
   const doneNow = isTaskDone(t,today);
   t.completedAt = doneNow ? Date.now() : null;
+  t.completedDate = doneNow ? today : '';
 
   if(doneNow){
     playPop(t.priority==='MUST'?1100:880);
@@ -1201,6 +1305,7 @@ function toggleTask(id,dateStr){
         t.archived=false;
         t.completed=false;
         t.completedAt=null;
+        t.completedDate='';
         save(); render();
       });
     }
@@ -1237,7 +1342,8 @@ function toggleSubtask(id,index){
   save(); render();
 }
 
-function addSubtask(id){
+function addSubtask(id,event){
+  if(!shouldCommitTextInput(event)) return;
   const input=document.getElementById('subAdd-'+id);
   const text=input?.value.trim();
   if(!text) return;
@@ -1283,6 +1389,7 @@ function duplicateTask(id){
   copy.title=`${original.title} copy`;
   copy.completed=false;
   copy.completedAt=null;
+  copy.completedDate='';
   copy.completedDates={};
   copy.dueCompletedDates={};
   copy.archived=false;
@@ -1396,7 +1503,7 @@ function designPrompt(title,message,defaultValue='',confirmLabel='Save',cancelLa
 function unarchiveTask(id){
   const t = S.tasks.find(t=>t.id===id);
   if(!t) return;
-  t.archived=false; t.completed=false; t.completedAt=null;
+  t.archived=false; t.completed=false; t.completedAt=null; t.completedDate='';
   save(); render();
 }
 
@@ -1439,7 +1546,7 @@ function saveTask(){
   const task = id ? S.tasks.find(t=>t.id===id) : null;
   const isNew = !task;
   const t = task || { id:uid(), createdAt:Date.now(), archived:false, completed:false,
-    completedAt:null, progress:0, subtasks:[], focusPoints:0, scheduledDates:[], completedDates:{}, dueCompletedDates:{} };
+    completedAt:null, completedDate:'', progress:0, subtasks:[], focusPoints:0, scheduledDates:[], completedDates:{}, dueCompletedDates:{} };
   if(isNew && nlpEditDraft){
     t.nlpSource=nlpEditDraft.source||'';
     t.nlpParsedSnapshot=Object.assign({}, nlpEditDraft);
@@ -1560,7 +1667,8 @@ function renderModalSubtasks(){
     </div>`).join('') : `<div class="empty" style="padding:8px 0;text-align:left">No subtasks yet. Add one at a time.</div>`;
 }
 
-function addModalSubtask(){
+function addModalSubtask(event){
+  if(!shouldCommitTextInput(event)) return;
   const input=document.getElementById('modalSubtaskInput');
   const text=input?.value.trim();
   if(!text) return;
@@ -1766,6 +1874,7 @@ async function makeTaskHabit(t,dateStr,ask=true){
   t.habitEnd=t.habitEnd || '';
   t.completed=false;
   t.completedAt=null;
+  t.completedDate='';
   t.archived=false;
   showToast(`"${t.title}" is now a habit`);
   return true;
@@ -1781,6 +1890,7 @@ async function makeHabitSingleTask(t,dateStr,sec='Study',ask=true){
   t.completedDates={};
   t.completed=false;
   t.completedAt=null;
+  t.completedDate='';
   t.archived=false;
   t.dailySection = sec && sec !== '__due__' && sec !== '__habits__' && sec !== 'habit' && sec !== 'must' ? sec : 'Study';
   t.scheduledDates=[ds];
@@ -1792,6 +1902,7 @@ function unarchiveForDrop(t,dateStr){
   t.archived=false;
   t.completed=false;
   t.completedAt=null;
+  t.completedDate='';
   t.archivedAt=null;
   if(t.completedDates && dateStr) t.completedDates[dateStr]=false;
   return true;
@@ -1855,15 +1966,13 @@ async function onSectionDrop(e, sec, dateStr){
     setCustomSortForContext('daily');
   } else if(sec==='__due__'){
     if(t.isHabit && !await makeHabitSingleTask(t,ds,'Study',true)){ resetDraggedTask(); return; }
-    t.due = ds;
-    t.calendarSignal = 'due';
+    moveTaskDueDate(t,ds,draggedTaskDate);
     showToast(`Due date set to ${fmtDate(ds)}`);
   } else {
     if(t.isHabit && !await makeHabitSingleTask(t,ds,sec,true)){ resetDraggedTask(); return; }
     // Move to this subsection and schedule for date
     t.dailySection = sec;
-    if(!t.scheduledDates) t.scheduledDates=[];
-    if(!t.scheduledDates.includes(ds)) t.scheduledDates.push(ds);
+    moveTaskWorkDate(t,ds,draggedTaskSection==='bank' || draggedTaskSection==='archive' ? '' : draggedTaskDate);
     if(sec==='must') t.priority='MUST';
     showToast(restored ? `Restored "${t.title}" to ${sectionLabel(sec)}` : `Moved to "${sectionLabel(sec)}"`);
   }
@@ -2076,7 +2185,7 @@ function confirmNLP(){
   if(!nlpParsed) return;
   const t={
     id:uid(), createdAt:Date.now(), archived:false, completed:false,
-    completedAt:null, progress:0, subtasks:[], focusPoints:0,
+    completedAt:null, completedDate:'', progress:0, subtasks:[], focusPoints:0,
     title:nlpParsed.title, subject:nlpParsed.subject, type:nlpParsed.type,
     priority:nlpParsed.priority, due:nlpParsed.due,
     scheduledTime:nlpParsed.scheduledTime, isHabit:nlpParsed.isHabit,
@@ -2187,6 +2296,7 @@ function runCalibrationSession(){
     cycles:0,
     targetCycles:1,
     sessionStart:Date.now(),
+    lastTickAt:Date.now(),
     sessionId:uid(),
     plannedFocus:0,
     plannedBreak:0,
@@ -2199,6 +2309,7 @@ function runCalibrationSession(){
   S.tasks.forEach(t=>{ sessionTaskSnapshot[t.id]=isTaskDone(t,todayStr()); });
   clearInterval(pomoTimer);
   pomoTimer=setInterval(tickPomo,1000);
+  savePomoRuntime();
   updateCycleDisplay();
   updateHUDDisplay(0, pr.focus*60);
   document.getElementById('hudPlay').textContent='⏸';
@@ -2216,6 +2327,79 @@ function getPomoConfig(){
     cycles:Number(S.settings.pomo.cycles)||base.cycles,
     name:base.name
   };
+}
+function pomoPhaseTotal(){
+  const pr=getPomoConfig();
+  if(pomoState.phase==='break' || pomoState.phase==='breakOver') return (pomoState.plannedBreak||pr.short*60);
+  if(pomoState.phase==='calibrationFocus' || pomoState.phase==='calibrationBreak') return 0;
+  return (pomoState.plannedFocus||pr.focus*60);
+}
+function savePomoRuntime(){
+  try{
+    const hasRuntime=pomoState.running || pomoState.sessionStart || pendingFocusReport;
+    if(!hasRuntime){
+      localStorage.removeItem(POMO_RUNTIME_KEY);
+      return;
+    }
+    localStorage.setItem(POMO_RUNTIME_KEY, JSON.stringify({
+      storageKey:currentStorageKey(),
+      savedAt:Date.now(),
+      taskId:currentPomoTask?.id||'',
+      pomoState,
+      pendingFocusReport,
+      sessionTaskSnapshot,
+      sessionDistractionLog
+    }));
+  }catch(e){}
+}
+function syncPomoClock(){
+  if(!pomoState.running) return;
+  const now=Date.now();
+  const last=Number(pomoState.lastTickAt || now);
+  const delta=Math.max(0, Math.floor((now-last)/1000));
+  if(!delta) return;
+  pomoState.lastTickAt=last + delta*1000;
+  const ph=pomoState.phase;
+  if(ph==='calibrationFocus' || ph==='calibrationBreak'){
+    pomoState.elapsed=(pomoState.elapsed||0)+delta;
+    return;
+  }
+  if(ph==='focusOver' || ph==='breakOver'){
+    pomoState.extendedElapsed=(pomoState.extendedElapsed||0)+delta;
+    return;
+  }
+  const total=pomoPhaseTotal();
+  pomoState.elapsed=(pomoState.elapsed||0)+delta;
+  if(total && pomoState.elapsed>=total){
+    const over=pomoState.elapsed-total;
+    pomoState.elapsed=total;
+    pomoState.extendedElapsed=over;
+    pomoState.phase=ph==='break' ? 'breakOver' : 'focusOver';
+  }
+}
+function restorePomoRuntime(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(POMO_RUNTIME_KEY)||'null');
+    if(!raw || raw.storageKey!==currentStorageKey()) return;
+    if(raw.savedAt && Date.now()-raw.savedAt>1000*60*60*36){
+      localStorage.removeItem(POMO_RUNTIME_KEY);
+      return;
+    }
+    pomoState=Object.assign({},pomoState,raw.pomoState||{});
+    pendingFocusReport=raw.pendingFocusReport||null;
+    sessionTaskSnapshot=raw.sessionTaskSnapshot||{};
+    sessionDistractionLog=Array.isArray(raw.sessionDistractionLog) ? raw.sessionDistractionLog : [];
+    currentPomoTask=raw.taskId ? S.tasks.find(t=>t.id===raw.taskId)||null : null;
+    if(pomoState.running){
+      pomoState.lastTickAt=raw.savedAt||pomoState.lastTickAt||Date.now();
+      syncPomoClock();
+      clearInterval(pomoTimer);
+      pomoTimer=setInterval(tickPomo,1000);
+    }
+  }catch(e){}
+}
+function clearPomoRuntime(){
+  try{ localStorage.removeItem(POMO_RUNTIME_KEY); }catch(e){}
 }
 
 function setPomoPreset(p){
@@ -2310,8 +2494,8 @@ function renderHudTaskPicker(){
   const wrap=document.getElementById('hudTaskPicker');
   if(!wrap) return;
   const today=calSelectedDate || todayStr();
-  const todays=getTasksForDate(today).filter(t=>!isTaskDone(t,today));
-  const bank=S.tasks.filter(t=>!t.archived && !t.completed && !todays.some(x=>x.id===t.id)).slice(0,8);
+  const todays=sortTasks(getTasksForDate(today).filter(t=>!isTaskDone(t,today)),'custom');
+  const bank=sortTasks(S.tasks.filter(t=>!t.archived && !t.completed && !todays.some(x=>x.id===t.id)),'custom').slice(0,8);
   const tasks=[...todays, ...bank].slice(0,14);
   if(!tasks.length){
     wrap.innerHTML='<div class="empty" style="padding:14px;text-align:left">No open tasks. Add or schedule a task to focus.</div>';
@@ -2363,6 +2547,7 @@ function logDistraction(){
     cycleNum: pomoState.cycles + 1
   });
   save();
+  savePomoRuntime();
   showToast(`Noted! Let's get back to "${goal}"…`);
 }
 
@@ -2525,35 +2710,45 @@ function togglePomo(){
       S.tasks.forEach(t=>{ sessionTaskSnapshot[t.id]=isTaskDone(t,todayStr()); });
       updateCycleDisplay();
     }
+    pomoState.lastTickAt=Date.now();
     if(currentPage==='focus') toggleFocusFull(true);
+    clearInterval(pomoTimer);
     pomoTimer=setInterval(tickPomo,1000);
   } else {
+    syncPomoClock();
+    pomoState.lastTickAt=null;
     clearInterval(pomoTimer);
   }
+  savePomoRuntime();
 }
 
 
 
 function tickPomo(){
-  const pr=getPomoConfig();
-  const total=(pomoState.phase==='focus'?pr.focus:pomoState.phase==='break'?pr.short:pr.focus)*60;
+  const before=pomoState.phase;
+  syncPomoClock();
+  const total=pomoPhaseTotal() || getPomoConfig().focus*60;
+  if(before!==pomoState.phase && (pomoState.phase==='focusOver' || pomoState.phase==='breakOver')){
+    playAlarm();
+    if(pomoState.phase==='focusOver'){
+      showToast('Focus time is done. Extended focus is now tracking until you start break.', 'Start break', startBreakPhase);
+    } else {
+      showToast('Break time is done. Extended break is tracking until you return to study.', 'Study now', startNextFocusPhase);
+    }
+  }
   if(pomoState.phase==='calibrationFocus' || pomoState.phase==='calibrationBreak'){
-    pomoState.elapsed++;
     updateHUDDisplay(-pomoState.elapsed, total);
-    return;
-  }
-  if(pomoState.phase==='focusOver' || pomoState.phase==='breakOver'){
-    pomoState.extendedElapsed++;
+  } else if(pomoState.phase==='focusOver' || pomoState.phase==='breakOver'){
     updateHUDDisplay(-pomoState.extendedElapsed, total);
-    return;
+  } else {
+    updateHUDDisplay(total-pomoState.elapsed, total);
   }
-  pomoState.elapsed++;
-  updateHUDDisplay(total-pomoState.elapsed, total);
-  if(pomoState.elapsed>=total) endPomoPhase();
+  savePomoRuntime();
 }
 
 function endPomoPhase(){
   clearInterval(pomoTimer); pomoState.running=true;
+  syncPomoClock();
   playAlarm();
   const pr=getPomoConfig();
   if(pomoState.phase==='focus'){
@@ -2565,17 +2760,20 @@ function endPomoPhase(){
     pomoState.extendedElapsed=0;
     showToast('Break time is done. Extended break is tracking until you return to study.', 'Study now', startNextFocusPhase);
   }
+  pomoState.lastTickAt=Date.now();
   pomoTimer=setInterval(tickPomo,1000);
   updateHUDDisplay(0, pr.focus*60);
+  savePomoRuntime();
 }
 
 function resetPomo(){
   clearInterval(pomoTimer);
   const pr=getPomoConfig();
-  pomoState={running:false,phase:'focus',elapsed:0,cycles:0,targetCycles:pr.cycles||4,sessionStart:null,sessionId:uid(),plannedFocus:pr.focus*60,plannedBreak:pr.short*60,extendedElapsed:0,breakElapsed:0};
+  pomoState={running:false,phase:'focus',elapsed:0,cycles:0,targetCycles:pr.cycles||4,sessionStart:null,lastTickAt:null,sessionId:uid(),plannedFocus:pr.focus*60,plannedBreak:pr.short*60,extendedElapsed:0,breakElapsed:0};
   pendingFocusReport=null;
   sessionTaskSnapshot={};
   sessionDistractionLog=[];
+  clearPomoRuntime();
   updateHUDDisplay(pr.focus*60, pr.focus*60);
   document.getElementById('hudPlay').textContent='▶';
   document.getElementById('hudPlay').classList.remove('active');
@@ -2596,6 +2794,7 @@ async function goBreakNow(){
 
 function startBreakPhase(){
   clearInterval(pomoTimer);
+  syncPomoClock();
   const pr=getPomoConfig();
   const actualFocusSec=(pomoState.phase==='focusOver'?pomoState.plannedFocus+pomoState.extendedElapsed:pomoState.elapsed);
 
@@ -2624,16 +2823,18 @@ function startBreakPhase(){
   S.sessions.push({id:uid(),taskId:currentPomoTask?.id,date:todayStr(),type:'focus',dur:Math.round(actualFocusSec/60),completed:true,ts:Date.now()});
   if(currentPomoTask) currentPomoTask.focusPoints=(currentPomoTask.focusPoints||0)+Math.round(actualFocusSec/60);
   pomoState.phase=isCalibration?'calibrationBreak':'break';
-  pomoState.elapsed=0; pomoState.extendedElapsed=0; pomoState.running=true; pomoState.plannedBreak=isCalibration?0:pr.short*60;
+  pomoState.elapsed=0; pomoState.extendedElapsed=0; pomoState.running=true; pomoState.lastTickAt=Date.now(); pomoState.plannedBreak=isCalibration?0:pr.short*60;
   save(); renderFocusReports(); updateEOPR();
   updateCycleDisplay();
   pomoTimer=setInterval(tickPomo,1000);
   updateHUDDisplay(isCalibration?0:pr.short*60, pr.short*60);
+  savePomoRuntime();
   if(isCalibration) showToast('Break stopwatch started. Return when you feel recovered near 30%, then press Study Now.');
 }
 
 function startNextFocusPhase(){
   clearInterval(pomoTimer);
+  syncPomoClock();
   const actualBreakSec=(pomoState.phase==='breakOver'?pomoState.plannedBreak+pomoState.extendedElapsed:pomoState.elapsed);
   if(pendingFocusReport){
     pendingFocusReport.actualBreakSec=actualBreakSec;
@@ -2667,16 +2868,18 @@ function startNextFocusPhase(){
     endSession(true);
     return;
   }
-  pomoState={running:false,phase:'focus',elapsed:0,cycles:newCycles,targetCycles:pomoState.targetCycles,sessionStart:pomoState.sessionStart,sessionId:pomoState.sessionId,plannedFocus:pr.focus*60,plannedBreak:pr.short*60,extendedElapsed:0,breakElapsed:0};
+  pomoState={running:false,phase:'focus',elapsed:0,cycles:newCycles,targetCycles:pomoState.targetCycles,sessionStart:pomoState.sessionStart,lastTickAt:null,sessionId:pomoState.sessionId,plannedFocus:pr.focus*60,plannedBreak:pr.short*60,extendedElapsed:0,breakElapsed:0};
   save(); renderFocusReports(); updatePersonalTimerUI();
   updateCycleDisplay();
   updateHUDDisplay(pr.focus*60, pr.focus*60);
   document.getElementById('hudPlay').textContent='▶';
   document.getElementById('hudPlay').classList.remove('active');
+  savePomoRuntime();
 }
 
 function endSession(auto){
   clearInterval(pomoTimer);
+  syncPomoClock();
   if(pendingFocusReport){
     if(pomoState.phase==='break' || pomoState.phase==='calibrationBreak') pendingFocusReport.actualBreakSec=pomoState.elapsed;
     if(pomoState.phase==='breakOver') pendingFocusReport.actualBreakSec=(pomoState.plannedBreak||0)+pomoState.extendedElapsed;
@@ -2778,7 +2981,7 @@ function updateEOPR(){
   document.getElementById('eoprVal').textContent=score+'%';
   const today=todayStr();
   S.eoprLog=(S.eoprLog||[]).filter(x=>x.date!==today).concat({date:today,score,ts:Date.now()}).slice(-31);
-  localStorage.setItem(KEY, JSON.stringify(S));
+  save();
 }
 
 // ════════════════════════════════════════════════════════════
@@ -3345,12 +3548,10 @@ async function onTaskRowDrop(e,targetId,section='',dateStr=''){
     if(!await makeTaskHabit(source,ds,true)){ resetDraggedTask(); return; }
   }else if(targetSection==='__due__'){
     if(source.isHabit && !await makeHabitSingleTask(source,ds,'Study',true)){ resetDraggedTask(); return; }
-    source.due=ds;
-    source.calendarSignal='due';
+    moveTaskDueDate(source,ds,draggedTaskDate);
   }else{
     if(source.isHabit && !await makeHabitSingleTask(source,ds,targetSection,true)){ resetDraggedTask(); return; }
-    if(!source.scheduledDates) source.scheduledDates=[];
-    if(!source.scheduledDates.includes(ds)) source.scheduledDates.push(ds);
+    moveTaskWorkDate(source,ds,draggedTaskSection==='bank' || draggedTaskSection==='archive' ? '' : draggedTaskDate);
     source.dailySection=targetSection==='must' ? (target.dailySection||'Study') : (targetSection||target.dailySection||'Study');
     if(targetSection==='must' || target.priority==='MUST') source.priority='MUST';
   }
@@ -3438,6 +3639,7 @@ function onArchiveDrop(e){
   }
   t.completed=true;
   t.completedAt=Date.now();
+  t.completedDate=ds;
   t.archived=true;
   t.archivedAt=Date.now();
   save(); render();
@@ -3470,8 +3672,11 @@ async function onCalDrop(e,ds){
   if(choice){
     if(t.isHabit && !await makeHabitSingleTask(t,ds,'Study',true)){ resetDraggedTask(); return; }
     // Schedule as task
-    if(!t.scheduledDates) t.scheduledDates=[];
-    if(!t.scheduledDates.includes(ds)) t.scheduledDates.push(ds);
+    if(draggedTaskSection==='__due__'){
+      moveTaskDueDate(t,ds,draggedTaskDate);
+    } else {
+      moveTaskWorkDate(t,ds,draggedTaskSection==='bank' || draggedTaskSection==='archive' ? '' : draggedTaskDate);
+    }
     showToast(`Scheduled "${t.title}" for ${fmtDate(ds)}`);
   } else {
     // Add as event
@@ -3588,6 +3793,7 @@ function convertEventToTask(){
     archived:false,
     completed:false,
     completedAt:null,
+    completedDate:'',
     completedDates:{},
     title:ev.title||'Untitled task',
     subject:ev.subject||'',
@@ -3970,6 +4176,7 @@ function openSettings(){
   document.getElementById('sPomoLong').value=S.settings.pomo.longBreak;
   document.getElementById('sPomoCycles').value=S.settings.pomo.cycles;
   document.getElementById('sAlarmSound').value=S.settings.alarmSound||'chime';
+  setupAuthUI();
   renderDeletedList();
 }
 function saveSettings(){
@@ -3981,6 +4188,130 @@ function saveSettings(){
   S.settings.pomo.cycles=+document.getElementById('sPomoCycles').value||4;
   S.settings.alarmSound=document.getElementById('sAlarmSound').value||'chime';
   applyTheme(); save(); closeModal('mSettings'); resetPomo();
+}
+
+// ════════════════════════════════════════════════════════════
+//  ACCOUNT GATE
+// ════════════════════════════════════════════════════════════
+function setupAuthUI(){
+  const gate=document.getElementById('authGate');
+  const name=document.getElementById('authName');
+  const email=document.getElementById('authEmail');
+  const label=document.getElementById('accountLabel');
+  const firebaseUser=window.JayFirebaseAuth?.currentUser;
+  if(firebaseUser && activeUser?.uid!==firebaseUser.uid) applyAuthenticatedUser(firebaseUser,false);
+  if(name) name.value=activeUser?.name && activeUser.name!=='Local user' ? activeUser.name : (S.settings.name||'');
+  if(email) email.value=activeUser?.email||'';
+  if(label) label.textContent=activeUser?.signedIn ? `${activeUser.email||activeUser.name||'Signed in'}${activeUser.mode==='firebase'?' (Firebase)':''}` : 'Local browser data';
+  setAuthStatus(window.JayFirebaseAuth?.enabled
+    ? 'Firebase Auth ready. Use your email and password.'
+    : 'Firebase is not configured yet. Fill firebase-config.js, then refresh.');
+  if(gate) gate.classList.toggle('show', !activeUser?.signedIn && !localStorage.getItem(KEY+'_auth_dismissed'));
+  if(!window.__authGateEscapeReady){
+    window.__authGateEscapeReady=true;
+    document.addEventListener('keydown', e=>{
+      if(e.key==='Escape' && document.getElementById('authGate')?.classList.contains('show')) useLocalMode();
+    });
+    document.addEventListener('jay-auth-state', e=>{
+      if(e.detail) applyAuthenticatedUser(e.detail,true);
+      else if(activeUser?.mode==='firebase') signOutLocalAccount(false);
+    });
+    document.addEventListener('jay-auth-unconfigured', ()=>{
+      setAuthStatus('Firebase is not configured yet. Fill firebase-config.js, then refresh.');
+    });
+  }
+}
+function setAuthStatus(message){
+  const el=document.getElementById('authStatus');
+  if(el) el.textContent=message;
+}
+function useLocalMode(){
+  localStorage.setItem(KEY+'_auth_dismissed','1');
+  document.getElementById('authGate')?.classList.remove('show');
+  showToast('Using local browser data. You can link an account from Settings.');
+}
+function applyAuthenticatedUser(user,shouldRender=true){
+  if(!user?.uid) return;
+  save();
+  const nextUser={
+    uid:user.uid,
+    email:user.email||'',
+    name:user.name||user.email?.split('@')[0]||'User',
+    mode:user.mode||'firebase',
+    signedIn:true,
+    linkedAt:Date.now()
+  };
+  const targetKey=storageKeyForUser(nextUser);
+  if(!localStorage.getItem(targetKey)){
+    localStorage.setItem(targetKey, JSON.stringify(S));
+  }
+  activeUser=nextUser;
+  localStorage.setItem(AUTH_KEY, JSON.stringify(activeUser));
+  localStorage.setItem(KEY+'_auth_dismissed','1');
+  S=loadState();
+  S.settings.name=S.settings.name || activeUser.name;
+  save();
+  document.getElementById('authGate')?.classList.remove('show');
+  if(shouldRender){
+    setupAuthUI();
+    render();
+    showToast(`Signed in as ${activeUser.email || activeUser.name}.`);
+  }
+}
+async function signInLocalAccount(event){
+  event?.preventDefault?.();
+  const action=event?.submitter?.dataset?.authAction || 'login';
+  const email=(document.getElementById('authEmail')?.value||'').trim().toLowerCase();
+  const name=(document.getElementById('authName')?.value||'').trim() || email.split('@')[0] || 'User';
+  const password=document.getElementById('authPassword')?.value||'';
+  if(!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){
+    showToast('Enter a valid email to create or open an account.');
+    return;
+  }
+  if(!window.JayFirebaseAuth?.enabled){
+    setAuthStatus('Firebase is not configured yet. Fill firebase-config.js with your Firebase web app config.');
+    showToast('Firebase is not configured yet.');
+    return;
+  }
+  try{
+    setAuthStatus(action==='signup' ? 'Creating account...' : action==='reset' ? 'Sending reset email...' : 'Logging in...');
+    if(action==='reset'){
+      await window.JayFirebaseAuth.resetPassword(email);
+      setAuthStatus('Password reset email sent.');
+      showToast('Password reset email sent.');
+      return;
+    }
+    if(password.length<8){
+      setAuthStatus('Password must be at least 8 characters.');
+      showToast('Password must be at least 8 characters.');
+      return;
+    }
+    const user=action==='signup'
+      ? await window.JayFirebaseAuth.signUp(email,password,name)
+      : await window.JayFirebaseAuth.signIn(email,password);
+    applyAuthenticatedUser(user,true);
+  }catch(err){
+    const msg=String(err?.message||err||'Authentication failed.').replace(/^Firebase:\s*/,'');
+    setAuthStatus(msg);
+    showToast(msg);
+  }
+}
+async function signOutLocalAccount(callFirebase=true){
+  save();
+  if(callFirebase && window.JayFirebaseAuth?.enabled && activeUser?.mode==='firebase'){
+    try{ await window.JayFirebaseAuth.signOut(); }catch(e){}
+  }
+  activeUser={uid:'local', email:'', name:'Local user', mode:'local', signedIn:false};
+  localStorage.setItem(AUTH_KEY, JSON.stringify(activeUser));
+  S=loadState();
+  setupAuthUI();
+  render();
+  showToast('Signed out. Showing local browser data.');
+}
+function openAuthGate(){
+  localStorage.removeItem(KEY+'_auth_dismissed');
+  setupAuthUI();
+  document.getElementById('authGate')?.classList.add('show');
 }
 
 function playPop(freq=880){
@@ -4030,8 +4361,14 @@ function checkThursdayReview(){
   applyTheme();
   openSettings(); // pre-fill settings form
   document.querySelectorAll('.pomo-preset-btn,.pomo-preset-card').forEach(b=>b.classList.toggle('active',b.dataset.preset===S.settings.pomo.presetMode));
+  setupAuthUI();
+  restorePomoRuntime();
   const pr=getPomoConfig();
-  updateHUDDisplay(pr.focus*60,pr.focus*60);
+  if(pomoState.phase==='calibrationFocus' || pomoState.phase==='calibrationBreak') updateHUDDisplay(-pomoState.elapsed, pr.focus*60);
+  else if(pomoState.phase==='focusOver' || pomoState.phase==='breakOver') updateHUDDisplay(-pomoState.extendedElapsed, pomoPhaseTotal() || pr.focus*60);
+  else updateHUDDisplay((pomoPhaseTotal() || pr.focus*60)-pomoState.elapsed, pomoPhaseTotal() || pr.focus*60);
+  document.getElementById('hudPlay').textContent=pomoState.running?'⏸':'▶';
+  document.getElementById('hudPlay').classList.toggle('active',!!pomoState.running);
   render();
   checkThursdayReview();
 

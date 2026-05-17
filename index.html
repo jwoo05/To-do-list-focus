@@ -40,6 +40,31 @@
 </template>
 </head>
 <body>
+<div class="auth-gate" id="authGate" onclick="if(event.target===this)useLocalMode()">
+  <form class="auth-card" onsubmit="signInLocalAccount(event)">
+    <button class="auth-close" type="button" onclick="useLocalMode()" title="Close">✕</button>
+    <div class="auth-head">
+      <div class="auth-mark">J</div>
+      <div>
+        <div class="auth-title">Jay's Hub</div>
+        <div class="auth-sub">Sign in with Firebase email/password so every user has a real authenticated account.</div>
+      </div>
+    </div>
+    <label>Name</label>
+    <input id="authName" placeholder="Your name" autocomplete="name">
+    <label>Email</label>
+    <input id="authEmail" type="text" inputmode="email" placeholder="you@example.com" autocomplete="email" required>
+    <label>Password</label>
+    <input id="authPassword" type="password" placeholder="8+ characters" autocomplete="current-password" minlength="8" required>
+    <div class="auth-actions">
+      <button class="btn btn-accent auth-primary" type="submit" data-auth-action="login">Log in</button>
+      <button class="btn btn-outline auth-secondary" type="submit" data-auth-action="signup">Create account</button>
+    </div>
+    <button class="auth-link" type="submit" data-auth-action="reset" formnovalidate>Reset password</button>
+    <button class="btn btn-outline auth-secondary" type="button" onclick="useLocalMode()">Continue on this browser</button>
+    <p class="auth-note" id="authStatus">Add your Firebase web config in firebase-config.js, enable Email/Password in Firebase Auth, then deploy all files together.</p>
+  </form>
+</div>
 <div class="app">
 
   <!-- ═══ SIDEBAR ═══ -->
@@ -74,6 +99,7 @@
         <button class="density-btn"        data-d="normal"   onclick="setDensity('normal')"   title="Normal">M</button>
         <button class="density-btn"        data-d="spacious" onclick="setDensity('spacious')" title="Spacious">L</button>
       </div>
+      <button class="panel-toggle account-toggle" onclick="openAuthGate()" title="Account">◎</button>
       <button class="panel-toggle" onclick="openModal('mSettings')" title="Settings">⚙</button>
     </div>
   </aside>
@@ -812,8 +838,8 @@
         <label>Subtasks</label>
         <div class="modal-subtasks" id="modalSubtaskList"></div>
         <div class="modal-subtask-add">
-          <input id="modalSubtaskInput" placeholder="Add a small step…" onkeydown="if(event.key==='Enter')addModalSubtask()">
-          <button class="btn btn-outline" type="button" onclick="addModalSubtask()">Add</button>
+          <input id="modalSubtaskInput" placeholder="Add a small step…" onkeydown="if(shouldCommitTextInput(event))addModalSubtask(event)">
+          <button class="btn btn-outline" type="button" onclick="addModalSubtask(event)">Add</button>
         </div>
       </div>
       <div class="form-actions">
@@ -1026,6 +1052,19 @@
         </select>
       </div>
       <div class="form-row" style="margin-top:12px">
+        <label>Account</label>
+        <div class="account-box">
+          <div>
+            <strong id="accountLabel">Local browser data</strong>
+            <span>Backups can move this data into a hosted Firebase/Netlify account.</span>
+          </div>
+          <div class="account-actions">
+            <button class="btn btn-outline" onclick="openAuthGate()">Link / switch</button>
+            <button class="btn btn-outline" onclick="signOutLocalAccount()">Sign out</button>
+          </div>
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:12px">
         <label>Backup Data</label>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-outline" onclick="exportBackup()">Export backup</button>
@@ -1158,140 +1197,10 @@
   </div>
 </div>
 
+<script src="firebase-config.js"></script>
+<script type="module" src="focus-auth.js"></script>
 <script src="focus-logic.js"></script>
 
-<!-- Tweaks Panel -->
-<div id="tweaks-root"></div>
 <div class="chart-tooltip" id="chartTooltip"></div>
-<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
-<script type="text/babel" src="tweaks-panel.jsx"></script>
-<script type="text/babel">
-const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
-  "fontSize": 13,
-  "headingFont": "serif",
-  "accentColor": "#7A4F2D",
-  "density": "normal",
-  "radius": 4,
-  "darkMode": true
-}/*EDITMODE-END*/;
-
-function applyTweaks(t) {
-  const root = document.documentElement;
-  // Font size
-  root.style.setProperty('font-size', t.fontSize + 'px');
-  document.body.style.fontSize = t.fontSize + 'px';
-  // Heading font
-  const serif = "'Source Serif 4', Georgia, serif";
-  const sans  = "'Inter', system-ui, sans-serif";
-  const headFont = t.headingFont === 'serif' ? serif : sans;
-  root.style.setProperty('--font-heading', headFont);
-  document.querySelectorAll('.view-title, .cal-month, .modal-title, .pomo-big-time, .pomo-task-name, .review-value, .success-center strong, .guide-card strong, .health-cell strong, .mini-stat strong, .thu-title, .logo-text').forEach(el => {
-    el.style.fontFamily = headFont;
-  });
-  // Accent color
-  root.style.setProperty('--accent', t.accentColor);
-  // Border radius
-  root.style.setProperty('--radius',    t.radius + 'px');
-  root.style.setProperty('--radius-sm', Math.max(1, t.radius - 1) + 'px');
-  root.style.setProperty('--radius-lg', Math.min(12, t.radius * 2) + 'px');
-  // Density: affects base padding on task items, sections, etc.
-  const densityMap = {
-    compact:  { pad:'7px 10px',  bank:'7px 9px',   daily:'5px 12px',  sub:'6px 12px',  cal:'44px', font:'12px' },
-    normal:   { pad:'11px 15px', bank:'9px 11px',  daily:'7px 14px',  sub:'8px 14px',  cal:'55px', font:'13px' },
-    spacious: { pad:'16px 22px', bank:'13px 15px', daily:'11px 18px', sub:'12px 18px', cal:'68px', font:'15px' }
-  };
-  const density = densityMap[t.density] || densityMap.normal;
-  root.dataset.density = t.density;
-  root.style.setProperty('--density-pad', density.pad);
-  root.style.setProperty('--bank-task-pad', density.bank);
-  root.style.setProperty('--daily-section-pad', density.daily);
-  root.style.setProperty('--sub-section-pad', density.sub);
-  root.style.setProperty('--cal-cell-h', density.cal);
-  root.style.setProperty('--density-font', density.font);
-  document.body.style.fontSize = density.font;
-  document.querySelectorAll('.task-item').forEach(el => { el.style.padding = density.pad; });
-  document.querySelectorAll('.sec-header').forEach(el => { el.style.padding = density.pad; });
-  document.querySelectorAll('.bank-task').forEach(el => { el.style.padding = density.bank; });
-  document.querySelectorAll('.daily-section-header').forEach(el => { el.style.padding = density.daily; });
-  document.querySelectorAll('.sub-sec-header').forEach(el => { el.style.padding = density.sub; });
-  if (window.syncCalViewToggle) requestAnimationFrame(window.syncCalViewToggle);
-  // Dark mode
-  const theme = t.darkMode ? 'dark' : 'light';
-  if (document.documentElement.dataset.theme !== theme) {
-    document.documentElement.dataset.theme = theme;
-    const S_raw = localStorage.getItem('jay_hub_v3');
-    if (S_raw) {
-      try {
-        const S = JSON.parse(S_raw);
-        S.settings = S.settings || {};
-        S.settings.theme = theme;
-        localStorage.setItem('jay_hub_v3', JSON.stringify(S));
-      } catch(e) {}
-    }
-    const btn = document.getElementById('themeBtn');
-    if (btn) btn.textContent = t.darkMode ? 'Light' : 'Dark';
-  }
-}
-
-function FocusAppTweaks() {
-  const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
-
-  React.useEffect(() => { applyTweaks(tweaks); }, [tweaks]);
-
-  return (
-    <TweaksPanel>
-      <TweakSection label="Typography">
-        <TweakSlider
-          label="Base Font Size"
-          value={tweaks.fontSize}
-          min={11} max={16} step={1}
-          onChange={v => setTweak('fontSize', v)}
-        />
-        <TweakRadio
-          label="Heading Style"
-          value={tweaks.headingFont}
-          options={[{ label: 'Serif', value: 'serif' }, { label: 'Sans', value: 'sans' }]}
-          onChange={v => setTweak('headingFont', v)}
-        />
-      </TweakSection>
-      <TweakSection label="Colour">
-        <TweakColor
-          label="Accent"
-          value={tweaks.accentColor}
-          options={['#2C4A8B','#3A6B52','#7A4F2D','#5A4A88']}
-          onChange={v => setTweak('accentColor', v)}
-        />
-        <TweakToggle
-          label="Dark Mode"
-          value={tweaks.darkMode}
-          onChange={v => setTweak('darkMode', v)}
-        />
-      </TweakSection>
-      <TweakSection label="Layout">
-        <TweakRadio
-          label="Density"
-          value={tweaks.density}
-          options={[
-            { label: 'Compact', value: 'compact' },
-            { label: 'Normal',  value: 'normal'  },
-            { label: 'Spacious',value: 'spacious'}
-          ]}
-          onChange={v => setTweak('density', v)}
-        />
-        <TweakSlider
-          label="Border Radius"
-          value={tweaks.radius}
-          min={0} max={10} step={1}
-          onChange={v => setTweak('radius', v)}
-        />
-      </TweakSection>
-    </TweaksPanel>
-  );
-}
-
-ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<FocusAppTweaks />);
-</script>
 </body>
 </html>
