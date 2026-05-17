@@ -162,10 +162,15 @@ function save(){
 }
 function scheduleCloudSave(){
   if(suppressCloudSave || !cloudReady || activeUser?.mode!=='firebase' || !window.JayFirebaseAuth?.enabled) return;
+  if(!activeUser?.uid || activeUser.uid==='local') return;
   clearTimeout(cloudSaveTimer);
+  const snapshotUid=activeUser.uid;
   cloudSaveTimer=setTimeout(async ()=>{
+    if(!cloudReady || activeUser?.mode!=='firebase' || activeUser?.uid!==snapshotUid){
+      return;
+    }
     try{
-      await window.JayFirebaseAuth.saveState(activeUser.uid, S);
+      await window.JayFirebaseAuth.saveState(snapshotUid, S);
       setAuthStatus('Saved to cloud.');
     }catch(err){
       setAuthStatus('Cloud save failed. Check Realtime Database rules.');
@@ -4423,6 +4428,7 @@ async function signInLocalAccount(event){
 async function signOutLocalAccount(callFirebase=true){
   save();
   cloudReady=false;
+  clearTimeout(cloudSaveTimer);
   const wasFirebase=activeUser?.mode==='firebase';
   activeUser={uid:'local', email:'', name:'Local user', mode:'local', signedIn:false};
   if(callFirebase && window.JayFirebaseAuth?.enabled && wasFirebase){
