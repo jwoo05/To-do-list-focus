@@ -10,6 +10,7 @@ const DEF = {
   tasks:[], sessions:[], events:[], icalImports:[],
   nlpCorrections:{}, eoprLog:[], deleted:[], focusReports:[],
   dailySections:['Study'],
+  lastModified: 0,
   settings:{
     theme:'dark', name:'Jay', activeStart:null, focusGoal:'', alarmSound:'chime',
     pomo:{ presetMode:'classic', focus:25, shortBreak:5, longBreak:15, cycles:4 }
@@ -155,6 +156,7 @@ function normalizeState(state){
   return state;
 }
 function save(){
+  S.lastModified = Date.now();
   localStorage.setItem(currentStorageKey(), JSON.stringify(S));
   scheduleCloudSave();
 }
@@ -4341,7 +4343,20 @@ async function applyAuthenticatedUser(user,shouldRender=true){
   }catch(err){
     setAuthStatus('Cloud load failed. Using this browser data.');
   }
-  if(remoteState){
+  const localRaw=localStorage.getItem(targetKey);
+  const localParsed=localRaw ? (() => { try{ return JSON.parse(localRaw); }catch(e){ return null; } })() : null;
+  if(remoteState && localParsed){
+    const remoteTime=remoteState.lastModified||0;
+    const localTime=localParsed.lastModified||0;
+    if(localTime>=remoteTime){
+      S=normalizeState(Object.assign({},DEF,localParsed));
+      setAuthStatus('Synced. (Local data was up to date.)');
+    }else{
+      S=normalizeState(Object.assign({},DEF,remoteState));
+      localStorage.setItem(targetKey, JSON.stringify(S));
+      setAuthStatus('Loaded your cloud data.');
+    }
+  }else if(remoteState){
     S=normalizeState(Object.assign({},DEF,remoteState));
     localStorage.setItem(targetKey, JSON.stringify(S));
     setAuthStatus('Loaded your cloud data.');
@@ -4353,7 +4368,7 @@ async function applyAuthenticatedUser(user,shouldRender=true){
   }
   suppressCloudSave=false;
   cloudReady=true;
-  if(!remoteState) scheduleCloudSave();
+  scheduleCloudSave();
   document.getElementById('authGate')?.classList.remove('show');
   if(shouldRender){
     setupAuthUI();
