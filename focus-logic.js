@@ -4402,10 +4402,10 @@ async function signInLocalAccount(event){
       showToast('Password must be at least 8 characters.');
       return;
     }
-    const user=action==='signup'
+    action==='signup'
       ? await window.JayFirebaseAuth.signUp(email,password,name)
       : await window.JayFirebaseAuth.signIn(email,password);
-    await applyAuthenticatedUser(user,true);
+    // onAuthStateChanged fires jay-auth-state which calls applyAuthenticatedUser
   }catch(err){
     const msg=String(err?.message||err||'Authentication failed.').replace(/^Firebase:\s*/,'');
     setAuthStatus(msg);
@@ -4415,10 +4415,11 @@ async function signInLocalAccount(event){
 async function signOutLocalAccount(callFirebase=true){
   save();
   cloudReady=false;
-  if(callFirebase && window.JayFirebaseAuth?.enabled && activeUser?.mode==='firebase'){
+  const wasFirebase=activeUser?.mode==='firebase';
+  activeUser={uid:'local', email:'', name:'Local user', mode:'local', signedIn:false};
+  if(callFirebase && window.JayFirebaseAuth?.enabled && wasFirebase){
     try{ await window.JayFirebaseAuth.signOut(); }catch(e){}
   }
-  activeUser={uid:'local', email:'', name:'Local user', mode:'local', signedIn:false};
   localStorage.setItem(AUTH_KEY, JSON.stringify(activeUser));
   S=loadState();
   setupAuthUI();
