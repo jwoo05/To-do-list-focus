@@ -3104,18 +3104,18 @@ async function fetchIcal(){
     }
     if(!text) throw lastErr || new Error('Could not fetch calendar');
     const events=parseICS(text);
-    const result=await importEvents(events);
+    const result=importEvents(events);
     status.textContent=`Imported ${result.added} item${result.added===1?'':'s'}${result.skipped?`, skipped ${result.skipped} duplicate${result.skipped===1?'':'s'}`:''}`;
   }catch(e){
     status.textContent='URL import failed: '+e.message+' — paste the ICS text in the Paste Data tab.';
   }
 }
 
-async function importIcalPaste(){
+function importIcalPaste(){
   const text=document.getElementById('icalPaste').value.trim();
   if(!text){ showToast('Paste ICS data first.'); return; }
   const events=parseICS(text);
-  const result=await importEvents(events);
+  const result=importEvents(events);
   document.getElementById('icalStatus').textContent=`Imported ${result.added} item${result.added===1?'':'s'}${result.skipped?`, skipped ${result.skipped} duplicate${result.skipped===1?'':'s'}`:''}`;
 }
 
@@ -3136,16 +3136,16 @@ function onIcsDrop(e){
     return;
   }
   const reader=new FileReader();
-  reader.onload=async ()=>{
+  reader.onload=()=>{
     const events=parseICS(String(reader.result||''));
-    const result=await importEvents(events);
+    const result=importEvents(events);
     document.getElementById('icalStatus').textContent=`Imported ${result.added} item${result.added===1?'':'s'} from ${file.name}${result.skipped?`, skipped ${result.skipped} duplicate${result.skipped===1?'':'s'}`:''}`;
   };
   reader.onerror=()=>{ document.getElementById('icalStatus').textContent='Could not read that ICS file.'; };
   reader.readAsText(file);
 }
 
-async function importEvents(events){
+function importEvents(events){
   let added=0, skipped=0;
   for(const ev of events){
     if(!ev.summary) continue;
@@ -3162,8 +3162,7 @@ async function importEvents(events){
         title:ev.summary, subject:'', type,
         date, time:'', location:ev.location||'', notes:ev.description||'', color:eventColorForType(type)
       };
-      const dupe=findPossibleDuplicate(candidate,'event');
-      if(dupe && await confirmDuplicate(candidate,dupe)){ skipped++; continue; }
+      if(findPossibleDuplicate(candidate,'event')){ skipped++; continue; }
       S.events.push(candidate);
     }else{
       const candidate={
@@ -3176,8 +3175,7 @@ async function importEvents(events){
         dueCompletedDates:{}, customOrder:Date.now()+added,
         calendarSignal:'due', dailySection:'Study'
       };
-      const dupe=findPossibleDuplicate(candidate,'task');
-      if(dupe && await confirmDuplicate(candidate,dupe)){ skipped++; continue; }
+      if(findPossibleDuplicate(candidate,'task')){ skipped++; continue; }
       S.tasks.push(candidate);
     }
     added++;
@@ -3743,7 +3741,7 @@ async function onCalDrop(e,ds){
   const file=[...(e.dataTransfer?.files||[])].find(f=>/\.ics$/i.test(f.name) || /calendar|ics/i.test(f.type));
   if(file){
     const reader=new FileReader();
-    reader.onload=async ()=>{ await importEvents(parseICS(String(reader.result||''))); render(); };
+    reader.onload=()=>{ importEvents(parseICS(String(reader.result||''))); render(); };
     reader.readAsText(file);
     return;
   }
