@@ -47,6 +47,12 @@
 .login-primary-btn { width:100%; padding:11px; background:var(--accent); color:white; border:none; border-radius:var(--radius); cursor:pointer; font-weight:600; font-size:13px; margin-top:8px; transition:background var(--tr); font-family:inherit; letter-spacing:0.02em; }
 .login-primary-btn:hover { background:var(--accent-h); }
 .login-primary-btn:disabled { opacity:0.6; cursor:not-allowed; }
+.login-divider { display:flex; align-items:center; gap:10px; margin:14px 0 10px; color:var(--text3); font-size:10px; letter-spacing:0.08em; text-transform:uppercase; }
+.login-divider::before, .login-divider::after { content:""; flex:1; height:1px; background:var(--border); }
+.login-google-btn { width:100%; padding:10px 12px; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:var(--radius); cursor:pointer; font-weight:600; font-size:13px; font-family:inherit; letter-spacing:0.02em; display:flex; align-items:center; justify-content:center; gap:10px; transition:background var(--tr), border-color var(--tr); }
+.login-google-btn:hover { background:var(--bg3); border-color:var(--border2); }
+.login-google-btn:disabled { opacity:0.6; cursor:not-allowed; }
+.login-google-btn svg { display:block; }
 .login-link { display:block; text-align:center; margin-top:14px; color:var(--text2); font-size:12px; cursor:pointer; transition:color var(--tr); background:none; border:none; width:100%; font-family:inherit; padding:4px; }
 .login-link:hover { color:var(--accent); }
 .login-error { color:var(--must); font-size:12px; margin-bottom:12px; padding:9px 12px; background:var(--must-dim); border-left:2px solid var(--must); border-radius:var(--radius-sm); display:none; }
@@ -108,6 +114,16 @@
         <input id="password" type="password" placeholder="At least 6 characters" autocomplete="current-password">
       </div>
       <button class="login-primary-btn" id="submitBtn" onclick="handleAuthSubmit()">Log In</button>
+      <div class="login-divider"><span>or</span></div>
+      <button class="login-google-btn" id="googleBtn" onclick="handleGoogleLogin()">
+        <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true">
+          <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.49h4.84a4.13 4.13 0 0 1-1.79 2.71v2.26h2.9c1.7-1.56 2.69-3.87 2.69-6.62z"/>
+          <path fill="#34A853" d="M9 18c2.43 0 4.47-.81 5.95-2.18l-2.9-2.26c-.81.54-1.84.86-3.05.86-2.34 0-4.32-1.58-5.03-3.7H.95v2.33A9 9 0 0 0 9 18z"/>
+          <path fill="#FBBC05" d="M3.97 10.71A5.41 5.41 0 0 1 3.68 9c0-.59.1-1.17.29-1.71V4.96H.95A9 9 0 0 0 0 9c0 1.45.35 2.83.95 4.04l3.02-2.33z"/>
+          <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.59A9 9 0 0 0 9 0 9 9 0 0 0 .95 4.96l3.02 2.33C4.68 5.17 6.66 3.58 9 3.58z"/>
+        </svg>
+        <span>Continue with Google</span>
+      </button>
       <button class="login-link" onclick="showForgotPassword()">Forgot password?</button>
       <div class="login-loading" id="loadingMsg"></div>
       <div class="login-footer">Synced across all your devices</div>

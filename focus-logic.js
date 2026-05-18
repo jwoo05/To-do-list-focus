@@ -4383,6 +4383,32 @@ function handleLogIn() {
     });
 }
 
+function handleGoogleLogin() {
+  const errorDiv = document.getElementById('errorMsg');
+  const loadingDiv = document.getElementById('loadingMsg');
+  if(!auth || !window.firebase || !firebase.auth || !firebase.auth.GoogleAuthProvider){
+    errorDiv.textContent = 'Google sign-in is not available right now.';
+    errorDiv.classList.add('show');
+    return;
+  }
+  loadingDiv.textContent = 'Opening Google sign-in…';
+  errorDiv.classList.remove('show');
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  auth.signInWithPopup(provider)
+    .then(() => { loadingDiv.textContent = ''; })
+    .catch(error => {
+      loadingDiv.textContent = '';
+      let msg = error.message || 'Google sign-in failed.';
+      if (error.code === 'auth/popup-closed-by-user') msg = 'Sign-in window was closed before completing.';
+      else if (error.code === 'auth/popup-blocked') msg = 'Your browser blocked the Google popup. Allow popups for this site and try again.';
+      else if (error.code === 'auth/unauthorized-domain') msg = 'This domain is not authorized in Firebase. Add it under Authentication → Settings → Authorized domains.';
+      else if (error.code === 'auth/account-exists-with-different-credential') msg = 'An account already exists for this email with a different sign-in method. Log in that way first.';
+      errorDiv.textContent = msg;
+      errorDiv.classList.add('show');
+    });
+}
+
 function handleLogOut() {
   if (confirm('Are you sure you want to log out?')) {
     auth.signOut().then(() => {
