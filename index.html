@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jay's Focus Engine</title>
+<title>Focus Hub</title>
+<!-- Inline SVG favicon (no external file needed) -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232C4A8B'/%3E%3Cpath d='M32 14 L32 32 L44 38' stroke='white' stroke-width='4' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='32' cy='32' r='18' stroke='white' stroke-width='2.5' fill='none' opacity='0.85'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -21,6 +23,45 @@
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/compromise@14.14.0/builds/compromise.min.js"></script>
+<!-- Firebase Scripts -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<style>
+/* Login Screen — matches app theme */
+.login-screen { display:flex; justify-content:center; align-items:center; min-height:100vh; background:var(--bg); font-family:'Inter',system-ui,-apple-system,sans-serif; position:fixed; inset:0; z-index:9999; padding:20px; }
+.login-box { background:var(--surface); padding:44px 40px 36px; border-radius:var(--radius-lg); width:100%; max-width:380px; box-shadow:var(--shadow-lg); border:1px solid var(--border); animation:loginFadeIn 0.4s ease; }
+@keyframes loginFadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+.login-logo { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:6px; }
+.login-logo-mark { width:36px; height:36px; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; border-radius:var(--radius); font-family:'Source Serif 4',serif; font-weight:600; font-size:20px; }
+.login-title { font-family:'Source Serif 4',serif; font-size:24px; font-weight:600; color:var(--text); letter-spacing:-0.01em; }
+.login-subtitle { text-align:center; color:var(--text3); margin-bottom:28px; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; }
+.login-tabs { display:flex; gap:4px; background:var(--bg2); border-radius:var(--radius); padding:3px; margin-bottom:20px; }
+.login-tab { flex:1; padding:8px 12px; background:transparent; border:none; border-radius:var(--radius-sm); font-size:12px; font-weight:600; color:var(--text2); cursor:pointer; transition:all var(--tr); letter-spacing:0.03em; font-family:inherit; }
+.login-tab.active { background:var(--surface); color:var(--text); box-shadow:var(--shadow); }
+.login-field { margin-bottom:12px; }
+.login-field label { font-size:10px; font-weight:600; color:var(--text3); display:block; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.07em; }
+.login-field input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius); background:var(--bg2); color:var(--text); font-size:13px; font-family:inherit; transition:border-color var(--tr),background var(--tr); box-sizing:border-box; }
+.login-field input:focus { outline:none; border-color:var(--accent); background:var(--surface); }
+.login-field input::placeholder { color:var(--text3); }
+.login-primary-btn { width:100%; padding:11px; background:var(--accent); color:white; border:none; border-radius:var(--radius); cursor:pointer; font-weight:600; font-size:13px; margin-top:8px; transition:background var(--tr); font-family:inherit; letter-spacing:0.02em; }
+.login-primary-btn:hover { background:var(--accent-h); }
+.login-primary-btn:disabled { opacity:0.6; cursor:not-allowed; }
+.login-link { display:block; text-align:center; margin-top:14px; color:var(--text2); font-size:12px; cursor:pointer; transition:color var(--tr); background:none; border:none; width:100%; font-family:inherit; padding:4px; }
+.login-link:hover { color:var(--accent); }
+.login-error { color:var(--must); font-size:12px; margin-bottom:12px; padding:9px 12px; background:var(--must-dim); border-left:2px solid var(--must); border-radius:var(--radius-sm); display:none; }
+.login-error.show { display:block; }
+.login-success { color:var(--green); font-size:12px; margin-bottom:12px; padding:9px 12px; background:rgba(42,107,68,0.08); border-left:2px solid var(--green); border-radius:var(--radius-sm); display:none; }
+.login-success.show { display:block; }
+.login-loading { text-align:center; color:var(--text3); font-size:11px; margin-top:12px; letter-spacing:0.05em; text-transform:uppercase; }
+.login-footer { margin-top:24px; padding-top:18px; border-top:1px solid var(--border); text-align:center; color:var(--text3); font-size:10px; letter-spacing:0.05em; text-transform:uppercase; }
+.login-theme-toggle { position:fixed; top:20px; right:20px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:6px 12px; color:var(--text2); font-size:11px; cursor:pointer; font-family:inherit; font-weight:600; letter-spacing:0.05em; transition:all var(--tr); }
+.login-theme-toggle:hover { color:var(--text); border-color:var(--border2); }
+.login-back-btn { background:none; border:none; color:var(--text2); font-size:12px; cursor:pointer; margin-bottom:16px; padding:4px 0; font-family:inherit; display:flex; align-items:center; gap:6px; transition:color var(--tr); }
+.login-back-btn:hover { color:var(--accent); }
+.login-view { display:none; }
+.login-view.active { display:block; }
+</style>
 <template id="__bundler_thumbnail" data-bg-color="#131210">
   <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
     <rect width="120" height="120" fill="#131210"/>
@@ -40,40 +81,115 @@
 </template>
 </head>
 <body>
-<div class="auth-gate" id="authGate" onclick="if(event.target===this)useLocalMode()">
-  <form class="auth-card" onsubmit="signInLocalAccount(event)">
-    <button class="auth-close" type="button" onclick="useLocalMode()" title="Close">✕</button>
-    <div class="auth-head">
-      <div class="auth-mark">J</div>
-      <div>
-        <div class="auth-title">Jay's Hub</div>
-        <div class="auth-sub">Sign in with Firebase email/password so every user has a real authenticated account.</div>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="loginScreen">
+  <button class="login-theme-toggle" onclick="toggleLoginTheme()" id="loginThemeBtn">Dark</button>
+  <div class="login-box">
+    <!-- LOGIN / SIGNUP VIEW -->
+    <div class="login-view active" id="authView">
+      <div class="login-logo">
+        <div class="login-logo-mark">F</div>
+        <div class="login-title">Focus Hub</div>
       </div>
+      <div class="login-subtitle">Tasks · Calendar · Focus · Habits</div>
+      <div class="login-tabs">
+        <button class="login-tab active" id="tabLogin" onclick="switchTab('login')">Log In</button>
+        <button class="login-tab" id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
+      </div>
+      <div class="login-error" id="errorMsg"></div>
+      <div class="login-success" id="successMsg"></div>
+      <div class="login-field">
+        <label>Email</label>
+        <input id="email" type="email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="login-field">
+        <label>Password</label>
+        <input id="password" type="password" placeholder="At least 6 characters" autocomplete="current-password">
+      </div>
+      <button class="login-primary-btn" id="submitBtn" onclick="handleAuthSubmit()">Log In</button>
+      <button class="login-link" onclick="showForgotPassword()">Forgot password?</button>
+      <div class="login-loading" id="loadingMsg"></div>
+      <div class="login-footer">Synced across all your devices</div>
     </div>
-    <label>Name</label>
-    <input id="authName" placeholder="Your name" autocomplete="name">
-    <label>Email</label>
-    <input id="authEmail" type="text" inputmode="email" placeholder="you@example.com" autocomplete="email" required>
-    <label>Password</label>
-    <input id="authPassword" type="password" placeholder="8+ characters" autocomplete="current-password" minlength="8" required>
-    <div class="auth-actions">
-      <button class="btn btn-accent auth-primary" type="submit" data-auth-action="login">Log in</button>
-      <button class="btn btn-outline auth-secondary" type="submit" data-auth-action="signup">Create account</button>
+
+    <!-- FORGOT PASSWORD VIEW -->
+    <div class="login-view" id="forgotView">
+      <button class="login-back-btn" onclick="showAuthView()">← Back to login</button>
+      <div class="login-logo" style="margin-bottom:16px;">
+        <div class="login-title">Forgot Password</div>
+      </div>
+      <div class="login-subtitle">We'll email you a reset link</div>
+      <div class="login-error" id="resetErrorMsg"></div>
+      <div class="login-success" id="resetSuccessMsg"></div>
+      <div class="login-field">
+        <label>Email Address</label>
+        <input id="resetEmail" type="email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <button class="login-primary-btn" onclick="handlePasswordReset()">Send Reset Link</button>
+      <div class="login-loading" id="resetLoadingMsg"></div>
+      <div class="login-footer">Check spam folder if email doesn't arrive</div>
     </div>
-    <button class="auth-link" type="submit" data-auth-action="reset" formnovalidate>Reset password</button>
-    <button class="btn btn-outline auth-secondary" type="button" onclick="useLocalMode()">Continue on this browser</button>
-    <p class="auth-note" id="authStatus">Add your Firebase web config in firebase-config.js, enable Email/Password in Firebase Auth, then deploy all files together.</p>
-  </form>
+  </div>
 </div>
-<div class="app">
+
+<script>
+let currentAuthMode = 'login';
+function switchTab(mode) {
+  currentAuthMode = mode;
+  document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
+  document.getElementById('tabSignup').classList.toggle('active', mode === 'signup');
+  document.getElementById('submitBtn').textContent = mode === 'login' ? 'Log In' : 'Create Account';
+  document.getElementById('errorMsg').classList.remove('show');
+  document.getElementById('successMsg').classList.remove('show');
+}
+function showForgotPassword() {
+  document.getElementById('authView').classList.remove('active');
+  document.getElementById('forgotView').classList.add('active');
+  const loginEmail = document.getElementById('email').value;
+  if (loginEmail) document.getElementById('resetEmail').value = loginEmail;
+}
+function showAuthView() {
+  document.getElementById('forgotView').classList.remove('active');
+  document.getElementById('authView').classList.add('active');
+  document.getElementById('resetErrorMsg').classList.remove('show');
+  document.getElementById('resetSuccessMsg').classList.remove('show');
+}
+function handleAuthSubmit() {
+  if (currentAuthMode === 'login') { handleLogIn(); } else { handleSignUp(); }
+}
+function toggleLoginTheme() {
+  const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  document.getElementById('loginThemeBtn').textContent = next === 'dark' ? 'Light' : 'Dark';
+  try { localStorage.setItem('login_theme', next); } catch(e){}
+}
+(function(){
+  try {
+    const saved = localStorage.getItem('login_theme');
+    if (saved) {
+      document.documentElement.dataset.theme = saved;
+      const btn = document.getElementById('loginThemeBtn');
+      if (btn) btn.textContent = saved === 'dark' ? 'Light' : 'Dark';
+    }
+  } catch(e){}
+})();
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('email').addEventListener('keydown', e => { if (e.key === 'Enter') handleAuthSubmit(); });
+  document.getElementById('password').addEventListener('keydown', e => { if (e.key === 'Enter') handleAuthSubmit(); });
+  document.getElementById('resetEmail').addEventListener('keydown', e => { if (e.key === 'Enter') handlePasswordReset(); });
+});
+</script>
+
+<div class="app" id="appScreen" style="display:none;">
 
   <!-- ═══ SIDEBAR ═══ -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="logo-mark">J</div>
+      <div class="logo-mark" id="logoMark">F</div>
       <div>
-        <div class="logo-text">Jay's Hub</div>
-        <div class="logo-sub">Academic planner</div>
+        <div class="logo-text" id="logoText">Focus Hub</div>
+        <div class="logo-sub" id="logoSub">Productivity planner</div>
       </div>
     </div>
     <nav class="nav">
@@ -99,8 +215,9 @@
         <button class="density-btn"        data-d="normal"   onclick="setDensity('normal')"   title="Normal">M</button>
         <button class="density-btn"        data-d="spacious" onclick="setDensity('spacious')" title="Spacious">L</button>
       </div>
-      <button class="panel-toggle account-toggle" onclick="openAuthGate()" title="Account">◎</button>
       <button class="panel-toggle" onclick="openModal('mSettings')" title="Settings">⚙</button>
+      <button class="panel-toggle" onclick="openModal('mWelcome')" title="Quick Tour" style="background:var(--accent-dim); color:var(--accent);">?</button>
+      <button class="panel-toggle" onclick="handleLogOut()" title="Log out" style="color:var(--must); border-color:var(--must-dim); background:var(--must-dim);">⏻</button>
     </div>
   </aside>
 
@@ -694,6 +811,62 @@
 
 <!-- ═══════════════ MODALS ═══════════════ -->
 
+<!-- WELCOME / FEATURE TOUR -->
+<div class="overlay" id="mWelcome">
+  <div class="modal" style="width:min(560px,95vw)">
+    <div class="modal-header">
+      <span class="modal-title" id="welcomeTitle">Welcome to Focus Hub</span>
+      <button class="modal-close" onclick="closeModal('mWelcome')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="welcomeContent" style="padding:4px 0 8px;">
+        <p style="margin:0 0 18px 0; color:var(--text2); font-size:13px; line-height:1.5;">
+          A quick tour of the four main areas of the app. You can reopen this anytime from the <strong>?</strong> button in the sidebar.
+        </p>
+        <div class="tour-grid" style="display:grid; gap:12px;">
+          <div style="display:flex; gap:14px; padding:12px; border:1px solid var(--border); border-radius:var(--radius);">
+            <div style="font-size:22px; color:var(--accent); width:32px; flex-shrink:0; text-align:center;">◈</div>
+            <div>
+              <div style="font-weight:600; margin-bottom:3px;">Dashboard</div>
+              <div style="font-size:12px; color:var(--text2); line-height:1.5;">Your daily snapshot — today's progress, habit streaks, focus minutes, and what to work on next. <strong>Quick add</strong> at the top lets you type tasks in plain English.</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:14px; padding:12px; border:1px solid var(--border); border-radius:var(--radius);">
+            <div style="font-size:22px; color:var(--accent); width:32px; flex-shrink:0; text-align:center;">≡</div>
+            <div>
+              <div style="font-weight:600; margin-bottom:3px;">Todo List</div>
+              <div style="font-size:12px; color:var(--text2); line-height:1.5;">Three columns: <strong>Task bank</strong> (left), <strong>selected day</strong> (middle), <strong>calendar</strong> (right). <strong>Double-click any calendar day</strong> to quickly add a task for that date. Drag tasks from the bank onto a date to schedule.</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:14px; padding:12px; border:1px solid var(--border); border-radius:var(--radius);">
+            <div style="font-size:22px; color:var(--accent); width:32px; flex-shrink:0; text-align:center;">□</div>
+            <div>
+              <div style="font-weight:600; margin-bottom:3px;">Calendar</div>
+              <div style="font-size:12px; color:var(--text2); line-height:1.5;">Full-month view. Add events (exams, classes, deadlines) or import an .ics file. <strong>Double-click a day</strong> to add a task for it. Color-coded by type.</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:14px; padding:12px; border:1px solid var(--border); border-radius:var(--radius);">
+            <div style="font-size:22px; color:var(--accent); width:32px; flex-shrink:0; text-align:center;">◎</div>
+            <div>
+              <div style="font-weight:600; margin-bottom:3px;">Focus</div>
+              <div style="font-size:12px; color:var(--text2); line-height:1.5;">Pomodoro timer with auto-personalization. Picks 25/5, 50/10, or 52/17 — or learns your ideal focus length over time. Reports show distraction patterns.</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:18px; padding:12px; background:var(--accent-dim); border-radius:var(--radius); font-size:12px; color:var(--text2);">
+          <strong style="color:var(--accent);">Pro tips:</strong> Press <kbd style="background:var(--bg3);padding:1px 5px;border-radius:3px;border:1px solid var(--border);">Enter</kbd> after typing in Quick Add. Drag tasks from the bank onto <strong>Habits</strong> to convert them. Use the <strong>S/M/L</strong> in the sidebar to change density.
+        </div>
+      </div>
+      <div class="form-actions" style="margin-top:18px;">
+        <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text2); margin-right:auto;">
+          <input type="checkbox" id="welcomeDontShowAgain"> Don't show this again on startup
+        </label>
+        <button class="btn btn-accent" onclick="dismissWelcome()">Got it</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MONTH / YEAR PICKER -->
 <div class="overlay" id="mMonthPicker">
   <div class="modal month-modal" style="width:min(360px,95vw)">
@@ -838,8 +1011,8 @@
         <label>Subtasks</label>
         <div class="modal-subtasks" id="modalSubtaskList"></div>
         <div class="modal-subtask-add">
-          <input id="modalSubtaskInput" placeholder="Add a small step…" onkeydown="if(shouldCommitTextInput(event))addModalSubtask(event)">
-          <button class="btn btn-outline" type="button" onclick="addModalSubtask(event)">Add</button>
+          <input id="modalSubtaskInput" placeholder="Add a small step…" onkeydown="if(event.key==='Enter')addModalSubtask()">
+          <button class="btn btn-outline" type="button" onclick="addModalSubtask()">Add</button>
         </div>
       </div>
       <div class="form-actions">
@@ -1000,6 +1173,14 @@
         <label>Your Name</label>
         <input id="sName" placeholder="Jay">
       </div>
+      <div class="form-row">
+        <label>App Name (shown in sidebar & browser tab)</label>
+        <input id="sAppName" placeholder="Focus Hub" maxlength="32">
+      </div>
+      <div class="form-row">
+        <label>App Subtitle (small text under name)</label>
+        <input id="sAppSubtitle" placeholder="Productivity planner" maxlength="48">
+      </div>
       <div class="toggle-row">
         <span class="toggle-label">Dark Mode</span>
         <label class="toggle">
@@ -1052,19 +1233,6 @@
         </select>
       </div>
       <div class="form-row" style="margin-top:12px">
-        <label>Account</label>
-        <div class="account-box">
-          <div>
-            <strong id="accountLabel">Local browser data</strong>
-            <span>Backups can move this data into a hosted Firebase/Netlify account.</span>
-          </div>
-          <div class="account-actions">
-            <button class="btn btn-outline" onclick="openAuthGate()">Link / switch</button>
-            <button class="btn btn-outline" onclick="signOutLocalAccount()">Sign out</button>
-          </div>
-        </div>
-      </div>
-      <div class="form-row" style="margin-top:12px">
         <label>Backup Data</label>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-outline" onclick="exportBackup()">Export backup</button>
@@ -1073,6 +1241,14 @@
             <input type="file" accept="application/json,.json" style="display:none" onchange="importBackupFile(this)">
           </label>
         </div>
+      </div>
+      <div class="form-row" style="margin-top:12px">
+        <label>Account</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-outline" onclick="changePasswordFromSettings()">Change password (email link)</button>
+          <button class="btn btn-outline" onclick="closeModal('mSettings'); openModal('mWelcome');">Show feature tour</button>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">A password reset link will be emailed to your account address.</div>
       </div>
       <div class="form-row" style="margin-top:12px">
         <label>Deleted Items</label>
@@ -1197,10 +1373,140 @@
   </div>
 </div>
 
-<script src="firebase-config.js"></script>
-<script type="module" src="focus-auth.js"></script>
 <script src="focus-logic.js"></script>
 
+<!-- Tweaks Panel -->
+<div id="tweaks-root"></div>
 <div class="chart-tooltip" id="chartTooltip"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel">
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "fontSize": 13,
+  "headingFont": "serif",
+  "accentColor": "#7A4F2D",
+  "density": "normal",
+  "radius": 4,
+  "darkMode": true
+}/*EDITMODE-END*/;
+
+function applyTweaks(t) {
+  const root = document.documentElement;
+  // Font size
+  root.style.setProperty('font-size', t.fontSize + 'px');
+  document.body.style.fontSize = t.fontSize + 'px';
+  // Heading font
+  const serif = "'Source Serif 4', Georgia, serif";
+  const sans  = "'Inter', system-ui, sans-serif";
+  const headFont = t.headingFont === 'serif' ? serif : sans;
+  root.style.setProperty('--font-heading', headFont);
+  document.querySelectorAll('.view-title, .cal-month, .modal-title, .pomo-big-time, .pomo-task-name, .review-value, .success-center strong, .guide-card strong, .health-cell strong, .mini-stat strong, .thu-title, .logo-text').forEach(el => {
+    el.style.fontFamily = headFont;
+  });
+  // Accent color
+  root.style.setProperty('--accent', t.accentColor);
+  // Border radius
+  root.style.setProperty('--radius',    t.radius + 'px');
+  root.style.setProperty('--radius-sm', Math.max(1, t.radius - 1) + 'px');
+  root.style.setProperty('--radius-lg', Math.min(12, t.radius * 2) + 'px');
+  // Density: affects base padding on task items, sections, etc.
+  const densityMap = {
+    compact:  { pad:'7px 10px',  bank:'7px 9px',   daily:'5px 12px',  sub:'6px 12px',  cal:'44px', font:'12px' },
+    normal:   { pad:'11px 15px', bank:'9px 11px',  daily:'7px 14px',  sub:'8px 14px',  cal:'55px', font:'13px' },
+    spacious: { pad:'16px 22px', bank:'13px 15px', daily:'11px 18px', sub:'12px 18px', cal:'68px', font:'15px' }
+  };
+  const density = densityMap[t.density] || densityMap.normal;
+  root.dataset.density = t.density;
+  root.style.setProperty('--density-pad', density.pad);
+  root.style.setProperty('--bank-task-pad', density.bank);
+  root.style.setProperty('--daily-section-pad', density.daily);
+  root.style.setProperty('--sub-section-pad', density.sub);
+  root.style.setProperty('--cal-cell-h', density.cal);
+  root.style.setProperty('--density-font', density.font);
+  document.body.style.fontSize = density.font;
+  document.querySelectorAll('.task-item').forEach(el => { el.style.padding = density.pad; });
+  document.querySelectorAll('.sec-header').forEach(el => { el.style.padding = density.pad; });
+  document.querySelectorAll('.bank-task').forEach(el => { el.style.padding = density.bank; });
+  document.querySelectorAll('.daily-section-header').forEach(el => { el.style.padding = density.daily; });
+  document.querySelectorAll('.sub-sec-header').forEach(el => { el.style.padding = density.sub; });
+  if (window.syncCalViewToggle) requestAnimationFrame(window.syncCalViewToggle);
+  // Dark mode
+  const theme = t.darkMode ? 'dark' : 'light';
+  if (document.documentElement.dataset.theme !== theme) {
+    document.documentElement.dataset.theme = theme;
+    const S_raw = localStorage.getItem('jay_hub_v3');
+    if (S_raw) {
+      try {
+        const S = JSON.parse(S_raw);
+        S.settings = S.settings || {};
+        S.settings.theme = theme;
+        localStorage.setItem('jay_hub_v3', JSON.stringify(S));
+      } catch(e) {}
+    }
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = t.darkMode ? 'Light' : 'Dark';
+  }
+}
+
+function FocusAppTweaks() {
+  const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+  React.useEffect(() => { applyTweaks(tweaks); }, [tweaks]);
+
+  return (
+    <TweaksPanel>
+      <TweakSection label="Typography">
+        <TweakSlider
+          label="Base Font Size"
+          value={tweaks.fontSize}
+          min={11} max={16} step={1}
+          onChange={v => setTweak('fontSize', v)}
+        />
+        <TweakRadio
+          label="Heading Style"
+          value={tweaks.headingFont}
+          options={[{ label: 'Serif', value: 'serif' }, { label: 'Sans', value: 'sans' }]}
+          onChange={v => setTweak('headingFont', v)}
+        />
+      </TweakSection>
+      <TweakSection label="Colour">
+        <TweakColor
+          label="Accent"
+          value={tweaks.accentColor}
+          options={['#2C4A8B','#3A6B52','#7A4F2D','#5A4A88']}
+          onChange={v => setTweak('accentColor', v)}
+        />
+        <TweakToggle
+          label="Dark Mode"
+          value={tweaks.darkMode}
+          onChange={v => setTweak('darkMode', v)}
+        />
+      </TweakSection>
+      <TweakSection label="Layout">
+        <TweakRadio
+          label="Density"
+          value={tweaks.density}
+          options={[
+            { label: 'Compact', value: 'compact' },
+            { label: 'Normal',  value: 'normal'  },
+            { label: 'Spacious',value: 'spacious'}
+          ]}
+          onChange={v => setTweak('density', v)}
+        />
+        <TweakSlider
+          label="Border Radius"
+          value={tweaks.radius}
+          min={0} max={10} step={1}
+          onChange={v => setTweak('radius', v)}
+        />
+      </TweakSection>
+    </TweaksPanel>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<FocusAppTweaks />);
+</script>
 </body>
 </html>

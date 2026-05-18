@@ -1,23 +1,38 @@
 
 // ════════════════════════════════════════════════════════════
+//  FIREBASE INITIALIZATION
+// ════════════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyCZ-Xt-2_PLT0CIOJbqcTCUxt28Zf8S6-k",
+  authDomain: "to-do-focus-list.firebaseapp.com",
+  databaseURL: "https://to-do-focus-list-default-rtdb.firebaseio.com",
+  projectId: "to-do-focus-list",
+  storageBucket: "to-do-focus-list.firebasestorage.app",
+  messagingSenderId: "910455481238",
+  appId: "1:910455481238:web:0622e08f73fc1cb1e5f3b7",
+  measurementId: "G-JSYD5Y3H40"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const database = firebase.database();
+let currentUser = null;
+
+// ════════════════════════════════════════════════════════════
 //  DATA
 // ════════════════════════════════════════════════════════════
 const KEY = 'jay_hub_v3';
-const AUTH_KEY = KEY + '_auth';
-const LEGACY_KEY = KEY + '_legacy_imported';
-const POMO_RUNTIME_KEY = KEY + '_pomo_runtime';
 const DEF = {
   tasks:[], sessions:[], events:[], icalImports:[],
   nlpCorrections:{}, eoprLog:[], deleted:[], focusReports:[],
   dailySections:['Study'],
-  lastModified: 0,
   settings:{
-    theme:'dark', name:'Jay', activeStart:null, focusGoal:'', alarmSound:'chime',
+    theme:'dark', name:'Jay', appName:'Focus Hub', appSubtitle:'Productivity planner',
+    welcomeSeen:false, activeStart:null, focusGoal:'', alarmSound:'chime',
     pomo:{ presetMode:'classic', focus:25, shortBreak:5, longBreak:15, cycles:4 }
   }
 };
 
-let activeUser = loadActiveUser();
 let S = loadState();
 let calViewDate = new Date();
 let calSelectedDate = todayStr();
@@ -30,11 +45,6 @@ let pomoTimer = null;
 let pendingFocusReport = null;
 let sessionTaskSnapshot = {};
 let sessionDistractionLog = []; // {ts, phase, elapsed} per distraction event
-let cloudReady = false;
-let cloudSaveTimer = null;
-let suppressCloudSave = false;
-let cloudUnsubscribe = null;
-let lastPushedTimestamp = 0;
 let editSelectedPri = 'medium';
 let editSelectedDays = [];
 let editModalSubtasks = [];
@@ -45,7 +55,7 @@ let scheduleDragMode = 'add';
 let currentPage = 'dashboard';
 let bankVisibleCount = 10;
 let bankSort = 'due';
-let dailySort = 'custom';
+let dailySort = 'section';
 let calHoverTimer = null;
 let draggedTaskId = null;
 let draggedTaskDate = '';
@@ -58,56 +68,25 @@ let calViewResizeObserver = null;
 // ════════════════════════════════════════════════════════════
 //  PERSISTENCE
 // ════════════════════════════════════════════════════════════
-function safeUserKey(value){
-  return String(value||'guest').trim().toLowerCase().replace(/[^a-z0-9._-]+/g,'_').slice(0,80) || 'guest';
-}
-function loadActiveUser(){
-  try{
-    const raw=JSON.parse(localStorage.getItem(AUTH_KEY)||'null');
-    if(raw && raw.uid) return raw;
-  }catch(e){}
-  return {uid:'local', email:'', name:'Local user', mode:'local', signedIn:false};
-}
-function storageKeyForUser(user=activeUser){
-  return user && user.uid && user.uid !== 'local' ? `${KEY}:user:${safeUserKey(user.uid)}` : KEY;
-}
-function currentStorageKey(){
-  return storageKeyForUser(activeUser);
-}
 function loadState(){
   try{
-    const raw = localStorage.getItem(currentStorageKey());
+    const raw = localStorage.getItem(KEY);
     if(raw){
       const normalized = normalizeState(Object.assign({},DEF, JSON.parse(raw)));
-      localStorage.setItem(currentStorageKey(), JSON.stringify(normalized));
+      localStorage.setItem(KEY, JSON.stringify(normalized));
       return normalized;
     }
   }catch(e){}
-  migrateLegacyStateToUser();
   // Migrate v1
   try{
     const v1 = JSON.parse(localStorage.getItem('jay_hub_v1'));
     if(v1){
       const normalized = normalizeState(migrateV1(v1));
-      localStorage.setItem(currentStorageKey(), JSON.stringify(normalized));
+      localStorage.setItem(KEY, JSON.stringify(normalized));
       return normalized;
     }
   }catch(e){}
   return normalizeState(JSON.parse(JSON.stringify(DEF)));
-}
-function migrateLegacyStateToUser(){
-  if(!activeUser?.uid || activeUser.uid==='local') return false;
-  const target=currentStorageKey();
-  if(localStorage.getItem(target)) return false;
-  if(localStorage.getItem(`${LEGACY_KEY}:${safeUserKey(activeUser.uid)}`)) return false;
-  const legacy=localStorage.getItem(KEY);
-  if(!legacy) return false;
-  try{
-    localStorage.setItem(target, JSON.stringify(normalizeState(Object.assign({},DEF,JSON.parse(legacy)))));
-    localStorage.setItem(`${LEGACY_KEY}:${safeUserKey(activeUser.uid)}`,'1');
-    return true;
-  }catch(e){}
-  return false;
 }
 function normalizeState(state){
   state.dailySections = (Array.isArray(state.dailySections) && state.dailySections.length ? state.dailySections : ['Study']).filter(s=>s && s !== 'Admin');
@@ -115,7 +94,7 @@ function normalizeState(state){
   state.tasks = (state.tasks||[]).map(t=>Object.assign({
     type:'task', priority:'medium', due:'', scheduledDates:[], scheduledDays:[],
     dailySection:'Study', calendarSignal:'auto', subtasks:[], progress:0, customOrder:0,
-    completedDates:{}, dueCompletedDates:{}, habitStart:'', habitEnd:'', archived:false, completed:false, completedDate:'', focusPoints:0
+    completedDates:{}, dueCompletedDates:{}, habitStart:'', habitEnd:'', archived:false, completed:false, focusPoints:0
   }, t));
   state.tasks.forEach((t,i)=>{
     if(t.dailySection==='Admin') t.dailySection='Study';
@@ -157,58 +136,7 @@ function normalizeState(state){
   state.events = (state.events||[]).map(e=>Object.assign({type:'event', color:eventColorForType(e.type||'event')}, e));
   return state;
 }
-function save(){
-  S.lastModified = Date.now();
-  localStorage.setItem(currentStorageKey(), JSON.stringify(S));
-  scheduleCloudSave();
-}
-function scheduleCloudSave(){
-  if(suppressCloudSave || !cloudReady || activeUser?.mode!=='firebase' || !window.JayFirebaseAuth?.enabled) return;
-  if(!activeUser?.uid || activeUser.uid==='local') return;
-  clearTimeout(cloudSaveTimer);
-  const snapshotUid=activeUser.uid;
-  cloudSaveTimer=setTimeout(async ()=>{
-    if(!cloudReady || activeUser?.mode!=='firebase' || activeUser?.uid!==snapshotUid){
-      return;
-    }
-    try{
-      lastPushedTimestamp = S.lastModified || 0;
-      await window.JayFirebaseAuth.saveState(snapshotUid, S);
-      setAuthStatus('Saved to cloud.');
-    }catch(err){
-      setAuthStatus('Cloud save failed. Check Realtime Database rules.');
-    }
-  },700);
-}
-function startCloudSubscription(uid){
-  if(!uid || uid==='local') return;
-  if(!window.JayFirebaseAuth?.subscribeToState) return;
-  stopCloudSubscription();
-  cloudUnsubscribe = window.JayFirebaseAuth.subscribeToState(uid, remoteState=>{
-    if(!cloudReady) return;
-    if(activeUser?.mode!=='firebase' || activeUser.uid!==uid) return;
-    if(!remoteState) return;
-    const remoteTime = remoteState.lastModified || 0;
-    const localTime = S.lastModified || 0;
-    if(remoteTime <= localTime) return;
-    if(remoteTime === lastPushedTimestamp) return;
-    suppressCloudSave = true;
-    try{
-      S = normalizeState(Object.assign({}, DEF, remoteState));
-      localStorage.setItem(currentStorageKey(), JSON.stringify(S));
-      render();
-      setAuthStatus('Synced from another device.');
-    }finally{
-      suppressCloudSave = false;
-    }
-  });
-}
-function stopCloudSubscription(){
-  if(typeof cloudUnsubscribe === 'function'){
-    try{ cloudUnsubscribe(); }catch(e){}
-  }
-  cloudUnsubscribe = null;
-}
+function save(){ saveUserDataToFirebase(); }
 
 function isArchivedForTodo(t){
   return !!(t && (t.archived || (!t.isHabit && t.completed)));
@@ -350,7 +278,6 @@ function isHabitDueToday(t, dateStr){
   if(!t.isHabit) return false;
   if(t.habitStart && dateStr < t.habitStart) return false;
   if(t.habitEnd && dateStr > t.habitEnd) return false;
-  if(Array.isArray(t.skippedDates) && t.skippedDates.includes(dateStr)) return false;
   const d = new Date(dateStr+'T00:00:00');
   const dow = d.getDay();
   return t.scheduledDays.includes(dow);
@@ -376,74 +303,12 @@ function isTaskDone(t, dateStr=todayStr()){
 function isDueSignalDone(t,dateStr){
   return !!(t?.dueCompletedDates && t.dueCompletedDates[dateStr]);
 }
-function uniqueDates(dates){
-  return [...new Set((dates||[]).filter(Boolean))].sort();
-}
-function removeCalendarDateFromTask(t,dateStr,opts={}){
-  if(!t || !dateStr) return;
-  if(Array.isArray(t.scheduledDates)){
-    t.scheduledDates=t.scheduledDates.filter(ds=>ds!==dateStr);
-  }
-  if(opts.moveDue && t.due===dateStr){
-    t.due='';
-  }
-}
-function moveTaskWorkDate(t,targetDate,sourceDate){
-  if(!t || !targetDate) return;
-  if(!Array.isArray(t.scheduledDates)) t.scheduledDates=[];
-  if(sourceDate && sourceDate!==targetDate){
-    removeCalendarDateFromTask(t,sourceDate,{moveDue:true});
-    if(t.completedDates) delete t.completedDates[sourceDate];
-    if(t.dueCompletedDates) delete t.dueCompletedDates[sourceDate];
-  }
-  t.scheduledDates=uniqueDates([...t.scheduledDates,targetDate]);
-  if(t.completedDates && targetDate) t.completedDates[targetDate]=false;
-}
-function moveTaskDueDate(t,targetDate,sourceDate){
-  if(!t || !targetDate) return;
-  if(!t.dueCompletedDates) t.dueCompletedDates={};
-  if(sourceDate && sourceDate!==targetDate && t.dueCompletedDates[sourceDate]!==undefined){
-    delete t.dueCompletedDates[sourceDate];
-  }
-  t.due=targetDate;
-  t.calendarSignal='due';
-}
-function clearTaskFromCalendar(t){
-  if(!t) return;
-  t.scheduledDates=[];
-  if(t.completedDates) t.completedDates={};
-}
-function dateFromTs(ts){
-  if(!ts) return '';
-  const d=new Date(ts);
-  return Number.isNaN(d.getTime()) ? '' : localISO(d);
-}
-function taskArchiveDate(t){
-  return t?.completedDate || t?.archivedDate || dateFromTs(t?.completedAt) || dateFromTs(t?.archivedAt);
-}
-function isArchivedForDate(t,dateStr){
-  if(!isArchivedForTodo(t)) return false;
-  if(t?.completedDates && t.completedDates[dateStr]) return true;
-  return taskArchiveDate(t)===dateStr;
-}
-function isComposingInput(event){
-  return !!(event && (event.isComposing || event.keyCode===229 || event.which===229));
-}
-function shouldCommitTextInput(event){
-  if(!event) return true;
-  if(event.key && event.key!=='Enter') return false;
-  if(isComposingInput(event)) return false;
-  event.preventDefault?.();
-  event.stopPropagation?.();
-  return true;
-}
 
 // ════════════════════════════════════════════════════════════
 //  RENDER
 // ════════════════════════════════════════════════════════════
 function render(){
   if(archiveCompletedOneOffTasks(S)) save();
-  updateBranding();
   mountInteractiveSurface();
   renderBank();
   renderCenter();
@@ -884,10 +749,8 @@ function carryTaskToday(id, dateOverride){
   if(!t) return;
   const today=dateOverride || todayStr();
   if(!t.scheduledDates) t.scheduledDates=[];
-  const carriedFrom=[...(t.scheduledDates||[]), t.due].filter(Boolean).filter(ds=>ds<today).sort()[0]||'';
-  t.scheduledDates=uniqueDates(t.scheduledDates.filter(ds=>!ds || ds>=today).concat(today));
+  if(!t.scheduledDates.includes(today)) t.scheduledDates.push(today);
   t.carriedAt=Date.now();
-  t.carryFromDate=carriedFrom;
   calSelectedDate=today;
   save(); render(); showPage('todo');
 }
@@ -908,7 +771,6 @@ function completeCarryTask(id){
   if(!t) return;
   t.completed=true;
   t.completedAt=Date.now();
-  t.completedDate=calSelectedDate || todayStr();
   if(!t.isHabit){
     t.archived=true;
     t.archivedAt=Date.now();
@@ -1035,31 +897,17 @@ function toggleBankLimit(){
 function priLabel(p){
   return {MUST:'⚡ MUST', high:'🔥 High', medium:'✅ Med', low:'💧 Low'}[p]||p;
 }
-function appOwnerName(){
-  return String(S.settings?.name || activeUser?.name || 'Jay').trim() || 'Jay';
-}
-function appDisplayName(){
-  const name=appOwnerName();
-  return `${name}${name.endsWith('s') ? "'" : "'s"} Hub`;
-}
-function updateBranding(){
-  const appName=appDisplayName();
-  document.querySelectorAll('.logo-text,.auth-title').forEach(el=>{ el.textContent=appName; });
-  const sub=document.querySelector('.logo-sub');
-  if(sub) sub.textContent=activeUser?.signedIn ? 'Synced academic planner' : 'Academic planner';
-  if(!pomoState?.running) document.title=appName;
-}
 
 function renderCenter(){
   const today = calSelectedDate || todayStr();
   const scheduledWork = S.tasks.filter(t=>!isArchivedForTodo(t) && (isHabitDueToday(t,today) || ((t.scheduledDates||[]).includes(today))));
   const dueSignals = S.tasks.filter(t=>!isArchivedForTodo(t) && !t.isHabit && t.due===today && !isTaskDone(t,today) && !isDueSignalDone(t,today));
-  const must = sortTasks(scheduledWork.filter(t=>t.priority==='MUST' && !isArchivedForTodo(t)),'custom');
+  const must = scheduledWork.filter(t=>t.priority==='MUST' && !isArchivedForTodo(t));
   const regularRaw = scheduledWork.filter(t=>t.priority!=='MUST' && !t.isHabit && !isArchivedForTodo(t));
-  const regular = dailySort==='section' ? sortTasks(regularRaw,'custom') : sortTasks(regularRaw,dailySort);
-  const habits = sortTasks(scheduledWork.filter(t=>t.isHabit && !isArchivedForTodo(t)),'custom');
-  const archivedTasks = S.tasks.filter(t=>isArchivedForDate(t,today));
-  const archivedDueSignals = completedDueSignals(today);
+  const regular = dailySort==='section' ? regularRaw : sortTasks(regularRaw,dailySort);
+  const habits = scheduledWork.filter(t=>t.isHabit && !isArchivedForTodo(t));
+  const archivedTasks = S.tasks.filter(isArchivedForTodo);
+  const archivedDueSignals = completedDueSignals();
   syncSortControls();
 
   const mustIncomplete = must.some(t=>!isTaskDone(t,today));
@@ -1155,18 +1003,18 @@ function renderCenter(){
           ondragend="onTaskDragEnd(event)">
           <div class="archived-check">✓</div>
           <div class="archived-title">${esc(t.title)}</div>
-              <div class="archived-time">${fmtDate(taskArchiveDate(t)||today)}</div>
+          <div class="archived-time">${t.completedAt?new Date(t.completedAt).toLocaleDateString():''}</div>
           <button class="task-action" onclick="unarchiveTask('${t.id}')" title="Restore">↩</button>
         </div>`).join('')}
         </div>` : ''}`
     : `<div class="empty">Archive is empty.</div>`;
 }
 
-function completedDueSignals(dateStr=''){
+function completedDueSignals(){
   const rows=[];
   (S.tasks||[]).forEach(task=>{
     Object.keys(task.dueCompletedDates||{}).forEach(date=>{
-      if(task.dueCompletedDates[date] && (!dateStr || date===dateStr)) rows.push({task,date});
+      if(task.dueCompletedDates[date]) rows.push({task,date});
     });
   });
   return rows.sort((a,b)=>b.date.localeCompare(a.date) || String(a.task.title||'').localeCompare(String(b.task.title||'')));
@@ -1214,7 +1062,7 @@ function dueSignalHTML(t,dateStr=todayStr()){
       <button class="task-action play" onclick="startPomoTask('${t.id}')" title="Focus">▶</button>
       <button class="task-action" onclick="duplicateTask('${t.id}')" title="Duplicate">⧉</button>
       <button class="task-action" onclick="editTask('${t.id}')" title="Edit">✎</button>
-      <button class="task-action del" onclick="removeTaskFromDate('${t.id}','${dateArg}')" title="Remove from this day">×</button>
+      <button class="task-action del" onclick="removeTask('${t.id}')" title="Delete">×</button>
     </div>
   </div>`;
 }
@@ -1223,21 +1071,13 @@ function completeDueDate(event,id,dateStr){
   event?.stopPropagation?.();
   const task=S.tasks.find(t=>t.id===id);
   if(!task) return;
-  const before=JSON.parse(JSON.stringify(task));
   if(!task.dueCompletedDates) task.dueCompletedDates={};
+  const wasDone=!!task.dueCompletedDates[dateStr];
   task.dueCompletedDates[dateStr]=true;
-  if(!task.isHabit){
-    task.completed=true;
-    task.completedAt=Date.now();
-    task.completedDate=dateStr;
-    task.archived=true;
-    task.archivedAt=Date.now();
-    clearTaskFromCalendar(task);
-  }
   save(); render();
   showToast(`Due date cleared for "${task.title}"`,'Undo',()=>{
     const live=S.tasks.find(t=>t.id===id);
-    restoreTaskSnapshot(live,before);
+    if(live?.dueCompletedDates) live.dueCompletedDates[dateStr]=wasDone;
     save(); render();
   });
 }
@@ -1314,7 +1154,7 @@ function taskItemHTML(t, section, dateStr=todayStr()){
       <button class="task-action" onclick="toggleTaskDetails(event,'${t.id}')" title="Subtasks">▤</button>
       <button class="task-action" onclick="duplicateTask('${t.id}')" title="Duplicate">⧉</button>
       <button class="task-action" onclick="editTask('${t.id}')" title="Edit">✎</button>
-      <button class="task-action del" onclick="removeTaskFromDate('${t.id}','${dateArg}')" title="Remove from this day">×</button>
+      <button class="task-action del" onclick="removeTask('${t.id}')" title="Delete">×</button>
     </div>
     <div class="task-details">
       <div class="task-detail-card">
@@ -1324,10 +1164,10 @@ function taskItemHTML(t, section, dateStr=todayStr()){
               <div class="subtask-line ${st.done?'done':''}">
                 <div class="task-cb" style="width:16px;height:16px;margin:0;border-radius:5px" onclick="toggleSubtask('${t.id}',${i})">${st.done?'✓':''}</div>
                 <span>${esc(st.text)}</span>
-            </div>`).join('') : `<div class="empty" style="padding:6px 0;text-align:left">No subtasks yet.</div>`}
+              </div>`).join('') : `<div class="empty" style="padding:6px 0;text-align:left">No subtasks yet.</div>`}
             <div class="subtask-add">
-              <input id="subAdd-${t.id}" placeholder="Add a small next step" onkeydown="if(shouldCommitTextInput(event))addSubtask('${t.id}',event)">
-              <button onclick="addSubtask('${t.id}',event)">Add</button>
+              <input id="subAdd-${t.id}" placeholder="Add a small next step" onkeydown="if(event.key==='Enter')addSubtask('${t.id}')">
+              <button onclick="addSubtask('${t.id}')">Add</button>
             </div>
           </div>
           <div class="progress-editor">
@@ -1364,7 +1204,6 @@ function toggleTask(id,dateStr){
   }
   const doneNow = isTaskDone(t,today);
   t.completedAt = doneNow ? Date.now() : null;
-  t.completedDate = doneNow ? today : '';
 
   if(doneNow){
     playPop(t.priority==='MUST'?1100:880);
@@ -1382,7 +1221,6 @@ function toggleTask(id,dateStr){
         t.archived=false;
         t.completed=false;
         t.completedAt=null;
-        t.completedDate='';
         save(); render();
       });
     }
@@ -1419,8 +1257,7 @@ function toggleSubtask(id,index){
   save(); render();
 }
 
-function addSubtask(id,event){
-  if(!shouldCommitTextInput(event)) return;
+function addSubtask(id){
   const input=document.getElementById('subAdd-'+id);
   const text=input?.value.trim();
   if(!text) return;
@@ -1457,52 +1294,6 @@ function softDeleteTask(id){
   showToast(`Deleted "${task.title}". You can retrieve it in Settings > Deleted Items.`, 'Undo', ()=>restoreDeleted(entry.id));
 }
 
-function removeTaskFromDate(id, dateStr){
-  const t=S.tasks.find(x=>x.id===id);
-  if(!t) return;
-  if(!dateStr){ softDeleteTask(id); return; }
-  if(t.isHabit){
-    const prevSkipped=Array.isArray(t.skippedDates) ? t.skippedDates.slice() : null;
-    const prevCompleted=t.completedDates ? Object.assign({},t.completedDates) : null;
-    if(!Array.isArray(t.skippedDates)) t.skippedDates=[];
-    if(!t.skippedDates.includes(dateStr)) t.skippedDates.push(dateStr);
-    if(t.completedDates) delete t.completedDates[dateStr];
-    save(); render();
-    showToast(`Skipped "${t.title}" for ${fmtDate(dateStr)}.`, 'Undo', ()=>{
-      t.skippedDates = prevSkipped ? prevSkipped : [];
-      if(prevCompleted) t.completedDates=prevCompleted;
-      save(); render();
-    });
-    return;
-  }
-  const hadScheduled=Array.isArray(t.scheduledDates) && t.scheduledDates.includes(dateStr);
-  const hadDue=t.due===dateStr;
-  if(!hadScheduled && !hadDue){ softDeleteTask(id); return; }
-  if(hadScheduled) t.scheduledDates=t.scheduledDates.filter(d=>d!==dateStr);
-  if(hadDue){ t.due=''; }
-  const prevDueCompleted = t.dueCompletedDates ? t.dueCompletedDates[dateStr] : undefined;
-  if(t.dueCompletedDates) delete t.dueCompletedDates[dateStr];
-  const prevCompleted = t.completedDates ? t.completedDates[dateStr] : undefined;
-  if(t.completedDates) delete t.completedDates[dateStr];
-  save(); render();
-  showToast(`Removed "${t.title}" from ${fmtDate(dateStr)}.`, 'Undo', ()=>{
-    if(hadScheduled){
-      if(!Array.isArray(t.scheduledDates)) t.scheduledDates=[];
-      if(!t.scheduledDates.includes(dateStr)) t.scheduledDates.push(dateStr);
-    }
-    if(hadDue) t.due=dateStr;
-    if(prevDueCompleted!==undefined){
-      if(!t.dueCompletedDates) t.dueCompletedDates={};
-      t.dueCompletedDates[dateStr]=prevDueCompleted;
-    }
-    if(prevCompleted!==undefined){
-      if(!t.completedDates) t.completedDates={};
-      t.completedDates[dateStr]=prevCompleted;
-    }
-    save(); render();
-  });
-}
-
 function duplicateTask(id){
   const original=S.tasks.find(t=>t.id===id);
   if(!original) return;
@@ -1512,7 +1303,6 @@ function duplicateTask(id){
   copy.title=`${original.title} copy`;
   copy.completed=false;
   copy.completedAt=null;
-  copy.completedDate='';
   copy.completedDates={};
   copy.dueCompletedDates={};
   copy.archived=false;
@@ -1623,10 +1413,82 @@ function designPrompt(title,message,defaultValue='',confirmLabel='Save',cancelLa
   return appDialog({title,message,defaultValue,confirmLabel,cancelLabel,input:true});
 }
 
+// Day-of-week picker dialog (uses buttons instead of typing)
+function designDayPicker(title='Pick days', message='Choose which days this should repeat:', defaultDays=[1,2,3,4,5]){
+  return new Promise(resolve=>{
+    let overlay=document.getElementById('dayPickerOverlay');
+    if(!overlay){
+      overlay=document.createElement('div');
+      overlay.id='dayPickerOverlay';
+      overlay.className='overlay app-dialog-overlay';
+      overlay.innerHTML=`
+        <div class="modal app-dialog" role="dialog" aria-modal="true" style="max-width:380px;">
+          <div class="modal-header">
+            <span class="modal-title" id="dayPickerTitle">Pick days</span>
+            <button class="modal-close" id="dayPickerClose">✕</button>
+          </div>
+          <div class="modal-body app-dialog-body">
+            <div class="app-dialog-message" id="dayPickerMessage" style="margin-bottom:14px;"></div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+              <button type="button" class="btn-sm btn-ghost" data-quick="weekdays" id="dpQuickWeekdays">Weekdays</button>
+              <button type="button" class="btn-sm btn-ghost" data-quick="weekend" id="dpQuickWeekend">Weekend</button>
+              <button type="button" class="btn-sm btn-ghost" data-quick="daily" id="dpQuickDaily">Every day</button>
+            </div>
+            <div id="dayPickerButtons" style="display:flex;gap:4px;margin-bottom:16px;">
+              <button type="button" class="day-btn" data-d="0">Sun</button>
+              <button type="button" class="day-btn" data-d="1">Mon</button>
+              <button type="button" class="day-btn" data-d="2">Tue</button>
+              <button type="button" class="day-btn" data-d="3">Wed</button>
+              <button type="button" class="day-btn" data-d="4">Thu</button>
+              <button type="button" class="day-btn" data-d="5">Fri</button>
+              <button type="button" class="day-btn" data-d="6">Sat</button>
+            </div>
+            <div class="app-dialog-actions">
+              <button class="btn-sm btn-ghost" id="dayPickerCancel">Cancel</button>
+              <button class="btn-sm btn-primary" id="dayPickerConfirm">Save</button>
+            </div>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+    }
+    overlay.querySelector('#dayPickerTitle').textContent=title;
+    overlay.querySelector('#dayPickerMessage').textContent=message;
+    let selected=new Set(defaultDays);
+    const updateBtns=()=>{
+      overlay.querySelectorAll('#dayPickerButtons .day-btn').forEach(b=>{
+        b.classList.toggle('active', selected.has(+b.dataset.d));
+      });
+    };
+    updateBtns();
+    overlay.querySelectorAll('#dayPickerButtons .day-btn').forEach(b=>{
+      b.onclick=()=>{
+        const d=+b.dataset.d;
+        if(selected.has(d)) selected.delete(d); else selected.add(d);
+        updateBtns();
+      };
+    });
+    overlay.querySelector('#dpQuickWeekdays').onclick=()=>{ selected=new Set([1,2,3,4,5]); updateBtns(); };
+    overlay.querySelector('#dpQuickWeekend').onclick=()=>{ selected=new Set([0,6]); updateBtns(); };
+    overlay.querySelector('#dpQuickDaily').onclick=()=>{ selected=new Set([0,1,2,3,4,5,6]); updateBtns(); };
+    overlay.classList.add('show');
+    const cleanup=(val)=>{
+      overlay.classList.remove('show');
+      resolve(val);
+    };
+    overlay.querySelector('#dayPickerConfirm').onclick=()=>{
+      if(selected.size===0){ showToast('Pick at least one day'); return; }
+      cleanup([...selected].sort());
+    };
+    overlay.querySelector('#dayPickerCancel').onclick=()=>cleanup(null);
+    overlay.querySelector('#dayPickerClose').onclick=()=>cleanup(null);
+    overlay.onclick=e=>{ if(e.target===overlay) cleanup(null); };
+  });
+}
+
 function unarchiveTask(id){
   const t = S.tasks.find(t=>t.id===id);
   if(!t) return;
-  t.archived=false; t.completed=false; t.completedAt=null; t.completedDate='';
+  t.archived=false; t.completed=false; t.completedAt=null;
   save(); render();
 }
 
@@ -1669,7 +1531,7 @@ function saveTask(){
   const task = id ? S.tasks.find(t=>t.id===id) : null;
   const isNew = !task;
   const t = task || { id:uid(), createdAt:Date.now(), archived:false, completed:false,
-    completedAt:null, completedDate:'', progress:0, subtasks:[], focusPoints:0, scheduledDates:[], completedDates:{}, dueCompletedDates:{} };
+    completedAt:null, progress:0, subtasks:[], focusPoints:0, scheduledDates:[], completedDates:{}, dueCompletedDates:{} };
   if(isNew && nlpEditDraft){
     t.nlpSource=nlpEditDraft.source||'';
     t.nlpParsedSnapshot=Object.assign({}, nlpEditDraft);
@@ -1780,6 +1642,19 @@ function resetAddForm(){
   document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));
 }
 
+// Open the Add Task modal with a pre-selected date (used by double-click on calendar)
+function openAddTaskForDate(ds){
+  if(!ds) ds = calSelectedDate || todayStr();
+  resetAddForm();
+  calSelectedDate = ds;
+  editScheduledDates = [ds];
+  schedulePickerDate = new Date(ds+'T00:00:00');
+  renderScheduledDateChips();
+  // Focus title input shortly after opening
+  setTimeout(()=>{ const el=document.getElementById('fTitle'); if(el) el.focus(); }, 100);
+  openModal('mAddTask');
+}
+
 function renderModalSubtasks(){
   const list=document.getElementById('modalSubtaskList');
   if(!list) return;
@@ -1790,8 +1665,7 @@ function renderModalSubtasks(){
     </div>`).join('') : `<div class="empty" style="padding:8px 0;text-align:left">No subtasks yet. Add one at a time.</div>`;
 }
 
-function addModalSubtask(event){
-  if(!shouldCommitTextInput(event)) return;
+function addModalSubtask(){
   const input=document.getElementById('modalSubtaskInput');
   const text=input?.value.trim();
   if(!text) return;
@@ -1985,10 +1859,10 @@ function parseHabitDays(text){
 }
 async function makeTaskHabit(t,dateStr,ask=true){
   if(!t || t.isHabit) return true;
-  if(ask && !await designConfirm('Make this a habit?', `"${t.title}" will move into the habit section and repeat on selected days.`, 'Make habit', 'Cancel')) return false;
-  const daysText=await designPrompt('Habit days', 'Use daily or days like Mon,Wed,Fri.', 'Mon,Wed,Fri', 'Use days');
-  if(daysText===null) return false;
-  let scheduledDays=parseHabitDays(daysText);
+  if(ask && !await designConfirm('Make this a habit?', `"${t.title}" will repeat on the days you pick.`, 'Continue', 'Cancel')) return false;
+  const days=await designDayPicker('Habit Days', `Which days should "${t.title}" repeat?`, [1,2,3,4,5]);
+  if(days===null) return false;
+  let scheduledDays=days;
   if(!scheduledDays.length) scheduledDays=[1,2,3,4,5];
   t.isHabit=true;
   t.scheduledDays=scheduledDays;
@@ -1997,7 +1871,6 @@ async function makeTaskHabit(t,dateStr,ask=true){
   t.habitEnd=t.habitEnd || '';
   t.completed=false;
   t.completedAt=null;
-  t.completedDate='';
   t.archived=false;
   showToast(`"${t.title}" is now a habit`);
   return true;
@@ -2013,7 +1886,6 @@ async function makeHabitSingleTask(t,dateStr,sec='Study',ask=true){
   t.completedDates={};
   t.completed=false;
   t.completedAt=null;
-  t.completedDate='';
   t.archived=false;
   t.dailySection = sec && sec !== '__due__' && sec !== '__habits__' && sec !== 'habit' && sec !== 'must' ? sec : 'Study';
   t.scheduledDates=[ds];
@@ -2025,7 +1897,6 @@ function unarchiveForDrop(t,dateStr){
   t.archived=false;
   t.completed=false;
   t.completedAt=null;
-  t.completedDate='';
   t.archivedAt=null;
   if(t.completedDates && dateStr) t.completedDates[dateStr]=false;
   return true;
@@ -2089,13 +1960,15 @@ async function onSectionDrop(e, sec, dateStr){
     setCustomSortForContext('daily');
   } else if(sec==='__due__'){
     if(t.isHabit && !await makeHabitSingleTask(t,ds,'Study',true)){ resetDraggedTask(); return; }
-    moveTaskDueDate(t,ds,draggedTaskDate);
+    t.due = ds;
+    t.calendarSignal = 'due';
     showToast(`Due date set to ${fmtDate(ds)}`);
   } else {
     if(t.isHabit && !await makeHabitSingleTask(t,ds,sec,true)){ resetDraggedTask(); return; }
     // Move to this subsection and schedule for date
     t.dailySection = sec;
-    moveTaskWorkDate(t,ds,draggedTaskSection==='bank' || draggedTaskSection==='archive' ? '' : draggedTaskDate);
+    if(!t.scheduledDates) t.scheduledDates=[];
+    if(!t.scheduledDates.includes(ds)) t.scheduledDates.push(ds);
     if(sec==='must') t.priority='MUST';
     showToast(restored ? `Restored "${t.title}" to ${sectionLabel(sec)}` : `Moved to "${sectionLabel(sec)}"`);
   }
@@ -2308,7 +2181,7 @@ function confirmNLP(){
   if(!nlpParsed) return;
   const t={
     id:uid(), createdAt:Date.now(), archived:false, completed:false,
-    completedAt:null, completedDate:'', progress:0, subtasks:[], focusPoints:0,
+    completedAt:null, progress:0, subtasks:[], focusPoints:0,
     title:nlpParsed.title, subject:nlpParsed.subject, type:nlpParsed.type,
     priority:nlpParsed.priority, due:nlpParsed.due,
     scheduledTime:nlpParsed.scheduledTime, isHabit:nlpParsed.isHabit,
@@ -2419,7 +2292,6 @@ function runCalibrationSession(){
     cycles:0,
     targetCycles:1,
     sessionStart:Date.now(),
-    lastTickAt:Date.now(),
     sessionId:uid(),
     plannedFocus:0,
     plannedBreak:0,
@@ -2432,7 +2304,6 @@ function runCalibrationSession(){
   S.tasks.forEach(t=>{ sessionTaskSnapshot[t.id]=isTaskDone(t,todayStr()); });
   clearInterval(pomoTimer);
   pomoTimer=setInterval(tickPomo,1000);
-  savePomoRuntime();
   updateCycleDisplay();
   updateHUDDisplay(0, pr.focus*60);
   document.getElementById('hudPlay').textContent='⏸';
@@ -2450,79 +2321,6 @@ function getPomoConfig(){
     cycles:Number(S.settings.pomo.cycles)||base.cycles,
     name:base.name
   };
-}
-function pomoPhaseTotal(){
-  const pr=getPomoConfig();
-  if(pomoState.phase==='break' || pomoState.phase==='breakOver') return (pomoState.plannedBreak||pr.short*60);
-  if(pomoState.phase==='calibrationFocus' || pomoState.phase==='calibrationBreak') return 0;
-  return (pomoState.plannedFocus||pr.focus*60);
-}
-function savePomoRuntime(){
-  try{
-    const hasRuntime=pomoState.running || pomoState.sessionStart || pendingFocusReport;
-    if(!hasRuntime){
-      localStorage.removeItem(POMO_RUNTIME_KEY);
-      return;
-    }
-    localStorage.setItem(POMO_RUNTIME_KEY, JSON.stringify({
-      storageKey:currentStorageKey(),
-      savedAt:Date.now(),
-      taskId:currentPomoTask?.id||'',
-      pomoState,
-      pendingFocusReport,
-      sessionTaskSnapshot,
-      sessionDistractionLog
-    }));
-  }catch(e){}
-}
-function syncPomoClock(){
-  if(!pomoState.running) return;
-  const now=Date.now();
-  const last=Number(pomoState.lastTickAt || now);
-  const delta=Math.max(0, Math.floor((now-last)/1000));
-  if(!delta) return;
-  pomoState.lastTickAt=last + delta*1000;
-  const ph=pomoState.phase;
-  if(ph==='calibrationFocus' || ph==='calibrationBreak'){
-    pomoState.elapsed=(pomoState.elapsed||0)+delta;
-    return;
-  }
-  if(ph==='focusOver' || ph==='breakOver'){
-    pomoState.extendedElapsed=(pomoState.extendedElapsed||0)+delta;
-    return;
-  }
-  const total=pomoPhaseTotal();
-  pomoState.elapsed=(pomoState.elapsed||0)+delta;
-  if(total && pomoState.elapsed>=total){
-    const over=pomoState.elapsed-total;
-    pomoState.elapsed=total;
-    pomoState.extendedElapsed=over;
-    pomoState.phase=ph==='break' ? 'breakOver' : 'focusOver';
-  }
-}
-function restorePomoRuntime(){
-  try{
-    const raw=JSON.parse(localStorage.getItem(POMO_RUNTIME_KEY)||'null');
-    if(!raw || raw.storageKey!==currentStorageKey()) return;
-    if(raw.savedAt && Date.now()-raw.savedAt>1000*60*60*36){
-      localStorage.removeItem(POMO_RUNTIME_KEY);
-      return;
-    }
-    pomoState=Object.assign({},pomoState,raw.pomoState||{});
-    pendingFocusReport=raw.pendingFocusReport||null;
-    sessionTaskSnapshot=raw.sessionTaskSnapshot||{};
-    sessionDistractionLog=Array.isArray(raw.sessionDistractionLog) ? raw.sessionDistractionLog : [];
-    currentPomoTask=raw.taskId ? S.tasks.find(t=>t.id===raw.taskId)||null : null;
-    if(pomoState.running){
-      pomoState.lastTickAt=raw.savedAt||pomoState.lastTickAt||Date.now();
-      syncPomoClock();
-      clearInterval(pomoTimer);
-      pomoTimer=setInterval(tickPomo,1000);
-    }
-  }catch(e){}
-}
-function clearPomoRuntime(){
-  try{ localStorage.removeItem(POMO_RUNTIME_KEY); }catch(e){}
 }
 
 function setPomoPreset(p){
@@ -2617,8 +2415,8 @@ function renderHudTaskPicker(){
   const wrap=document.getElementById('hudTaskPicker');
   if(!wrap) return;
   const today=calSelectedDate || todayStr();
-  const todays=sortTasks(getTasksForDate(today).filter(t=>!isTaskDone(t,today)),'custom');
-  const bank=sortTasks(S.tasks.filter(t=>!t.archived && !t.completed && !todays.some(x=>x.id===t.id)),'custom').slice(0,8);
+  const todays=getTasksForDate(today).filter(t=>!isTaskDone(t,today));
+  const bank=S.tasks.filter(t=>!t.archived && !t.completed && !todays.some(x=>x.id===t.id)).slice(0,8);
   const tasks=[...todays, ...bank].slice(0,14);
   if(!tasks.length){
     wrap.innerHTML='<div class="empty" style="padding:14px;text-align:left">No open tasks. Add or schedule a task to focus.</div>';
@@ -2670,7 +2468,6 @@ function logDistraction(){
     cycleNum: pomoState.cycles + 1
   });
   save();
-  savePomoRuntime();
   showToast(`Noted! Let's get back to "${goal}"…`);
 }
 
@@ -2833,45 +2630,35 @@ function togglePomo(){
       S.tasks.forEach(t=>{ sessionTaskSnapshot[t.id]=isTaskDone(t,todayStr()); });
       updateCycleDisplay();
     }
-    pomoState.lastTickAt=Date.now();
     if(currentPage==='focus') toggleFocusFull(true);
-    clearInterval(pomoTimer);
     pomoTimer=setInterval(tickPomo,1000);
   } else {
-    syncPomoClock();
-    pomoState.lastTickAt=null;
     clearInterval(pomoTimer);
   }
-  savePomoRuntime();
 }
 
 
 
 function tickPomo(){
-  const before=pomoState.phase;
-  syncPomoClock();
-  const total=pomoPhaseTotal() || getPomoConfig().focus*60;
-  if(before!==pomoState.phase && (pomoState.phase==='focusOver' || pomoState.phase==='breakOver')){
-    playAlarm();
-    if(pomoState.phase==='focusOver'){
-      showToast('Focus time is done. Extended focus is now tracking until you start break.', 'Start break', startBreakPhase);
-    } else {
-      showToast('Break time is done. Extended break is tracking until you return to study.', 'Study now', startNextFocusPhase);
-    }
-  }
+  const pr=getPomoConfig();
+  const total=(pomoState.phase==='focus'?pr.focus:pomoState.phase==='break'?pr.short:pr.focus)*60;
   if(pomoState.phase==='calibrationFocus' || pomoState.phase==='calibrationBreak'){
+    pomoState.elapsed++;
     updateHUDDisplay(-pomoState.elapsed, total);
-  } else if(pomoState.phase==='focusOver' || pomoState.phase==='breakOver'){
-    updateHUDDisplay(-pomoState.extendedElapsed, total);
-  } else {
-    updateHUDDisplay(total-pomoState.elapsed, total);
+    return;
   }
-  savePomoRuntime();
+  if(pomoState.phase==='focusOver' || pomoState.phase==='breakOver'){
+    pomoState.extendedElapsed++;
+    updateHUDDisplay(-pomoState.extendedElapsed, total);
+    return;
+  }
+  pomoState.elapsed++;
+  updateHUDDisplay(total-pomoState.elapsed, total);
+  if(pomoState.elapsed>=total) endPomoPhase();
 }
 
 function endPomoPhase(){
   clearInterval(pomoTimer); pomoState.running=true;
-  syncPomoClock();
   playAlarm();
   const pr=getPomoConfig();
   if(pomoState.phase==='focus'){
@@ -2883,20 +2670,17 @@ function endPomoPhase(){
     pomoState.extendedElapsed=0;
     showToast('Break time is done. Extended break is tracking until you return to study.', 'Study now', startNextFocusPhase);
   }
-  pomoState.lastTickAt=Date.now();
   pomoTimer=setInterval(tickPomo,1000);
   updateHUDDisplay(0, pr.focus*60);
-  savePomoRuntime();
 }
 
 function resetPomo(){
   clearInterval(pomoTimer);
   const pr=getPomoConfig();
-  pomoState={running:false,phase:'focus',elapsed:0,cycles:0,targetCycles:pr.cycles||4,sessionStart:null,lastTickAt:null,sessionId:uid(),plannedFocus:pr.focus*60,plannedBreak:pr.short*60,extendedElapsed:0,breakElapsed:0};
+  pomoState={running:false,phase:'focus',elapsed:0,cycles:0,targetCycles:pr.cycles||4,sessionStart:null,sessionId:uid(),plannedFocus:pr.focus*60,plannedBreak:pr.short*60,extendedElapsed:0,breakElapsed:0};
   pendingFocusReport=null;
   sessionTaskSnapshot={};
   sessionDistractionLog=[];
-  clearPomoRuntime();
   updateHUDDisplay(pr.focus*60, pr.focus*60);
   document.getElementById('hudPlay').textContent='▶';
   document.getElementById('hudPlay').classList.remove('active');
@@ -2917,7 +2701,6 @@ async function goBreakNow(){
 
 function startBreakPhase(){
   clearInterval(pomoTimer);
-  syncPomoClock();
   const pr=getPomoConfig();
   const actualFocusSec=(pomoState.phase==='focusOver'?pomoState.plannedFocus+pomoState.extendedElapsed:pomoState.elapsed);
 
@@ -2946,18 +2729,16 @@ function startBreakPhase(){
   S.sessions.push({id:uid(),taskId:currentPomoTask?.id,date:todayStr(),type:'focus',dur:Math.round(actualFocusSec/60),completed:true,ts:Date.now()});
   if(currentPomoTask) currentPomoTask.focusPoints=(currentPomoTask.focusPoints||0)+Math.round(actualFocusSec/60);
   pomoState.phase=isCalibration?'calibrationBreak':'break';
-  pomoState.elapsed=0; pomoState.extendedElapsed=0; pomoState.running=true; pomoState.lastTickAt=Date.now(); pomoState.plannedBreak=isCalibration?0:pr.short*60;
+  pomoState.elapsed=0; pomoState.extendedElapsed=0; pomoState.running=true; pomoState.plannedBreak=isCalibration?0:pr.short*60;
   save(); renderFocusReports(); updateEOPR();
   updateCycleDisplay();
   pomoTimer=setInterval(tickPomo,1000);
   updateHUDDisplay(isCalibration?0:pr.short*60, pr.short*60);
-  savePomoRuntime();
   if(isCalibration) showToast('Break stopwatch started. Return when you feel recovered near 30%, then press Study Now.');
 }
 
 function startNextFocusPhase(){
   clearInterval(pomoTimer);
-  syncPomoClock();
   const actualBreakSec=(pomoState.phase==='breakOver'?pomoState.plannedBreak+pomoState.extendedElapsed:pomoState.elapsed);
   if(pendingFocusReport){
     pendingFocusReport.actualBreakSec=actualBreakSec;
@@ -2991,18 +2772,16 @@ function startNextFocusPhase(){
     endSession(true);
     return;
   }
-  pomoState={running:false,phase:'focus',elapsed:0,cycles:newCycles,targetCycles:pomoState.targetCycles,sessionStart:pomoState.sessionStart,lastTickAt:null,sessionId:pomoState.sessionId,plannedFocus:pr.focus*60,plannedBreak:pr.short*60,extendedElapsed:0,breakElapsed:0};
+  pomoState={running:false,phase:'focus',elapsed:0,cycles:newCycles,targetCycles:pomoState.targetCycles,sessionStart:pomoState.sessionStart,sessionId:pomoState.sessionId,plannedFocus:pr.focus*60,plannedBreak:pr.short*60,extendedElapsed:0,breakElapsed:0};
   save(); renderFocusReports(); updatePersonalTimerUI();
   updateCycleDisplay();
   updateHUDDisplay(pr.focus*60, pr.focus*60);
   document.getElementById('hudPlay').textContent='▶';
   document.getElementById('hudPlay').classList.remove('active');
-  savePomoRuntime();
 }
 
 function endSession(auto){
   clearInterval(pomoTimer);
-  syncPomoClock();
   if(pendingFocusReport){
     if(pomoState.phase==='break' || pomoState.phase==='calibrationBreak') pendingFocusReport.actualBreakSec=pomoState.elapsed;
     if(pomoState.phase==='breakOver') pendingFocusReport.actualBreakSec=(pomoState.plannedBreak||0)+pomoState.extendedElapsed;
@@ -3104,7 +2883,7 @@ function updateEOPR(){
   document.getElementById('eoprVal').textContent=score+'%';
   const today=todayStr();
   S.eoprLog=(S.eoprLog||[]).filter(x=>x.date!==today).concat({date:today,score,ts:Date.now()}).slice(-31);
-  save();
+  localStorage.setItem(KEY, JSON.stringify(S));
 }
 
 // ════════════════════════════════════════════════════════════
@@ -3141,18 +2920,18 @@ async function fetchIcal(){
     }
     if(!text) throw lastErr || new Error('Could not fetch calendar');
     const events=parseICS(text);
-    const result=importEvents(events);
+    const result=await importEvents(events);
     status.textContent=`Imported ${result.added} item${result.added===1?'':'s'}${result.skipped?`, skipped ${result.skipped} duplicate${result.skipped===1?'':'s'}`:''}`;
   }catch(e){
     status.textContent='URL import failed: '+e.message+' — paste the ICS text in the Paste Data tab.';
   }
 }
 
-function importIcalPaste(){
+async function importIcalPaste(){
   const text=document.getElementById('icalPaste').value.trim();
   if(!text){ showToast('Paste ICS data first.'); return; }
   const events=parseICS(text);
-  const result=importEvents(events);
+  const result=await importEvents(events);
   document.getElementById('icalStatus').textContent=`Imported ${result.added} item${result.added===1?'':'s'}${result.skipped?`, skipped ${result.skipped} duplicate${result.skipped===1?'':'s'}`:''}`;
 }
 
@@ -3173,16 +2952,16 @@ function onIcsDrop(e){
     return;
   }
   const reader=new FileReader();
-  reader.onload=()=>{
+  reader.onload=async ()=>{
     const events=parseICS(String(reader.result||''));
-    const result=importEvents(events);
+    const result=await importEvents(events);
     document.getElementById('icalStatus').textContent=`Imported ${result.added} item${result.added===1?'':'s'} from ${file.name}${result.skipped?`, skipped ${result.skipped} duplicate${result.skipped===1?'':'s'}`:''}`;
   };
   reader.onerror=()=>{ document.getElementById('icalStatus').textContent='Could not read that ICS file.'; };
   reader.readAsText(file);
 }
 
-function importEvents(events){
+async function importEvents(events){
   let added=0, skipped=0;
   for(const ev of events){
     if(!ev.summary) continue;
@@ -3199,7 +2978,8 @@ function importEvents(events){
         title:ev.summary, subject:'', type,
         date, time:'', location:ev.location||'', notes:ev.description||'', color:eventColorForType(type)
       };
-      if(findPossibleDuplicate(candidate,'event')){ skipped++; continue; }
+      const dupe=findPossibleDuplicate(candidate,'event');
+      if(dupe && await confirmDuplicate(candidate,dupe)){ skipped++; continue; }
       S.events.push(candidate);
     }else{
       const candidate={
@@ -3212,7 +2992,8 @@ function importEvents(events){
         dueCompletedDates:{}, customOrder:Date.now()+added,
         calendarSignal:'due', dailySection:'Study'
       };
-      if(findPossibleDuplicate(candidate,'task')){ skipped++; continue; }
+      const dupe=findPossibleDuplicate(candidate,'task');
+      if(dupe && await confirmDuplicate(candidate,dupe)){ skipped++; continue; }
       S.tasks.push(candidate);
     }
     added++;
@@ -3365,6 +3146,7 @@ function renderCalendar(){
       role="button"
       tabindex="0"
       onclick="selectCalDate(event,'${ds}')"
+      ondblclick="openAddTaskForDate('${ds}')"
       onkeydown="if(event.key==='Enter'||event.key===' '){selectCalDate(event,'${ds}')}"
       onpointerenter="startCalHover(event,'${ds}')"
       onpointermove="moveCalHover(event)"
@@ -3669,10 +3451,12 @@ async function onTaskRowDrop(e,targetId,section='',dateStr=''){
     if(!await makeTaskHabit(source,ds,true)){ resetDraggedTask(); return; }
   }else if(targetSection==='__due__'){
     if(source.isHabit && !await makeHabitSingleTask(source,ds,'Study',true)){ resetDraggedTask(); return; }
-    moveTaskDueDate(source,ds,draggedTaskDate);
+    source.due=ds;
+    source.calendarSignal='due';
   }else{
     if(source.isHabit && !await makeHabitSingleTask(source,ds,targetSection,true)){ resetDraggedTask(); return; }
-    moveTaskWorkDate(source,ds,draggedTaskSection==='bank' || draggedTaskSection==='archive' ? '' : draggedTaskDate);
+    if(!source.scheduledDates) source.scheduledDates=[];
+    if(!source.scheduledDates.includes(ds)) source.scheduledDates.push(ds);
     source.dailySection=targetSection==='must' ? (target.dailySection||'Study') : (targetSection||target.dailySection||'Study');
     if(targetSection==='must' || target.priority==='MUST') source.priority='MUST';
   }
@@ -3760,7 +3544,6 @@ function onArchiveDrop(e){
   }
   t.completed=true;
   t.completedAt=Date.now();
-  t.completedDate=ds;
   t.archived=true;
   t.archivedAt=Date.now();
   save(); render();
@@ -3778,7 +3561,7 @@ async function onCalDrop(e,ds){
   const file=[...(e.dataTransfer?.files||[])].find(f=>/\.ics$/i.test(f.name) || /calendar|ics/i.test(f.type));
   if(file){
     const reader=new FileReader();
-    reader.onload=()=>{ importEvents(parseICS(String(reader.result||''))); render(); };
+    reader.onload=async ()=>{ await importEvents(parseICS(String(reader.result||''))); render(); };
     reader.readAsText(file);
     return;
   }
@@ -3793,11 +3576,8 @@ async function onCalDrop(e,ds){
   if(choice){
     if(t.isHabit && !await makeHabitSingleTask(t,ds,'Study',true)){ resetDraggedTask(); return; }
     // Schedule as task
-    if(draggedTaskSection==='__due__'){
-      moveTaskDueDate(t,ds,draggedTaskDate);
-    } else {
-      moveTaskWorkDate(t,ds,draggedTaskSection==='bank' || draggedTaskSection==='archive' ? '' : draggedTaskDate);
-    }
+    if(!t.scheduledDates) t.scheduledDates=[];
+    if(!t.scheduledDates.includes(ds)) t.scheduledDates.push(ds);
     showToast(`Scheduled "${t.title}" for ${fmtDate(ds)}`);
   } else {
     // Add as event
@@ -3914,7 +3694,6 @@ function convertEventToTask(){
     archived:false,
     completed:false,
     completedAt:null,
-    completedDate:'',
     completedDates:{},
     title:ev.title||'Untitled task',
     subject:ev.subject||'',
@@ -4291,194 +4070,43 @@ function updateCycleDisplay(){
 
 function openSettings(){
   document.getElementById('sName').value=S.settings.name||'Jay';
+  document.getElementById('sAppName').value=S.settings.appName||'Focus Hub';
+  document.getElementById('sAppSubtitle').value=S.settings.appSubtitle||'Productivity planner';
   document.getElementById('sDark').checked=S.settings.theme==='dark';
   document.getElementById('sPomoFocus').value=S.settings.pomo.focus;
   document.getElementById('sPomoShort').value=S.settings.pomo.shortBreak;
   document.getElementById('sPomoLong').value=S.settings.pomo.longBreak;
   document.getElementById('sPomoCycles').value=S.settings.pomo.cycles;
   document.getElementById('sAlarmSound').value=S.settings.alarmSound||'chime';
-  setupAuthUI();
   renderDeletedList();
 }
 function saveSettings(){
   S.settings.name=document.getElementById('sName').value.trim()||'Jay';
-  if(activeUser?.signedIn && activeUser.name!==S.settings.name){
-    activeUser.name=S.settings.name;
-    localStorage.setItem(AUTH_KEY, JSON.stringify(activeUser));
-  }
+  S.settings.appName=document.getElementById('sAppName').value.trim()||'Focus Hub';
+  S.settings.appSubtitle=document.getElementById('sAppSubtitle').value.trim()||'Productivity planner';
   S.settings.theme=document.getElementById('sDark').checked?'dark':'light';
   S.settings.pomo.focus=+document.getElementById('sPomoFocus').value||25;
   S.settings.pomo.shortBreak=+document.getElementById('sPomoShort').value||5;
   S.settings.pomo.longBreak=+document.getElementById('sPomoLong').value||15;
   S.settings.pomo.cycles=+document.getElementById('sPomoCycles').value||4;
   S.settings.alarmSound=document.getElementById('sAlarmSound').value||'chime';
-  applyTheme(); save(); updateBranding(); closeModal('mSettings'); resetPomo();
+  applyTheme();
+  applyAppBranding();
+  save();
+  closeModal('mSettings');
+  resetPomo();
 }
 
-// ════════════════════════════════════════════════════════════
-//  ACCOUNT GATE
-// ════════════════════════════════════════════════════════════
-function setupAuthUI(){
-  const gate=document.getElementById('authGate');
-  const name=document.getElementById('authName');
-  const email=document.getElementById('authEmail');
-  const label=document.getElementById('accountLabel');
-  const firebaseUser=window.JayFirebaseAuth?.currentUser;
-  if(firebaseUser && activeUser?.uid!==firebaseUser.uid) applyAuthenticatedUser(firebaseUser,false);
-  if(name) name.value=activeUser?.name && activeUser.name!=='Local user' ? activeUser.name : (S.settings.name||'');
-  if(email) email.value=activeUser?.email||'';
-  if(label) label.textContent=activeUser?.signedIn ? `${activeUser.email||activeUser.name||'Signed in'}${activeUser.mode==='firebase'?' (Firebase)':''}` : 'Local browser data';
-  updateBranding();
-  setAuthStatus(window.JayFirebaseAuth?.enabled
-    ? 'Firebase Auth ready. Use your email and password.'
-    : 'Firebase is not configured yet. Fill firebase-config.js, then refresh.');
-  if(gate) gate.classList.toggle('show', !activeUser?.signedIn && !localStorage.getItem(KEY+'_auth_dismissed'));
-  if(!window.__authGateEscapeReady){
-    window.__authGateEscapeReady=true;
-    document.addEventListener('keydown', e=>{
-      if(e.key==='Escape' && document.getElementById('authGate')?.classList.contains('show')) useLocalMode();
-    });
-    document.addEventListener('jay-auth-state', e=>{
-      if(e.detail) applyAuthenticatedUser(e.detail,true);
-      else if(activeUser?.mode==='firebase') signOutLocalAccount(false);
-    });
-    document.addEventListener('jay-auth-unconfigured', ()=>{
-      setAuthStatus('Firebase is not configured yet. Fill firebase-config.js, then refresh.');
-    });
-  }
-}
-function setAuthStatus(message){
-  const el=document.getElementById('authStatus');
-  if(el) el.textContent=message;
-}
-function useLocalMode(){
-  localStorage.setItem(KEY+'_auth_dismissed','1');
-  document.getElementById('authGate')?.classList.remove('show');
-  showToast('Using local browser data. You can link an account from Settings.');
-}
-async function applyAuthenticatedUser(user,shouldRender=true){
-  if(!user?.uid) return;
-  const previousState=JSON.parse(JSON.stringify(S));
-  const nextUser={
-    uid:user.uid,
-    email:user.email||'',
-    name:user.name||user.email?.split('@')[0]||'User',
-    mode:user.mode||'firebase',
-    signedIn:true,
-    linkedAt:Date.now()
-  };
-  activeUser=nextUser;
-  localStorage.setItem(AUTH_KEY, JSON.stringify(activeUser));
-  localStorage.setItem(KEY+'_auth_dismissed','1');
-  const targetKey=storageKeyForUser(nextUser);
-  suppressCloudSave=true;
-  let remoteState=null;
-  try{
-    if(window.JayFirebaseAuth?.enabled) remoteState=await window.JayFirebaseAuth.loadState(activeUser.uid);
-  }catch(err){
-    setAuthStatus('Cloud load failed. Using this browser data.');
-  }
-  const localRaw=localStorage.getItem(targetKey);
-  const localParsed=localRaw ? (() => { try{ return JSON.parse(localRaw); }catch(e){ return null; } })() : null;
-  const stateIsEmpty=(s)=>!s || ((s.tasks||[]).length===0 && (s.events||[]).length===0 && (s.sessions||[]).length===0);
-  let shouldPushLocal=false;
-  if(remoteState && localParsed){
-    const remoteTime=remoteState.lastModified||0;
-    const localTime=localParsed.lastModified||0;
-    if(localTime>remoteTime && !stateIsEmpty(localParsed)){
-      S=normalizeState(Object.assign({},DEF,localParsed));
-      setAuthStatus('Synced. (Local data was up to date.)');
-      shouldPushLocal=true;
-    }else{
-      S=normalizeState(Object.assign({},DEF,remoteState));
-      localStorage.setItem(targetKey, JSON.stringify(S));
-      setAuthStatus('Loaded your cloud data.');
-    }
-  }else if(remoteState){
-    S=normalizeState(Object.assign({},DEF,remoteState));
-    localStorage.setItem(targetKey, JSON.stringify(S));
-    setAuthStatus('Loaded your cloud data.');
-  }else{
-    S=normalizeState(Object.assign({},DEF,previousState));
-    if(activeUser.name && (!S.settings.name || S.settings.name==='Jay')) S.settings.name=activeUser.name;
-    localStorage.setItem(targetKey, JSON.stringify(S));
-    if(stateIsEmpty(S)){
-      setAuthStatus('No cloud data yet. Add tasks to start syncing.');
-    }else{
-      setAuthStatus('No cloud data yet. Seeded this account from this browser.');
-      shouldPushLocal=true;
-    }
-  }
-  suppressCloudSave=false;
-  cloudReady=true;
-  lastPushedTimestamp = S.lastModified || 0;
-  startCloudSubscription(activeUser.uid);
-  if(shouldPushLocal) scheduleCloudSave();
-  document.getElementById('authGate')?.classList.remove('show');
-  if(shouldRender){
-    setupAuthUI();
-    render();
-    showToast(`Signed in as ${activeUser.email || activeUser.name}.`);
-  }
-}
-async function signInLocalAccount(event){
-  event?.preventDefault?.();
-  const action=event?.submitter?.dataset?.authAction || 'login';
-  const email=(document.getElementById('authEmail')?.value||'').trim().toLowerCase();
-  const name=(document.getElementById('authName')?.value||'').trim() || email.split('@')[0] || 'User';
-  const password=document.getElementById('authPassword')?.value||'';
-  if(!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){
-    showToast('Enter a valid email to create or open an account.');
+// Send a password reset email to the currently-logged-in user
+function changePasswordFromSettings(){
+  if(!currentUser || !currentUser.email){
+    showToast('Not logged in');
     return;
   }
-  if(!window.JayFirebaseAuth?.enabled){
-    setAuthStatus('Firebase is not configured yet. Fill firebase-config.js with your Firebase web app config.');
-    showToast('Firebase is not configured yet.');
-    return;
-  }
-  try{
-    setAuthStatus(action==='signup' ? 'Creating account...' : action==='reset' ? 'Sending reset email...' : 'Logging in...');
-    if(action==='reset'){
-      await window.JayFirebaseAuth.resetPassword(email);
-      setAuthStatus('Password reset email sent.');
-      showToast('Password reset email sent.');
-      return;
-    }
-    if(password.length<8){
-      setAuthStatus('Password must be at least 8 characters.');
-      showToast('Password must be at least 8 characters.');
-      return;
-    }
-    action==='signup'
-      ? await window.JayFirebaseAuth.signUp(email,password,name)
-      : await window.JayFirebaseAuth.signIn(email,password);
-    // onAuthStateChanged fires jay-auth-state which calls applyAuthenticatedUser
-  }catch(err){
-    const msg=String(err?.message||err||'Authentication failed.').replace(/^Firebase:\s*/,'');
-    setAuthStatus(msg);
-    showToast(msg);
-  }
-}
-async function signOutLocalAccount(callFirebase=true){
-  save();
-  cloudReady=false;
-  clearTimeout(cloudSaveTimer);
-  stopCloudSubscription();
-  const wasFirebase=activeUser?.mode==='firebase';
-  activeUser={uid:'local', email:'', name:'Local user', mode:'local', signedIn:false};
-  if(callFirebase && window.JayFirebaseAuth?.enabled && wasFirebase){
-    try{ await window.JayFirebaseAuth.signOut(); }catch(e){}
-  }
-  localStorage.setItem(AUTH_KEY, JSON.stringify(activeUser));
-  S=loadState();
-  setupAuthUI();
-  render();
-  showToast('Signed out. Showing local browser data.');
-}
-function openAuthGate(){
-  localStorage.removeItem(KEY+'_auth_dismissed');
-  setupAuthUI();
-  document.getElementById('authGate')?.classList.add('show');
+  if(!confirm(`Send a password reset link to ${currentUser.email}?`)) return;
+  auth.sendPasswordResetEmail(currentUser.email)
+    .then(()=>{ showToast('Reset link sent. Check your email.'); })
+    .catch(err=>{ showToast('Error: ' + (err.message||'Could not send reset email')); });
 }
 
 function playPop(freq=880){
@@ -4528,14 +4156,8 @@ function checkThursdayReview(){
   applyTheme();
   openSettings(); // pre-fill settings form
   document.querySelectorAll('.pomo-preset-btn,.pomo-preset-card').forEach(b=>b.classList.toggle('active',b.dataset.preset===S.settings.pomo.presetMode));
-  setupAuthUI();
-  restorePomoRuntime();
   const pr=getPomoConfig();
-  if(pomoState.phase==='calibrationFocus' || pomoState.phase==='calibrationBreak') updateHUDDisplay(-pomoState.elapsed, pr.focus*60);
-  else if(pomoState.phase==='focusOver' || pomoState.phase==='breakOver') updateHUDDisplay(-pomoState.extendedElapsed, pomoPhaseTotal() || pr.focus*60);
-  else updateHUDDisplay((pomoPhaseTotal() || pr.focus*60)-pomoState.elapsed, pomoPhaseTotal() || pr.focus*60);
-  document.getElementById('hudPlay').textContent=pomoState.running?'⏸':'▶';
-  document.getElementById('hudPlay').classList.toggle('active',!!pomoState.running);
+  updateHUDDisplay(pr.focus*60,pr.focus*60);
   render();
   checkThursdayReview();
 
@@ -4550,3 +4172,209 @@ function checkThursdayReview(){
   };
   setTimeout(()=>{ render(); setInterval(render,86400000); }, msToMidnight());
 })();
+
+// ════════════════════════════════════════════════════════════
+//  FIREBASE AUTHENTICATION & CLOUD SYNC
+// ════════════════════════════════════════════════════════════
+
+function handleSignUp() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const errorDiv = document.getElementById('errorMsg');
+  const loadingDiv = document.getElementById('loadingMsg');
+  
+  if (!email || !password) {
+    errorDiv.textContent = 'Please enter email and password';
+    errorDiv.classList.add('show');
+    return;
+  }
+  if (password.length < 6) {
+    errorDiv.textContent = 'Password must be at least 6 characters';
+    errorDiv.classList.add('show');
+    return;
+  }
+  
+  loadingDiv.textContent = 'Creating account...';
+  errorDiv.classList.remove('show');
+  
+  auth.createUserWithEmailAndPassword(email, password)
+    .then(() => { loadingDiv.textContent = ''; })
+    .catch(error => {
+      loadingDiv.textContent = '';
+      let msg = error.message;
+      if (error.code === 'auth/email-already-in-use') msg = 'An account with this email already exists. Try logging in instead.';
+      else if (error.code === 'auth/invalid-email') msg = 'Please enter a valid email address';
+      else if (error.code === 'auth/weak-password') msg = 'Password is too weak. Use at least 6 characters.';
+      errorDiv.textContent = msg;
+      errorDiv.classList.add('show');
+    });
+}
+
+function handleLogIn() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const errorDiv = document.getElementById('errorMsg');
+  const loadingDiv = document.getElementById('loadingMsg');
+  
+  if (!email || !password) {
+    errorDiv.textContent = 'Please enter email and password';
+    errorDiv.classList.add('show');
+    return;
+  }
+  
+  loadingDiv.textContent = 'Logging in...';
+  errorDiv.classList.remove('show');
+  
+  auth.signInWithEmailAndPassword(email, password)
+    .then(() => { loadingDiv.textContent = ''; })
+    .catch(error => {
+      loadingDiv.textContent = '';
+      let msg = error.message;
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') msg = 'Incorrect email or password. Try again or reset your password.';
+      else if (error.code === 'auth/wrong-password') msg = 'Incorrect password. Click "Forgot password?" to reset it.';
+      else if (error.code === 'auth/invalid-email') msg = 'Please enter a valid email address';
+      else if (error.code === 'auth/too-many-requests') msg = 'Too many failed attempts. Please try again later or reset your password.';
+      errorDiv.textContent = msg;
+      errorDiv.classList.add('show');
+    });
+}
+
+function handleLogOut() {
+  if (confirm('Are you sure you want to log out?')) {
+    auth.signOut().then(() => {
+      document.getElementById('email').value = '';
+      document.getElementById('password').value = '';
+      document.getElementById('errorMsg').classList.remove('show');
+      document.getElementById('loadingMsg').textContent = '';
+    });
+  }
+}
+
+function handlePasswordReset() {
+  const email = document.getElementById('resetEmail').value.trim();
+  const errorDiv = document.getElementById('resetErrorMsg');
+  const successDiv = document.getElementById('resetSuccessMsg');
+  const loadingDiv = document.getElementById('resetLoadingMsg');
+
+  errorDiv.classList.remove('show');
+  successDiv.classList.remove('show');
+
+  if (!email) {
+    errorDiv.textContent = 'Please enter your email address';
+    errorDiv.classList.add('show');
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errorDiv.textContent = 'Please enter a valid email address';
+    errorDiv.classList.add('show');
+    return;
+  }
+
+  loadingDiv.textContent = 'Sending reset link...';
+
+  auth.sendPasswordResetEmail(email)
+    .then(() => {
+      loadingDiv.textContent = '';
+      successDiv.textContent = 'Reset link sent. Check your email (and spam folder).';
+      successDiv.classList.add('show');
+      document.getElementById('resetEmail').value = '';
+    })
+    .catch(error => {
+      loadingDiv.textContent = '';
+      let msg = error.message;
+      if (error.code === 'auth/user-not-found') msg = 'No account found with this email address';
+      else if (error.code === 'auth/invalid-email') msg = 'Please enter a valid email address';
+      else if (error.code === 'auth/too-many-requests') msg = 'Too many attempts. Please try again later.';
+      errorDiv.textContent = msg;
+      errorDiv.classList.add('show');
+    });
+}
+
+auth.onAuthStateChanged(user => {
+  if (user) {
+    currentUser = user;
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'flex';
+    loadUserDataFromFirebase();
+  } else {
+    currentUser = null;
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('appScreen').style.display = 'none';
+  }
+});
+
+function loadUserDataFromFirebase() {
+  if (!currentUser) return;
+  const userRef = database.ref('users/' + currentUser.uid);
+  
+  userRef.once('value').then(snapshot => {
+    let isNewUser = false;
+    if (snapshot.exists()) {
+      S = snapshot.val();
+      S = normalizeState(Object.assign({}, DEF, S));
+      // Make sure new settings exist on old accounts
+      if(!S.settings) S.settings = {};
+      if(!S.settings.appName) S.settings.appName = DEF.settings.appName;
+      if(!S.settings.appSubtitle) S.settings.appSubtitle = DEF.settings.appSubtitle;
+      console.log('Loaded data from Firebase');
+    } else {
+      S = JSON.parse(JSON.stringify(DEF));
+      S = normalizeState(S);
+      isNewUser = true;
+      saveUserDataToFirebase();
+    }
+    
+    if (S.settings && S.settings.theme) {
+      document.documentElement.dataset.theme = S.settings.theme;
+    }
+    if (S.settings && S.settings.accentColor) {
+      document.documentElement.style.setProperty('--accent', S.settings.accentColor);
+    }
+    
+    applyAppBranding();
+    render();
+    
+    // Show welcome modal for new users or those who haven't seen it
+    if(isNewUser || !S.settings.welcomeSeen){
+      setTimeout(()=>{ openModal('mWelcome'); }, 400);
+    }
+  });
+}
+
+// Apply the user's app name and subtitle to the sidebar + browser tab
+function applyAppBranding(){
+  const appName = (S.settings && S.settings.appName) || 'Focus Hub';
+  const appSub = (S.settings && S.settings.appSubtitle) || 'Productivity planner';
+  const logoText = document.getElementById('logoText');
+  const logoSub = document.getElementById('logoSub');
+  const logoMark = document.getElementById('logoMark');
+  if(logoText) logoText.textContent = appName;
+  if(logoSub) logoSub.textContent = appSub;
+  if(logoMark) logoMark.textContent = (appName.trim()[0] || 'F').toUpperCase();
+  document.title = appName;
+  const welcomeTitle = document.getElementById('welcomeTitle');
+  if(welcomeTitle) welcomeTitle.textContent = `Welcome to ${appName}`;
+}
+
+// Save the welcome modal preference and close
+function dismissWelcome(){
+  const dontShow = document.getElementById('welcomeDontShowAgain');
+  if(dontShow && dontShow.checked){
+    if(!S.settings) S.settings = {};
+    S.settings.welcomeSeen = true;
+    save();
+  }
+  closeModal('mWelcome');
+}
+
+function saveUserDataToFirebase() {
+  if (!currentUser) {
+    localStorage.setItem(KEY, JSON.stringify(S));
+    return;
+  }
+  const userRef = database.ref('users/' + currentUser.uid);
+  userRef.set(S).catch(error => {
+    console.error('Firebase save error:', error);
+    localStorage.setItem(KEY, JSON.stringify(S));
+  });
+}
