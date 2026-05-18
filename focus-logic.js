@@ -134,6 +134,7 @@ function normalizeState(state){
   state.events=remainingEvents;
   state.settings = Object.assign({}, DEF.settings, state.settings||{});
   state.settings.pomo = Object.assign({}, DEF.settings.pomo, state.settings.pomo||{});
+  if(typeof state.settings.askOnCalendarDrop !== 'boolean') state.settings.askOnCalendarDrop = false;
   state.nlpCorrections = state.nlpCorrections || {};
   state.deleted = state.deleted || [];
   state.focusReports = state.focusReports || [];
@@ -3692,20 +3693,31 @@ async function onCalDrop(e,ds){
     return;
   }
 
-  // Day → day move (initiated from a draggable chip / side-panel item)
-  if(draggedDayTask){
-    const t = S.tasks.find(x=>x.id===draggedDayTask.id);
-    const fromDate = draggedDayTask.fromDate;
+  // Day → day MOVE
+  // Triggered when the user drags a task that already has a source date:
+  //   - a calendar mini-chip or side-panel row (onDayTaskDragStart sets draggedDayTask)
+  //   - OR a task row from the Today/Daily/MUST list (onTaskDragStart sets draggedTaskId + draggedTaskDate,
+  //     but NOT draggedBankId — bank drags are different)
+  const moveSource = draggedDayTask
+    ? { id: draggedDayTask.id, fromDate: draggedDayTask.fromDate }
+    : (!draggedBankId && draggedTaskId && draggedTaskDate && draggedTaskDate !== ds && draggedTaskSection !== 'archive'
+        ? { id: draggedTaskId, fromDate: draggedTaskDate }
+        : null);
+
+  if(moveSource){
+    const t = S.tasks.find(x=>x.id===moveSource.id);
     draggedDayTask=null;
-    if(!t || !fromDate || fromDate===ds) return;
-    if(moveTaskToDate(t, fromDate, ds)){
+    if(!t || !moveSource.fromDate || moveSource.fromDate===ds){ resetDraggedTask(); return; }
+    unarchiveForDrop(t, ds);
+    if(moveTaskToDate(t, moveSource.fromDate, ds)){
       calSelectedDate = ds;
       save(); render();
       showToast(`Moved "${t.title}" to ${fmtDate(ds)}.`, 'Undo', ()=>{
-        moveTaskToDate(t, ds, fromDate);
+        moveTaskToDate(t, ds, moveSource.fromDate);
         save(); render();
       });
     }
+    resetDraggedTask();
     return;
   }
 
@@ -3715,16 +3727,19 @@ async function onCalDrop(e,ds){
   if(!t){ resetDraggedTask(); return; }
   unarchiveForDrop(t,ds);
 
-  // Ask: schedule as task or add as event?
-  const choice = await designConfirm('Add to calendar', `Add "${t.title}" to ${fmtDate(ds)} as a task or as a calendar event?`, 'Task', 'Event');
-  if(choice){
+  // Default behaviour: schedule as a task silently. Only ask Task-vs-Event
+  // when the user has explicitly enabled the prompt in Settings.
+  const askPrompt = !!(S.settings && S.settings.askOnCalendarDrop);
+  let asTask = true;
+  if(askPrompt){
+    asTask = await designConfirm('Add to calendar', `Add "${t.title}" to ${fmtDate(ds)} as a task or as a calendar event?`, 'Task', 'Event');
+  }
+  if(asTask){
     if(t.isHabit && !await makeHabitSingleTask(t,ds,'Study',true)){ resetDraggedTask(); return; }
-    // Schedule as task
     if(!t.scheduledDates) t.scheduledDates=[];
     if(!t.scheduledDates.includes(ds)) t.scheduledDates.push(ds);
     showToast(`Scheduled "${t.title}" for ${fmtDate(ds)}`);
   } else {
-    // Add as event
     S.events.push({
       id:uid(), createdAt:Date.now(),
       title:t.title, date:ds, time:'',
@@ -4222,6 +4237,8 @@ function openSettings(){
   document.getElementById('sPomoLong').value=S.settings.pomo.longBreak;
   document.getElementById('sPomoCycles').value=S.settings.pomo.cycles;
   document.getElementById('sAlarmSound').value=S.settings.alarmSound||'chime';
+  const askBox=document.getElementById('sAskOnDrop');
+  if(askBox) askBox.checked = !!(S.settings && S.settings.askOnCalendarDrop);
   renderDeletedList();
 }
 function saveSettings(){
@@ -4234,6 +4251,8 @@ function saveSettings(){
   S.settings.pomo.longBreak=+document.getElementById('sPomoLong').value||15;
   S.settings.pomo.cycles=+document.getElementById('sPomoCycles').value||4;
   S.settings.alarmSound=document.getElementById('sAlarmSound').value||'chime';
+  const askBox=document.getElementById('sAskOnDrop');
+  S.settings.askOnCalendarDrop = !!(askBox && askBox.checked);
   applyTheme();
   applyAppBranding();
   save();
