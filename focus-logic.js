@@ -4310,13 +4310,20 @@ function loadUserDataFromFirebase() {
   userRef.once('value').then(snapshot => {
     let isNewUser = false;
     if (snapshot.exists()) {
-      S = snapshot.val();
+      let raw = snapshot.val();
+      // Handle older nested structure: users/uid/plannerState/state/...
+      if (raw && raw.plannerState && raw.plannerState.state && (raw.plannerState.state.tasks || raw.plannerState.state.events)) {
+        console.log('Migrating from nested plannerState/state structure');
+        S = raw.plannerState.state;
+      } else {
+        S = raw;
+      }
       S = normalizeState(Object.assign({}, DEF, S));
       // Make sure new settings exist on old accounts
       if(!S.settings) S.settings = {};
       if(!S.settings.appName) S.settings.appName = DEF.settings.appName;
       if(!S.settings.appSubtitle) S.settings.appSubtitle = DEF.settings.appSubtitle;
-      console.log('Loaded data from Firebase');
+      console.log('Loaded data from Firebase. Tasks:', (S.tasks||[]).length, 'Events:', (S.events||[]).length);
     } else {
       S = JSON.parse(JSON.stringify(DEF));
       S = normalizeState(S);
