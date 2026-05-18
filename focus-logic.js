@@ -4370,7 +4370,11 @@ function handleLogIn() {
   errorDiv.classList.remove('show');
   
   auth.signInWithEmailAndPassword(email, password)
-    .then(() => { loadingDiv.textContent = ''; })
+    .then(() => {
+      loadingDiv.textContent = '';
+      // If the user just got here via the "link Google to existing account" flow, finish the link now
+      return finishGoogleLinkIfPending();
+    })
     .catch(error => {
       loadingDiv.textContent = '';
       let msg = error.message;
@@ -4383,8 +4387,15 @@ function handleLogIn() {
     });
 }
 
+// Holds a Google credential when the user tried Google sign-in but already has
+// an email/password account with the same Gmail. After they sign in with their
+// existing password, we link this credential so future Google sign-ins work.
+let pendingGoogleCredential = null;
+let pendingGoogleEmail = '';
+
 function handleGoogleLogin() {
   const errorDiv = document.getElementById('errorMsg');
+  const successDiv = document.getElementById('successMsg');
   const loadingDiv = document.getElementById('loadingMsg');
   if(!auth || !window.firebase || !firebase.auth || !firebase.auth.GoogleAuthProvider){
     errorDiv.textContent = 'Google sign-in is not available right now.';
@@ -4393,19 +4404,66 @@ function handleGoogleLogin() {
   }
   loadingDiv.textContent = 'Opening Google sign-in…';
   errorDiv.classList.remove('show');
+  if(successDiv) successDiv.classList.remove('show');
   const provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
   auth.signInWithPopup(provider)
     .then(() => { loadingDiv.textContent = ''; })
     .catch(error => {
       loadingDiv.textContent = '';
+
+      // Email already used by another sign-in method (e.g. password). Offer to link.
+      if(error.code === 'auth/account-exists-with-different-credential'){
+        const cred = error.credential;
+        const email = error.email || (cred && cred.email) || '';
+        pendingGoogleCredential = cred;
+        pendingGoogleEmail = email;
+        // Switch to Log In tab and pre-fill the email so they can finish in one step
+        try { switchTab('login'); } catch(_){}
+        const emailField = document.getElementById('email');
+        if(emailField && email){ emailField.value = email; }
+        const pwField = document.getElementById('password');
+        if(pwField){ pwField.focus(); }
+        auth.fetchSignInMethodsForEmail(email).then(methods=>{
+          const human = methods.includes('password') ? 'with your existing password' : `with your existing ${methods[0]||'sign-in'} method`;
+          errorDiv.textContent = `This Gmail (${email}) is already linked to an account. Sign in ${human} to add Google sign-in — we'll keep all your tasks.`;
+          errorDiv.classList.add('show');
+        }).catch(()=>{
+          errorDiv.textContent = `This Gmail (${email}) is already linked to an account. Sign in with your existing password — we'll add Google sign-in once you're in.`;
+          errorDiv.classList.add('show');
+        });
+        return;
+      }
+
       let msg = error.message || 'Google sign-in failed.';
       if (error.code === 'auth/popup-closed-by-user') msg = 'Sign-in window was closed before completing.';
       else if (error.code === 'auth/popup-blocked') msg = 'Your browser blocked the Google popup. Allow popups for this site and try again.';
       else if (error.code === 'auth/unauthorized-domain') msg = 'This domain is not authorized in Firebase. Add it under Authentication → Settings → Authorized domains.';
-      else if (error.code === 'auth/account-exists-with-different-credential') msg = 'An account already exists for this email with a different sign-in method. Log in that way first.';
       errorDiv.textContent = msg;
       errorDiv.classList.add('show');
+    });
+}
+
+// Called from handleLogIn after a successful email/password sign-in to finish
+// linking the Google credential the user previously tried.
+function finishGoogleLinkIfPending(){
+  if(!pendingGoogleCredential || !auth.currentUser) return Promise.resolve(false);
+  const cred = pendingGoogleCredential;
+  pendingGoogleCredential = null;
+  pendingGoogleEmail = '';
+  return auth.currentUser.linkWithCredential(cred)
+    .then(()=>{
+      const successDiv = document.getElementById('successMsg');
+      if(successDiv){
+        successDiv.textContent = 'Google sign-in linked. Next time you can use either method.';
+        successDiv.classList.add('show');
+      }
+      return true;
+    })
+    .catch(err=>{
+      // Most common: already linked, or credential already in use elsewhere.
+      console.warn('Google credential link failed:', err);
+      return false;
     });
 }
 
