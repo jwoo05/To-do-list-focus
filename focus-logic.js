@@ -94,11 +94,15 @@ function normalizeState(state){
   state.tasks = (state.tasks||[]).map(t=>Object.assign({
     type:'task', priority:'medium', due:'', scheduledDates:[], scheduledDays:[],
     dailySection:'Study', calendarSignal:'auto', subtasks:[], progress:0, customOrder:0,
-    completedDates:{}, dueCompletedDates:{}, habitStart:'', habitEnd:'', archived:false, completed:false, focusPoints:0
+    completedDates:{}, dueCompletedDates:{}, skippedDates:{}, habitStart:'', habitEnd:'', archived:false, completed:false, focusPoints:0
   }, t));
   state.tasks.forEach((t,i)=>{
     if(t.dailySection==='Admin') t.dailySection='Study';
     if(!Number.isFinite(Number(t.customOrder)) || Number(t.customOrder)<=0) t.customOrder = t.createdAt || ((i+1)*1000);
+    if(!t.skippedDates || typeof t.skippedDates !== 'object') t.skippedDates = {};
+    (t.subtasks||[]).forEach(st=>{
+      if(!st.doneDates || typeof st.doneDates !== 'object') st.doneDates = {};
+    });
   });
   archiveCompletedOneOffTasks(state);
   state.events = (state.events||[]).map(e=>Object.assign({
@@ -274,8 +278,12 @@ function dueChipHTML(t, compact=false){
 //  HELPERS
 // ════════════════════════════════════════════════════════════
 const DAY_NAMES=['Su','Mo','Tu','We','Th','Fr','Sa'];
+function isSkipped(t, dateStr){
+  return !!(t && t.skippedDates && t.skippedDates[dateStr]);
+}
 function isHabitDueToday(t, dateStr){
   if(!t.isHabit) return false;
+  if(isSkipped(t,dateStr)) return false;
   if(t.habitStart && dateStr < t.habitStart) return false;
   if(t.habitEnd && dateStr > t.habitEnd) return false;
   const d = new Date(dateStr+'T00:00:00');
@@ -283,6 +291,7 @@ function isHabitDueToday(t, dateStr){
   return t.scheduledDays.includes(dow);
 }
 function isScheduledToday(t, dateStr){
+  if(isSkipped(t,dateStr)) return false;
   if(t.scheduledDates && t.scheduledDates.includes(dateStr)) return true;
   if(t.due === dateStr && !isDueSignalDone(t,dateStr)) return true;
   return false;
@@ -946,10 +955,15 @@ function renderCenter(){
   const head=document.getElementById('selectedTaskHeading');
   if(head) head.textContent = selectedLabel;
 
-  // Must list
+  // Must list — incomplete first, completed pushed to bottom
   const mustSec = document.getElementById('secMust');
-  document.getElementById('mustList').innerHTML = must.length
-    ? must.map(t=>taskItemHTML(t,'must',today)).join('')
+  const mustSorted = [...must].sort((a,b)=>{
+    const da = isTaskDone(a,today) ? 1 : 0;
+    const db = isTaskDone(b,today) ? 1 : 0;
+    return da - db;
+  });
+  document.getElementById('mustList').innerHTML = mustSorted.length
+    ? mustSorted.map(t=>taskItemHTML(t,'must',today)).join('')
     : `<div class="empty" style="padding:10px 14px;text-align:left;font-size:12px">No must-do tasks today.</div>`;
 
   // Collapse + reorder when empty; restore when tasks exist
@@ -1125,12 +1139,14 @@ function toggleDailySection(key){
 function taskItemHTML(t, section, dateStr=todayStr()){
   const timeStr = t.scheduledTime ? `<span class="task-time">⏰ ${t.scheduledTime}</span>` : '';
   const subjStr = t.subject ? `<span class="chip chip-due">${esc(t.subject)}</span>` : '';
-  const pct = taskProgress(t);
+  const pct = taskProgress(t,dateStr);
   const tone = pct < 34 ? 'var(--red)' : pct < 67 ? 'var(--orange)' : 'var(--green)';
   const subCount = (t.subtasks||[]).length;
   const doneNow = isTaskDone(t,dateStr);
   const sectionArg=escJs(section);
   const dateArg=escJs(dateStr);
+  const otherDays = (Array.isArray(t.scheduledDates)?t.scheduledDates:[]).filter(d=>d!==dateStr).length;
+  const removeTitle = t.isHabit ? 'Skip just this day' : ((otherDays>0 || (t.due && t.due!==dateStr)) ? 'Remove from this day' : 'Delete');
   return `<div class="task-item ${doneNow?'completed':''} ${section==='must'?'must-item':''} ${openTaskDetails.has(t.id)?'open':''}"
     id="ti-${t.id}"
     draggable="true"
@@ -1154,17 +1170,20 @@ function taskItemHTML(t, section, dateStr=todayStr()){
       <button class="task-action" onclick="toggleTaskDetails(event,'${t.id}')" title="Subtasks">▤</button>
       <button class="task-action" onclick="duplicateTask('${t.id}')" title="Duplicate">⧉</button>
       <button class="task-action" onclick="editTask('${t.id}')" title="Edit">✎</button>
-      <button class="task-action del" onclick="removeTask('${t.id}')" title="Delete">×</button>
+      <button class="task-action del" onclick="removeTask('${t.id}','${dateArg}')" title="${removeTitle}">×</button>
     </div>
     <div class="task-details">
       <div class="task-detail-card">
         <div class="task-detail-grid">
           <div>
-            ${(t.subtasks||[]).length ? t.subtasks.map((st,i)=>`
-              <div class="subtask-line ${st.done?'done':''}">
-                <div class="task-cb" style="width:16px;height:16px;margin:0;border-radius:5px" onclick="toggleSubtask('${t.id}',${i})">${st.done?'✓':''}</div>
+            ${(t.subtasks||[]).length ? t.subtasks.map((st,i)=>{
+              const subDone = isSubDone(st,dateStr);
+              return `
+              <div class="subtask-line ${subDone?'done':''}">
+                <div class="task-cb" style="width:16px;height:16px;margin:0;border-radius:5px" onclick="toggleSubtask('${t.id}',${i},'${dateArg}')">${subDone?'✓':''}</div>
                 <span>${esc(st.text)}</span>
-              </div>`).join('') : `<div class="empty" style="padding:6px 0;text-align:left">No subtasks yet.</div>`}
+              </div>`;
+            }).join('') : `<div class="empty" style="padding:6px 0;text-align:left">No subtasks yet.</div>`}
             <div class="subtask-add">
               <input id="subAdd-${t.id}" placeholder="Add a small next step" onkeydown="if(event.key==='Enter')addSubtask('${t.id}')">
               <button onclick="addSubtask('${t.id}')">Add</button>
@@ -1181,9 +1200,19 @@ function taskItemHTML(t, section, dateStr=todayStr()){
   </div>`;
 }
 
-function taskProgress(t){
+function isSubDone(st, dateStr){
+  if(!st) return false;
+  if(st.doneDates && Object.prototype.hasOwnProperty.call(st.doneDates, dateStr)) return !!st.doneDates[dateStr];
+  return !!st.done;
+}
+function allSubtasksDone(t, dateStr){
   const subs = t.subtasks||[];
-  if(subs.length) return Math.round(subs.filter(s=>s.done).length / subs.length * 100);
+  if(!subs.length) return false;
+  return subs.every(st=>isSubDone(st,dateStr));
+}
+function taskProgress(t, dateStr=todayStr()){
+  const subs = t.subtasks||[];
+  if(subs.length) return Math.round(subs.filter(s=>isSubDone(s,dateStr)).length / subs.length * 100);
   return Math.max(0, Math.min(100, Number(t.progress||0)));
 }
 
@@ -1225,16 +1254,11 @@ function toggleTask(id,dateStr){
       });
     }
 
-    // Check if all MUST are done → archive them
+    // Chime when ALL MUSTs for the day are done (gate unlocks via render)
     const mustToday = S.tasks.filter(x=>x.priority==='MUST' && !x.archived &&
       (isScheduledToday(x,today)||isHabitDueToday(x,today)));
     if(mustToday.length && mustToday.every(x=>isTaskDone(x,today))){
-      setTimeout(()=>{
-        mustToday.forEach(x=>{ if(!x.isHabit) x.archived = true; });
-        playPop(1320);
-        save(); render();
-      }, 600);
-      return;
+      setTimeout(()=>playPop(1320), 250);
     }
   }
   save(); render();
@@ -1248,12 +1272,38 @@ function toggleTaskDetails(event,id){
   if(el) el.classList.toggle('open');
 }
 
-function toggleSubtask(id,index){
+function toggleSubtask(id,index,dateStr){
   const t=S.tasks.find(x=>x.id===id);
   if(!t || !t.subtasks || !t.subtasks[index]) return;
+  const ds = dateStr || calSelectedDate || todayStr();
+  const st = t.subtasks[index];
+  if(!st.doneDates || typeof st.doneDates !== 'object') st.doneDates = {};
+  const wasDone = isSubDone(st, ds);
+  st.doneDates[ds] = !wasDone;
+  if(ds === todayStr()) st.done = !!st.doneDates[ds];
   openTaskDetails.add(id);
-  t.subtasks[index].done=!t.subtasks[index].done;
-  t.progress=taskProgress(t);
+  t.progress = taskProgress(t, ds);
+
+  // Auto-complete parent if all subtasks are done for this date
+  if(allSubtasksDone(t, ds)){
+    if(t.isHabit){
+      if(!t.completedDates) t.completedDates = {};
+      t.completedDates[ds] = true;
+      if(ds === todayStr()) t.completed = true;
+    } else {
+      t.completed = true;
+    }
+    t.completedAt = Date.now();
+    playPop(t.priority==='MUST'?1100:880);
+  } else {
+    if(t.isHabit){
+      if(t.completedDates) t.completedDates[ds] = false;
+      if(ds === todayStr()) t.completed = false;
+    } else {
+      t.completed = false;
+    }
+    t.completedAt = null;
+  }
   save(); render();
 }
 
@@ -1265,7 +1315,7 @@ function addSubtask(id){
   if(!t) return;
   openTaskDetails.add(id);
   if(!Array.isArray(t.subtasks)) t.subtasks=[];
-  t.subtasks.push({text,done:false});
+  t.subtasks.push({text,done:false,doneDates:{}});
   input.value='';
   save(); render();
 }
@@ -1280,7 +1330,41 @@ function setManualProgress(id,value,el){
   updateEOPR();
 }
 
-function removeTask(id){
+function removeTask(id, dateStr){
+  const t = S.tasks.find(x=>x.id===id);
+  if(!t){ softDeleteTask(id); return; }
+  const ds = dateStr || calSelectedDate || todayStr();
+
+  // Habit: just skip this date
+  if(t.isHabit){
+    if(!t.skippedDates) t.skippedDates = {};
+    t.skippedDates[ds] = true;
+    save(); render();
+    showToast(`Skipped "${t.title}" for ${fmtDate(ds)}.`, 'Undo', ()=>{
+      delete t.skippedDates[ds];
+      save(); render();
+    });
+    return;
+  }
+
+  // Non-habit scheduled on multiple dates: drop only this date
+  const scheduled = Array.isArray(t.scheduledDates) ? t.scheduledDates : [];
+  const otherDates = scheduled.filter(d=>d!==ds);
+  const stillHasDue = t.due && t.due !== ds;
+  if(otherDates.length > 0 || stillHasDue){
+    t.scheduledDates = otherDates;
+    if(t.due === ds) t.due = '';
+    if(!t.skippedDates) t.skippedDates = {};
+    t.skippedDates[ds] = true;
+    save(); render();
+    showToast(`Removed "${t.title}" from ${fmtDate(ds)}.`, 'Undo', ()=>{
+      if(!t.scheduledDates.includes(ds)) t.scheduledDates.push(ds);
+      delete t.skippedDates[ds];
+      save(); render();
+    });
+    return;
+  }
+
   softDeleteTask(id);
 }
 
@@ -1504,7 +1588,7 @@ function editTask(id){
   refreshDailySectionOptions(t.dailySection||'Study');
   document.getElementById('fCalendarSignal').value = t.calendarSignal||'auto';
   document.getElementById('fNotes').value = t.notes||'';
-  editModalSubtasks = (t.subtasks||[]).map(s=>({text:s.text, done:!!s.done}));
+  editModalSubtasks = (t.subtasks||[]).map(s=>({text:s.text, done:!!s.done, doneDates:Object.assign({}, s.doneDates||{})}));
   renderModalSubtasks();
   document.getElementById('fIsHabit').checked = t.isHabit;
   document.getElementById('fHabitStart').value = t.habitStart || '';
@@ -1555,7 +1639,7 @@ function saveTask(){
     return;
   }
   t.scheduledDates = [...editScheduledDates];
-  t.subtasks = editModalSubtasks.map(s=>({text:s.text, done:!!s.done}));
+  t.subtasks = editModalSubtasks.map(s=>({text:s.text, done:!!s.done, doneDates:Object.assign({}, s.doneDates||{})}));
   t.progress = taskProgress(t);
   const learnedQuickAdd=learnFromManualCorrection(t);
 
@@ -1669,7 +1753,7 @@ function addModalSubtask(){
   const input=document.getElementById('modalSubtaskInput');
   const text=input?.value.trim();
   if(!text) return;
-  editModalSubtasks.push({text,done:false});
+  editModalSubtasks.push({text,done:false,doneDates:{}});
   input.value='';
   renderModalSubtasks();
 }
@@ -3138,7 +3222,7 @@ function renderCalendar(){
       ...dayEvents.map(e=>`<span class="cal-mini-chip ${e.type==='test'?'exam':e.type||'event'}" style="border-left-color:${esc(e.color||eventColorForType(e.type))}">${e.type==='test'?'TEST ':'EVENT '}${esc(e.title)}</span>`),
       ...dayTasks.map(t=>{
       const sig=calendarSignalForTask(t,ds);
-      return `<span class="cal-mini-chip ${sig}">${sig==='exam'?'TEST ':sig==='due'?'DUE ':sig==='habit'?'HABIT ':''}${esc(t.title)}</span>`;
+      return `<span class="cal-mini-chip ${sig}" draggable="true" title="Drag to another day to move" ondragstart="onDayTaskDragStart(event,'${t.id}','${ds}')">${sig==='exam'?'TEST ':sig==='due'?'DUE ':sig==='habit'?'HABIT ':''}${esc(t.title)}</span>`;
       })
     ].slice(0,3).join('');
     html+=`<div class="cal-cell ${isToday?'today':''} ${isSel?'selected':''} ${hasTasks?'has-tasks':''} ${hasExam?'has-exam':''}"
@@ -3368,7 +3452,7 @@ function renderCalDayTasks(){
     tasks.map(t=>{
       const sig=calendarSignalForTask(t,ds);
       const label=sig==='exam'?'Test date':sig==='due'?'Due date':sig==='habit'?'Habit':'Assigned work';
-      return `<div class="cal-task-item ${sig}" onclick="editTask('${t.id}')">
+      return `<div class="cal-task-item ${sig}" draggable="true" title="Drag to another day to move" ondragstart="onDayTaskDragStart(event,'${t.id}','${ds}')" onclick="editTask('${t.id}')">
         ${esc(t.title)}
         <div class="cal-task-meta"><span>${label}</span>${t.subject?`<span>${esc(t.subject)}</span>`:''}${t.scheduledTime?`<span>${t.scheduledTime}</span>`:''}</div>
       </div>`;
@@ -3556,6 +3640,48 @@ function onArchiveDrop(e){
 }
 function onCalDragOver(e){ e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
 function onCalDragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
+
+// Day-to-day move (drag a task chip off one calendar cell, drop on another)
+let draggedDayTask=null; // { id, fromDate }
+function onDayTaskDragStart(e,id,fromDate){
+  e.stopPropagation();
+  draggedDayTask={id, fromDate};
+  draggedBankId=null;
+  try{
+    e.dataTransfer.effectAllowed='move';
+    e.dataTransfer.setData('text/plain', 'moonlit:move:'+id+':'+fromDate);
+  }catch(_){}
+  const t=S.tasks.find(x=>x.id===id);
+  const ghost=document.createElement('div');
+  ghost.textContent='Move: '+(t?.title||'task');
+  ghost.style.cssText='position:fixed;top:-1000px;left:-1000px;max-width:200px;padding:6px 10px;border-radius:7px;background:#111;color:#fff;font:600 12px Inter,Arial;box-shadow:0 8px 24px rgba(0,0,0,.25);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+  document.body.appendChild(ghost);
+  try{ e.dataTransfer.setDragImage(ghost,12,12); }catch(_){}
+  setTimeout(()=>ghost.remove(),0);
+}
+function moveTaskToDate(t, fromDate, toDate){
+  if(!t || fromDate===toDate) return false;
+  if(t.isHabit){
+    if(!t.skippedDates) t.skippedDates={};
+    t.skippedDates[fromDate]=true;
+    if(!Array.isArray(t.scheduledDates)) t.scheduledDates=[];
+    if(!t.scheduledDates.includes(toDate)){
+      if(t.skippedDates[toDate]) delete t.skippedDates[toDate];
+      t.scheduledDates.push(toDate);
+    } else if(t.skippedDates[toDate]){
+      delete t.skippedDates[toDate];
+    }
+    return true;
+  }
+  if(!Array.isArray(t.scheduledDates)) t.scheduledDates=[];
+  t.scheduledDates = t.scheduledDates.filter(d=>d!==fromDate);
+  if(!t.scheduledDates.includes(toDate)) t.scheduledDates.push(toDate);
+  if(t.due === fromDate) t.due = toDate;
+  if(t.skippedDates && t.skippedDates[toDate]) delete t.skippedDates[toDate];
+  if(t.skippedDates) delete t.skippedDates[fromDate];
+  return true;
+}
+
 async function onCalDrop(e,ds){
   e.preventDefault(); e.currentTarget.classList.remove('drag-over');
   const file=[...(e.dataTransfer?.files||[])].find(f=>/\.ics$/i.test(f.name) || /calendar|ics/i.test(f.type));
@@ -3565,6 +3691,24 @@ async function onCalDrop(e,ds){
     reader.readAsText(file);
     return;
   }
+
+  // Day → day move (initiated from a draggable chip / side-panel item)
+  if(draggedDayTask){
+    const t = S.tasks.find(x=>x.id===draggedDayTask.id);
+    const fromDate = draggedDayTask.fromDate;
+    draggedDayTask=null;
+    if(!t || !fromDate || fromDate===ds) return;
+    if(moveTaskToDate(t, fromDate, ds)){
+      calSelectedDate = ds;
+      save(); render();
+      showToast(`Moved "${t.title}" to ${fmtDate(ds)}.`, 'Undo', ()=>{
+        moveTaskToDate(t, ds, fromDate);
+        save(); render();
+      });
+    }
+    return;
+  }
+
   const droppedId=getDraggedTaskId(e);
   if(!droppedId) return;
   const t=S.tasks.find(x=>x.id===droppedId);

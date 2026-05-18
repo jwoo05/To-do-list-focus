@@ -800,7 +800,8 @@ label {
 .cal-cell.drag-over { background: var(--accent-dim); border-color: var(--accent); }
 .cal-num { font-size: 10px; font-weight: 600; line-height: 1; margin-bottom: 2px; }
 .cal-mini-list { display: flex; flex-direction: column; gap: 1px; width: 100%; }
-.cal-mini-chip { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 8px; line-height: 1.2; padding: 1px 3px; border-radius: 2px; background: var(--bg3); color: var(--text2); border-left: 2px solid var(--accent); }
+.cal-mini-chip { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 8px; line-height: 1.2; padding: 1px 3px; border-radius: 2px; background: var(--bg3); color: var(--text2); border-left: 2px solid var(--accent); cursor: grab; user-select: none; }
+.cal-mini-chip:active { cursor: grabbing; }
 .cal-mini-chip.due { border-left-color: var(--orange); }
 .cal-mini-chip.exam { border-left-color: var(--must); color: var(--must); background: var(--must-dim); font-weight: 700; }
 .cal-mini-chip.habit { border-left-color: var(--purple); }
