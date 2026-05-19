@@ -86,12 +86,24 @@ export default async function handler(req, res) {
 
   try {
     await ensureApp();
-    const snapshot = await admin.database().ref(`users/${uid}/plannerState`).get();
-    const wrapper = snapshot.val();
-    const state = wrapper && wrapper.state ? wrapper.state : null;
-    const updatedAt = (wrapper && wrapper.updatedAt) || 0;
+    // The web app's `saveUserDataToFirebase()` writes the entire S state directly
+    // to `users/<uid>` (focus-logic.js). The older `focus-auth.js` module wrote
+    // a nested shape to `users/<uid>/plannerState/state`. Support both.
+    const snapshot = await admin.database().ref(`users/${uid}`).get();
+    const raw = snapshot.val();
+    let state = null;
+    let updatedAt = 0;
+    if (raw && typeof raw === 'object') {
+      if (raw.plannerState && raw.plannerState.state) {
+        state = raw.plannerState.state;
+        updatedAt = raw.plannerState.updatedAt || 0;
+      } else if (Array.isArray(raw.tasks) || Array.isArray(raw.events) || raw.settings) {
+        state = raw;
+        updatedAt = 0;
+      }
+    }
     if (!state || !Array.isArray(state.tasks)) {
-      return res.status(200).json({ date: todayStr(), tasks: [], updatedAt });
+      return res.status(200).json({ date: todayStr(), tasks: [], updatedAt, debug: { foundShape: raw ? Object.keys(raw).slice(0, 10) : 'null' } });
     }
     const ds = todayStr();
     const dow = new Date().getDay();
