@@ -3710,7 +3710,7 @@ async function onCalDrop(e,ds){
     if(!t || !moveSource.fromDate || moveSource.fromDate===ds){ resetDraggedTask(); return; }
     unarchiveForDrop(t, ds);
     if(moveTaskToDate(t, moveSource.fromDate, ds)){
-      calSelectedDate = ds;
+      // Stay on the source day so the user can keep working through that day's list
       save(); render();
       showToast(`Moved "${t.title}" to ${fmtDate(ds)}.`, 'Undo', ()=>{
         moveTaskToDate(t, ds, moveSource.fromDate);
