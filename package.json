@@ -1,0 +1,10 @@
+{
+  "name": "focuslists",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Focus Hub — static site + serverless /api/today endpoint for the iOS Scriptable widget",
+  "dependencies": {
+    "firebase-admin": "^12.5.0"
+  }
+}
