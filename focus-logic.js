@@ -4388,15 +4388,16 @@ function handleLogIn() {
   loadingDiv.textContent = 'Logging in...';
   errorDiv.classList.remove('show');
 
-  // Surface a helpful message if the auth call hangs longer than ~12s.
-  // Most common cause on mobile: Firebase Authorized domains doesn't include
-  // the current Vercel hostname, or the device is offline.
+  // If the auth call hangs longer than ~12s show a user-friendly message.
+  // Technical details (hostname / Firebase config hints) only go to the console.
   let stalled = false;
   const stallTimer = setTimeout(()=>{
     stalled = true;
     loadingDiv.textContent = '';
-    errorDiv.textContent = 'Login is taking too long. Check your internet, and make sure ' + (location.hostname || 'this domain') + ' is in Firebase → Authentication → Settings → Authorized domains.';
+    errorDiv.textContent = "Login is taking longer than usual. Check your connection and try again.";
     errorDiv.classList.add('show');
+    console.warn('[auth] signInWithEmailAndPassword stalled >12s. hostname=', location.hostname,
+      '— if this persists, verify the hostname is in Firebase → Authentication → Settings → Authorized domains.');
   }, 12000);
 
   auth.signInWithEmailAndPassword(email, password)
@@ -4411,13 +4412,21 @@ function handleLogIn() {
       clearTimeout(stallTimer);
       if(stalled) return;
       loadingDiv.textContent = '';
-      let msg = error.message;
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') msg = 'Incorrect email or password. Try again or reset your password.';
-      else if (error.code === 'auth/wrong-password') msg = 'Incorrect password. Click "Forgot password?" to reset it.';
-      else if (error.code === 'auth/invalid-email') msg = 'Please enter a valid email address';
-      else if (error.code === 'auth/too-many-requests') msg = 'Too many failed attempts. Please try again later or reset your password.';
-      else if (error.code === 'auth/network-request-failed') msg = 'No internet connection. Connect to wifi or cellular and try again.';
-      else if (error.code === 'auth/unauthorized-domain') msg = 'This domain (' + (location.hostname||'') + ') is not authorized in Firebase. Add it under Authentication → Settings → Authorized domains.';
+      console.warn('[auth] sign-in error:', error && error.code, error && error.message);
+      let msg = 'Could not sign you in. Please try again.';
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+        msg = 'Incorrect email or password. Try again, or reset your password.';
+      } else if (error.code === 'auth/invalid-email') {
+        msg = 'Please enter a valid email address.';
+      } else if (error.code === 'auth/too-many-requests') {
+        msg = 'Too many attempts. Please wait a moment and try again, or reset your password.';
+      } else if (error.code === 'auth/network-request-failed') {
+        msg = 'No internet connection. Connect to wifi or cellular and try again.';
+      } else if (error.code === 'auth/user-disabled') {
+        msg = 'This account has been disabled. Contact support if this is a mistake.';
+      } else if (error.code === 'auth/unauthorized-domain' || error.code === 'auth/operation-not-allowed') {
+        msg = 'Sign-in is temporarily unavailable. Please try again later.';
+      }
       errorDiv.textContent = msg;
       errorDiv.classList.add('show');
     });
@@ -4491,10 +4500,12 @@ function handleGoogleLogin() {
         return;
       }
 
-      let msg = error.message || 'Google sign-in failed.';
-      if (error.code === 'auth/popup-closed-by-user') msg = 'Sign-in window was closed before completing.';
-      else if (error.code === 'auth/popup-blocked') msg = 'Your browser blocked the Google popup. Allow popups for this site and try again.';
-      else if (error.code === 'auth/unauthorized-domain') msg = 'This domain is not authorized in Firebase. Add it under Authentication → Settings → Authorized domains.';
+      console.warn('[auth] google sign-in error:', error && error.code, error && error.message);
+      let msg = 'Could not sign in with Google. Please try again.';
+      if (error.code === 'auth/popup-closed-by-user') msg = 'Sign-in was cancelled. Try again when ready.';
+      else if (error.code === 'auth/popup-blocked') msg = 'Your browser blocked the Google sign-in window. Allow popups and try again.';
+      else if (error.code === 'auth/network-request-failed') msg = 'No internet connection. Connect and try again.';
+      else if (error.code === 'auth/unauthorized-domain' || error.code === 'auth/operation-not-allowed') msg = 'Google sign-in is temporarily unavailable.';
       errorDiv.textContent = msg;
       errorDiv.classList.add('show');
     });
@@ -4604,9 +4615,11 @@ auth.getRedirectResult()
     const loadingDiv = document.getElementById('loadingMsg');
     if(loadingDiv) loadingDiv.textContent = '';
     if(!errorDiv) return;
-    let msg = error.message || 'Google sign-in failed.';
-    if(error.code === 'auth/unauthorized-domain') msg = 'This domain is not authorized in Firebase. Add it under Authentication → Settings → Authorized domains.';
-    else if(error.code === 'auth/account-exists-with-different-credential'){
+    console.warn('[auth] redirect result error:', error.code, error.message);
+    let msg = 'Could not sign in. Please try again.';
+    if(error.code === 'auth/unauthorized-domain' || error.code === 'auth/operation-not-allowed'){
+      msg = 'Sign-in is temporarily unavailable.';
+    } else if(error.code === 'auth/account-exists-with-different-credential'){
       // Stash the pending credential and switch to password login (same flow as the popup branch)
       const cred = error.credential;
       const email = error.email || (cred && cred.email) || '';
@@ -4615,9 +4628,12 @@ auth.getRedirectResult()
       try { switchTab('login'); } catch(_){}
       const emailField = document.getElementById('email');
       if(emailField && email) emailField.value = email;
-      msg = `This Gmail (${email}) is already linked to an account. Sign in with your existing password to add Google sign-in — we'll keep all your tasks.`;
+      msg = `An account already exists for ${email || 'this address'}. Sign in with your password to link Google to it — your tasks stay put.`;
+    } else if(error.code === 'auth/web-storage-unsupported'){
+      msg = 'Sign-in needs storage permissions. Turn off Private Browsing and try again.';
+    } else if(error.code === 'auth/network-request-failed'){
+      msg = 'No internet connection. Connect and try again.';
     }
-    else if(error.code === 'auth/web-storage-unsupported') msg = 'Your browser is blocking storage needed for sign-in. Disable Private Browsing and try again.';
     errorDiv.textContent = msg;
     errorDiv.classList.add('show');
   });
