@@ -243,18 +243,25 @@ function sectionLabel(sec){
 function taskNeedsStudyAssignment(t){
   return !!(t && !t.isHabit && !isArchivedForTodo(t) && !(t.scheduledDates||[]).filter(Boolean).length);
 }
+// Task bank + daily list sort. Always groups items with a date (due or
+// scheduledDates) AHEAD of items with no date at all — so the bottom of any
+// sorted list is the "no date set" pile, regardless of which mode is picked.
 function sortTasks(tasks, mode='due'){
   const arr=[...tasks];
+  const hasAnyDate = t => !!(t && (t.due || (t.scheduledDates||[]).filter(Boolean).length));
+  // 0 for has-date, 1 for no-date — sort ascending so has-date wins.
+  const dateGroup = t => hasAnyDate(t) ? 0 : 1;
+  const primary = (a,b) => dateGroup(a) - dateGroup(b);
   if(mode==='priority'){
-    arr.sort((a,b)=>priorityRank(a.priority)-priorityRank(b.priority) || taskDueKey(a).localeCompare(taskDueKey(b)) || String(a.title||'').localeCompare(String(b.title||'')));
+    arr.sort((a,b)=>primary(a,b) || priorityRank(a.priority)-priorityRank(b.priority) || taskDueKey(a).localeCompare(taskDueKey(b)) || String(a.title||'').localeCompare(String(b.title||'')));
   }else if(mode==='created'){
-    arr.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0) || String(a.title||'').localeCompare(String(b.title||'')));
+    arr.sort((a,b)=>primary(a,b) || (b.createdAt||0)-(a.createdAt||0) || String(a.title||'').localeCompare(String(b.title||'')));
   }else if(mode==='title'){
-    arr.sort((a,b)=>String(a.title||'').localeCompare(String(b.title||'')) || taskDueKey(a).localeCompare(taskDueKey(b)));
+    arr.sort((a,b)=>primary(a,b) || String(a.title||'').localeCompare(String(b.title||'')) || taskDueKey(a).localeCompare(taskDueKey(b)));
   }else if(mode==='custom'){
-    arr.sort((a,b)=>taskCustomOrder(a)-taskCustomOrder(b) || taskDueKey(a).localeCompare(taskDueKey(b)) || String(a.title||'').localeCompare(String(b.title||'')));
+    arr.sort((a,b)=>primary(a,b) || taskCustomOrder(a)-taskCustomOrder(b) || taskDueKey(a).localeCompare(taskDueKey(b)) || String(a.title||'').localeCompare(String(b.title||'')));
   }else{
-    arr.sort((a,b)=>taskDueKey(a).localeCompare(taskDueKey(b)) || priorityRank(a.priority)-priorityRank(b.priority) || String(a.title||'').localeCompare(String(b.title||'')));
+    arr.sort((a,b)=>primary(a,b) || taskDueKey(a).localeCompare(taskDueKey(b)) || priorityRank(a.priority)-priorityRank(b.priority) || String(a.title||'').localeCompare(String(b.title||'')));
   }
   return arr;
 }
