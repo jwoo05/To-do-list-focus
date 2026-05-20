@@ -2129,6 +2129,50 @@ label {
   border-color: var(--must);
 }
 
+/* Welcome modal footer — compact row with optional "don't show again"
+   checkbox on the left and a tight "Got it" CTA on the right. */
+.welcome-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.welcome-dont-show {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--text3);
+  cursor: pointer;
+  user-select: none;
+  flex: 1 1 auto;
+}
+.welcome-dont-show input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  margin: 0;
+  flex-shrink: 0;
+}
+.welcome-dont-show:hover { color: var(--text2); }
+.welcome-cta {
+  flex: 0 0 auto;
+  padding: 8px 18px;
+  font-size: 13px;
+  min-height: 0;
+  border-radius: var(--radius);
+}
+@media (hover: none) and (pointer: coarse) {
+  .welcome-footer { gap: 10px; padding-top: 12px; margin-top: 14px; }
+  .welcome-dont-show { font-size: 12px; gap: 8px; }
+  .welcome-dont-show input[type="checkbox"] { width: 16px; height: 16px; }
+  .welcome-cta { padding: 10px 18px; min-height: 40px; font-size: 13px; }
+}
+
 /* "Log out" red button inside the Settings modal (also used on mobile) */
 .btn.btn-signout {
   width: 100%;

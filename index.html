@@ -81,6 +81,30 @@
 .login-back-btn:hover { color:var(--accent); }
 .login-view { display:none; }
 .login-view.active { display:block; }
+/* Stay-signed-in row sits between Password and the primary Log In button */
+.login-stay-signed-in {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 10px;
+  padding: 6px 2px;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+  user-select: none;
+}
+.login-stay-signed-in input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  margin: 0;
+}
+.login-stay-signed-in span { line-height: 1.2; }
+@media (hover: none) and (pointer: coarse) {
+  .login-stay-signed-in { font-size: 13px; padding: 8px 2px; }
+  .login-stay-signed-in input[type="checkbox"] { width: 18px; height: 18px; }
+}
 </style>
 <template id="__bundler_thumbnail" data-bg-color="#131210">
   <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
@@ -127,6 +151,10 @@
         <label>Password</label>
         <input id="password" type="password" placeholder="At least 6 characters" autocomplete="current-password">
       </div>
+      <label class="login-stay-signed-in">
+        <input type="checkbox" id="stayLoggedIn" checked>
+        <span>Stay signed in</span>
+      </label>
       <button class="login-primary-btn" id="submitBtn" onclick="handleAuthSubmit()">Log In</button>
       <div class="login-divider"><span>or</span></div>
       <button class="login-google-btn" id="googleBtn" onclick="handleGoogleLogin()">
@@ -208,6 +236,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('email').addEventListener('keydown', e => { if (e.key === 'Enter') handleAuthSubmit(); });
   document.getElementById('password').addEventListener('keydown', e => { if (e.key === 'Enter') handleAuthSubmit(); });
   document.getElementById('resetEmail').addEventListener('keydown', e => { if (e.key === 'Enter') handlePasswordReset(); });
+  // Restore the user's previous "Stay signed in" preference (default = on)
+  try {
+    const stay = localStorage.getItem('focus_stay_signed_in');
+    const cb = document.getElementById('stayLoggedIn');
+    if (cb) cb.checked = stay === null ? true : (stay === '1');
+  } catch(_) {}
 });
 </script>
 
@@ -913,11 +947,12 @@ document.addEventListener('DOMContentLoaded', () => {
           <strong style="color:var(--accent);">Pro tips:</strong> Press <kbd style="background:var(--bg3);padding:1px 5px;border-radius:3px;border:1px solid var(--border);">Enter</kbd> after typing in Quick Add. Drag tasks from the bank onto <strong>Habits</strong> to convert them. Use the <strong>S/M/L</strong> in the sidebar to change density.
         </div>
       </div>
-      <div class="form-actions" style="margin-top:18px;">
-        <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text2); margin-right:auto;">
-          <input type="checkbox" id="welcomeDontShowAgain"> Don't show this again on startup
+      <div class="welcome-footer">
+        <label class="welcome-dont-show">
+          <input type="checkbox" id="welcomeDontShowAgain">
+          <span>Don't show on startup</span>
         </label>
-        <button class="btn btn-accent" onclick="dismissWelcome()">Got it</button>
+        <button class="btn btn-accent welcome-cta" onclick="dismissWelcome()">Got it</button>
       </div>
     </div>
   </div>

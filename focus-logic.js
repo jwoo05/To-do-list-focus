@@ -4381,8 +4381,9 @@ function handleSignUp() {
   
   loadingDiv.textContent = 'Creating account...';
   errorDiv.classList.remove('show');
-  
-  auth.createUserWithEmailAndPassword(email, password)
+
+  applyAuthPersistence().then(() =>
+  auth.createUserWithEmailAndPassword(email, password))
     .then(() => { loadingDiv.textContent = ''; })
     .catch(error => {
       loadingDiv.textContent = '';
@@ -4395,18 +4396,38 @@ function handleSignUp() {
     });
 }
 
+// Apply the user's "Stay signed in" preference to Firebase Auth.
+// LOCAL = persists across browser sessions (default Firebase behaviour).
+// SESSION = cleared when the tab closes; user has to sign in again next time.
+// Returns a promise that resolves once persistence is set.
+function applyAuthPersistence(){
+  try{
+    const checkbox = document.getElementById('stayLoggedIn');
+    const stay = checkbox ? !!checkbox.checked : true;
+    try { localStorage.setItem('focus_stay_signed_in', stay ? '1' : '0'); } catch(_) {}
+    if (!firebase.auth.Auth || !firebase.auth.Auth.Persistence) return Promise.resolve();
+    const target = stay ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION;
+    return auth.setPersistence(target).catch(err => {
+      console.warn('[auth] setPersistence failed; falling back to default:', err);
+    });
+  } catch(e){
+    console.warn('[auth] applyAuthPersistence threw:', e);
+    return Promise.resolve();
+  }
+}
+
 function handleLogIn() {
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
   const errorDiv = document.getElementById('errorMsg');
   const loadingDiv = document.getElementById('loadingMsg');
-  
+
   if (!email || !password) {
     errorDiv.textContent = 'Please enter email and password';
     errorDiv.classList.add('show');
     return;
   }
-  
+
   loadingDiv.textContent = 'Logging in...';
   errorDiv.classList.remove('show');
 
@@ -4422,7 +4443,8 @@ function handleLogIn() {
       '— if this persists, verify the hostname is in Firebase → Authentication → Settings → Authorized domains.');
   }, 12000);
 
-  auth.signInWithEmailAndPassword(email, password)
+  applyAuthPersistence()
+    .then(() => auth.signInWithEmailAndPassword(email, password))
     .then(() => {
       clearTimeout(stallTimer);
       if(stalled) return;
@@ -4486,15 +4508,17 @@ function handleGoogleLogin() {
   // Mobile Safari + iOS Chrome silently block popups — use full-page redirect there.
   if(isTouchDevice()){
     loadingDiv.textContent = 'Redirecting to Google…';
-    auth.signInWithRedirect(provider).catch(err=>{
-      loadingDiv.textContent = '';
-      errorDiv.textContent = (err && err.message) || 'Google sign-in failed.';
-      errorDiv.classList.add('show');
-    });
+    applyAuthPersistence()
+      .then(() => auth.signInWithRedirect(provider))
+      .catch(err=>{
+        loadingDiv.textContent = '';
+        errorDiv.textContent = (err && err.message) || 'Google sign-in failed.';
+        errorDiv.classList.add('show');
+      });
     return;
   }
 
-  auth.signInWithPopup(provider)
+  applyAuthPersistence().then(() => auth.signInWithPopup(provider))
     .then(() => { loadingDiv.textContent = ''; })
     .catch(error => {
       loadingDiv.textContent = '';
