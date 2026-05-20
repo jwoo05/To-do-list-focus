@@ -213,6 +213,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <div class="app" id="appScreen" style="display:none;">
 
+  <!-- ═══ MOBILE BOTTOM TAB BAR (touch + phone only — hidden on desktop) ═══ -->
+  <nav class="mobile-tabbar" id="mobileTabbar" aria-label="Main navigation">
+    <button class="mt-tab" data-page="dashboard" onclick="showPage('dashboard',this)">
+      <span class="mt-tab-glyph">◈</span>
+      <span class="mt-tab-label">Today</span>
+    </button>
+    <button class="mt-tab" data-page="todo" onclick="showPage('todo',this)">
+      <span class="mt-tab-glyph">≡</span>
+      <span class="mt-tab-label">Tasks</span>
+    </button>
+    <button class="mt-tab" data-page="calendar" onclick="showPage('calendar',this)">
+      <span class="mt-tab-glyph">□</span>
+      <span class="mt-tab-label">Calendar</span>
+    </button>
+    <button class="mt-tab" data-page="focus" onclick="showPage('focus',this)">
+      <span class="mt-tab-glyph">◎</span>
+      <span class="mt-tab-label">Focus</span>
+    </button>
+    <button class="mt-tab" data-page="settings" onclick="openMobileSettings(this)">
+      <span class="mt-tab-glyph">⚙</span>
+      <span class="mt-tab-label">Settings</span>
+    </button>
+  </nav>
+
   <!-- ═══ SIDEBAR ═══ -->
   <aside class="sidebar">
     <div class="sidebar-logo">
@@ -245,9 +269,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <button class="density-btn"        data-d="normal"   onclick="setDensity('normal')"   title="Normal">M</button>
         <button class="density-btn"        data-d="spacious" onclick="setDensity('spacious')" title="Spacious">L</button>
       </div>
-      <button class="panel-toggle" onclick="openModal('mSettings')" title="Settings">⚙</button>
-      <button class="panel-toggle" onclick="openModal('mWelcome')" title="Quick Tour" style="background:var(--accent-dim); color:var(--accent);">?</button>
-      <button class="panel-toggle" onclick="handleLogOut()" title="Log out" style="color:var(--must); border-color:var(--must-dim); background:var(--must-dim);">⏻</button>
+      <div class="sidebar-actions">
+        <button class="sidebar-action-btn" onclick="openModal('mSettings')" title="Settings" aria-label="Settings">⚙</button>
+        <button class="sidebar-action-btn variant-info" onclick="openModal('mWelcome')" title="Quick Tour" aria-label="Quick tour">?</button>
+        <button class="sidebar-action-btn variant-danger" onclick="handleLogOut()" title="Log out" aria-label="Log out">⏻</button>
+      </div>
     </div>
   </aside>
 
@@ -1290,9 +1316,22 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div style="font-size:11px;color:var(--text3);margin-top:6px">A password reset link will be emailed to your account address.</div>
       </div>
+      <!-- Mobile-only: density toggle (S/M/L) moves into settings since the
+           sidebar bottom bar is hidden on phone. Desktop hides this row via CSS. -->
+      <div class="form-row mobile-only-row" style="margin-top:12px">
+        <label>Density</label>
+        <div class="density-toggle" style="display:inline-flex">
+          <button class="density-btn" data-d="compact"  onclick="setDensity('compact', this)"  title="Compact">S</button>
+          <button class="density-btn" data-d="normal"   onclick="setDensity('normal', this)"   title="Normal">M</button>
+          <button class="density-btn" data-d="spacious" onclick="setDensity('spacious', this)" title="Spacious">L</button>
+        </div>
+      </div>
       <div class="form-row" style="margin-top:12px">
         <label>Deleted Items</label>
         <div class="deleted-list" id="deletedList"></div>
+      </div>
+      <div class="form-row settings-signout-row" style="margin-top:16px">
+        <button class="btn btn-signout" onclick="handleLogOut()">⏻ &nbsp;Log out</button>
       </div>
       <div class="form-actions">
         <button class="btn btn-outline" onclick="closeModal('mSettings')">Cancel</button>

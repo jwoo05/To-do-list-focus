@@ -4113,9 +4113,19 @@ function showPage(page, el){
   currentPage=page;
   document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+page));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n===el || (!el && n.dataset.page===page)));
+  // Mirror active state on the mobile bottom tab bar
+  document.querySelectorAll('.mt-tab').forEach(n=>n.classList.toggle('active', n.dataset.page===page));
   document.querySelector('.workspace')?.scrollTo({top:0,behavior:'smooth'});
   mountInteractiveSurface();
   render();
+}
+
+// Mobile bottom tab "Settings" — opens the settings modal but also keeps the
+// Settings tab visually highlighted while the sheet is open.
+function openMobileSettings(el){
+  triggerHaptic();
+  document.querySelectorAll('.mt-tab').forEach(n=>n.classList.toggle('active', n === el));
+  openModal('mSettings');
 }
 function setFilter(f, el){
   bankFilter=f;

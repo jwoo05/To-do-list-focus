@@ -2065,6 +2065,78 @@ label {
 }
 
 /* ────────────────────────────────────────────────────────────────────
+   DESKTOP SIDEBAR — Settings + Tour + Log Out cluster polish
+   Computer UI tweak: group the three icon buttons under the S/M/L
+   density toggle into a unified pill row with consistent surfaces.
+   ──────────────────────────────────────────────────────────────────── */
+.sidebar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 6px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.sidebar-action-btn {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text2);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--tr), color var(--tr), border-color var(--tr), transform var(--tr);
+}
+.sidebar-action-btn:hover {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border2);
+}
+.sidebar-action-btn:active { transform: scale(.96); }
+.sidebar-action-btn.variant-info { color: var(--accent); }
+.sidebar-action-btn.variant-info:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+.sidebar-action-btn.variant-danger { color: var(--must); }
+.sidebar-action-btn.variant-danger:hover {
+  background: var(--must-dim);
+  border-color: var(--must);
+}
+
+/* "Log out" red button inside the Settings modal (also used on mobile) */
+.btn.btn-signout {
+  width: 100%;
+  background: transparent;
+  color: var(--must);
+  border: 1px solid var(--must-dim);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 11px 14px;
+  border-radius: var(--radius);
+  transition: all var(--tr);
+}
+.btn.btn-signout:hover {
+  background: var(--must-dim);
+  border-color: var(--must);
+}
+
+/* Mobile-only Density row inside Settings is hidden on desktop
+   (desktop has the S/M/L pill in the sidebar bottom already). */
+.mobile-only-row { display: none; }
+
+/* Mobile bottom tab bar element exists in the DOM but is hidden on desktop. */
+.mobile-tabbar { display: none; }
+
+/* ────────────────────────────────────────────────────────────────────
    TOUCH DEVICES — phones & tablets only
    Gated by `(hover: none) and (pointer: coarse)` so a desktop browser
    resized to mobile width keeps the desktop layout. Only real touch
@@ -2131,116 +2203,90 @@ label {
 @media (hover: none) and (pointer: coarse) and (max-width: 640px) {
   :root {
     --sidebar-w: 0px;
-    --hud-h: 60px;
+    --hud-h: 0px;
+    --tabbar-h: 64px;
   }
 
-  /* App shell becomes top-bar + scrolling body + bottom HUD */
-  .app { flex-direction: column; height: 100vh; overflow: hidden; }
-  .workspace { padding: 0 0 calc(var(--hud-h) + 8px) 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .page { padding: 14px 14px 24px; max-width: none; }
-
-  /* Sidebar → horizontal top bar of icons */
-  .sidebar {
-    position: sticky;
-    top: 0;
-    z-index: 80;
-    flex-direction: row;
-    align-items: center;
-    width: 100%;
-    height: 50px;
-    padding: 6px 8px;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    overflow-x: auto;
-    overflow-y: hidden;
-    flex-shrink: 0;
-    background: var(--bg);
-  }
-  .sidebar-logo {
-    flex-shrink: 0;
-    margin-right: 6px;
-    padding: 0;
-    border: none;
-  }
-  .sidebar-logo .logo-text,
-  .sidebar-logo .logo-sub { display: none; }
-  .nav {
-    display: flex;
-    flex-direction: row;
-    gap: 2px;
+  /* App shell: scrolling page above a fixed bottom tab bar */
+  .app { flex-direction: column; height: 100dvh; overflow: hidden; }
+  .workspace {
     flex: 1;
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 0 calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + 16px) 0;
   }
-  .nav-item {
-    flex-direction: column;
-    gap: 1px;
-    padding: 5px 9px;
-    font-size: 9px;
-    border-radius: 8px;
-    min-width: 50px;
-    flex-shrink: 0;
-    text-align: center;
-    line-height: 1.1;
-  }
-  .nav-item span:first-child { font-size: 16px; margin: 0 0 1px 0; width: auto; }
-  .nav-badge {
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    margin: 0;
-    padding: 1px 5px;
-    font-size: 9px;
-  }
-  .nav-item { position: relative; }
-  .sidebar-bottom {
-    flex-direction: row;
-    padding: 0;
-    margin: 0 0 0 6px;
-    border-top: none;
-    gap: 4px;
-    flex-shrink: 0;
-  }
-  .sidebar-bottom .theme-btn {
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    font-size: 0;
-    border-radius: 8px;
-  }
+  .page { padding: 16px 16px 24px; max-width: none; }
 
-  /* HUD pinned to bottom, full width */
-  .hud {
+  /* The desktop sidebar (logo + nav strip + density/theme/settings) is
+     fully replaced by the bottom tab bar on phone */
+  .sidebar { display: none; }
+
+  /* The floating Pomodoro HUD also goes away on phone — the Focus tab is
+     the dedicated home for timer + presets, no need for a global bar. */
+  .hud,
+  .hud-focus-panel { display: none !important; }
+
+  /* Mobile bottom tab bar */
+  .mobile-tabbar {
+    display: flex;
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
-    top: auto;
-    width: 100%;
-    height: var(--hud-h);
-    border-radius: 0;
-    border: none;
-    border-top: 1px solid var(--border);
-    padding: 0 10px;
-    gap: 8px;
+    height: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px));
+    padding: 0 4px env(safe-area-inset-bottom, 0px);
     background: var(--bg);
+    border-top: 1px solid var(--border);
+    z-index: 120;
+    backdrop-filter: saturate(140%) blur(20px);
   }
-  .hud-mode-select { display: none; }
-  .hud-task { font-size: 12px; }
-  .hud-mode { font-size: 10px; }
-  .hud-info { flex: 1; min-width: 0; }
-  .hud-controls { gap: 6px; }
-  .hud-btn { width: 38px; height: 38px; font-size: 16px; }
-  .hud-score { display: none; }
-  .hud-sep { display: none; }
-  .hud-focus-panel {
-    position: fixed;
-    left: 8px;
-    right: 8px;
-    bottom: calc(var(--hud-h) + 8px);
-    width: auto;
-    max-height: 50vh;
+  .mt-tab {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: transparent;
+    border: none;
+    color: var(--text3);
+    font-family: inherit;
+    font-size: 10px;
+    letter-spacing: 0.01em;
+    padding: 8px 4px;
+    cursor: pointer;
+    transition: color var(--tr);
+    position: relative;
   }
+  .mt-tab:active { transform: scale(.96); }
+  .mt-tab-glyph { font-size: 20px; line-height: 1; }
+  .mt-tab-label { font-size: 10px; font-weight: 600; }
+  .mt-tab.active { color: var(--accent); }
+  .mt-tab.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 22%;
+    right: 22%;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 0 0 3px 3px;
+  }
+
+  /* Mobile-only Settings rows (Density toggle inside Settings) become visible */
+  .mobile-only-row { display: block; }
+  .mobile-only-row .density-toggle { display: inline-flex; gap: 4px; }
+  .mobile-only-row .density-btn { min-width: 44px; min-height: 36px; }
+
+  /* The desktop sidebar log-out cluster is irrelevant on mobile (sidebar hidden);
+     log out is inside Settings instead. */
+
+  /* Hide secondary workbench columns (Bank + mini Calendar widget) on phone.
+     Bank picker isn't needed — tasks are entered via the + button.
+     The Calendar tab in the bottom bar handles calendar viewing. */
+  #workbenchBank,
+  #workbenchCalendar { display: none; }
+  #workbenchToday { flex: 1 1 100%; }
 
   /* View headers stack vertically with more breathing room */
   .view-header { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
