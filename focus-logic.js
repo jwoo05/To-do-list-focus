@@ -4088,7 +4088,19 @@ function toggleBank(){
 function toggleCal(){
   showPage('calendar');
 }
+// Best-effort haptic feedback. Works on Android (Vibration API).
+// iOS Safari currently no-ops navigator.vibrate; if the user later adds the
+// site to their home screen as a PWA, recent iOS versions may enable it.
+function triggerHaptic(ms = 8) {
+  try {
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      navigator.vibrate(ms);
+    }
+  } catch (_) { /* no-op on unsupported devices */ }
+}
+
 function showPage(page, el){
+  triggerHaptic();
   if(['today','bank','archive'].includes(page)){
     const target = {
       today:'workbenchToday',
