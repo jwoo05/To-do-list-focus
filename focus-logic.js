@@ -4387,20 +4387,37 @@ function handleLogIn() {
   
   loadingDiv.textContent = 'Logging in...';
   errorDiv.classList.remove('show');
-  
+
+  // Surface a helpful message if the auth call hangs longer than ~12s.
+  // Most common cause on mobile: Firebase Authorized domains doesn't include
+  // the current Vercel hostname, or the device is offline.
+  let stalled = false;
+  const stallTimer = setTimeout(()=>{
+    stalled = true;
+    loadingDiv.textContent = '';
+    errorDiv.textContent = 'Login is taking too long. Check your internet, and make sure ' + (location.hostname || 'this domain') + ' is in Firebase → Authentication → Settings → Authorized domains.';
+    errorDiv.classList.add('show');
+  }, 12000);
+
   auth.signInWithEmailAndPassword(email, password)
     .then(() => {
+      clearTimeout(stallTimer);
+      if(stalled) return;
       loadingDiv.textContent = '';
       // If the user just got here via the "link Google to existing account" flow, finish the link now
       return finishGoogleLinkIfPending();
     })
     .catch(error => {
+      clearTimeout(stallTimer);
+      if(stalled) return;
       loadingDiv.textContent = '';
       let msg = error.message;
       if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') msg = 'Incorrect email or password. Try again or reset your password.';
       else if (error.code === 'auth/wrong-password') msg = 'Incorrect password. Click "Forgot password?" to reset it.';
       else if (error.code === 'auth/invalid-email') msg = 'Please enter a valid email address';
       else if (error.code === 'auth/too-many-requests') msg = 'Too many failed attempts. Please try again later or reset your password.';
+      else if (error.code === 'auth/network-request-failed') msg = 'No internet connection. Connect to wifi or cellular and try again.';
+      else if (error.code === 'auth/unauthorized-domain') msg = 'This domain (' + (location.hostname||'') + ') is not authorized in Firebase. Add it under Authentication → Settings → Authorized domains.';
       errorDiv.textContent = msg;
       errorDiv.classList.add('show');
     });
@@ -4411,6 +4428,14 @@ function handleLogIn() {
 // existing password, we link this credential so future Google sign-ins work.
 let pendingGoogleCredential = null;
 let pendingGoogleEmail = '';
+
+// True on iOS / Android phones + tablets where Safari & Chrome both block
+// Google sign-in popups. Redirect flow is more reliable on those devices.
+function isTouchDevice(){
+  try{
+    return window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+  }catch(_){ return false; }
+}
 
 function handleGoogleLogin() {
   const errorDiv = document.getElementById('errorMsg');
@@ -4426,6 +4451,18 @@ function handleGoogleLogin() {
   if(successDiv) successDiv.classList.remove('show');
   const provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
+
+  // Mobile Safari + iOS Chrome silently block popups — use full-page redirect there.
+  if(isTouchDevice()){
+    loadingDiv.textContent = 'Redirecting to Google…';
+    auth.signInWithRedirect(provider).catch(err=>{
+      loadingDiv.textContent = '';
+      errorDiv.textContent = (err && err.message) || 'Google sign-in failed.';
+      errorDiv.classList.add('show');
+    });
+    return;
+  }
+
   auth.signInWithPopup(provider)
     .then(() => { loadingDiv.textContent = ''; })
     .catch(error => {
@@ -4549,6 +4586,41 @@ auth.onAuthStateChanged(user => {
     document.getElementById('appScreen').style.display = 'none';
   }
 });
+
+// Handle return from signInWithRedirect (mobile Google sign-in). If the redirect
+// completed normally, onAuthStateChanged above will already have signed us in,
+// so we just need to catch errors (auth/account-exists-with-different-credential,
+// auth/unauthorized-domain, etc.) and surface them on the login screen.
+auth.getRedirectResult()
+  .then(result => {
+    if(result && result.user){
+      // Optional: finish any pending Google credential link the user kicked off earlier
+      try { finishGoogleLinkIfPending(); } catch(_){}
+    }
+  })
+  .catch(error => {
+    if(!error || !error.code) return;
+    const errorDiv = document.getElementById('errorMsg');
+    const loadingDiv = document.getElementById('loadingMsg');
+    if(loadingDiv) loadingDiv.textContent = '';
+    if(!errorDiv) return;
+    let msg = error.message || 'Google sign-in failed.';
+    if(error.code === 'auth/unauthorized-domain') msg = 'This domain is not authorized in Firebase. Add it under Authentication → Settings → Authorized domains.';
+    else if(error.code === 'auth/account-exists-with-different-credential'){
+      // Stash the pending credential and switch to password login (same flow as the popup branch)
+      const cred = error.credential;
+      const email = error.email || (cred && cred.email) || '';
+      pendingGoogleCredential = cred;
+      pendingGoogleEmail = email;
+      try { switchTab('login'); } catch(_){}
+      const emailField = document.getElementById('email');
+      if(emailField && email) emailField.value = email;
+      msg = `This Gmail (${email}) is already linked to an account. Sign in with your existing password to add Google sign-in — we'll keep all your tasks.`;
+    }
+    else if(error.code === 'auth/web-storage-unsupported') msg = 'Your browser is blocking storage needed for sign-in. Disable Private Browsing and try again.';
+    errorDiv.textContent = msg;
+    errorDiv.classList.add('show');
+  });
 
 function loadUserDataFromFirebase() {
   if (!currentUser) return;
