@@ -65,6 +65,10 @@ const WEEK_END_HOUR   = 24;  // midnight
 const WEEK_HOUR_PX    = 56;  // height of one hour row in the week view
 let bankFilter = 'all';
 let bankSearchQuery = '';
+let bankMode = (() => {
+  try { return localStorage.getItem('focus_bank_mode') === 'events' ? 'events' : 'tasks'; }
+  catch(_) { return 'tasks'; }
+})();
 let nlpParsed = null;
 let currentPomoTask = null;
 let pomoState = { running:false, phase:'focus', elapsed:0, cycles:0, targetCycles:4, sessionStart:null, plannedFocus:0, plannedBreak:0, extendedElapsed:0, breakElapsed:0, sessionId:null };
@@ -968,6 +972,75 @@ function renderNavBadges(){
 function normalizeForSearch(s){
   return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 }
+
+// ── Urgency helpers (used to color and label bank items by time-to-due) ──
+// Returns a category string used both for CSS coloring and chip class.
+//   overdue · urgent (≤24h) · soon (≤48h) · week (≤7d) · far · no-due
+function itemDeadline(item){
+  // For events: end of event window (or start if no end time)
+  if(item && item.date){
+    const dateOnly = item.date;
+    if(item.allDay !== false && !item.time) return new Date(dateOnly + 'T23:59:59');
+    const t = item.endTime || item.time || '23:59';
+    return new Date(dateOnly + 'T' + (t.length === 5 ? t : '23:59') + ':00');
+  }
+  // For tasks: due date (or earliest scheduledDate)
+  if(item){
+    const ds = item.due || (Array.isArray(item.scheduledDates) ? [...item.scheduledDates].sort()[0] : '');
+    if(!ds) return null;
+    const t = item.scheduledTime || '23:59';
+    return new Date(ds + 'T' + (t.length === 5 ? t : '23:59') + ':00');
+  }
+  return null;
+}
+function urgencyClassFor(item){
+  const dl = itemDeadline(item);
+  if(!dl || isNaN(dl)) return 'no-due';
+  const ms = dl.getTime() - Date.now();
+  if(ms < 0) return 'overdue';
+  const h = ms / 3600000;
+  if(h <= 24) return 'urgent';
+  if(h <= 48) return 'soon';
+  if(h <= 168) return 'week';
+  return 'far';
+}
+function timeLeftLabel(item){
+  const dl = itemDeadline(item);
+  if(!dl || isNaN(dl)) return '';
+  const ms = dl.getTime() - Date.now();
+  const overdue = ms < 0;
+  const abs = Math.abs(ms);
+  const mins = Math.round(abs / 60000);
+  const hours = Math.round(abs / 3600000);
+  const days = Math.round(abs / 86400000);
+  const weeks = Math.round(abs / (86400000 * 7));
+  let label;
+  if(mins < 60) label = `${mins}m`;
+  else if(hours < 48) label = `${hours}h`;
+  else if(days < 14) label = `${days}d`;
+  else if(weeks < 9) label = `${weeks}w`;
+  else label = `${Math.round(days / 30)}mo`;
+  return overdue ? `${label} overdue` : `${label} left`;
+}
+function timeRangeLabel(ev){
+  if(!ev) return '';
+  if(ev.allDay !== false && !ev.time) return 'All day';
+  const start = ev.time || '';
+  const end = ev.endTime || '';
+  if(start && end) return `${start} – ${end}`;
+  if(start) return start;
+  if(end) return `until ${end}`;
+  return '';
+}
+function setBankMode(mode){
+  bankMode = mode === 'events' ? 'events' : 'tasks';
+  try { localStorage.setItem('focus_bank_mode', bankMode); } catch(_) {}
+  document.querySelectorAll('.bmt-opt').forEach(b => b.classList.toggle('active', b.dataset.mode === bankMode));
+  // Filter chips are only meaningful for tasks; hide for events
+  const filters = document.getElementById('bankFilters');
+  if(filters) filters.style.display = bankMode === 'events' ? 'none' : '';
+  renderBank();
+}
 function taskMatchesSearch(t, query){
   if(!query) return true;
   const q = normalizeForSearch(query);
@@ -1010,6 +1083,16 @@ function renderBank(){
   }
   const clearBtn = document.getElementById('bankSearchClear');
   if(clearBtn) clearBtn.style.display = bankSearchQuery.trim() ? 'flex' : 'none';
+  // Sync the mode-toggle UI
+  document.querySelectorAll('.bmt-opt').forEach(b => b.classList.toggle('active', b.dataset.mode === bankMode));
+  const filtersWrap = document.getElementById('bankFilters');
+  if(filtersWrap) filtersWrap.style.display = bankMode === 'events' ? 'none' : '';
+
+  if(bankMode === 'events'){
+    renderEventBank(list);
+    return;
+  }
+
   const tasks = sortTasks(S.tasks.filter(t=>{
     if(t.archived || t.completed) return false;
     if(!taskMatchesBankFilter(t, bankFilter)) return false;
@@ -1026,8 +1109,11 @@ function renderBank(){
   const visible=tasks.slice(0,bankVisibleCount);
   list.innerHTML = visible.map(t=>{
     const unassigned=taskNeedsStudyAssignment(t);
+    const urgency = urgencyClassFor(t);
+    const timeLeft = timeLeftLabel(t);
     return `
     <div class="bank-task fade-up ${unassigned?'unassigned':''}" draggable="true"
+      data-urgency="${urgency}"
       ondragstart="onBankDragStart(event,'${t.id}')"
       ondragend="onTaskDragEnd(event)"
       ondragover="onBankTaskDragOver(event,'${t.id}')"
@@ -1037,7 +1123,7 @@ function renderBank(){
       <div class="bank-task-top">
         <span class="drag-cue" title="Drag to a calendar day">⋮⋮</span>
         <div class="bank-task-title">${esc(t.title)}</div>
-        <span class="drag-hint">Drag</span>
+        ${timeLeft ? `<span class="chip chip-time-left u-${urgency}">${esc(timeLeft)}</span>` : '<span class="drag-hint">Drag</span>'}
       </div>
       <div class="bank-task-meta">
         <span class="chip chip-${t.priority==='MUST'?'must':t.priority==='high'?'high':t.priority==='low'?'low':'medium'}">
@@ -1046,7 +1132,7 @@ function renderBank(){
         ${dueChipHTML(t)}
         ${t.isHabit?`<span class="chip chip-habit">Habit</span>`:''}
         ${unassigned?`<span class="chip chip-unassigned">Task not assigned yet</span>`:''}
-        ${t.scheduledTime?`<span class="chip chip-due">${t.scheduledTime}</span>`:''}
+        ${t.scheduledTime?`<span class="chip chip-due">⏰ ${t.scheduledTime}</span>`:''}
       </div>
       <div class="bank-task-actions">
         <button class="task-action" onclick="event.stopPropagation(); duplicateTask('${t.id}')" title="Duplicate">⧉</button>
@@ -1056,6 +1142,60 @@ function renderBank(){
   }).join('') + (tasks.length>8 ? `
       <button class="bank-add" onclick="toggleBankLimit()">${bankVisibleCount>=tasks.length?'Show first 8':'Show all '+tasks.length}</button>
     ` : '');
+}
+
+// Event-mode bank: shows upcoming events sorted by their start time, each with
+// a start–end time chip, urgency-colored time-left chip, source color stripe.
+function renderEventBank(list){
+  const now = Date.now();
+  const items = (S.events || []).filter(e => {
+    if(!e || !e.date) return false;
+    if(!taskMatchesSearch(e, bankSearchQuery)) return false;
+    // Show today and future events. Drop past events from the bank
+    // (they live on the calendar history; the bank is forward-looking).
+    const dl = itemDeadline(e);
+    if(!dl) return false;
+    return dl.getTime() >= now - 86400000; // include today even if past time
+  });
+  items.sort((a, b) => {
+    const da = itemDeadline(a)?.getTime() || 0;
+    const db = itemDeadline(b)?.getTime() || 0;
+    return da - db;
+  });
+  if(!items.length){
+    const msg = bankSearchQuery.trim()
+      ? `<div class="empty"><div class="empty-icon">🔎</div>No events match "${esc(bankSearchQuery)}"</div>`
+      : `<div class="empty"><div class="empty-icon">📅</div>No upcoming events. Drop an .ics file in the Calendar import to add some.</div>`;
+    list.innerHTML = msg;
+    return;
+  }
+  const visible = items.slice(0, bankVisibleCount);
+  list.innerHTML = visible.map(e => {
+    const urgency = urgencyClassFor(e);
+    const left = timeLeftLabel(e);
+    const range = timeRangeLabel(e);
+    const sourceLabel = e.sourceId ? (S.icalSources.find(s => s.id === e.sourceId)?.name || '') : '';
+    const colorBar = e.color ? `style="--event-accent:${esc(e.color)}"` : '';
+    return `
+    <div class="bank-task bank-event fade-up" draggable="true"
+      data-urgency="${urgency}"
+      ${colorBar}
+      onclick="editEvent('${e.id}')">
+      <div class="bank-task-top">
+        <span class="bank-event-dot" aria-hidden="true"></span>
+        <div class="bank-task-title">${esc(e.title)}</div>
+        ${left ? `<span class="chip chip-time-left u-${urgency}">${esc(left)}</span>` : ''}
+      </div>
+      <div class="bank-task-meta">
+        <span class="chip chip-event-date">${esc(fmtDate(e.date))}</span>
+        ${range ? `<span class="chip chip-event-time">⏰ ${esc(range)}</span>` : ''}
+        ${e.location ? `<span class="chip chip-event-loc">📍 ${esc(e.location)}</span>` : ''}
+        ${sourceLabel ? `<span class="chip chip-event-source">${esc(sourceLabel)}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('') + (items.length > 8 ? `
+    <button class="bank-add" onclick="toggleBankLimit()">${bankVisibleCount>=items.length?'Show first 8':'Show all '+items.length}</button>
+  ` : '');
 }
 
 function taskMatchesBankFilter(t, filter){
@@ -4424,7 +4564,7 @@ function onBankPanelDrop(e){
   e.currentTarget.classList.remove('section-drag-over');
   unarchiveForDrop(source,calSelectedDate || todayStr());
   save(); render();
-  showToast(`Restored "${source.title}" to Task Bank`);
+  showToast(`Restored "${source.title}" to To-Do Bank`);
   resetDraggedTask();
 }
 function onArchiveDragOver(e){

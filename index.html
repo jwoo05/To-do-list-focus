@@ -490,15 +490,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <div class="workbench" id="todoWorkbench">
 
-        <!-- LEFT: Task Bank -->
+        <!-- LEFT: To-Do Bank -->
         <div class="workbench-col" id="workbenchBank">
           <div class="col-strip" onclick="toggleWorkbenchCol('bank')">
             <span class="col-strip-arrow">›</span>
-            <span class="col-strip-label">Task Bank</span>
+            <span class="col-strip-label">To-Do Bank</span>
             <span class="col-strip-arrow">›</span>
           </div>
           <div class="workbench-heading">
-            <strong>Task Bank</strong>
+            <strong>To-Do Bank</strong>
             <div class="workbench-actions">
               <button class="collapse-toggle" onclick="toggleWorkbenchCol('bank')" title="Collapse">‹</button>
             </div>
@@ -671,16 +671,21 @@ document.addEventListener('DOMContentLoaded', () => {
     <section class="page" id="page-bank">
       <div class="view-header">
         <div>
-          <div class="view-title">Task Bank</div>
+          <div class="view-title">To-Do Bank</div>
           <div class="view-sub">All tasks. Drag onto calendar dates to schedule work.</div>
         </div>
         <button class="btn btn-accent" onclick="openModal('mAddTask')">+ Add task</button>
       </div>
       <div class="bank page-bank" id="bankPanel">
         <div class="bank-body">
+          <!-- Tasks / Events toggle -->
+          <div class="bank-mode-toggle" id="bankModeToggle">
+            <button class="bmt-opt active" data-mode="tasks"  onclick="setBankMode('tasks')">Tasks</button>
+            <button class="bmt-opt"        data-mode="events" onclick="setBankMode('events')">Events</button>
+          </div>
           <div class="bank-search-row">
             <input type="search" class="bank-search-input" id="bankSearchInput"
-              placeholder="Search tasks…  (spaces ignored)"
+              placeholder="Search…  (spaces ignored)"
               autocomplete="off"
               oninput="setBankSearch(this.value)">
             <button type="button" class="bank-search-clear" id="bankSearchClear" onclick="clearBankSearch()" aria-label="Clear search">✕</button>
