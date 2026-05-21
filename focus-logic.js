@@ -55,7 +55,7 @@ let duePickerDate = new Date();
 let scheduleDragActive = false;
 let scheduleDragMode = 'add';
 let currentPage = 'dashboard';
-let bankVisibleCount = 10;
+let bankVisibleCount = 8;
 let bankSort = 'due';
 let dailySort = 'section';
 let calHoverTimer = null;
@@ -931,8 +931,8 @@ function renderBank(){
         <button class="task-action" onclick="event.stopPropagation(); editTask('${t.id}')" title="Edit">✎</button>
       </div>
     </div>`;
-  }).join('') + (tasks.length>10 ? `
-      <button class="bank-add" onclick="toggleBankLimit()">${bankVisibleCount>=tasks.length?'Show first 10':'Show all '+tasks.length}</button>
+  }).join('') + (tasks.length>8 ? `
+      <button class="bank-add" onclick="toggleBankLimit()">${bankVisibleCount>=tasks.length?'Show first 8':'Show all '+tasks.length}</button>
     ` : '');
 }
 
@@ -985,7 +985,7 @@ function syncBankFilterUI(){
 
 function toggleBankLimit(){
   const openCount=S.tasks.filter(t=>!isArchivedForTodo(t)).length;
-  bankVisibleCount = bankVisibleCount>=openCount ? 10 : openCount;
+  bankVisibleCount = bankVisibleCount>=openCount ? 8 : openCount;
   renderBank();
 }
 

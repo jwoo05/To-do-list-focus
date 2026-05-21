@@ -877,14 +877,14 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="view-sub">Completed work — out of your way but still recoverable.</div>
         </div>
       </div>
-      <div class="sec open" id="secArchive">
+      <div class="sec collapsed" id="secArchive">
         <div class="sec-header" onclick="toggleSec(this)">
           <span>◁</span>
           <span class="sec-title">Archive</span>
           <span class="sec-count" id="archiveCount">0</span>
           <span class="sec-chevron">›</span>
         </div>
-        <div class="sec-body" id="archiveBody"
+        <div class="sec-body" id="archiveBody" hidden style="display:none"
           ondragover="onArchiveDragOver(event)"
           ondragleave="onArchiveDragLeave(event)"
           ondrop="onArchiveDrop(event)">
