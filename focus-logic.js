@@ -51,6 +51,7 @@ let editSelectedDays = [];
 let editModalSubtasks = [];
 let editScheduledDates = [];
 let schedulePickerDate = new Date();
+let duePickerDate = new Date();
 let scheduleDragActive = false;
 let scheduleDragMode = 'add';
 let currentPage = 'dashboard';
@@ -1692,7 +1693,9 @@ function editTask(id){
   editSelectedDays = [...(t.scheduledDays||[])];
   editScheduledDates = [...(t.scheduledDates||[])];
   schedulePickerDate = editScheduledDates[0] ? new Date(editScheduledDates[0]+'T00:00:00') : (t.due ? new Date(t.due+'T00:00:00') : new Date(calSelectedDate+'T00:00:00'));
+  duePickerDate = t.due ? new Date(t.due+'T00:00:00') : new Date(calSelectedDate+'T00:00:00');
   renderScheduledDateChips();
+  renderDuePicker();
   selectPri(t.priority, null);
   toggleHabitFields();
   document.querySelectorAll('.day-btn').forEach(b=>{
@@ -1820,7 +1823,9 @@ function resetAddForm(){
   editSelectedDays=[];
   editScheduledDates=[];
   schedulePickerDate = new Date((calSelectedDate||todayStr())+'T00:00:00');
+  duePickerDate = new Date((calSelectedDate||todayStr())+'T00:00:00');
   renderScheduledDateChips();
+  renderDuePicker();
   editSelectedPri='medium';
   selectPri('medium',null);
   toggleHabitFields();
@@ -1964,6 +1969,66 @@ function moveSchedulePickerMonth(delta){
 function jumpSchedulePickerToCalendar(){
   schedulePickerDate=new Date(calViewDate.getFullYear(),calViewDate.getMonth(),1);
   renderSchedulePicker();
+}
+
+// ── DUE DATE picker (single-select, same look as schedule picker) ──
+function renderDuePicker(){
+  const grid=document.getElementById('duePickerGrid');
+  const title=document.getElementById('duePickerTitle');
+  if(!grid || !title) return;
+  const y=duePickerDate.getFullYear();
+  const m=duePickerDate.getMonth();
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  title.textContent=`${months[m]} ${y}`;
+  const firstDay=new Date(y,m,1).getDay();
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const current = (document.getElementById('fDue')?.value || '').trim();
+  const today=todayStr();
+  let html=['SU','MO','TU','WE','TH','FR','SA'].map(d=>`<div class="schedule-dow">${d}</div>`).join('');
+  for(let i=0;i<firstDay;i++) html+=`<button type="button" class="schedule-day blank" tabindex="-1"></button>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=`${y}-${pad(m+1)}-${pad(d)}`;
+    html+=`<button type="button" class="schedule-day ${current===ds?'selected':''} ${ds===today?'today':''}"
+      data-date="${ds}"
+      onclick="setDueDate('${ds}')">${d}</button>`;
+  }
+  grid.innerHTML=html;
+  renderDueDateChip();
+}
+function setDueDate(ds){
+  const input=document.getElementById('fDue');
+  if(!input) return;
+  // Clicking the already-selected date clears it (toggle behaviour)
+  input.value = input.value === ds ? '' : ds;
+  // Make sure the picker is on the same month as the new selection
+  if(input.value){
+    duePickerDate = new Date(input.value+'T00:00:00');
+  }
+  renderDuePicker();
+}
+function setDueToToday(){ setDueDate(todayStr()); }
+function clearDueDate(){
+  const input=document.getElementById('fDue');
+  if(input) input.value = '';
+  renderDuePicker();
+}
+function moveDuePickerMonth(delta){
+  duePickerDate.setMonth(duePickerDate.getMonth()+delta);
+  renderDuePicker();
+}
+function jumpDuePickerToCalendar(){
+  duePickerDate = new Date(calViewDate.getFullYear(), calViewDate.getMonth(), 1);
+  renderDuePicker();
+}
+function renderDueDateChip(){
+  const wrap=document.getElementById('dueDateChips');
+  if(!wrap) return;
+  const due = (document.getElementById('fDue')?.value || '').trim();
+  if(!due){
+    wrap.innerHTML = '<span style="font-size:11px;color:var(--text3)">No due date set.</span>';
+    return;
+  }
+  wrap.innerHTML = `<span class="sched-chip">${esc(fmtDate(due))}<button type="button" onclick="clearDueDate()">✕</button></span>`;
 }
 
 function refreshDailySectionOptions(selected='Study'){

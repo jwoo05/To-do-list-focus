@@ -1026,7 +1026,20 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="form-grid">
         <div class="form-row">
           <label>Due Date</label>
-          <input type="date" id="fDue">
+          <div class="schedule-picker due-picker">
+            <div class="schedule-picker-head">
+              <button type="button" class="mini-btn" onclick="moveDuePickerMonth(-1)">‹</button>
+              <button type="button" class="schedule-picker-title" id="duePickerTitle" onclick="jumpDuePickerToCalendar()">May 2026</button>
+              <button type="button" class="mini-btn" onclick="moveDuePickerMonth(1)">›</button>
+            </div>
+            <div class="schedule-picker-grid" id="duePickerGrid"></div>
+            <div class="schedule-picker-manual">
+              <button type="button" class="btn btn-outline btn-sm" onclick="setDueToToday()">Today</button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="clearDueDate()">Clear</button>
+            </div>
+          </div>
+          <input type="hidden" id="fDue">
+          <div id="dueDateChips" class="schedule-chips"></div>
         </div>
         <div class="form-row">
             <label>Work Days</label>
@@ -1038,6 +1051,7 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
               <div class="schedule-picker-grid" id="schedulePickerGrid"></div>
               <div class="schedule-picker-manual">
+                <button type="button" class="btn btn-outline btn-sm" onclick="addScheduledDateValue(todayStr())">Today</button>
                 <input type="date" id="fScheduleDate" aria-label="Add exact work day">
                 <button type="button" class="btn btn-outline" onclick="addScheduledDate()">+ Add exact date</button>
               </div>
