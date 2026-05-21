@@ -1758,7 +1758,11 @@ function saveTask(){
 
   if(isNew) S.tasks.push(t);
   const taughtQuickAdd=!!nlpEditDraft;
-  save(); render();
+  save();
+  // Defensive: if a downstream renderer throws, we still want the modal to
+  // close and the form to reset — otherwise the Save button looks broken
+  // even though the data was saved.
+  try { render(); } catch(err) { console.warn('[saveTask] render failed:', err); }
   closeModal('mAddTask');
   resetAddForm();
   if(taughtQuickAdd || learnedQuickAdd){
@@ -3376,7 +3380,7 @@ function unescapeICS(s){ return String(s||'').replace(/\\n/gi,' ').replace(/\\,/
 function renderCalendar(){
   const y=calViewDate.getFullYear(), mo=calViewDate.getMonth();
   const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  // Header label depends on layout — week shows the date range; month shows the month
+  // Header label depends on layout
   if(calLayout === 'week'){
     const start = getWeekStartDate(calViewDate);
     const end = new Date(start); end.setDate(end.getDate()+6);
@@ -3385,6 +3389,10 @@ function renderCalendar(){
       ? `${end.getDate()}`
       : `${months[end.getMonth()].slice(0,3)} ${end.getDate()}`;
     document.getElementById('calMonthLabel').textContent = `${startLabel} – ${endLabel}, ${end.getFullYear()}`;
+  } else if(calLayout === 'day'){
+    const d = calViewDate;
+    const dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+    document.getElementById('calMonthLabel').textContent = `${dow}, ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
   } else {
     document.getElementById('calMonthLabel').textContent=months[mo]+' '+y;
   }
@@ -3434,15 +3442,16 @@ function renderCalendar(){
   syncCalViewToggle();
   document.querySelectorAll('.cvt-opt').forEach(b=>b.classList.toggle('active',b.dataset.mode===calViewMode));
   document.querySelectorAll('.clt-opt').forEach(b=>b.classList.toggle('active',b.dataset.layout===calLayout));
-  // Show/hide week view based on layout
+  // Show ONLY the layout selected. The `hidden` attribute loses to explicit
+  // display rules on .cal-grid / .cal-week-wrap, so use display directly.
   const weekWrap = document.getElementById('calWeekWrap');
-  if(calLayout === 'week'){
-    calGrid.hidden = true;
-    if(weekWrap) weekWrap.hidden = false;
+  if(calLayout === 'week' || calLayout === 'day'){
+    calGrid.style.display = 'none';
+    if(weekWrap){ weekWrap.style.display = ''; weekWrap.hidden = false; }
     renderWeekView();
   } else {
-    calGrid.hidden = false;
-    if(weekWrap) weekWrap.hidden = true;
+    calGrid.style.display = '';
+    if(weekWrap){ weekWrap.style.display = 'none'; weekWrap.hidden = true; }
   }
   renderCalDayTasks();
 }
@@ -3531,8 +3540,10 @@ function setupCalendarDateHandlers(){
   });
 }
 function calMove(dir){
-  if(calLayout === 'week'){
-    // Step a whole week at a time when in the hour-grid view
+  if(calLayout === 'day'){
+    calViewDate.setDate(calViewDate.getDate() + dir);
+    calSelectedDate = `${calViewDate.getFullYear()}-${pad(calViewDate.getMonth()+1)}-${pad(calViewDate.getDate())}`;
+  } else if(calLayout === 'week'){
     calViewDate.setDate(calViewDate.getDate() + dir*7);
   } else {
     calViewDate.setMonth(calViewDate.getMonth()+dir);
@@ -3598,8 +3609,120 @@ function selectCalDate(evtOrDate, maybeDate){
     updateWorkbenchCollapseUI();
   }
 }
+// ── FOCUS BLOCK ──
+// A focus block is a time-bounded event that contains a list of task IDs
+// to work on during that window. Stored as an event with type='focus_block'
+// and a taskIds array. Renders as a special block in the hour grid.
+let focusBlockSelection = new Set();
+function openFocusBlockModal(prefill){
+  focusBlockSelection = new Set();
+  const ds = (prefill && prefill.date) || calSelectedDate || todayStr();
+  document.getElementById('fbTitle').value = 'Focus block';
+  document.getElementById('fbDate').value = ds;
+  document.getElementById('fbStart').value = (prefill && prefill.start) || '09:00';
+  document.getElementById('fbEnd').value = (prefill && prefill.end) || '10:00';
+  document.getElementById('fbTaskSearch').value = '';
+  renderFocusBlockTaskList();
+  openModal('mFocusBlock');
+}
+function fbCandidateTasks(){
+  // Surface the most relevant tasks first; avoid overwhelming the user with
+  // every todo. Order: MUST → today's scheduled → this week → recent unscheduled.
+  const today = todayStr();
+  const weekStart = getWeekStartDate(new Date(today+'T00:00:00'));
+  const weekEnd = new Date(weekStart); weekEnd.setDate(weekEnd.getDate()+6);
+  const weekEndStr = `${weekEnd.getFullYear()}-${pad(weekEnd.getMonth()+1)}-${pad(weekEnd.getDate())}`;
+  const open = S.tasks.filter(t => !isArchivedForTodo(t) && !t.completed);
+  const isThisWeek = (t) => {
+    const dates = [t.due, ...(t.scheduledDates||[])].filter(Boolean);
+    return dates.some(d => d >= weekStart.toISOString().slice(0,10) && d <= weekEndStr);
+  };
+  const must = open.filter(t => t.priority === 'MUST');
+  const todayTasks = open.filter(t => t.priority !== 'MUST'
+    && (isHabitDueToday(t,today) || (t.scheduledDates||[]).includes(today) || t.due===today));
+  const weekTasks = open.filter(t => t.priority !== 'MUST'
+    && !todayTasks.includes(t) && isThisWeek(t));
+  const recent = open.filter(t => !must.includes(t) && !todayTasks.includes(t) && !weekTasks.includes(t))
+    .sort((a,b) => (b.createdAt||0) - (a.createdAt||0))
+    .slice(0, 4);
+  return { must, todayTasks, weekTasks, recent };
+}
+function renderFocusBlockTaskList(){
+  const wrap = document.getElementById('fbTaskList');
+  if(!wrap) return;
+  const q = (document.getElementById('fbTaskSearch')?.value || '').trim().toLowerCase();
+  const groups = fbCandidateTasks();
+  const filter = (arr) => q ? arr.filter(t => (t.title||'').toLowerCase().includes(q) || (t.subject||'').toLowerCase().includes(q)) : arr;
+  const sections = [
+    { name: 'MUST', tasks: filter(groups.must) },
+    { name: 'Today', tasks: filter(groups.todayTasks) },
+    { name: 'This week', tasks: filter(groups.weekTasks) },
+    { name: 'Recently added', tasks: filter(groups.recent) }
+  ].filter(s => s.tasks.length);
+  if(!sections.length){
+    wrap.innerHTML = `<div class="fb-empty">No matching tasks.</div>`;
+    updateFbSelectedCount();
+    return;
+  }
+  wrap.innerHTML = sections.map(sec => `
+    <div class="fb-group">
+      <div class="fb-group-head">${esc(sec.name)} <span class="fb-group-count">${sec.tasks.length}</span></div>
+      ${sec.tasks.slice(0, 8).map(t => {
+        const checked = focusBlockSelection.has(t.id) ? 'checked' : '';
+        const priClass = t.priority === 'MUST' ? 'must' : t.priority === 'high' ? 'high' : '';
+        return `
+          <label class="fb-task ${priClass}">
+            <input type="checkbox" data-id="${t.id}" ${checked} onchange="toggleFbTask('${t.id}', this.checked)">
+            <span class="fb-task-title">${esc(t.title)}</span>
+            ${t.subject ? `<span class="fb-task-sub">${esc(t.subject)}</span>` : ''}
+          </label>
+        `;
+      }).join('')}
+    </div>
+  `).join('');
+  updateFbSelectedCount();
+}
+function toggleFbTask(id, checked){
+  if(checked) focusBlockSelection.add(id);
+  else focusBlockSelection.delete(id);
+  updateFbSelectedCount();
+}
+function updateFbSelectedCount(){
+  const n = focusBlockSelection.size;
+  const el = document.getElementById('fbSelectedCount');
+  if(el) el.textContent = n === 0 ? 'No tasks selected' : `${n} task${n===1?'':'s'} in this block`;
+}
+function saveFocusBlock(){
+  const title = (document.getElementById('fbTitle').value || 'Focus block').trim();
+  const date = document.getElementById('fbDate').value;
+  const start = document.getElementById('fbStart').value;
+  const end = document.getElementById('fbEnd').value;
+  if(!date){ showToast('Pick a date for the focus block.'); return; }
+  if(!start || !end){ showToast('Pick a start and end time.'); return; }
+  if(end <= start){ showToast('End time must be after start.'); return; }
+  const ev = {
+    id: uid(),
+    createdAt: Date.now(),
+    type: 'focus_block',
+    title,
+    date,
+    time: start,
+    endTime: end,
+    allDay: false,
+    color: '#7aa2ff',
+    taskIds: Array.from(focusBlockSelection),
+    notes: ''
+  };
+  S.events.push(ev);
+  focusBlockSelection = new Set();
+  save();
+  try { render(); } catch(_) {}
+  closeModal('mFocusBlock');
+  showToast(`Focus block added · ${ev.taskIds.length} task${ev.taskIds.length===1?'':'s'}`);
+}
+
 function setCalLayout(layout){
-  calLayout = layout === 'week' ? 'week' : 'month';
+  calLayout = (layout === 'week' || layout === 'day') ? layout : 'month';
   try { localStorage.setItem('focus_cal_layout', calLayout); } catch(_) {}
   document.querySelectorAll('.clt-opt').forEach(b=>b.classList.toggle('active', b.dataset.layout===calLayout));
   renderCalendar();
@@ -3627,35 +3750,20 @@ function fmtTime12(s){
   const hr = h===0 ? 12 : (h>12 ? h-12 : h);
   return m === 0 ? `${hr}${period}` : `${hr}:${String(m).padStart(2,'0')}${period}`;
 }
+// Only EVENTS appear in the hour grid. Tasks are unscheduled work — they live
+// in the all-day strip regardless of their scheduledTime field. This keeps the
+// hour grid focused on real time-bound commitments.
 function collectTimedItems(ds){
+  const showEvents = calViewMode !== 'tasks';
+  if(!showEvents) return [];
   const out = [];
-  // Tasks with scheduledTime
-  S.tasks.forEach(t => {
-    if(t.archived) return;
-    if(!(t.scheduledDates?.includes(ds) || (t.due===ds && !isDueSignalDone(t,ds)) || isHabitDueToday(t,ds))) return;
-    const start = timeStrToMinutes(t.scheduledTime);
-    if(start === null) return;
-    const sig = calendarSignalForTask(t,ds);
-    const colorMap = { exam:'var(--must)', due:'var(--orange)', habit:'var(--purple)' };
-    const accent = colorMap[sig] || 'var(--accent)';
-    out.push({
-      kind: 'task',
-      id: t.id,
-      title: t.title,
-      startMin: start,
-      durationMin: 60,
-      accent,
-      sig,
-      onClick: `editTask('${t.id}')`
-    });
-  });
-  // Events with time
   S.events.forEach(e => {
     if(e.date !== ds) return;
     const start = timeStrToMinutes(e.time);
     if(start === null) return;
     const end = timeStrToMinutes(e.endTime);
     const dur = (end !== null && end > start) ? end - start : 60;
+    const isFocus = e.type === 'focus_block';
     out.push({
       kind: 'event',
       id: e.id,
@@ -3663,7 +3771,9 @@ function collectTimedItems(ds){
       startMin: start,
       durationMin: dur,
       accent: e.color || eventColorForType(e.type) || 'var(--accent)',
-      sig: e.type==='test' ? 'exam' : (e.type||'event'),
+      sig: e.type==='test' ? 'exam' : isFocus ? 'focus' : (e.type||'event'),
+      isFocus,
+      taskIds: Array.isArray(e.taskIds) ? e.taskIds : [],
       onClick: `editEvent('${e.id}')`
     });
   });
@@ -3672,14 +3782,12 @@ function collectTimedItems(ds){
 }
 function collectAllDayItems(ds){
   const out = [];
-  // Filter by current view mode
   const showTasks = calViewMode !== 'events';
   const showEvents = calViewMode !== 'tasks';
   if(showTasks){
     S.tasks.forEach(t => {
       if(t.archived) return;
       if(!(t.scheduledDates?.includes(ds) || (t.due===ds && !isDueSignalDone(t,ds)) || isHabitDueToday(t,ds))) return;
-      if(timeStrToMinutes(t.scheduledTime) !== null) return; // has a time → goes in hour grid
       const sig = calendarSignalForTask(t,ds);
       out.push({ kind:'task', id:t.id, title:t.title, sig, accent:null });
     });
@@ -3687,7 +3795,7 @@ function collectAllDayItems(ds){
   if(showEvents){
     S.events.forEach(e => {
       if(e.date !== ds) return;
-      if(timeStrToMinutes(e.time) !== null) return;
+      if(timeStrToMinutes(e.time) !== null) return; // timed events go to hour grid
       out.push({ kind:'event', id:e.id, title:e.title, sig: e.type==='test'?'exam':(e.type||'event'), accent: e.color });
     });
   }
@@ -3697,14 +3805,23 @@ function renderWeekView(){
   const grid = document.getElementById('calWeekGrid');
   const dayhead = document.getElementById('calWeekDayhead');
   const allday = document.getElementById('calWeekAllday');
+  const wrap  = document.getElementById('calWeekWrap');
   if(!grid || !dayhead || !allday) return;
+  const isDay = calLayout === 'day';
+  if(wrap) wrap.classList.toggle('cwk-day-mode', isDay);
 
-  const weekStart = getWeekStartDate(calViewDate);
   const days = [];
-  for(let i=0;i<7;i++){
-    const d = new Date(weekStart);
-    d.setDate(d.getDate()+i);
+  if(isDay){
+    const d = new Date(calViewDate);
+    d.setHours(0,0,0,0);
     days.push({ date:d, ds:`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}` });
+  } else {
+    const weekStart = getWeekStartDate(calViewDate);
+    for(let i=0;i<7;i++){
+      const d = new Date(weekStart);
+      d.setDate(d.getDate()+i);
+      days.push({ date:d, ds:`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}` });
+    }
   }
   const today = todayStr();
   const hours = WEEK_END_HOUR - WEEK_START_HOUR;
@@ -3755,9 +3872,11 @@ function renderWeekView(){
       const height = Math.max(22, it.durationMin * (WEEK_HOUR_PX/60));
       const startStr = fmtTime12(`${String(Math.floor(it.startMin/60)).padStart(2,'0')}:${String(it.startMin%60).padStart(2,'0')}`);
       const endStr   = fmtTime12(`${String(Math.floor((it.startMin+it.durationMin)/60)).padStart(2,'0')}:${String((it.startMin+it.durationMin)%60).padStart(2,'0')}`);
+      const focusBadge = it.isFocus && it.taskIds.length
+        ? `<span class="cwk-block-badge">▤ ${it.taskIds.length}</span>` : '';
       return `<button type="button" class="cwk-block sig-${it.sig}" style="top:${top}px;height:${height}px;--block-accent:${it.accent}" onclick="${it.onClick}">
         <strong class="cwk-block-title">${esc(it.title)}</strong>
-        <span class="cwk-block-time">${startStr} – ${endStr}</span>
+        <span class="cwk-block-time">${startStr} – ${endStr}${focusBadge}</span>
       </button>`;
     }).join('');
 

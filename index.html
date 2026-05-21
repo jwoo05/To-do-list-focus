@@ -542,10 +542,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <button class="cal-today-btn" onclick="goToToday()">Today</button>
               </div>
-              <!-- Layout toggle: Month grid vs Week hour view -->
-              <div class="cal-layout-toggle">
-                <button class="clt-opt active" data-layout="month" onclick="setCalLayout('month')">Month</button>
-                <button class="clt-opt"        data-layout="week"  onclick="setCalLayout('week')">Week</button>
+              <!-- Layout toggle: Month grid · Week hour view · Day hour view -->
+              <div class="cal-toolbar-row">
+                <div class="cal-layout-toggle">
+                  <button class="clt-opt active" data-layout="month" onclick="setCalLayout('month')">Month</button>
+                  <button class="clt-opt"        data-layout="week"  onclick="setCalLayout('week')">Week</button>
+                  <button class="clt-opt"        data-layout="day"   onclick="setCalLayout('day')">Day</button>
+                </div>
+                <button class="btn btn-sm btn-outline cal-focus-block-btn" id="focusBlockBtn" onclick="openFocusBlockModal()" title="Reserve time and pick tasks to focus on">+ Focus block</button>
               </div>
               <!-- View mode toggle -->
               <div class="cal-view-toggle" id="calViewToggle">
@@ -912,6 +916,46 @@ document.addEventListener('DOMContentLoaded', () => {
 <div class="calendar-hover-card" id="calendarHoverCard" aria-hidden="true"></div>
 
 <!-- ═══════════════ MODALS ═══════════════ -->
+
+<!-- FOCUS BLOCK — reserve a time range and pick tasks to focus on -->
+<div class="overlay" id="mFocusBlock">
+  <div class="modal" style="width:min(560px,95vw); max-height:90vh; overflow:hidden; display:flex; flex-direction:column">
+    <div class="modal-header">
+      <span class="modal-title">Add Focus Block</span>
+      <button class="modal-close" onclick="closeModal('mFocusBlock')">✕</button>
+    </div>
+    <div class="modal-body" style="flex:1; overflow-y:auto; padding:18px 20px">
+      <div class="form-row">
+        <label>Title</label>
+        <input id="fbTitle" placeholder="Deep work · study session · etc." value="Focus block">
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label>Date</label>
+          <input type="date" id="fbDate">
+        </div>
+        <div class="form-row">
+          <label>Start</label>
+          <input type="time" id="fbStart">
+        </div>
+        <div class="form-row">
+          <label>End</label>
+          <input type="time" id="fbEnd">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Tasks to focus on</label>
+        <input id="fbTaskSearch" placeholder="Search tasks…" oninput="renderFocusBlockTaskList()">
+        <div class="fb-task-list" id="fbTaskList"></div>
+        <div id="fbSelectedCount" class="fb-selected-count">No tasks selected</div>
+      </div>
+    </div>
+    <div class="form-actions" style="padding:14px 20px; border-top:1px solid var(--border); display:flex; gap:8px; justify-content:flex-end">
+      <button class="btn btn-outline" onclick="closeModal('mFocusBlock')">Cancel</button>
+      <button class="btn btn-accent" onclick="saveFocusBlock()">Add block</button>
+    </div>
+  </div>
+</div>
 
 <!-- WELCOME / FEATURE TOUR -->
 <div class="overlay" id="mWelcome">
