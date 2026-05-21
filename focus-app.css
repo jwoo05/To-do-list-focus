@@ -2632,3 +2632,254 @@ label {
   .page { padding: 10px 10px 20px; }
   .view-title { font-size: 17px; }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   CALENDAR — Week hour-grid view (Google Calendar-style)
+   ───────────────────────────────────────────────────────────── */
+.cal-layout-toggle {
+  display: inline-flex;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  margin: 0 0 10px;
+  gap: 2px;
+}
+.clt-opt {
+  padding: 4px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text3);
+  border: none;
+  background: transparent;
+  border-radius: calc(var(--radius-sm) - 1px);
+  cursor: pointer;
+  transition: all var(--tr);
+}
+.clt-opt:hover { color: var(--text); }
+.clt-opt.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+
+.cal-week-wrap {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+  height: calc(100vh - 220px);
+  min-height: 480px;
+}
+/* Day header row */
+.cal-week-dayhead,
+.cal-week-allday {
+  display: grid;
+  grid-template-columns: 56px repeat(7, minmax(0, 1fr));
+  gap: 0;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+}
+.cwk-time-cell {
+  font-size: 10px;
+  color: var(--text3);
+  padding: 6px 8px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  border-right: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cwk-day-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 4px;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--tr);
+}
+.cwk-day-header:last-child { border-right: none; }
+.cwk-day-header:hover { background: var(--bg3); }
+.cwk-day-header.today .cwk-num {
+  background: var(--accent);
+  color: #fff;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+}
+.cwk-day-header.selected { background: var(--accent-dim); }
+.cwk-dow {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text3);
+}
+.cwk-num {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* All-day strip */
+.cal-week-allday {
+  min-height: 28px;
+}
+.cwk-allday-col {
+  border-right: 1px solid var(--border);
+  padding: 4px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-height: 28px;
+  overflow: hidden;
+}
+.cwk-allday-col:last-child { border-right: none; }
+.cwk-allday-item {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: none;
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  font-family: inherit;
+  transition: filter var(--tr);
+}
+.cwk-allday-item:hover { filter: brightness(1.15); }
+.cwk-allday-item.sig-exam { background: var(--must-dim); color: var(--must); }
+.cwk-allday-item.sig-due { background: rgba(245,144,64,.18); color: var(--orange); }
+.cwk-allday-item.sig-habit { background: rgba(176,127,255,.18); color: var(--purple); }
+
+/* Scrollable hour grid */
+.cal-week-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+.cal-week-grid {
+  display: grid;
+  grid-template-columns: 56px repeat(7, minmax(0, 1fr));
+  gap: 0;
+  position: relative;
+}
+.cwk-time-col {
+  position: relative;
+  border-right: 1px solid var(--border);
+}
+.cwk-hour-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  padding-right: 6px;
+  text-align: right;
+  font-size: 10px;
+  color: var(--text3);
+  transform: translateY(-7px); /* align label with the hour line */
+}
+.cwk-day-col {
+  position: relative;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  transition: background var(--tr);
+}
+.cwk-day-col:last-child { border-right: none; }
+.cwk-day-col.today { background: var(--accent-dim); }
+.cwk-day-col.drag-over { background: var(--accent-dim); }
+.cwk-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border);
+  pointer-events: none;
+}
+/* Hour blocks (tasks/events with a time) */
+.cwk-block {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  background: color-mix(in srgb, var(--block-accent, var(--accent)) 18%, var(--surface));
+  border-left: 3px solid var(--block-accent, var(--accent));
+  border-radius: 5px;
+  padding: 4px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  cursor: pointer;
+  overflow: hidden;
+  font-family: inherit;
+  text-align: left;
+  transition: filter var(--tr), transform var(--tr);
+  z-index: 2;
+}
+.cwk-block:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.cwk-block-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.cwk-block-time {
+  font-size: 9.5px;
+  color: var(--text2);
+  white-space: nowrap;
+}
+/* Current-time indicator on today's column */
+.cwk-now {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--red);
+  z-index: 5;
+  pointer-events: none;
+}
+.cwk-now::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+}
+
+/* Mobile: tighten the week view (smaller fonts, smaller hour rows). */
+@media (hover: none) and (pointer: coarse) and (max-width: 640px) {
+  .cal-week-wrap { height: calc(100dvh - 220px); min-height: 0; }
+  .cal-week-dayhead,
+  .cal-week-allday,
+  .cal-week-grid {
+    grid-template-columns: 38px repeat(7, minmax(0,1fr));
+  }
+  .cwk-num { font-size: 14px; width: 22px; height: 22px; }
+  .cwk-day-header.today .cwk-num { width: 22px; height: 22px; }
+  .cwk-dow { font-size: 9px; }
+  .cwk-hour-label { font-size: 9px; padding-right: 3px; }
+  .cwk-block-title { font-size: 10px; }
+  .cwk-block-time { font-size: 9px; }
+  .cwk-allday-item { font-size: 9px; }
+}

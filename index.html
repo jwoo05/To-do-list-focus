@@ -542,6 +542,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <button class="cal-today-btn" onclick="goToToday()">Today</button>
               </div>
+              <!-- Layout toggle: Month grid vs Week hour view -->
+              <div class="cal-layout-toggle">
+                <button class="clt-opt active" data-layout="month" onclick="setCalLayout('month')">Month</button>
+                <button class="clt-opt"        data-layout="week"  onclick="setCalLayout('week')">Week</button>
+              </div>
               <!-- View mode toggle -->
               <div class="cal-view-toggle" id="calViewToggle">
                 <button class="cvt-opt active" data-mode="tasks"  onclick="setCalViewMode('tasks')">Tasks</button>
@@ -550,6 +555,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="cvt-slider" id="cvtSlider"></div>
               </div>
               <div class="cal-grid" id="calGrid"></div>
+              <div class="cal-week-wrap" id="calWeekWrap" hidden>
+                <div class="cal-week-dayhead" id="calWeekDayhead"></div>
+                <div class="cal-week-allday" id="calWeekAllday"></div>
+                <div class="cal-week-scroll">
+                  <div class="cal-week-grid" id="calWeekGrid"></div>
+                </div>
+              </div>
             </div>
           </div>
           <div class="cal-day-tasks" id="calDayTasks"></div>

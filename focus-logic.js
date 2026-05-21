@@ -38,6 +38,15 @@ let S = loadState();
 let calViewDate = new Date();
 let calSelectedDate = todayStr();
 let calViewMode = 'both'; // 'tasks' | 'both' | 'events'
+let calLayout = (() => {
+  try { return localStorage.getItem('focus_cal_layout') === 'week' ? 'week' : 'month'; }
+  catch(_) { return 'month'; }
+})();   // 'month' | 'week' — Google-Calendar style hour grid
+
+// Week hour grid constants
+const WEEK_START_HOUR = 6;   // 6 AM
+const WEEK_END_HOUR   = 24;  // midnight
+const WEEK_HOUR_PX    = 56;  // height of one hour row in the week view
 let bankFilter = 'all';
 let nlpParsed = null;
 let currentPomoTask = null;
@@ -3367,7 +3376,18 @@ function unescapeICS(s){ return String(s||'').replace(/\\n/gi,' ').replace(/\\,/
 function renderCalendar(){
   const y=calViewDate.getFullYear(), mo=calViewDate.getMonth();
   const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  document.getElementById('calMonthLabel').textContent=months[mo]+' '+y;
+  // Header label depends on layout — week shows the date range; month shows the month
+  if(calLayout === 'week'){
+    const start = getWeekStartDate(calViewDate);
+    const end = new Date(start); end.setDate(end.getDate()+6);
+    const startLabel = `${months[start.getMonth()].slice(0,3)} ${start.getDate()}`;
+    const endLabel = start.getMonth() === end.getMonth()
+      ? `${end.getDate()}`
+      : `${months[end.getMonth()].slice(0,3)} ${end.getDate()}`;
+    document.getElementById('calMonthLabel').textContent = `${startLabel} – ${endLabel}, ${end.getFullYear()}`;
+  } else {
+    document.getElementById('calMonthLabel').textContent=months[mo]+' '+y;
+  }
   const firstDay=new Date(y,mo,1).getDay();
   const daysInMonth=new Date(y,mo+1,0).getDate();
   const today=todayStr();
@@ -3413,6 +3433,17 @@ function renderCalendar(){
   setupCalViewResizeSync();
   syncCalViewToggle();
   document.querySelectorAll('.cvt-opt').forEach(b=>b.classList.toggle('active',b.dataset.mode===calViewMode));
+  document.querySelectorAll('.clt-opt').forEach(b=>b.classList.toggle('active',b.dataset.layout===calLayout));
+  // Show/hide week view based on layout
+  const weekWrap = document.getElementById('calWeekWrap');
+  if(calLayout === 'week'){
+    calGrid.hidden = true;
+    if(weekWrap) weekWrap.hidden = false;
+    renderWeekView();
+  } else {
+    calGrid.hidden = false;
+    if(weekWrap) weekWrap.hidden = true;
+  }
   renderCalDayTasks();
 }
 function calendarItemsForDate(ds){
@@ -3500,7 +3531,12 @@ function setupCalendarDateHandlers(){
   });
 }
 function calMove(dir){
-  calViewDate.setMonth(calViewDate.getMonth()+dir);
+  if(calLayout === 'week'){
+    // Step a whole week at a time when in the hour-grid view
+    calViewDate.setDate(calViewDate.getDate() + dir*7);
+  } else {
+    calViewDate.setMonth(calViewDate.getMonth()+dir);
+  }
   renderCalendar();
 }
 function goToToday(){
@@ -3562,6 +3598,208 @@ function selectCalDate(evtOrDate, maybeDate){
     updateWorkbenchCollapseUI();
   }
 }
+function setCalLayout(layout){
+  calLayout = layout === 'week' ? 'week' : 'month';
+  try { localStorage.setItem('focus_cal_layout', calLayout); } catch(_) {}
+  document.querySelectorAll('.clt-opt').forEach(b=>b.classList.toggle('active', b.dataset.layout===calLayout));
+  renderCalendar();
+}
+
+// ── Google-Calendar style Week Hour View ──
+function getWeekStartDate(date){
+  const d = new Date(date);
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate() - d.getDay()); // Sunday start
+  return d;
+}
+function timeStrToMinutes(s){
+  if(!s || typeof s !== 'string') return null;
+  const m = s.match(/^(\d{1,2}):(\d{2})/);
+  if(!m) return null;
+  return Number(m[1])*60 + Number(m[2]);
+}
+function fmtTime12(s){
+  const min = timeStrToMinutes(s);
+  if(min === null) return s || '';
+  const h = Math.floor(min/60);
+  const m = min%60;
+  const period = h<12 ? 'am' : 'pm';
+  const hr = h===0 ? 12 : (h>12 ? h-12 : h);
+  return m === 0 ? `${hr}${period}` : `${hr}:${String(m).padStart(2,'0')}${period}`;
+}
+function collectTimedItems(ds){
+  const out = [];
+  // Tasks with scheduledTime
+  S.tasks.forEach(t => {
+    if(t.archived) return;
+    if(!(t.scheduledDates?.includes(ds) || (t.due===ds && !isDueSignalDone(t,ds)) || isHabitDueToday(t,ds))) return;
+    const start = timeStrToMinutes(t.scheduledTime);
+    if(start === null) return;
+    const sig = calendarSignalForTask(t,ds);
+    const colorMap = { exam:'var(--must)', due:'var(--orange)', habit:'var(--purple)' };
+    const accent = colorMap[sig] || 'var(--accent)';
+    out.push({
+      kind: 'task',
+      id: t.id,
+      title: t.title,
+      startMin: start,
+      durationMin: 60,
+      accent,
+      sig,
+      onClick: `editTask('${t.id}')`
+    });
+  });
+  // Events with time
+  S.events.forEach(e => {
+    if(e.date !== ds) return;
+    const start = timeStrToMinutes(e.time);
+    if(start === null) return;
+    const end = timeStrToMinutes(e.endTime);
+    const dur = (end !== null && end > start) ? end - start : 60;
+    out.push({
+      kind: 'event',
+      id: e.id,
+      title: e.title,
+      startMin: start,
+      durationMin: dur,
+      accent: e.color || eventColorForType(e.type) || 'var(--accent)',
+      sig: e.type==='test' ? 'exam' : (e.type||'event'),
+      onClick: `editEvent('${e.id}')`
+    });
+  });
+  out.sort((a,b)=>a.startMin - b.startMin);
+  return out;
+}
+function collectAllDayItems(ds){
+  const out = [];
+  // Filter by current view mode
+  const showTasks = calViewMode !== 'events';
+  const showEvents = calViewMode !== 'tasks';
+  if(showTasks){
+    S.tasks.forEach(t => {
+      if(t.archived) return;
+      if(!(t.scheduledDates?.includes(ds) || (t.due===ds && !isDueSignalDone(t,ds)) || isHabitDueToday(t,ds))) return;
+      if(timeStrToMinutes(t.scheduledTime) !== null) return; // has a time → goes in hour grid
+      const sig = calendarSignalForTask(t,ds);
+      out.push({ kind:'task', id:t.id, title:t.title, sig, accent:null });
+    });
+  }
+  if(showEvents){
+    S.events.forEach(e => {
+      if(e.date !== ds) return;
+      if(timeStrToMinutes(e.time) !== null) return;
+      out.push({ kind:'event', id:e.id, title:e.title, sig: e.type==='test'?'exam':(e.type||'event'), accent: e.color });
+    });
+  }
+  return out;
+}
+function renderWeekView(){
+  const grid = document.getElementById('calWeekGrid');
+  const dayhead = document.getElementById('calWeekDayhead');
+  const allday = document.getElementById('calWeekAllday');
+  if(!grid || !dayhead || !allday) return;
+
+  const weekStart = getWeekStartDate(calViewDate);
+  const days = [];
+  for(let i=0;i<7;i++){
+    const d = new Date(weekStart);
+    d.setDate(d.getDate()+i);
+    days.push({ date:d, ds:`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}` });
+  }
+  const today = todayStr();
+  const hours = WEEK_END_HOUR - WEEK_START_HOUR;
+  const gridHeight = hours * WEEK_HOUR_PX;
+
+  // Day headers
+  dayhead.innerHTML = `<div class="cwk-time-cell"></div>` + days.map(d=>{
+    const isToday = d.ds === today;
+    const isSel   = d.ds === calSelectedDate;
+    return `<button type="button" class="cwk-day-header ${isToday?'today':''} ${isSel?'selected':''}"
+      onclick="selectCalDate(event,'${d.ds}')"
+      ondblclick="openAddTaskForDate('${d.ds}')">
+      <div class="cwk-dow">${DAY_NAMES[d.date.getDay()]}</div>
+      <div class="cwk-num">${d.date.getDate()}</div>
+    </button>`;
+  }).join('');
+
+  // All-day strip (tasks/events without a specific time)
+  const showTasks = calViewMode !== 'events';
+  let alldayHasContent = false;
+  allday.innerHTML = `<div class="cwk-time-cell"><span>all day</span></div>` + days.map(d => {
+    const items = collectAllDayItems(d.ds);
+    if(items.length) alldayHasContent = true;
+    return `<div class="cwk-allday-col" data-date="${d.ds}"
+      ondragover="onCalDragOver(event)"
+      ondrop="onCalDrop(event,'${d.ds}')"
+      ondragleave="onCalDragLeave(event)">
+      ${items.map(it => `<button type="button" class="cwk-allday-item sig-${it.sig}" onclick="${it.kind==='task'?`editTask('${it.id}')`:`editEvent('${it.id}')`}">${esc(it.title)}</button>`).join('')}
+    </div>`;
+  }).join('');
+  allday.style.display = alldayHasContent ? '' : 'none';
+
+  // Hour grid: time gutter + 7 day columns. Each column has hour gridlines +
+  // absolutely positioned blocks.
+  let gridHtml = `<div class="cwk-time-col" style="height:${gridHeight}px">`;
+  for(let h = WEEK_START_HOUR; h < WEEK_END_HOUR; h++){
+    const y = (h - WEEK_START_HOUR) * WEEK_HOUR_PX;
+    const period = h<12 ? 'AM' : 'PM';
+    const hr = h===0 ? 12 : (h>12 ? h-12 : h);
+    gridHtml += `<div class="cwk-hour-label" style="top:${y}px">${hr} ${period}</div>`;
+  }
+  gridHtml += `</div>`;
+
+  for(const d of days){
+    const items = collectTimedItems(d.ds);
+    const blocks = items.map(it => {
+      const top = (it.startMin - WEEK_START_HOUR*60) * (WEEK_HOUR_PX/60);
+      const height = Math.max(22, it.durationMin * (WEEK_HOUR_PX/60));
+      const startStr = fmtTime12(`${String(Math.floor(it.startMin/60)).padStart(2,'0')}:${String(it.startMin%60).padStart(2,'0')}`);
+      const endStr   = fmtTime12(`${String(Math.floor((it.startMin+it.durationMin)/60)).padStart(2,'0')}:${String((it.startMin+it.durationMin)%60).padStart(2,'0')}`);
+      return `<button type="button" class="cwk-block sig-${it.sig}" style="top:${top}px;height:${height}px;--block-accent:${it.accent}" onclick="${it.onClick}">
+        <strong class="cwk-block-title">${esc(it.title)}</strong>
+        <span class="cwk-block-time">${startStr} – ${endStr}</span>
+      </button>`;
+    }).join('');
+
+    // Hour gridlines
+    let lines = '';
+    for(let h = WEEK_START_HOUR; h < WEEK_END_HOUR; h++){
+      lines += `<div class="cwk-line" style="top:${(h-WEEK_START_HOUR)*WEEK_HOUR_PX}px"></div>`;
+    }
+
+    // Current-time indicator (red line) if today
+    let nowLine = '';
+    if(d.ds === today){
+      const now = new Date();
+      const nowMin = now.getHours()*60 + now.getMinutes();
+      if(nowMin >= WEEK_START_HOUR*60 && nowMin < WEEK_END_HOUR*60){
+        const y = (nowMin - WEEK_START_HOUR*60) * (WEEK_HOUR_PX/60);
+        nowLine = `<div class="cwk-now" style="top:${y}px"></div>`;
+      }
+    }
+
+    gridHtml += `<div class="cwk-day-col ${d.ds===today?'today':''}" data-date="${d.ds}"
+      style="height:${gridHeight}px"
+      ondblclick="openAddTaskForDate('${d.ds}')"
+      ondragover="onCalDragOver(event)"
+      ondrop="onCalDrop(event,'${d.ds}')"
+      ondragleave="onCalDragLeave(event)">
+      ${lines}
+      ${blocks}
+      ${nowLine}
+    </div>`;
+  }
+
+  grid.innerHTML = gridHtml;
+
+  // Scroll to ~8 AM on first render so users land on the working day
+  const scroll = grid.parentElement;
+  if(scroll && !scroll.dataset.scrolled){
+    scroll.scrollTop = Math.max(0, (8 - WEEK_START_HOUR) * WEEK_HOUR_PX - 20);
+    scroll.dataset.scrolled = '1';
+  }
+}
+
 function setCalViewMode(mode){
   calViewMode=mode;
   // Update toggle UI
