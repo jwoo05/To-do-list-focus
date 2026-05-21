@@ -25,6 +25,7 @@ const KEY = 'jay_hub_v3';
 const DEF = {
   tasks:[], sessions:[], events:[], icalImports:[],
   nlpCorrections:{}, eoprLog:[], deleted:[], focusReports:[],
+  mustOverrides:[],  // [{date:'YYYY-MM-DD', reason:'…', mustTaskIds:[…], overriddenAt:ts}]
   dailySections:['Study'],
   settings:{
     theme:'dark', name:'Jay', appName:'Focus Hub', appSubtitle:'Productivity planner',
@@ -138,6 +139,7 @@ function normalizeState(state){
   state.nlpCorrections = state.nlpCorrections || {};
   state.deleted = state.deleted || [];
   state.focusReports = state.focusReports || [];
+  state.mustOverrides = Array.isArray(state.mustOverrides) ? state.mustOverrides : [];
   state.events = (state.events||[]).map(e=>Object.assign({type:'event', color:eventColorForType(e.type||'event')}, e));
   return state;
 }
@@ -701,6 +703,71 @@ function renderFocusToday(){
   }).join('');
 }
 
+// ── MUST overrides ──
+// User can bypass the MUST gate for one day by writing down WHY. The reason
+// is captured so future versions can mine the pattern (e.g. "always overridden
+// on Fridays because of class" → recommend rescheduling those MUSTs).
+function hasMustOverrideToday(){
+  const today = todayStr();
+  return (S.mustOverrides || []).some(o => o && o.date === today);
+}
+function getMustOverrideToday(){
+  const today = todayStr();
+  return (S.mustOverrides || []).find(o => o && o.date === today) || null;
+}
+async function requestMustOverride(){
+  if (hasMustOverrideToday()) return; // already overridden today
+  const today = todayStr();
+  const reason = await designPrompt(
+    'Override MUST gate',
+    'Why are you skipping past your MUST tasks today? Be honest — this helps the app suggest better habits and reschedules over time.',
+    '',
+    'Override today',
+    'Cancel'
+  );
+  if (reason === null) return; // user cancelled
+  const text = String(reason || '').trim();
+  if (!text) {
+    showToast('Override needs a reason. Try again.');
+    return;
+  }
+  const incompleteIds = S.tasks
+    .filter(t => t.priority === 'MUST' && !isArchivedForTodo(t)
+              && (isHabitDueToday(t, today) || (t.scheduledDates || []).includes(today))
+              && !isTaskDone(t, today))
+    .map(t => t.id);
+  if (!Array.isArray(S.mustOverrides)) S.mustOverrides = [];
+  S.mustOverrides.push({
+    date: today,
+    reason: text.slice(0, 600),
+    mustTaskIds: incompleteIds,
+    overriddenAt: Date.now()
+  });
+  save(); render();
+  showToast('Override saved. Reason logged for future suggestions.');
+}
+function cancelMustOverrideToday(){
+  const today = todayStr();
+  if (!Array.isArray(S.mustOverrides)) return;
+  S.mustOverrides = S.mustOverrides.filter(o => !o || o.date !== today);
+  save(); render();
+}
+function renderMustBanner(banner, must, today){
+  const incomplete = must.filter(t => !isTaskDone(t, today)).length;
+  banner.innerHTML = `
+    <span class="must-banner-msg">${incomplete} MUST task${incomplete===1?'':'s'} left — finish to unlock today.</span>
+    <button class="btn-sm must-override-btn" onclick="requestMustOverride()">Override…</button>
+  `;
+}
+function renderMustOverrideBanner(banner, today){
+  const o = getMustOverrideToday();
+  const why = o && o.reason ? `: "${esc(o.reason)}"` : '';
+  banner.innerHTML = `
+    <span class="must-banner-msg">⚠ MUST gate overridden today${why}</span>
+    <button class="btn-sm must-override-btn" onclick="cancelMustOverrideToday()">Re-lock</button>
+  `;
+}
+
 function missedTasks(){
   const today=todayStr();
   return S.tasks.filter(t=>{
@@ -764,11 +831,21 @@ function renderTodoCarryPrompt(){
 function carryTaskToday(id, dateOverride){
   const t=S.tasks.find(x=>x.id===id);
   if(!t) return;
-  const today=dateOverride || todayStr();
-  if(!t.scheduledDates) t.scheduledDates=[];
-  if(!t.scheduledDates.includes(today)) t.scheduledDates.push(today);
+  const target = dateOverride || todayStr();
+  // Carrying over should remove the task from its missed day(s), not leave it
+  // lingering there. Drop any scheduled dates earlier than the target.
+  if(Array.isArray(t.scheduledDates)){
+    t.scheduledDates = t.scheduledDates.filter(d => d && d >= target);
+  } else {
+    t.scheduledDates = [];
+  }
+  // If the original due date is now in the past, clear it — the user has
+  // explicitly chosen to work on this task today, so the missed deadline
+  // is no longer a relevant signal.
+  if(t.due && t.due < target) t.due = '';
+  if(!t.scheduledDates.includes(target)) t.scheduledDates.push(target);
   t.carriedAt=Date.now();
-  calSelectedDate=today;
+  calSelectedDate=target;
   save(); render(); showPage('todo');
 }
 
@@ -922,26 +999,35 @@ function renderCenter(){
   const must = scheduledWork.filter(t=>t.priority==='MUST' && !isArchivedForTodo(t));
   const regularRaw = scheduledWork.filter(t=>t.priority!=='MUST' && !t.isHabit && !isArchivedForTodo(t));
   const regular = dailySort==='section' ? regularRaw : sortTasks(regularRaw,dailySort);
-  const habits = scheduledWork.filter(t=>t.isHabit && !isArchivedForTodo(t));
+  // Don't show a habit in the Habits sub-section if it's already taking the
+  // top spot in MUST — avoids the same row appearing twice.
+  const habits = scheduledWork.filter(t=>t.isHabit && t.priority!=='MUST' && !isArchivedForTodo(t));
   const archivedTasks = S.tasks.filter(isArchivedForTodo);
   const archivedDueSignals = completedDueSignals();
   syncSortControls();
 
   const mustIncomplete = must.some(t=>!isTaskDone(t,today));
+  const overridden = hasMustOverrideToday();
 
   // Must gate
   const gated = document.getElementById('gatedSections');
   const banner = document.getElementById('mustBanner');
-  if(mustIncomplete){
+  if(mustIncomplete && !overridden){
     gated.classList.add('gated-locked');
     gated.style.filter='';
     gated.style.pointerEvents='';
+    renderMustBanner(banner, must, today);
     banner.style.display='flex';
   } else {
     gated.classList.remove('gated-locked');
     gated.style.filter='';
     gated.style.pointerEvents='';
-    banner.style.display='none';
+    if(overridden && mustIncomplete){
+      renderMustOverrideBanner(banner, today);
+      banner.style.display='flex';
+    } else {
+      banner.style.display='none';
+    }
   }
 
   // Counts
@@ -1642,6 +1728,13 @@ function saveTask(){
   t.scheduledDays = [...editSelectedDays];
   t.habitStart = t.isHabit ? (document.getElementById('fHabitStart')?.value || '') : '';
   t.habitEnd = t.isHabit ? (document.getElementById('fHabitEnd')?.value || '') : '';
+  // If marking as habit but no days picked: default to every day, AND anchor
+  // the start so the habit doesn't retroactively appear on past dates. Anchor
+  // is the explicit habitStart, else today's selected date, else today.
+  if(t.isHabit && (!Array.isArray(t.scheduledDays) || t.scheduledDays.length === 0)){
+    t.scheduledDays = [0,1,2,3,4,5,6];
+    if(!t.habitStart) t.habitStart = calSelectedDate || todayStr();
+  }
   if(t.isHabit && t.habitStart && t.habitEnd && t.habitEnd < t.habitStart){
     showToast('Habit end date must be after the start date.');
     return;

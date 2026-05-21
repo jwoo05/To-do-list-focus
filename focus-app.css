@@ -381,22 +381,50 @@ label {
 .sec > .sec-body[hidden],
 .workbench #secArchive.collapsed > .sec-body { display: none !important; }
 .gated-locked {
-  filter: grayscale(1) brightness(.7);
+  filter: grayscale(.5) brightness(.85);
 }
-.gated-locked #secDaily > .sec-body {
+/* While the MUST gate is locked, the daily/habit rows stay interactive for
+   editing (the ✎ button, ▶ play, × delete still work), but completion
+   checkboxes are blocked so the user can't tick items off ahead of MUSTs.
+   Override is available via the banner if the lock needs to be skipped. */
+.gated-locked #secDaily > .sec-body { pointer-events: auto; }
+.gated-locked #secDaily > .sec-header { pointer-events: auto; }
+.gated-locked .task-cb {
   pointer-events: none;
+  opacity: 0.45;
+  cursor: not-allowed;
 }
-.gated-locked #secDaily > .sec-header {
-  pointer-events: auto;
+.gated-locked .subtask-line .task-cb {
+  pointer-events: none;
+  opacity: 0.45;
 }
+
 .sec-must .sec-title { color: var(--must); }
 .sec-must .sec-count { background: var(--must-dim); color: var(--must); }
 .must-gate-banner {
-  display: none; align-items: center; gap: 8px;
+  display: none; align-items: center; gap: 10px;
   padding: 9px 14px;
   background: var(--must-dim);
   border-bottom: 1px solid rgba(184,48,48,.12);
   font-size: 12px; font-weight: 500; color: var(--must);
+}
+.must-gate-banner .must-banner-msg { flex: 1 1 auto; }
+.must-override-btn {
+  flex: 0 0 auto;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--must);
+  background: transparent;
+  color: var(--must);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  cursor: pointer;
+  transition: background var(--tr), color var(--tr);
+}
+.must-override-btn:hover {
+  background: var(--must);
+  color: #fff;
 }
 
 /* ── TASK ITEMS ── */
