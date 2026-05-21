@@ -48,6 +48,7 @@ const WEEK_START_HOUR = 6;   // 6 AM
 const WEEK_END_HOUR   = 24;  // midnight
 const WEEK_HOUR_PX    = 56;  // height of one hour row in the week view
 let bankFilter = 'all';
+let bankSearchQuery = '';
 let nlpParsed = null;
 let currentPomoTask = null;
 let pomoState = { running:false, phase:'focus', elapsed:0, cycles:0, targetCycles:4, sessionStart:null, plannedFocus:0, plannedBreak:0, extendedElapsed:0, breakElapsed:0, sessionId:null };
@@ -445,10 +446,63 @@ function renderDashboard(){
     pct.textContent=todayStats.pct+'%';
     label.textContent=`${todayStats.done} of ${todayStats.total} done`;
   }
+  renderDashboardTodayTasks(today);
   renderDashboardHabits();
   renderDashboardFocus(todayStats);
   renderDashboardAdvice();
   renderMissedCarryList();
+}
+
+// Today's Tasks card on the dashboard — a compact, clickable list of what's
+// due/scheduled today. Mirrors the Todo page's data but renders inline so the
+// user can see and tick things off without leaving the dashboard.
+function renderDashboardTodayTasks(today){
+  const wrap = document.getElementById('dashTodayTasks');
+  const counter = document.getElementById('dashTodayCounter');
+  if(!wrap) return;
+  const all = S.tasks.filter(t => !isArchivedForTodo(t)
+    && (isHabitDueToday(t, today)
+        || (t.scheduledDates||[]).includes(today)
+        || (t.due===today && !isDueSignalDone(t, today))));
+  const must = all.filter(t => t.priority === 'MUST');
+  const habits = all.filter(t => t.priority !== 'MUST' && t.isHabit);
+  const regular = all.filter(t => t.priority !== 'MUST' && !t.isHabit);
+  const sorted = [
+    ...sortTasks(must, 'priority'),
+    ...sortTasks(regular, dailySort === 'section' ? 'due' : dailySort),
+    ...sortTasks(habits, 'title')
+  ];
+
+  const done = sorted.filter(t => isTaskDone(t, today)).length;
+  const total = sorted.length;
+  if(counter) counter.textContent = total ? `${done} of ${total} done` : 'Nothing scheduled today';
+
+  if(!total){
+    wrap.innerHTML = `<div class="empty" style="padding:20px 8px;text-align:left">
+      Nothing scheduled for today. Add tasks from the Todo page or use Quick Add above.
+    </div>`;
+    return;
+  }
+
+  wrap.innerHTML = sorted.map(t => renderDashTaskRow(t, today)).join('');
+}
+
+function renderDashTaskRow(t, today){
+  const done = isTaskDone(t, today);
+  const priClass = t.priority === 'MUST' ? 'must'
+                 : t.priority === 'high' ? 'high'
+                 : t.priority === 'low'  ? 'low' : 'medium';
+  const subjectChip = t.subject ? `<span class="dash-task-subject">${esc(t.subject)}</span>` : '';
+  const timeChip = t.scheduledTime ? `<span class="dash-task-time">⏰ ${esc(t.scheduledTime)}</span>` : '';
+  const dueChip = (t.due && t.due!==today) ? `<span class="dash-task-due">Due ${esc(fmtDate(t.due))}</span>` : '';
+  const habitChip = t.isHabit ? `<span class="dash-task-habit">↻</span>` : '';
+  return `<div class="dash-task-row ${done?'done':''} pri-${priClass}">
+    <button type="button" class="dash-task-cb" onclick="toggleTask('${t.id}','${today}')" aria-label="Toggle done">${done?'✓':''}</button>
+    <button type="button" class="dash-task-main" onclick="editTask('${t.id}')">
+      <span class="dash-task-title">${esc(t.title)}</span>
+      <span class="dash-task-meta">${habitChip}${subjectChip}${timeChip}${dueChip}</span>
+    </button>
+  </div>`;
 }
 
 function renderDashboardHabits(){
@@ -892,6 +946,36 @@ function renderNavBadges(){
   if(navMissed) navMissed.textContent=missed;
 }
 
+// Normalize text for fuzzy/space-insensitive search.
+// "To do list!" → "todolist". "Wash dishes" → "washdishes".
+function normalizeForSearch(s){
+  return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+function taskMatchesSearch(t, query){
+  if(!query) return true;
+  const q = normalizeForSearch(query);
+  if(!q) return true;
+  const haystack = normalizeForSearch(
+    `${t.title || ''} ${t.subject || ''} ${t.notes || ''} ${(t.subtasks||[]).map(s=>s.text).join(' ')}`
+  );
+  return haystack.includes(q);
+}
+function setBankSearch(value){
+  bankSearchQuery = String(value || '');
+  // Update the clear button visibility
+  const clearBtn = document.getElementById('bankSearchClear');
+  if(clearBtn) clearBtn.style.display = bankSearchQuery.trim() ? 'flex' : 'none';
+  renderBank();
+}
+function clearBankSearch(){
+  bankSearchQuery = '';
+  const input = document.getElementById('bankSearchInput');
+  if(input) input.value = '';
+  const clearBtn = document.getElementById('bankSearchClear');
+  if(clearBtn) clearBtn.style.display = 'none';
+  renderBank();
+}
+
 function renderBank(){
   const list = document.getElementById('bankList');
   if(list){
@@ -902,12 +986,24 @@ function renderBank(){
   setupBankFilterHandlers();
   syncBankFilterUI();
   syncSortControls();
+  // Sync the search input value (in case state changed elsewhere)
+  const searchInput = document.getElementById('bankSearchInput');
+  if(searchInput && searchInput.value !== bankSearchQuery){
+    searchInput.value = bankSearchQuery;
+  }
+  const clearBtn = document.getElementById('bankSearchClear');
+  if(clearBtn) clearBtn.style.display = bankSearchQuery.trim() ? 'flex' : 'none';
   const tasks = sortTasks(S.tasks.filter(t=>{
     if(t.archived || t.completed) return false;
-    return taskMatchesBankFilter(t, bankFilter);
+    if(!taskMatchesBankFilter(t, bankFilter)) return false;
+    if(!taskMatchesSearch(t, bankSearchQuery)) return false;
+    return true;
   }), bankSort);
   if(!tasks.length){
-    list.innerHTML=`<div class="empty"><div class="empty-icon">📭</div>No tasks here</div>`;
+    const msg = bankSearchQuery.trim()
+      ? `<div class="empty"><div class="empty-icon">🔎</div>No tasks match "${esc(bankSearchQuery)}"</div>`
+      : `<div class="empty"><div class="empty-icon">📭</div>No tasks here</div>`;
+    list.innerHTML = msg;
     return;
   }
   const visible=tasks.slice(0,bankVisibleCount);

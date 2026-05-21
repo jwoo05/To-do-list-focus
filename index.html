@@ -414,6 +414,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <!-- Dashboard grid -->
       <div class="dashboard-grid">
+        <!-- Today's Tasks — primary card, full width on top -->
+        <div class="dash-panel dash-wide dash-today-tasks" style="grid-column:1/4">
+          <div class="dash-title-row">
+            <div class="dash-title">Today's Tasks</div>
+            <div class="dash-title-meta">
+              <span id="dashTodayCounter">0 of 0 done</span>
+              <button class="btn-sm btn-outline" onclick="showPage('todo',document.querySelector('.nav-item[data-page=\\'todo\\']'))">Open Todo →</button>
+            </div>
+          </div>
+          <div id="dashTodayTasks" class="dash-today-list"></div>
+        </div>
         <div class="dash-panel dash-wide" style="grid-column:1/3">
           <div class="dash-title">Today's Success Rate</div>
           <div class="success-meter">
@@ -667,6 +678,13 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
       <div class="bank page-bank" id="bankPanel">
         <div class="bank-body">
+          <div class="bank-search-row">
+            <input type="search" class="bank-search-input" id="bankSearchInput"
+              placeholder="Search tasks…  (spaces ignored)"
+              autocomplete="off"
+              oninput="setBankSearch(this.value)">
+            <button type="button" class="bank-search-clear" id="bankSearchClear" onclick="clearBankSearch()" aria-label="Clear search">✕</button>
+          </div>
           <div class="bank-filters" id="bankFilters">
             <span class="filter-chip active" data-f="all"   onclick="setFilter('all',this)">All</span>
             <span class="filter-chip"        data-f="MUST"  onclick="setFilter('MUST',this)">MUST</span>
