@@ -26,6 +26,7 @@ const DEF = {
   tasks:[], sessions:[], events:[], icalImports:[],
   nlpCorrections:{}, eoprLog:[], deleted:[], focusReports:[],
   mustOverrides:[],  // [{date:'YYYY-MM-DD', reason:'…', mustTaskIds:[…], overriddenAt:ts}]
+  icalSources:[],    // [{id, name, color, fileName, importedAt}] — one per imported calendar
   dailySections:['Study'],
   settings:{
     theme:'dark', name:'Jay', appName:'Focus Hub', appSubtitle:'Productivity planner',
@@ -33,6 +34,21 @@ const DEF = {
     pomo:{ presetMode:'classic', focus:25, shortBreak:5, longBreak:15, cycles:4 }
   }
 };
+
+// Calendar source palette — aesthetic-matching set used to color imported
+// calendars. Rotates through these when assigning a new source.
+const CAL_SOURCE_PALETTE = [
+  '#7aa2ff', // accent blue
+  '#4dd49a', // mint green
+  '#f59040', // orange
+  '#b07fff', // purple
+  '#ff7faa', // pink
+  '#f26060', // red
+  '#e9c46a', // yellow
+  '#7fc7ff', // sky
+  '#9fe0c7', // teal
+  '#9aa0ac'  // grey
+];
 
 let S = loadState();
 let calViewDate = new Date();
@@ -151,6 +167,7 @@ function normalizeState(state){
   state.deleted = state.deleted || [];
   state.focusReports = state.focusReports || [];
   state.mustOverrides = Array.isArray(state.mustOverrides) ? state.mustOverrides : [];
+  state.icalSources = Array.isArray(state.icalSources) ? state.icalSources : [];
   state.events = (state.events||[]).map(e=>Object.assign({type:'event', color:eventColorForType(e.type||'event')}, e));
   return state;
 }
@@ -3278,9 +3295,12 @@ async function fetchIcal(){
       }catch(err){ lastErr=err; text=''; }
     }
     if(!text) throw lastErr || new Error('Could not fetch calendar');
-    const events=parseICS(text);
-    const result=await importEvents(events);
-    status.textContent=`Imported ${result.added} item${result.added===1?'':'s'}${result.skipped?`, skipped ${result.skipped} duplicate${result.skipped===1?'':'s'}`:''}`;
+    const { name, events } = parseICS(text);
+    const niceName = (name && name.trim()) || 'URL Import';
+    const source = ensureIcalSource(niceName, url);
+    const result = await importEvents(events, source);
+    status.textContent = `✓ ${source.name} — ${result.added} imported${result.skipped?`, skipped ${result.skipped}`:''}`;
+    renderIcalSourceList();
   }catch(e){
     status.textContent='URL import failed: '+e.message+' — paste the ICS text in the Paste Data tab.';
   }
@@ -3289,9 +3309,12 @@ async function fetchIcal(){
 async function importIcalPaste(){
   const text=document.getElementById('icalPaste').value.trim();
   if(!text){ showToast('Paste ICS data first.'); return; }
-  const events=parseICS(text);
-  const result=await importEvents(events);
-  document.getElementById('icalStatus').textContent=`Imported ${result.added} item${result.added===1?'':'s'}${result.skipped?`, skipped ${result.skipped} duplicate${result.skipped===1?'':'s'}`:''}`;
+  const { name, events } = parseICS(text);
+  const niceName = (name && name.trim()) || 'Pasted calendar';
+  const source = ensureIcalSource(niceName);
+  const result = await importEvents(events, source);
+  setIcalStatus(`✓ ${source.name} — ${result.added} imported${result.skipped?`, skipped ${result.skipped}`:''}`);
+  renderIcalSourceList();
 }
 
 function onIcsDragOver(e){
@@ -3302,25 +3325,121 @@ function onIcsDragLeave(e){
   e.preventDefault();
   document.getElementById('icsDropZone')?.classList.remove('drag-over');
 }
-function onIcsDrop(e){
+async function onIcsDrop(e){
   e.preventDefault();
   document.getElementById('icsDropZone')?.classList.remove('drag-over');
-  const file=[...(e.dataTransfer?.files||[])].find(f=>/\.ics$/i.test(f.name) || /calendar|ics/i.test(f.type));
-  if(!file){
-    document.getElementById('icalStatus').textContent='Drop an .ics calendar file.';
+  const files = [...(e.dataTransfer?.files||[])].filter(f => /\.ics$/i.test(f.name) || /calendar|ics/i.test(f.type));
+  if(!files.length){
+    setIcalStatus('Drop one or more .ics files.');
     return;
   }
-  const reader=new FileReader();
-  reader.onload=async ()=>{
-    const events=parseICS(String(reader.result||''));
-    const result=await importEvents(events);
-    document.getElementById('icalStatus').textContent=`Imported ${result.added} item${result.added===1?'':'s'} from ${file.name}${result.skipped?`, skipped ${result.skipped} duplicate${result.skipped===1?'':'s'}`:''}`;
-  };
-  reader.onerror=()=>{ document.getElementById('icalStatus').textContent='Could not read that ICS file.'; };
-  reader.readAsText(file);
+  await importIcsFiles(files);
+}
+async function onIcsFileInput(input){
+  const files = [...(input?.files || [])].filter(f => /\.ics$/i.test(f.name) || /calendar|ics/i.test(f.type));
+  if(!files.length){
+    setIcalStatus('Pick one or more .ics files.');
+    return;
+  }
+  await importIcsFiles(files);
+  input.value = '';
+}
+async function importIcsFiles(files){
+  const results = [];
+  for(const file of files){
+    try {
+      const text = await file.text();
+      const { name, events } = parseICS(text);
+      const niceName = (name && name.trim()) || file.name.replace(/\.ics$/i, '');
+      const source = ensureIcalSource(niceName, file.name);
+      const r = await importEvents(events, source);
+      results.push({ file: file.name, source: source.name, color: source.color, ...r });
+    } catch (err) {
+      results.push({ file: file.name, error: String(err && err.message || err) });
+    }
+  }
+  const lines = results.map(r => {
+    if(r.error) return `❌ ${r.file}: ${r.error}`;
+    const dupes = r.skipped ? `, skipped ${r.skipped}` : '';
+    return `✓ ${r.source} — ${r.added} imported${dupes}`;
+  });
+  setIcalStatus(lines.join('  ·  '));
+  renderIcalSourceList();
+}
+function setIcalStatus(text){
+  const el = document.getElementById('icalStatus');
+  if(el) el.textContent = text;
 }
 
-async function importEvents(events){
+// Render the list of imported calendar sources with a color palette per row.
+function renderIcalSourceList(){
+  const wrap = document.getElementById('icalSourceList');
+  if(!wrap) return;
+  const sources = Array.isArray(S.icalSources) ? S.icalSources : [];
+  if(!sources.length){
+    wrap.innerHTML = `<div class="ical-sources-empty">No calendars imported yet.</div>`;
+    return;
+  }
+  wrap.innerHTML = `
+    <div class="ical-sources-title">Imported calendars</div>
+    ${sources.map(src => {
+      const eventCount = S.events.filter(e => e.sourceId === src.id).length;
+      const taskCount = S.tasks.filter(t => t.sourceId === src.id).length;
+      return `
+      <div class="ical-source-row">
+        <button type="button" class="ical-source-swatch" style="background:${esc(src.color || '#7aa2ff')}"
+          onclick="togglePalettePopover('${src.id}', this)"
+          aria-label="Change color"></button>
+        <input type="text" class="ical-source-name" value="${esc(src.name)}"
+          onblur="renameIcalSource('${src.id}', this.value)"
+          onkeydown="if(event.key==='Enter')this.blur()">
+        <span class="ical-source-count">${eventCount+taskCount} items</span>
+        <button type="button" class="ical-source-delete" onclick="deleteIcalSource('${src.id}')" title="Delete this calendar and its items">✕</button>
+        <div class="ical-palette-pop" id="palettePop-${src.id}" hidden>
+          ${CAL_SOURCE_PALETTE.map(c =>
+            `<button type="button" class="ical-palette-swatch ${c.toLowerCase() === String(src.color||'').toLowerCase() ? 'selected' : ''}" style="background:${c}"
+              onclick="setIcalSourceColor('${src.id}', '${c}'); togglePalettePopover('${src.id}')"
+              aria-label="${c}"></button>`).join('')}
+          <label class="ical-palette-custom">
+            <input type="color" value="${esc(src.color || '#7aa2ff')}"
+              onchange="setIcalSourceColor('${src.id}', this.value); togglePalettePopover('${src.id}')">
+            <span>Custom</span>
+          </label>
+        </div>
+      </div>`;
+    }).join('')}
+  `;
+}
+function togglePalettePopover(sourceId, anchorEl){
+  // Close all other popovers
+  document.querySelectorAll('.ical-palette-pop').forEach(p => {
+    if(p.id !== 'palettePop-' + sourceId) p.hidden = true;
+  });
+  const pop = document.getElementById('palettePop-' + sourceId);
+  if(pop) pop.hidden = !pop.hidden;
+}
+
+// Ensure a calendar source exists. Reuses one with the same (normalized) name
+// if it's already in the list — so re-importing the same Google Calendar
+// updates the same source rather than duplicating it.
+function ensureIcalSource(name, fileName){
+  const norm = (name || fileName || 'Calendar').trim() || 'Calendar';
+  const existing = S.icalSources.find(s => s && s.name && s.name.toLowerCase() === norm.toLowerCase());
+  if(existing) return existing;
+  const color = CAL_SOURCE_PALETTE[S.icalSources.length % CAL_SOURCE_PALETTE.length];
+  const src = {
+    id: uid(),
+    name: norm,
+    color,
+    fileName: fileName || '',
+    importedAt: Date.now()
+  };
+  S.icalSources.push(src);
+  return src;
+}
+
+async function importEvents(events, sourceMeta){
+  const sm = sourceMeta || {};
   let added=0, skipped=0;
   for(const ev of events){
     if(!ev.summary) continue;
@@ -3330,12 +3449,20 @@ async function importEvents(events){
     }
     const importType=classifyImportedItem(ev);
     const date=ev.due||ev.dtstart||'';
+    // Per-source color wins; fall back to per-event COLOR; finally type default.
+    const inferredColor = sm.color || ev.color || eventColorForType(importType.type || 'event');
     if(importType.kind==='event'){
       const type=importType.type || 'event';
       const candidate={
         id:uid(), icsUid:ev.uid||uid(), createdAt:Date.now(),
         title:ev.summary, subject:'', type,
-        date, time:'', location:ev.location||'', notes:ev.description||'', color:eventColorForType(type)
+        date, endDate: ev.dtend || '',
+        time: ev.startTime || '',
+        endTime: ev.endTime || '',
+        allDay: ev.allDay !== false && !ev.startTime,
+        location:ev.location||'', notes:ev.description||'',
+        color: inferredColor,
+        sourceId: sm.id || ''
       };
       const dupe=findPossibleDuplicate(candidate,'event');
       if(dupe && await confirmDuplicate(candidate,dupe)){ skipped++; continue; }
@@ -3346,10 +3473,12 @@ async function importEvents(events){
         archived:false, completed:false, completedAt:null, completedDates:{},
         title:ev.summary, subject:'', type:'assignment',
         priority:'medium', due:date, scheduledDates:[],
-        scheduledDays:[], scheduledTime:'', isHabit:false,
+        scheduledDays:[], scheduledTime: ev.startTime || ev.dueTime || '',
+        isHabit:false,
         notes:ev.description||'', focusPoints:0, subtasks:[], progress:0,
         dueCompletedDates:{}, customOrder:Date.now()+added,
-        calendarSignal:'due', dailySection:'Study'
+        calendarSignal:'due', dailySection:'Study',
+        sourceId: sm.id || ''
       };
       const dupe=findPossibleDuplicate(candidate,'task');
       if(dupe && await confirmDuplicate(candidate,dupe)){ skipped++; continue; }
@@ -3359,6 +3488,49 @@ async function importEvents(events){
   }
   save(); render();
   return {added, skipped};
+}
+
+// Update a source's color and propagate to its events.
+function setIcalSourceColor(sourceId, color){
+  const src = S.icalSources.find(s => s.id === sourceId);
+  if(!src) return;
+  src.color = color;
+  // Propagate to attached events (only re-color those that haven't been
+  // manually overridden)
+  S.events.forEach(e => { if(e.sourceId === sourceId) e.color = color; });
+  save(); render();
+  renderIcalSourceList();
+}
+
+// Rename a source.
+function renameIcalSource(sourceId, name){
+  const src = S.icalSources.find(s => s.id === sourceId);
+  if(!src) return;
+  src.name = String(name || '').trim() || src.name;
+  save();
+  renderIcalSourceList();
+}
+
+// Delete a source AND optionally its events.
+async function deleteIcalSource(sourceId){
+  const src = S.icalSources.find(s => s.id === sourceId);
+  if(!src) return;
+  const eventCount = S.events.filter(e => e.sourceId === sourceId).length;
+  const taskCount = S.tasks.filter(t => t.sourceId === sourceId).length;
+  const total = eventCount + taskCount;
+  const ok = await designConfirm(
+    `Delete "${src.name}"?`,
+    total > 0
+      ? `This will also delete ${total} item${total===1?'':'s'} imported from this calendar.`
+      : 'Remove this calendar source?',
+    'Delete', 'Cancel'
+  );
+  if(!ok) return;
+  S.events = S.events.filter(e => e.sourceId !== sourceId);
+  S.tasks  = S.tasks.filter(t => t.sourceId !== sourceId);
+  S.icalSources = S.icalSources.filter(s => s.id !== sourceId);
+  save(); render();
+  renderIcalSourceList();
 }
 
 function classifyImportedItem(ev){
@@ -3436,8 +3608,13 @@ function confirmDuplicate(candidate,duplicate){
   );
 }
 
+// Parse an ICS payload. Returns { name, events } where `name` is taken from
+// the X-WR-CALNAME property (used by Google Calendar / Outlook to label the
+// calendar) and `events` is the list of VEVENT objects with both date AND
+// time information extracted.
 function parseICS(text){
   const events=[];
+  let calendarName='';
   const lines=text.replace(/\r\n|\r/g,'\n').split('\n');
   const unfolded=[];
   for(const line of lines){
@@ -3445,28 +3622,69 @@ function parseICS(text){
     else unfolded.push(line);
   }
   let ev=null;
+  let inCalendar=false;
   for(const line of unfolded){
+    if(line==='BEGIN:VCALENDAR'){ inCalendar=true; continue; }
+    if(line==='END:VCALENDAR'){ inCalendar=false; continue; }
     if(line==='BEGIN:VEVENT'){ev={};continue;}
     if(line==='END:VEVENT'){if(ev)events.push(ev);ev=null;continue;}
-    if(!ev) continue;
     const col=line.indexOf(':');
     if(col<0) continue;
     const key=line.slice(0,col), val=line.slice(col+1);
-    if(key.startsWith('DTSTART')) ev.dtstart=parseICSDate(val);
-    else if(key.startsWith('DTEND')) ev.dtend=parseICSDate(val);
+    // Calendar-level properties (only valid outside a VEVENT)
+    if(!ev && inCalendar){
+      if(key.startsWith('X-WR-CALNAME')) calendarName = unescapeICS(val).trim();
+      continue;
+    }
+    if(!ev) continue;
+    if(key.startsWith('DTSTART')){
+      const parsed = parseICSDateTime(val);
+      ev.dtstart = parsed.date;
+      ev.startTime = parsed.time;
+      ev.allDay = parsed.allDay;
+    }
+    else if(key.startsWith('DTEND')){
+      const parsed = parseICSDateTime(val);
+      ev.dtend = parsed.date;
+      ev.endTime = parsed.time;
+    }
     else if(key.startsWith('SUMMARY')) ev.summary=unescapeICS(val);
     else if(key.startsWith('DESCRIPTION')) ev.description=unescapeICS(val);
-    else if(key.startsWith('DUE')) ev.due=parseICSDate(val);
+    else if(key.startsWith('DUE')){
+      const parsed = parseICSDateTime(val);
+      ev.due = parsed.date;
+      if(parsed.time) ev.dueTime = parsed.time;
+    }
     else if(key.startsWith('LOCATION')) ev.location=unescapeICS(val);
     else if(key.startsWith('CATEGORIES')) ev.categories=unescapeICS(val);
     else if(key.startsWith('URL')) ev.url=unescapeICS(val);
     else if(key.startsWith('UID')) ev.uid=val;
+    // Per-event color (some Apple/Outlook exports include this)
+    else if(/^(COLOR|X-APPLE-CALENDAR-COLOR)/i.test(key)) ev.color = val.trim();
   }
-  return events;
+  return { name: calendarName, events };
 }
+
+// Parse the value portion of DTSTART / DTEND / DUE. Returns {date, time, allDay}.
+// Examples:
+//   "20260521T093000Z"           → date:"2026-05-21" time:"09:30" allDay:false
+//   "20260521T093000"            → date:"2026-05-21" time:"09:30" allDay:false
+//   "20260521"                   → date:"2026-05-21" time:""      allDay:true
+function parseICSDateTime(val){
+  const s = String(val || '').trim();
+  const m = s.match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(?:\d{2})?(Z?))?$/);
+  if(!m) return { date:'', time:'', allDay:true };
+  const date = `${m[1]}-${m[2]}-${m[3]}`;
+  if(!m[4]) return { date, time:'', allDay:true };
+  // Note: we treat the time as local-clock-time even when Z is present. Full
+  // tz conversion is a rabbit hole; most personal calendars import cleanly
+  // with this assumption because the user views in the same tz they exported.
+  return { date, time: `${m[4]}:${m[5]}`, allDay:false };
+}
+
+// Back-compat shim — some callers still expect date-only.
 function parseICSDate(s){
-  const m=s.replace(/[TZ]/g,'');
-  return m.slice(0,4)+'-'+m.slice(4,6)+'-'+m.slice(6,8);
+  return parseICSDateTime(s).date;
 }
 function unescapeICS(s){ return String(s||'').replace(/\\n/gi,' ').replace(/\\,/g,',').replace(/\\;/g,';').replace(/\\\\/g,'\\'); }
 
@@ -4756,6 +4974,7 @@ function openModal(id){
   if(id==='mAddTask') refreshDailySectionOptions(document.getElementById('fDailySection')?.value || 'Study');
   if(id==='mSettings') openSettings();
   if(id==='mAddTest') resetTestForm();
+  if(id==='mIcal') renderIcalSourceList();
   document.getElementById(id).classList.add('show');
 }
 function closeModal(id){ document.getElementById(id).classList.remove('show');

@@ -741,7 +741,15 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="ics-drop-zone" id="icsDropZone"
                 ondragover="onIcsDragOver(event)"
                 ondragleave="onIcsDragLeave(event)"
-                ondrop="onIcsDrop(event)">Drop a .ics file here to import calendar events</div>
+                ondrop="onIcsDrop(event)">
+                <div class="ics-drop-zone-text">Drop one or more <strong>.ics</strong> files here</div>
+                <div class="ics-drop-zone-or">or</div>
+                <label class="btn btn-outline btn-sm ics-pick-btn">
+                  Choose files…
+                  <input type="file" accept=".ics,text/calendar" multiple style="display:none"
+                    onchange="onIcsFileInput(this)">
+                </label>
+              </div>
               <div class="form-row">
                 <label>iCal URL (Canvas, Google Calendar, Outlook…)</label>
                 <input id="icalUrl" placeholder="https://…ics">
@@ -756,6 +764,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <button class="btn btn-accent" onclick="importIcalPaste()" style="width:100%">Import</button>
             </div>
             <div id="icalStatus" style="font-size:11px;color:var(--text3);margin-top:8px"></div>
+            <div id="icalSourceList" class="ical-sources"></div>
           </div>
         </div>
       </div>

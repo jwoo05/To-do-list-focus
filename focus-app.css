@@ -2700,6 +2700,162 @@ label {
 }
 
 /* ─────────────────────────────────────────────────────────────
+   ICAL IMPORT — multi-file drop zone + per-source palette
+   ───────────────────────────────────────────────────────────── */
+.ics-drop-zone {
+  border: 2px dashed var(--border2);
+  border-radius: var(--radius);
+  padding: 18px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  background: var(--bg2);
+  color: var(--text2);
+  font-size: 12px;
+  margin-bottom: 12px;
+  transition: border-color var(--tr), background var(--tr);
+}
+.ics-drop-zone.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+.ics-drop-zone-text { font-weight: 500; }
+.ics-drop-zone-text strong { color: var(--text); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; padding: 1px 6px; background: var(--bg3); border-radius: 4px; }
+.ics-drop-zone-or { font-size: 10px; color: var(--text3); letter-spacing: .1em; text-transform: uppercase; }
+.ics-pick-btn { cursor: pointer; font-size: 11px; padding: 6px 14px; }
+
+/* Imported source list */
+.ical-sources { margin-top: 14px; }
+.ical-sources-empty {
+  font-size: 11px;
+  color: var(--text3);
+  text-align: center;
+  padding: 12px;
+  background: var(--bg2);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+}
+.ical-sources-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+.ical-source-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+}
+.ical-source-swatch {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  transition: transform var(--tr);
+}
+.ical-source-swatch:hover { transform: scale(1.08); }
+.ical-source-name {
+  flex: 1;
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text);
+  font-family: inherit;
+  min-width: 0;
+}
+.ical-source-name:hover,
+.ical-source-name:focus { background: var(--surface); border-color: var(--border); outline: none; }
+.ical-source-count {
+  font-size: 10px;
+  color: var(--text3);
+  white-space: nowrap;
+  padding: 2px 8px;
+  background: var(--bg3);
+  border-radius: 8px;
+}
+.ical-source-delete {
+  background: transparent;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  transition: all var(--tr);
+}
+.ical-source-delete:hover { background: var(--must-dim); color: var(--must); }
+
+/* Palette popover (anchored under the source row) */
+.ical-palette-pop {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(5, 24px);
+  gap: 6px;
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+}
+.ical-palette-pop[hidden] { display: none; }
+.ical-palette-swatch {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+  cursor: pointer;
+  padding: 0;
+  transition: transform var(--tr);
+}
+.ical-palette-swatch:hover { transform: scale(1.1); }
+.ical-palette-swatch.selected { box-shadow: 0 0 0 2px var(--text), 0 0 0 4px var(--surface); }
+.ical-palette-custom {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px 2px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text2);
+  cursor: pointer;
+}
+.ical-palette-custom input[type="color"] {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+}
+
+/* ─────────────────────────────────────────────────────────────
    DASHBOARD — Today's Tasks list (top-of-dashboard primary card)
    ───────────────────────────────────────────────────────────── */
 .dash-today-tasks { padding: 16px 18px 14px; }
