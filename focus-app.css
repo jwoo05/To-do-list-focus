@@ -873,57 +873,101 @@ label {
 }
 .bank-task.dragging { opacity: .3; cursor: grabbing; }
 .bank-task-top { display: flex; align-items: flex-start; gap: 6px; }
-.drag-cue { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 20px; color: var(--text3); font-size: 12px; cursor: grab; flex-shrink: 0; opacity: .55; transition: opacity var(--tr), color var(--tr); }
-.bank-task:hover .drag-cue { color: var(--accent); opacity: 1; }
-.drag-hint { margin-left: auto; font-size: 9px; color: var(--text3); border: 1px solid var(--border); border-radius: 999px; padding: 2px 5px; text-transform: uppercase; letter-spacing: .04em; flex-shrink: 0; }
-.bank-task-title { font-size: 12px; font-weight: 400; line-height: 1.4; margin-bottom: 5px; color: var(--text); letter-spacing: .005em; }
-.bank-task-meta { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+/* ── BANK ROW ICONOGRAPHY — Notion-soft palette ──
+   All control icons start near-invisible (text3, low opacity) and only
+   gain color on hover. The row is the focus; the icons are utilities
+   that surface when wanted. */
+.drag-cue {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 12px; height: 18px;
+  color: var(--text3);
+  font-size: 10px;
+  cursor: grab;
+  flex-shrink: 0;
+  opacity: .35;
+  transition: opacity var(--tr), color var(--tr);
+  letter-spacing: -2px; /* tighter "⋮⋮" */
+}
+.bank-task:hover .drag-cue { opacity: .8; }
+.drag-hint {
+  margin-left: auto;
+  font-size: 9px;
+  color: var(--text3);
+  background: var(--bg3);
+  border: none;
+  border-radius: 3px;
+  padding: 2px 6px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 430 !important;
+  flex-shrink: 0;
+  opacity: .55;
+}
+.bank-task-title { font-size: 13px; font-weight: 430 !important; line-height: 1.4; margin-bottom: 5px; color: var(--text); letter-spacing: -0.003em; }
+.bank-task-meta { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
 .bank-task-actions {
   position: absolute;
-  right: 7px;
-  bottom: 7px;
+  right: 8px;
+  bottom: 8px;
   display: flex;
   gap: 2px;
   opacity: 0;
   transition: opacity var(--tr);
 }
-.bank-task:hover .bank-task-actions { opacity: 1; }
+.bank-task:hover .bank-task-actions { opacity: .9; }
 .bank-task .bank-task-meta { padding-right: 56px; }
 
-/* Quick complete checkbox in bank rows — small, calm, only colored on hover */
+/* Quick complete circle — empty soft ring, fills green ONLY on hover.
+   No harsh contrast; sits as a subtle affordance until needed. */
 .bank-task-cb {
   width: 16px; height: 16px; flex-shrink: 0;
-  border: 1.5px solid var(--border2);
-  border-radius: 5px;
-  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+  background: transparent;
   cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
   color: transparent;
-  font-size: 11px; line-height: 1;
+  font-size: 10px; line-height: 1;
   transition: border-color var(--tr), background var(--tr), color var(--tr);
-  margin-top: 2px;
+  margin-top: 1px;
 }
-.bank-task-cb:hover { border-color: var(--green); color: var(--green); }
-.bank-task.completed-flash .bank-task-cb { background: var(--green); border-color: var(--green); color: #fff; }
+.bank-task:hover .bank-task-cb { border-color: var(--text3); }
+.bank-task-cb:hover { border-color: #6fbf8e; color: #6fbf8e; background: #edf3ec; }
+.bank-task.completed-flash .bank-task-cb { background: #6fbf8e; border-color: #6fbf8e; color: #fff; }
 
-/* Tiny × quick-delete in the top-right of every bank row */
+/* Quiet × delete — invisible until row-hover, then a calm gray that
+   only colors red when the user moves directly onto it. */
 .bank-task-x {
   position: absolute;
-  top: 6px; right: 6px;
-  width: 18px; height: 18px;
-  border-radius: 50%;
+  top: 7px; right: 7px;
+  width: 16px; height: 16px;
+  border-radius: 4px;
   border: none;
   background: transparent;
   color: var(--text3);
-  font-size: 12px; line-height: 1;
+  font-size: 11px; line-height: 1;
   cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
   opacity: 0;
   transition: opacity var(--tr), background var(--tr), color var(--tr);
   z-index: 2;
+  font-weight: 400 !important;
 }
-.bank-task:hover .bank-task-x { opacity: .9; }
-.bank-task-x:hover { background: rgba(229,109,109,.12); color: var(--must); opacity: 1; }
+.bank-task:hover .bank-task-x { opacity: .55; }
+.bank-task-x:hover { background: #fdebec; color: #a52822; opacity: 1; }
+
+/* Row-internal action icons (duplicate ⧉ · edit ✎) — also calm */
+.bank-task-actions .task-action {
+  width: 20px; height: 20px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--text3);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background var(--tr), color var(--tr);
+}
+.bank-task-actions .task-action:hover { background: var(--bg3); color: var(--text); }
 
 /* ── CALENDAR ── */
 .cal-panel { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
@@ -3305,10 +3349,38 @@ label {
   letter-spacing: -0.01em;
 }
 
-/* All-day strip */
+/* All-day strip — height adjustable via drag handle, scroll when overfull */
 .cal-week-allday {
   min-height: 28px;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
+.cal-week-allday::-webkit-scrollbar { width: 6px; }
+.cal-week-allday::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* Drag handle: thin grippy bar that sits below the all-day strip. */
+.cwk-allday-resize {
+  height: 6px;
+  cursor: ns-resize;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  transition: background var(--tr);
+  flex-shrink: 0;
+}
+.cwk-allday-resize::before {
+  content: "";
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 32px; height: 2px;
+  border-radius: 2px;
+  background: var(--text3);
+  opacity: .35;
+  transition: opacity var(--tr), background var(--tr);
+}
+.cwk-allday-resize:hover { background: var(--bg3); }
+.cwk-allday-resize:hover::before { opacity: .7; background: var(--accent); }
 .cwk-allday-col {
   border-right: 1px solid var(--border);
   padding: 4px 6px;
@@ -3324,9 +3396,9 @@ label {
   color: var(--accent);
   border: none;
   border-radius: 4px;
-  padding: 2px 6px;
-  font-size: 10px;
-  font-weight: 400 !important;
+  padding: 3px 6px;
+  font-size: 11px;
+  font-weight: 440 !important;
   letter-spacing: -0.005em;
   text-align: left;
   white-space: nowrap;
@@ -3335,8 +3407,19 @@ label {
   cursor: pointer;
   font-family: inherit;
   transition: filter var(--tr), background var(--tr);
+  min-height: 18px;
+  line-height: 1.25;
 }
 .cwk-allday-item:hover { filter: brightness(1.05); }
+/* When a column is expanded, let chip text wrap so the title is fully
+   readable instead of being chopped to "U..." */
+.cwk-allday-col.expanded .cwk-allday-item {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  word-break: break-word;
+  min-height: 0;
+}
 .cwk-allday-item.sig-exam  { background: var(--must-dim);            color: var(--must); }
 .cwk-allday-item.sig-due   { background: rgba(245,144,64,.14);       color: var(--orange); }
 .cwk-allday-item.sig-habit { background: rgba(176,127,255,.14);      color: var(--purple); }
@@ -3698,3 +3781,106 @@ strong, b {
 .cal-num { font-weight: 450 !important; }
 /* Calendar month label ("May 17 – 23, 2026") — Notion-style serif */
 .cal-month, .cal-month-label { font-weight: 500 !important; font-family: var(--font-serif); letter-spacing: -0.005em; }
+
+/* ── BANK SUBTASKS — inline expandable steps with per-day scheduling ── */
+.chip-subtasks {
+  background: var(--bg3) !important;
+  color: var(--text2) !important;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  font-weight: 440 !important;
+  letter-spacing: 0;
+  text-transform: none;
+  padding: 1px 8px !important;
+  font-size: 10px;
+}
+.chip-subtasks:hover { background: var(--bg2) !important; color: var(--text) !important; border-color: var(--accent); }
+
+.bank-subtasks {
+  margin: 6px 0 0 22px;
+  padding: 6px 8px;
+  background: var(--bg2);
+  border-left: 2px solid var(--border);
+  border-radius: 0 4px 4px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.bank-sub-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 420 !important;
+  flex-wrap: wrap;
+}
+.bank-sub-row.done .bank-sub-text { text-decoration: line-through; color: var(--text3); }
+.bank-sub-cb {
+  width: 14px; height: 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: transparent;
+  font-size: 9px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: border-color var(--tr), background var(--tr), color var(--tr);
+}
+.bank-sub-cb:hover { border-color: #6fbf8e; color: #6fbf8e; }
+.bank-sub-row.done .bank-sub-cb { background: #6fbf8e; border-color: #6fbf8e; color: #fff; }
+.bank-sub-text { flex: 1; line-height: 1.3; }
+.bank-sub-cal {
+  width: 18px; height: 18px;
+  border: none;
+  background: transparent;
+  color: var(--text3);
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 4px;
+  opacity: .55;
+  transition: opacity var(--tr), background var(--tr);
+}
+.bank-sub-cal:hover { opacity: 1; background: var(--bg3); }
+.chip-sub-date {
+  background: #e7f3f8 !important;
+  color: #2c5d80 !important;
+  font-weight: 440 !important;
+  font-size: 9px !important;
+  padding: 1px 5px !important;
+  border-radius: 3px !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 3px;
+}
+.chip-sub-date .chip-x {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 10px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  opacity: .6;
+}
+.chip-sub-date .chip-x:hover { opacity: 1; }
+.bank-sub-add { padding-top: 2px; }
+.bank-sub-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed var(--border);
+  font-size: 11px;
+  font-weight: 420 !important;
+  color: var(--text);
+  padding: 3px 0;
+  font-family: inherit;
+}
+.bank-sub-input:focus {
+  outline: none;
+  border-bottom-color: var(--accent);
+}
+.bank-sub-input::placeholder { color: var(--text3); font-style: italic; }

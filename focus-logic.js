@@ -137,6 +137,7 @@ function normalizeState(state){
     if(!t.skippedDates || typeof t.skippedDates !== 'object') t.skippedDates = {};
     (t.subtasks||[]).forEach(st=>{
       if(!st.doneDates || typeof st.doneDates !== 'object') st.doneDates = {};
+      if(!Array.isArray(st.scheduledDates)) st.scheduledDates = [];
     });
   });
   archiveCompletedOneOffTasks(state);
@@ -255,7 +256,11 @@ function pad(n){ return String(n).padStart(2,'0'); }
 // True when a timestamp (ms epoch) falls on the given YYYY-MM-DD local date.
 function isSameDay(ts, dateStr){
   if(!ts || !dateStr) return false;
-  const d = new Date(Number(ts));
+  // Accept either a numeric timestamp or a date string (ISO or 'YYYY-MM-DD').
+  // Number('2026-05-22T…') is NaN, so coerce intelligently.
+  const d = typeof ts === 'number'
+    ? new Date(ts)
+    : (typeof ts === 'string' ? new Date(ts) : new Date(Number(ts)));
   if(Number.isNaN(d.getTime())) return false;
   return (d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())) === dateStr;
 }
@@ -398,7 +403,18 @@ function isDueSignalDone(t,dateStr){
 // ════════════════════════════════════════════════════════════
 //  RENDER
 // ════════════════════════════════════════════════════════════
+// render() coalesces multiple calls within a single animation frame so
+// rapid completion-button clicks don't redo the entire UI 5× in a row.
+// This was the root cause of "completion lags after a couple of uses".
+let _renderRaf = 0;
 function render(){
+  if(_renderRaf) return;
+  _renderRaf = requestAnimationFrame(() => {
+    _renderRaf = 0;
+    _renderImmediate();
+  });
+}
+function _renderImmediate(){
   if(archiveCompletedOneOffTasks(S)) save();
   mountInteractiveSurface();
   renderBank();
@@ -509,8 +525,11 @@ function renderDashboard(){
   }
   renderDashboardTodayTasks(today);
   renderDashboardHabits();
-  renderDashboardFocus(todayStats);
-  renderDashboardAdvice();
+  // Focus & Habit Health and Advice panels were removed from the dashboard
+  // markup — guard the renders so they no-op cleanly if the DOM elements
+  // are absent.
+  if (document.getElementById('dashFocus'))  renderDashboardFocus(todayStats);
+  if (document.getElementById('dashAdvice')) renderDashboardAdvice();
   renderMissedCarryList();
 }
 
@@ -1147,10 +1166,15 @@ function renderBank(){
     return;
   }
   const visible=tasks.slice(0,bankVisibleCount);
+  if(!window._bankExpanded) window._bankExpanded = new Set();
   list.innerHTML = visible.map(t=>{
     const unassigned=taskNeedsStudyAssignment(t);
     const urgency = urgencyClassFor(t);
     const timeLeft = timeLeftLabel(t);
+    const subtasks = Array.isArray(t.subtasks) ? t.subtasks : [];
+    const hasSubs = subtasks.length > 0;
+    const expanded = window._bankExpanded.has(t.id);
+    const doneCount = subtasks.filter(s => s.done).length;
     return `
     <div class="bank-task fade-up ${unassigned?'unassigned':''}" draggable="true"
       data-urgency="${urgency}"
@@ -1175,9 +1199,11 @@ function renderBank(){
         </span>
         ${dueChipHTML(t)}
         ${t.isHabit?`<span class="chip chip-habit">Habit</span>`:''}
+        ${hasSubs?`<button class="chip chip-subtasks" onclick="event.stopPropagation(); toggleBankSubtasks('${t.id}')" title="${expanded?'Hide':'Show'} subtasks">${expanded?'▾':'▸'} ${doneCount}/${subtasks.length} steps</button>`:''}
         ${unassigned?`<span class="chip chip-unassigned">Task not assigned yet</span>`:''}
         ${t.scheduledTime?`<span class="chip chip-due">⏰ ${t.scheduledTime}</span>`:''}
       </div>
+      ${expanded && hasSubs ? renderBankSubtasks(t) : ''}
       <div class="bank-task-actions">
         <button class="task-action" onclick="event.stopPropagation(); duplicateTask('${t.id}')" title="Duplicate">⧉</button>
         <button class="task-action" onclick="event.stopPropagation(); editTask('${t.id}')" title="Edit">✎</button>
@@ -1186,6 +1212,90 @@ function renderBank(){
   }).join('') + (tasks.length>8 ? `
       <button class="bank-add" onclick="toggleBankLimit()">${bankVisibleCount>=tasks.length?'Show first 8':'Show all '+tasks.length}</button>
     ` : '');
+}
+
+// ── Bank subtasks: inline expand + per-subtask scheduling ──
+// Each subtask gets a checkbox, the text, a tiny "schedule" calendar icon,
+// and its own list of scheduled-date chips. Toggling the chip schedules
+// that subtask onto the calendar for that day.
+function toggleBankSubtasks(taskId){
+  if(!window._bankExpanded) window._bankExpanded = new Set();
+  if(window._bankExpanded.has(taskId)) window._bankExpanded.delete(taskId);
+  else window._bankExpanded.add(taskId);
+  renderBank();
+}
+function renderBankSubtasks(t){
+  if(!Array.isArray(t.subtasks) || !t.subtasks.length) return '';
+  const today = todayStr();
+  return `<div class="bank-subtasks" onclick="event.stopPropagation()">
+    ${t.subtasks.map((s, i) => {
+      const dates = Array.isArray(s.scheduledDates) ? s.scheduledDates : [];
+      const isDone = !!s.done || !!(s.doneDates && s.doneDates[today]);
+      return `<div class="bank-sub-row ${isDone?'done':''}">
+        <button class="bank-sub-cb" title="Toggle done"
+          onclick="event.stopPropagation(); toggleBankSubDone('${t.id}', ${i})">${isDone?'✓':''}</button>
+        <span class="bank-sub-text">${esc(s.text)}</span>
+        ${dates.length ? dates.map(ds => `<span class="chip chip-sub-date" title="Scheduled for ${esc(ds)}">${esc(formatShortDate(ds))} <button class="chip-x" onclick="event.stopPropagation(); unscheduleBankSub('${t.id}',${i},'${ds}')" aria-label="Unschedule">×</button></span>`).join('') : ''}
+        <button class="bank-sub-cal" title="Schedule this step on a day"
+          onclick="event.stopPropagation(); promptBankSubSchedule('${t.id}', ${i})">📅</button>
+      </div>`;
+    }).join('')}
+    <div class="bank-sub-add">
+      <input class="bank-sub-input" placeholder="+ Add a step…"
+        onclick="event.stopPropagation()"
+        onkeydown="if(event.key==='Enter'){event.stopPropagation(); addBankSubFromInput('${t.id}', this);}">
+    </div>
+  </div>`;
+}
+function toggleBankSubDone(taskId, idx){
+  const t = S.tasks.find(x => x.id === taskId);
+  if(!t || !t.subtasks?.[idx]) return;
+  const s = t.subtasks[idx];
+  if(!s.doneDates) s.doneDates = {};
+  const today = todayStr();
+  if(s.doneDates[today]) delete s.doneDates[today];
+  else s.doneDates[today] = true;
+  s.done = Object.keys(s.doneDates).length > 0; // legacy flag
+  save();
+  renderBank();
+}
+function promptBankSubSchedule(taskId, idx){
+  const ds = prompt('Schedule this step on which day? (YYYY-MM-DD)', todayStr());
+  if(!ds || !/^\d{4}-\d{2}-\d{2}$/.test(ds)) return;
+  const t = S.tasks.find(x => x.id === taskId);
+  if(!t || !t.subtasks?.[idx]) return;
+  const s = t.subtasks[idx];
+  if(!Array.isArray(s.scheduledDates)) s.scheduledDates = [];
+  if(!s.scheduledDates.includes(ds)) s.scheduledDates.push(ds);
+  // Also schedule the parent task on that day so the calendar/today list pick it up
+  if(!Array.isArray(t.scheduledDates)) t.scheduledDates = [];
+  if(!t.scheduledDates.includes(ds)) t.scheduledDates.push(ds);
+  save();
+  renderBank(); renderCalendar();
+}
+function unscheduleBankSub(taskId, idx, ds){
+  const t = S.tasks.find(x => x.id === taskId);
+  if(!t || !t.subtasks?.[idx]) return;
+  const s = t.subtasks[idx];
+  s.scheduledDates = (s.scheduledDates||[]).filter(x => x !== ds);
+  save();
+  renderBank();
+}
+function addBankSubFromInput(taskId, inputEl){
+  const text = (inputEl.value || '').trim();
+  if(!text) return;
+  const t = S.tasks.find(x => x.id === taskId);
+  if(!t) return;
+  if(!Array.isArray(t.subtasks)) t.subtasks = [];
+  t.subtasks.push({ text, done: false, doneDates: {}, scheduledDates: [] });
+  save();
+  renderBank();
+}
+function formatShortDate(ds){
+  if(!ds) return '';
+  const d = new Date(ds + 'T00:00:00');
+  if(Number.isNaN(d.getTime())) return ds;
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
 }
 
 // Event-mode bank: shows upcoming events sorted by their start time, each with
@@ -4633,14 +4743,40 @@ function toggleAlldayColumn(ds){
   renderWeekView();
 }
 
-// Adjust the global all-day cap (how many items are shown per column
-// before "+N more" appears). Persisted in S.settings.alldayCap.
-function setAlldayCap(n){
-  const cap = Math.max(1, Math.min(20, Number(n) || 3));
-  if(!S.settings) S.settings = {};
-  S.settings.alldayCap = cap;
-  save();
-  renderWeekView();
+// LEGACY: kept as a no-op shim so anything still calling setAlldayCap
+// doesn't blow up. The all-day cap is now driven by strip height, which
+// the user adjusts via the resize handle (see startAlldayResize).
+function setAlldayCap(_n){ /* deprecated */ }
+
+// Drag the all-day strip taller/shorter by pulling its bottom handle.
+// Persists the resulting height in S.settings.alldayStripHeight so each
+// session lands on the user's preferred density.
+function startAlldayResize(e){
+  e.preventDefault();
+  const allday = document.getElementById('calWeekAllday');
+  if(!allday) return;
+  const startY = e.clientY;
+  const startH = allday.getBoundingClientRect().height;
+  const min = 30, max = 260;
+  document.body.style.cursor = 'ns-resize';
+  document.body.style.userSelect = 'none';
+  function onMove(ev){
+    const newH = Math.max(min, Math.min(max, startH + (ev.clientY - startY)));
+    allday.style.maxHeight = newH + 'px';
+  }
+  function onUp(ev){
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    const finalH = Math.max(min, Math.min(max, startH + (ev.clientY - startY)));
+    if(!S.settings) S.settings = {};
+    S.settings.alldayStripHeight = Math.round(finalH);
+    save();
+    renderWeekView();
+  }
+  document.addEventListener('pointermove', onMove);
+  document.addEventListener('pointerup', onUp);
 }
 
 function renderWeekView(){
@@ -4699,20 +4835,22 @@ function renderWeekView(){
   }).join('');
 
   // All-day strip (tasks/events without a specific time).
-  // Cap each column at `alldayCap` items (user-adjustable, persisted in
-  // S.settings.alldayCap). Surplus collapses into a "+N more" button.
+  // The visible row count is driven by the strip's CSS height (px), which
+  // the user adjusts by click+dragging the resize handle just below the
+  // strip. We translate height → cap so the rest of the logic still uses
+  // a per-column cap with "+N more" overflow.
   const showTasks = calViewMode !== 'events';
-  const ALLDAY_CAP = Math.max(1, Math.min(20, Number(S.settings?.alldayCap) || 3));
   if(!window._alldayExpanded) window._alldayExpanded = new Set();
+  // Strip height (px) is persisted in S.settings.alldayStripHeight.
+  // Default = 84px = 3 rows × 26px-ish + padding. Range: 30 (1 row) - 260.
+  const stripH = Math.max(30, Math.min(260, Number(S.settings?.alldayStripHeight) || 84));
+  allday.style.maxHeight = stripH + 'px';
+  // Approximate visible cap from height: each row is ~22px tall (chip 18 + gap 3).
+  const ALLDAY_CAP = Math.max(1, Math.floor((stripH - 8) / 22));
   let alldayHasContent = false;
-  // Gutter cell shows the current cap with − / + buttons so the user can
-  // tune how dense the all-day strip feels without opening Settings.
-  const gutter = `
-    <div class="cwk-time-cell cwk-allday-gutter" title="All-day items per day (click − / + to adjust)">
-      <button type="button" class="cwk-cap-btn" onclick="setAlldayCap(${ALLDAY_CAP - 1})" ${ALLDAY_CAP<=1?'disabled':''}>−</button>
-      <span class="cwk-cap-num">${ALLDAY_CAP}</span>
-      <button type="button" class="cwk-cap-btn" onclick="setAlldayCap(${ALLDAY_CAP + 1})" ${ALLDAY_CAP>=20?'disabled':''}>+</button>
-    </div>`;
+  // Quiet "all day" label in the gutter — no +/- controls; resize via the
+  // handle below the strip.
+  const gutter = `<div class="cwk-time-cell cwk-allday-gutter"><span>all day</span></div>`;
   allday.innerHTML = gutter + days.map(d => {
     const items = collectAllDayItems(d.ds);
     if(items.length) alldayHasContent = true;
@@ -4735,6 +4873,9 @@ function renderWeekView(){
     </div>`;
   }).join('');
   allday.style.display = alldayHasContent ? '' : 'none';
+  // Hide the resize handle if there's nothing to show
+  const resizeHandle = document.getElementById('calAlldayResize');
+  if(resizeHandle) resizeHandle.style.display = alldayHasContent ? '' : 'none';
 
   // Hour grid: time gutter + 7 day columns. Each column has hour gridlines +
   // absolutely positioned blocks.
@@ -6173,14 +6314,37 @@ function dismissWelcome(){
   closeModal('mWelcome');
 }
 
+// Persistence: local-first + debounced cloud sync.
+// PROBLEM (pre-fix): if signed in, this only wrote to Firebase. When the
+// network blipped or Firebase rejected the write, localStorage stayed
+// stale and tasks "disappeared" on refresh. The complete-button felt
+// laggy because every click awaited a Firebase round-trip.
+// FIX: always write localStorage synchronously (source of truth), then
+// flush to Firebase on a 400ms debounce so rapid edits coalesce into a
+// single network write.
+let _fbSaveTimer = null;
 function saveUserDataToFirebase() {
-  if (!currentUser) {
-    localStorage.setItem(KEY, JSON.stringify(S));
-    return;
-  }
-  const userRef = database.ref('users/' + currentUser.uid);
-  userRef.set(S).catch(error => {
-    console.error('Firebase save error:', error);
-    localStorage.setItem(KEY, JSON.stringify(S));
-  });
+  // 1. Synchronous local write — source of truth, survives refreshes.
+  try { localStorage.setItem(KEY, JSON.stringify(S)); }
+  catch (e) { console.warn('localStorage save failed:', e); }
+  // 2. Debounced Firebase sync (skip if not signed in).
+  if (!currentUser) return;
+  if (_fbSaveTimer) clearTimeout(_fbSaveTimer);
+  _fbSaveTimer = setTimeout(() => {
+    _fbSaveTimer = null;
+    try {
+      const userRef = database.ref('users/' + currentUser.uid);
+      userRef.set(S).catch(err => console.error('Firebase save error:', err));
+    } catch (e) { console.error('Firebase save threw:', e); }
+  }, 400);
 }
+// Flush any pending cloud sync immediately — call before page unload.
+function flushPendingSave() {
+  if (_fbSaveTimer) {
+    clearTimeout(_fbSaveTimer); _fbSaveTimer = null;
+    if (currentUser) {
+      try { database.ref('users/' + currentUser.uid).set(S); } catch (e) {}
+    }
+  }
+}
+window.addEventListener('beforeunload', flushPendingSave);

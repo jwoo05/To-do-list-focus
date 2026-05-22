@@ -442,14 +442,6 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="dash-title">Today's Habits</div>
           <div id="dashHabits"></div>
         </div>
-        <div class="dash-panel" style="grid-column:1/2">
-          <div class="dash-title">Focus &amp; Habit Health</div>
-          <div id="dashFocus"></div>
-        </div>
-        <div class="dash-panel" style="grid-column:2/4">
-          <div class="dash-title">Advice</div>
-          <div id="dashAdvice"></div>
-        </div>
         <div class="dash-panel dash-wide" id="missedPanel" style="display:none;grid-column:1/4">
           <div class="dash-title">Missed Work — carry over?</div>
           <div id="missedCarryList"></div>
@@ -573,6 +565,11 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="cal-week-wrap" id="calWeekWrap" hidden>
                 <div class="cal-week-dayhead" id="calWeekDayhead"></div>
                 <div class="cal-week-allday" id="calWeekAllday"></div>
+                <!-- Drag handle: click + drag down to show more all-day rows,
+                     drag up to compress. Replaces the +/- buttons. -->
+                <div class="cwk-allday-resize" id="calAlldayResize"
+                     title="Drag to resize the all-day strip"
+                     onpointerdown="startAlldayResize(event)"></div>
                 <div class="cal-week-scroll">
                   <div class="cal-week-grid" id="calWeekGrid"></div>
                 </div>
