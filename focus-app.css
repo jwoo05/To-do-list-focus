@@ -4032,3 +4032,80 @@ strong, b {
   font-weight: 470 !important;
 }
 .emoji-reset:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── Month/Year picker popover for Add Task modal date pickers ── */
+.picker-my-pop {
+  position: fixed;
+  z-index: 1010; /* above the modal */
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  box-shadow: 0 18px 44px rgba(0,0,0,.20), 0 0 0 1px rgba(0,0,0,.04);
+  padding: 10px;
+  width: 244px;
+  animation: toastLift .14s ease;
+}
+.pmy-year-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+.pmy-year-btn {
+  width: 24px; height: 24px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  border-radius: 5px;
+  color: var(--text2);
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 460 !important;
+  line-height: 1;
+  transition: background var(--tr), color var(--tr), border-color var(--tr);
+}
+.pmy-year-btn:hover { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+.pmy-year-label {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 540 !important;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.pmy-month-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+.pmy-month {
+  padding: 6px 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text2);
+  font-size: 11px;
+  font-weight: 460 !important;
+  cursor: pointer;
+  transition: background var(--tr), color var(--tr), border-color var(--tr);
+}
+.pmy-month:hover { background: var(--bg2); color: var(--text); border-color: var(--accent); }
+.pmy-month.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* The title button should look like a clickable affordance */
+.schedule-picker-title {
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  padding: 3px 10px;
+  border-radius: 5px;
+  font-family: var(--font-serif);
+  font-weight: 540 !important;
+  color: var(--text);
+  font-size: 13px;
+  letter-spacing: -0.005em;
+  transition: background var(--tr), border-color var(--tr);
+}
+.schedule-picker-title:hover {
+  background: var(--bg2);
+  border-color: var(--border);
+}

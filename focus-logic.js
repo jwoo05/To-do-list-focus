@@ -2204,7 +2204,9 @@ function editTask(id){
   schedulePickerDate = editScheduledDates[0] ? new Date(editScheduledDates[0]+'T00:00:00') : (t.due ? new Date(t.due+'T00:00:00') : new Date(calSelectedDate+'T00:00:00'));
   duePickerDate = t.due ? new Date(t.due+'T00:00:00') : new Date(calSelectedDate+'T00:00:00');
   renderScheduledDateChips();
+  // Always render both calendar grids so they're visible from the start.
   renderDuePicker();
+  renderSchedulePicker();
   selectPri(t.priority, null);
   toggleHabitFields();
   document.querySelectorAll('.day-btn').forEach(b=>{
@@ -2338,7 +2340,11 @@ function resetAddForm(){
   schedulePickerDate = new Date((calSelectedDate||todayStr())+'T00:00:00');
   duePickerDate = new Date((calSelectedDate||todayStr())+'T00:00:00');
   renderScheduledDateChips();
+  // Render BOTH calendar grids so they're visible on first open. Previously
+  // only renderDuePicker() ran, so the Work Days grid was blank until the
+  // user clicked a month arrow.
   renderDuePicker();
+  renderSchedulePicker();
   editSelectedPri='medium';
   selectPri('medium',null);
   toggleHabitFields();
@@ -2597,8 +2603,74 @@ function moveSchedulePickerMonth(delta){
 }
 
 function jumpSchedulePickerToCalendar(){
-  schedulePickerDate=new Date(calViewDate.getFullYear(),calViewDate.getMonth(),1);
-  renderSchedulePicker();
+  openPickerMonthYear('schedule', event && event.currentTarget);
+}
+
+// Month/year picker popover for the date-picker title in the Add Task
+// modal. Target = 'due' or 'schedule'. Anchors to the clicked title
+// button, lets the user pick any month + any year, then re-renders
+// the appropriate picker on that month.
+function openPickerMonthYear(target, anchor){
+  // Dismiss any existing popover first
+  const existing = document.getElementById('pickerMonthYearPop');
+  if(existing){ existing.remove(); return; }
+  if(!anchor) anchor = document.getElementById(target === 'due' ? 'duePickerTitle' : 'schedulePickerTitle');
+  if(!anchor) return;
+  const refDate = target === 'due' ? duePickerDate : schedulePickerDate;
+  const curMonth = refDate.getMonth();
+  const curYear  = refDate.getFullYear();
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const pop = document.createElement('div');
+  pop.id = 'pickerMonthYearPop';
+  pop.className = 'picker-my-pop';
+  pop.innerHTML = `
+    <div class="pmy-year-row">
+      <button type="button" class="pmy-year-btn" onclick="event.stopPropagation(); shiftPickerMonthYear('${target}',-1,0)" aria-label="Previous year">‹</button>
+      <span class="pmy-year-label" id="pmyYearLabel">${curYear}</span>
+      <button type="button" class="pmy-year-btn" onclick="event.stopPropagation(); shiftPickerMonthYear('${target}',1,0)" aria-label="Next year">›</button>
+    </div>
+    <div class="pmy-month-grid">
+      ${months.map((mo,i) => `<button type="button" class="pmy-month ${i===curMonth?'active':''}"
+        data-m="${i}" onclick="event.stopPropagation(); applyPickerMonthYear('${target}',${i})">${mo}</button>`).join('')}
+    </div>`;
+  document.body.appendChild(pop);
+  // Position below the anchor
+  const r = anchor.getBoundingClientRect();
+  pop.style.top  = (r.bottom + 6) + 'px';
+  pop.style.left = Math.max(8, r.left) + 'px';
+  // Click-outside dismisses
+  setTimeout(() => {
+    document.addEventListener('pointerdown', _pmyOutside, true);
+  }, 0);
+}
+function _pmyOutside(ev){
+  const pop = document.getElementById('pickerMonthYearPop');
+  if(!pop){ document.removeEventListener('pointerdown', _pmyOutside, true); return; }
+  if(pop.contains(ev.target)) return;
+  pop.remove();
+  document.removeEventListener('pointerdown', _pmyOutside, true);
+}
+function shiftPickerMonthYear(target, dy, dm){
+  // Adjust the popover's reference year (no re-render of the actual date
+  // picker until the user picks a month).
+  const label = document.getElementById('pmyYearLabel');
+  if(!label) return;
+  const newYear = Math.max(1970, Math.min(2100, Number(label.textContent) + dy));
+  label.textContent = newYear;
+}
+function applyPickerMonthYear(target, monthIdx){
+  const label = document.getElementById('pmyYearLabel');
+  const year = label ? Number(label.textContent) : (target === 'due' ? duePickerDate : schedulePickerDate).getFullYear();
+  if(target === 'due'){
+    duePickerDate = new Date(year, monthIdx, 1);
+    renderDuePicker();
+  } else {
+    schedulePickerDate = new Date(year, monthIdx, 1);
+    renderSchedulePicker();
+  }
+  const pop = document.getElementById('pickerMonthYearPop');
+  if(pop) pop.remove();
+  document.removeEventListener('pointerdown', _pmyOutside, true);
 }
 
 // ── DUE DATE picker (single-select, same look as schedule picker) ──
@@ -2647,8 +2719,7 @@ function moveDuePickerMonth(delta){
   renderDuePicker();
 }
 function jumpDuePickerToCalendar(){
-  duePickerDate = new Date(calViewDate.getFullYear(), calViewDate.getMonth(), 1);
-  renderDuePicker();
+  openPickerMonthYear('due', event && event.currentTarget);
 }
 function renderDueDateChip(){
   const wrap=document.getElementById('dueDateChips');

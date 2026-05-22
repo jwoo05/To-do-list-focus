@@ -1125,7 +1125,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="schedule-picker due-picker">
             <div class="schedule-picker-head">
               <button type="button" class="mini-btn" onclick="moveDuePickerMonth(-1)">‹</button>
-              <button type="button" class="schedule-picker-title" id="duePickerTitle" onclick="jumpDuePickerToCalendar()">May 2026</button>
+              <button type="button" class="schedule-picker-title" id="duePickerTitle" onclick="openPickerMonthYear('due', this)" title="Pick month + year">May 2026</button>
               <button type="button" class="mini-btn" onclick="moveDuePickerMonth(1)">›</button>
             </div>
             <div class="schedule-picker-grid" id="duePickerGrid"></div>
@@ -1142,7 +1142,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="schedule-picker">
               <div class="schedule-picker-head">
                 <button type="button" class="mini-btn" onclick="moveSchedulePickerMonth(-1)">‹</button>
-                <button type="button" class="schedule-picker-title" id="schedulePickerTitle" onclick="jumpSchedulePickerToCalendar()">May 2026</button>
+                <button type="button" class="schedule-picker-title" id="schedulePickerTitle" onclick="openPickerMonthYear('schedule', this)" title="Pick month + year">May 2026</button>
                 <button type="button" class="mini-btn" onclick="moveSchedulePickerMonth(1)">›</button>
               </div>
               <div class="schedule-picker-grid" id="schedulePickerGrid"></div>
