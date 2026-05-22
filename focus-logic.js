@@ -453,11 +453,15 @@ function mountInteractiveSurface(){
 
   const cal=document.getElementById('calPanel');
   const calTasks=document.getElementById('calDayTasks');
+  const calSplit=document.getElementById('calSplitResize');
   const importSec=document.getElementById('icalImportSec');
   const calSlot=currentPage==='calendar' ? document.getElementById('calendarPageHost') : document.getElementById('workbenchCalendar');
   const importSlot=document.getElementById('icalModalBody');
   if(calSlot){
     if(cal && cal.parentElement!==calSlot) calSlot.appendChild(cal);
+    // Insert the split handle between the calendar panel and the day-tasks
+    // card so it's a sibling in the flex column.
+    if(calSplit && calSplit.parentElement!==calSlot) calSlot.appendChild(calSplit);
     if(calTasks && calTasks.parentElement!==calSlot) calSlot.appendChild(calTasks);
   }
   if(importSlot && importSec && importSec.parentElement!==importSlot){
@@ -4309,6 +4313,7 @@ function unescapeICS(s){ return String(s||'').replace(/\\n/gi,' ').replace(/\\,/
 //  MINI CALENDAR
 // ════════════════════════════════════════════════════════════
 function renderCalendar(){
+  applyCalSplit();
   const y=calViewDate.getFullYear(), mo=calViewDate.getMonth();
   const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   // Header label depends on layout
@@ -4343,11 +4348,14 @@ function renderCalendar(){
     const hasExam=dayEvents.some(e=>e.type==='test');
     const isToday=ds===today;
     const isSel=ds===calSelectedDate;
+    // Chip text shows just the title — the color stripe already encodes
+    // the category (exam=red, due=orange, habit=purple, event=accent).
+    // Tooltip carries the full title in case it's truncated.
     const chips=[
-      ...dayEvents.map(e=>`<span class="cal-mini-chip ${e.type==='test'?'exam':e.type||'event'}" style="border-left-color:${esc(e.color||eventColorForType(e.type))}">${e.type==='test'?'TEST ':'EVENT '}${esc(e.title)}</span>`),
+      ...dayEvents.map(e=>`<span class="cal-mini-chip ${e.type==='test'?'exam':e.type||'event'}" style="border-left-color:${esc(e.color||eventColorForType(e.type))}" title="${esc(e.title)}">${esc(e.title)}</span>`),
       ...dayTasks.map(t=>{
-      const sig=calendarSignalForTask(t,ds);
-      return `<span class="cal-mini-chip ${sig}" draggable="true" title="Drag to another day to move" ondragstart="onDayTaskDragStart(event,'${t.id}','${ds}')">${sig==='exam'?'TEST ':sig==='due'?'DUE ':sig==='habit'?'HABIT ':''}${esc(t.title)}</span>`;
+        const sig=calendarSignalForTask(t,ds);
+        return `<span class="cal-mini-chip ${sig}" draggable="true" title="${esc(t.title)}" ondragstart="onDayTaskDragStart(event,'${t.id}','${ds}')">${esc(t.title)}</span>`;
       })
     ].slice(0,3).join('');
     html+=`<div class="cal-cell ${isToday?'today':''} ${isSel?'selected':''} ${hasTasks?'has-tasks':''} ${hasExam?'has-exam':''}"
@@ -4747,6 +4755,62 @@ function toggleAlldayColumn(ds){
 // doesn't blow up. The all-day cap is now driven by strip height, which
 // the user adjusts via the resize handle (see startAlldayResize).
 function setAlldayCap(_n){ /* deprecated */ }
+
+// Drag the split between the calendar grid (.cal-panel) and the
+// selected-day task card (.cal-day-tasks) inside the Todo List
+// calendar column. Persists the calendar's flex-basis as a fraction
+// of the column height in S.settings.calSplit (0.30 - 0.90).
+function startCalSplitResize(e){
+  e.preventDefault();
+  const col = document.getElementById('workbenchCalendar');
+  const panel = document.getElementById('calPanel');
+  const dayCard = document.getElementById('calDayTasks');
+  if(!col || !panel || !dayCard) return;
+  const colRect = col.getBoundingClientRect();
+  const heading = col.querySelector('.workbench-heading');
+  const headingH = heading ? heading.offsetHeight + 8 : 32;
+  const total = colRect.height - headingH;
+  const startY = e.clientY;
+  const startTop = panel.getBoundingClientRect().bottom;
+  document.body.style.cursor = 'row-resize';
+  document.body.style.userSelect = 'none';
+  function onMove(ev){
+    const newBottom = startTop + (ev.clientY - startY);
+    const calH = Math.max(180, newBottom - colRect.top - headingH);
+    const fraction = Math.max(0.3, Math.min(0.9, calH / total));
+    panel.style.flex = `${fraction} 1 0`;
+    dayCard.style.flex = `${1 - fraction} 1 0`;
+    // Re-fit the hour grid live so the week-view stays in view
+    if(document.getElementById('calWeekWrap')?.offsetParent !== null){
+      renderWeekView();
+    }
+  }
+  function onUp(){
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    // Persist the resulting fraction
+    const calH = panel.getBoundingClientRect().height;
+    const fraction = Math.max(0.3, Math.min(0.9, calH / total));
+    if(!S.settings) S.settings = {};
+    S.settings.calSplit = Math.round(fraction * 100) / 100;
+    save();
+  }
+  document.addEventListener('pointermove', onMove);
+  document.addEventListener('pointerup', onUp);
+}
+
+// Restore the persisted calendar split on every render so the layout
+// survives navigation between pages and reloads.
+function applyCalSplit(){
+  const panel = document.getElementById('calPanel');
+  const dayCard = document.getElementById('calDayTasks');
+  if(!panel || !dayCard) return;
+  const f = Math.max(0.3, Math.min(0.9, Number(S.settings?.calSplit) || 0.65));
+  panel.style.flex = `${f} 1 0`;
+  dayCard.style.flex = `${1 - f} 1 0`;
+}
 
 // Drag the all-day strip taller/shorter by pulling its bottom handle.
 // Persists the resulting height in S.settings.alldayStripHeight so each
@@ -5716,6 +5780,71 @@ function applyTheme(){
   document.querySelectorAll('.accent-swatch').forEach(b=>b.classList.toggle('active',b.dataset.color===(S.settings.accentColor||'#2C4A8B')));
   // Restore density
   setDensity(S.settings.density||'compact', true);
+  // Restore page emoji icons
+  applyPageEmojis();
+}
+
+// ── Page-title emoji picker ──
+// Each page (Todo List, Dashboard, etc.) can have its own icon emoji
+// next to the title. Stored in S.settings.pageEmojis[<key>] so it
+// survives across sessions. Curated set matches the calm aesthetic.
+const EMOJI_PALETTE = [
+  '✏️','📝','✨','🌿','🌸','☕','🕊️','🌙','🍵','📚',
+  '🎯','⭐','💭','🌊','🍃','🪶','📓','🗂️','🔖','🌱',
+  '🍂','🪴','🍷','🎼','💡','🧭','🗺️','🪞','🫧','🍑'
+];
+function applyPageEmojis(){
+  const map = S.settings?.pageEmojis || {};
+  // Todo List default ✏️
+  const todoBtn = document.getElementById('todoEmojiBtn');
+  if(todoBtn) todoBtn.textContent = map.todoListEmoji || '✏️';
+}
+function openEmojiPicker(e, key){
+  e.stopPropagation();
+  // Close any existing picker
+  const existing = document.getElementById('emojiPickerPop');
+  if(existing){ existing.remove(); return; }
+  const pop = document.createElement('div');
+  pop.id = 'emojiPickerPop';
+  pop.className = 'emoji-picker-pop';
+  pop.innerHTML = `
+    <div class="emoji-picker-grid">
+      ${EMOJI_PALETTE.map(em => `<button type="button" class="emoji-cell"
+        onclick="pickPageEmoji('${key}','${em}')">${em}</button>`).join('')}
+    </div>
+    <div class="emoji-picker-foot">
+      <button type="button" class="emoji-reset" onclick="pickPageEmoji('${key}','')">Reset</button>
+    </div>`;
+  document.body.appendChild(pop);
+  // Position below the trigger button
+  const rect = e.currentTarget.getBoundingClientRect();
+  pop.style.top  = (rect.bottom + 8) + 'px';
+  pop.style.left = rect.left + 'px';
+  // Click-outside to dismiss
+  setTimeout(() => {
+    document.addEventListener('pointerdown', _emojiOutside, { once: false, capture: true });
+  }, 0);
+}
+function _emojiOutside(ev){
+  const pop = document.getElementById('emojiPickerPop');
+  if(!pop) {
+    document.removeEventListener('pointerdown', _emojiOutside, true);
+    return;
+  }
+  if(pop.contains(ev.target)) return;
+  pop.remove();
+  document.removeEventListener('pointerdown', _emojiOutside, true);
+}
+function pickPageEmoji(key, em){
+  if(!S.settings) S.settings = {};
+  if(!S.settings.pageEmojis || typeof S.settings.pageEmojis !== 'object') S.settings.pageEmojis = {};
+  if(em) S.settings.pageEmojis[key] = em;
+  else delete S.settings.pageEmojis[key];
+  save();
+  applyPageEmojis();
+  const pop = document.getElementById('emojiPickerPop');
+  if(pop) pop.remove();
+  document.removeEventListener('pointerdown', _emojiOutside, true);
 }
 
 function setAccentColor(color, btn){

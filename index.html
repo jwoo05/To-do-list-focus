@@ -471,7 +471,12 @@ document.addEventListener('DOMContentLoaded', () => {
     <section class="page" id="page-todo">
       <div class="view-header">
         <div>
-          <div class="view-title">Todo List</div>
+          <div class="view-title">
+            <button class="title-emoji" id="todoEmojiBtn" type="button"
+              title="Click to change the icon" aria-label="Change page icon"
+              onclick="openEmojiPicker(event,'todoListEmoji')">✏️</button>
+            <span>Todo List</span>
+          </div>
           <div class="view-sub">Task bank · selected day's work · calendar — drag tasks onto dates to schedule.</div>
         </div>
         <div class="view-actions">
@@ -576,6 +581,12 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
             </div>
           </div>
+          <!-- Drag handle between the calendar grid and the selected-day
+               task card. Pull up = grow the day card / shrink calendar;
+               pull down = the opposite. Persists in S.settings.calSplit. -->
+          <div class="cal-split-resize" id="calSplitResize"
+               title="Drag to resize the calendar"
+               onpointerdown="startCalSplitResize(event)"></div>
           <div class="cal-day-tasks" id="calDayTasks"></div>
         </div>
       </div>
