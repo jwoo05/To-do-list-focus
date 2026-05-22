@@ -31,7 +31,10 @@ const DEF = {
   settings:{
     theme:'dark', name:'Jay', appName:'Focus Hub', appSubtitle:'Productivity planner',
     welcomeSeen:false, activeStart:null, focusGoal:'', alarmSound:'chime',
-    pomo:{ presetMode:'classic', focus:25, shortBreak:5, longBreak:15, cycles:4 }
+    pomo:{ presetMode:'classic', focus:25, shortBreak:5, longBreak:15, cycles:4 },
+    // How many all-day items to show per week-view column before
+    // collapsing into "+N more". User-adjustable via the all-day gutter.
+    alldayCap: 3
   }
 };
 
@@ -4630,6 +4633,16 @@ function toggleAlldayColumn(ds){
   renderWeekView();
 }
 
+// Adjust the global all-day cap (how many items are shown per column
+// before "+N more" appears). Persisted in S.settings.alldayCap.
+function setAlldayCap(n){
+  const cap = Math.max(1, Math.min(20, Number(n) || 3));
+  if(!S.settings) S.settings = {};
+  S.settings.alldayCap = cap;
+  save();
+  renderWeekView();
+}
+
 function renderWeekView(){
   const grid = document.getElementById('calWeekGrid');
   const dayhead = document.getElementById('calWeekDayhead');
@@ -4654,7 +4667,24 @@ function renderWeekView(){
   }
   const today = todayStr();
   const hours = WEEK_END_HOUR - WEEK_START_HOUR;
-  const gridHeight = hours * WEEK_HOUR_PX;
+  // Dynamic hour height — measure the available space inside the
+  // .cal-week-wrap (its column's height minus dayhead + allday) and
+  // size hourPx so all 18 hours fit in one view without scrolling.
+  // Falls back to the fixed WEEK_HOUR_PX (56) if the wrap is smaller
+  // than the minimum readable height (so scroll still works on phones).
+  const _wrap = wrap;
+  const _dayhead = dayhead;
+  const _allday  = allday;
+  let hourPx = WEEK_HOUR_PX;
+  if(_wrap){
+    const wrapH    = _wrap.clientHeight;
+    const dayheadH = _dayhead ? _dayhead.offsetHeight : 0;
+    const alldayH  = _allday  ? _allday.offsetHeight  : 0;
+    const avail    = wrapH - dayheadH - alldayH - 8; // 8px gap budget
+    const fit      = Math.floor(avail / hours);
+    if(fit >= 26) hourPx = fit;   // 26 ≈ minimum readable hour row
+  }
+  const gridHeight = hours * hourPx;
 
   // Day headers
   dayhead.innerHTML = `<div class="cwk-time-cell"></div>` + days.map(d=>{
@@ -4669,13 +4699,21 @@ function renderWeekView(){
   }).join('');
 
   // All-day strip (tasks/events without a specific time).
-  // Cap each column at 3 visible items; surplus collapses into a "+N more"
-  // button that toggles the column open. Persists across re-renders.
+  // Cap each column at `alldayCap` items (user-adjustable, persisted in
+  // S.settings.alldayCap). Surplus collapses into a "+N more" button.
   const showTasks = calViewMode !== 'events';
-  const ALLDAY_CAP = 3;
+  const ALLDAY_CAP = Math.max(1, Math.min(20, Number(S.settings?.alldayCap) || 3));
   if(!window._alldayExpanded) window._alldayExpanded = new Set();
   let alldayHasContent = false;
-  allday.innerHTML = `<div class="cwk-time-cell"><span>all day</span></div>` + days.map(d => {
+  // Gutter cell shows the current cap with − / + buttons so the user can
+  // tune how dense the all-day strip feels without opening Settings.
+  const gutter = `
+    <div class="cwk-time-cell cwk-allday-gutter" title="All-day items per day (click − / + to adjust)">
+      <button type="button" class="cwk-cap-btn" onclick="setAlldayCap(${ALLDAY_CAP - 1})" ${ALLDAY_CAP<=1?'disabled':''}>−</button>
+      <span class="cwk-cap-num">${ALLDAY_CAP}</span>
+      <button type="button" class="cwk-cap-btn" onclick="setAlldayCap(${ALLDAY_CAP + 1})" ${ALLDAY_CAP>=20?'disabled':''}>+</button>
+    </div>`;
+  allday.innerHTML = gutter + days.map(d => {
     const items = collectAllDayItems(d.ds);
     if(items.length) alldayHasContent = true;
     const expanded = window._alldayExpanded.has(d.ds);
@@ -4702,7 +4740,7 @@ function renderWeekView(){
   // absolutely positioned blocks.
   let gridHtml = `<div class="cwk-time-col" style="height:${gridHeight}px">`;
   for(let h = WEEK_START_HOUR; h < WEEK_END_HOUR; h++){
-    const y = (h - WEEK_START_HOUR) * WEEK_HOUR_PX;
+    const y = (h - WEEK_START_HOUR) * hourPx;
     const period = h<12 ? 'AM' : 'PM';
     const hr = h===0 ? 12 : (h>12 ? h-12 : h);
     gridHtml += `<div class="cwk-hour-label" style="top:${y}px">${hr} ${period}</div>`;
@@ -4712,8 +4750,8 @@ function renderWeekView(){
   for(const d of days){
     const items = collectTimedItems(d.ds);
     const blocks = items.map(it => {
-      const top = (it.startMin - WEEK_START_HOUR*60) * (WEEK_HOUR_PX/60);
-      const height = Math.max(22, it.durationMin * (WEEK_HOUR_PX/60));
+      const top = (it.startMin - WEEK_START_HOUR*60) * (hourPx/60);
+      const height = Math.max(20, it.durationMin * (hourPx/60));
       const startStr = fmtTime12(`${String(Math.floor(it.startMin/60)).padStart(2,'0')}:${String(it.startMin%60).padStart(2,'0')}`);
       const endStr   = fmtTime12(`${String(Math.floor((it.startMin+it.durationMin)/60)).padStart(2,'0')}:${String((it.startMin+it.durationMin)%60).padStart(2,'0')}`);
       const focusBadge = it.isFocus && it.taskIds.length
@@ -4727,7 +4765,7 @@ function renderWeekView(){
     // Hour gridlines
     let lines = '';
     for(let h = WEEK_START_HOUR; h < WEEK_END_HOUR; h++){
-      lines += `<div class="cwk-line" style="top:${(h-WEEK_START_HOUR)*WEEK_HOUR_PX}px"></div>`;
+      lines += `<div class="cwk-line" style="top:${(h-WEEK_START_HOUR)*hourPx}px"></div>`;
     }
 
     // Current-time indicator (red line) if today
@@ -4736,7 +4774,7 @@ function renderWeekView(){
       const now = new Date();
       const nowMin = now.getHours()*60 + now.getMinutes();
       if(nowMin >= WEEK_START_HOUR*60 && nowMin < WEEK_END_HOUR*60){
-        const y = (nowMin - WEEK_START_HOUR*60) * (WEEK_HOUR_PX/60);
+        const y = (nowMin - WEEK_START_HOUR*60) * (hourPx/60);
         nowLine = `<div class="cwk-now" style="top:${y}px"></div>`;
       }
     }
@@ -4755,10 +4793,11 @@ function renderWeekView(){
 
   grid.innerHTML = gridHtml;
 
-  // Scroll to ~8 AM on first render so users land on the working day
+  // Scroll to ~8 AM on first render — only if the grid is taller than the
+  // visible scroll area. With dynamic hourPx it usually fits in one view.
   const scroll = grid.parentElement;
-  if(scroll && !scroll.dataset.scrolled){
-    scroll.scrollTop = Math.max(0, (8 - WEEK_START_HOUR) * WEEK_HOUR_PX - 20);
+  if(scroll && !scroll.dataset.scrolled && gridHeight > scroll.clientHeight){
+    scroll.scrollTop = Math.max(0, (8 - WEEK_START_HOUR) * hourPx - 20);
     scroll.dataset.scrolled = '1';
   }
 }
@@ -5715,6 +5754,18 @@ function checkThursdayReview(){
 
   // Refresh EOPR every minute
   setInterval(updateEOPR, 60000);
+
+  // Re-fit the week-view calendar when the window resizes, so the hour
+  // grid keeps fitting in one view at any viewport height. Debounced.
+  let _resizeT = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(_resizeT);
+    _resizeT = setTimeout(() => {
+      if(document.getElementById('calWeekWrap')?.offsetParent !== null){
+        renderWeekView();
+      }
+    }, 80);
+  });
 
   // Re-render at midnight for habit reset
   const msToMidnight=()=>{

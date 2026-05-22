@@ -1162,7 +1162,10 @@ label {
 }
 #workbenchBank     { flex: 1 1 260px; min-width: 180px; }
 #workbenchToday    { flex: 1.4 1 320px; min-width: 220px; }
-#workbenchCalendar { flex: 1.1 1 280px; min-width: 200px; }
+/* Calendar column: doesn't scroll itself — the hour grid inside fits
+   exactly the available height (dynamic hourPx in JS). Bottom edge
+   aligns with the other two columns. */
+#workbenchCalendar { flex: 1.1 1 280px; min-width: 200px; overflow: hidden; }
 .workbench-col.collapsed {
   flex: 0 0 38px !important;
   min-width: 38px !important;
@@ -1270,9 +1273,28 @@ label {
 
 /* workbench hosted bank / cal */
 .workbench .bank,
-.workbench .cal-panel { width: 100%; display: block; overflow: visible; border: 1px solid var(--border); border-radius: var(--radius); flex-shrink: 0; }
-.workbench .bank-body,
-.workbench .cal-body  { overflow: visible; padding: 10px; }
+.workbench .cal-panel { width: 100%; overflow: visible; border: 1px solid var(--border); border-radius: var(--radius); flex-shrink: 0; }
+.workbench .bank { display: block; }
+/* Calendar panel becomes a flex column so its inner .cal-body and
+   .cal-week-wrap can grow to fill the column's height. This is what
+   lets the week/day hour grid fit in one view (no scroll) and aligns
+   the calendar's bottom edge with the To-Do Bank / Daily List bottoms. */
+.workbench .cal-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+}
+.workbench .bank-body { overflow: visible; padding: 10px; }
+.workbench .cal-body  {
+  overflow: visible;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  gap: 6px;
+}
 .workbench #secArchive:not(.collapsed) > .sec-body { display: block !important; }
 
 /* ── DASHBOARD ── */
@@ -3209,8 +3231,12 @@ label {
   border-radius: var(--radius);
   background: var(--surface);
   overflow: hidden;
-  height: calc(100vh - 220px);
-  min-height: 480px;
+  /* Fill the parent column's available height so the calendar bottom
+     aligns with the To-Do Bank / Daily List bottoms. The hour grid
+     inside compresses its rows to fit (see dynamic hourPx in JS). */
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
 }
 /* Day header row */
 .cal-week-dayhead,
@@ -3333,6 +3359,40 @@ label {
 }
 .cwk-allday-more:hover { background: var(--bg3); color: var(--text); }
 .cwk-allday-col.expanded { overflow: visible; }
+
+/* Adjustable cap control in the all-day gutter — small − / + with the
+   current cap number between them. Calm Notion micro-control. */
+.cwk-allday-gutter {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 2px 4px !important;
+}
+.cwk-cap-btn {
+  width: 16px; height: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 4px;
+  color: var(--text3);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0;
+  font-family: inherit;
+  transition: border-color var(--tr), color var(--tr), background var(--tr);
+}
+.cwk-cap-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--bg2); }
+.cwk-cap-btn:disabled { opacity: .4; cursor: not-allowed; }
+.cwk-cap-num {
+  font-size: 11px !important;
+  font-weight: 420 !important;
+  color: var(--text);
+  min-width: 12px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
 
 /* Scrollable hour grid */
 .cal-week-scroll {
