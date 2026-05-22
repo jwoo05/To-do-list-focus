@@ -3620,7 +3620,7 @@ label {
 }
 html, body {
   font-family: var(--font-ui);
-  font-weight: 380;
+  font-weight: 420;
   letter-spacing: -0.003em;
   font-feature-settings: "kern" 1, "calt" 1, "ss01" 1;
   -webkit-font-smoothing: antialiased;
@@ -3631,14 +3631,11 @@ html, body {
 }
 button, input, select, textarea { font-family: var(--font-ui); font-synthesis: none; }
 
-/* Cap weight everywhere — anything that was 700/800 collapses to 500.
-   We keep `strong`/`b` and Source-Serif displays slightly heavier (550)
-   so emphasis still reads, just calmer.
-   `!important` is unavoidable here: many existing rules use 700/800 with
-   high specificity (.clt-opt, .cvt-opt, .nav-item, .cal-day-name, .chip…)
-   and we want a uniform Notion-light feel across all of them. */
+/* Notion-style weight ramp: 420 body, 540 emphasis, 600 serif display.
+   `!important` is unavoidable here — many existing rules used 700/800
+   with class-level specificity that beats `body *`. */
 body, body * {
-  font-weight: 380 !important;
+  font-weight: 420 !important;
 }
 body h1, body h2, body h3, body h4, body h5, body h6,
 .modal-title, .nav-item, .sec-title, .sub-sec-title, .bank-title, .dash-title,
@@ -3655,24 +3652,25 @@ body h1, body h2, body h3, body h4, body h5, body h6,
 .modal-section-title,
 .carry-mini-title, .mt-tab-label,
 strong, b {
-  font-weight: 500 !important;
+  font-weight: 540 !important;
 }
-/* Source-Serif display text gets a touch more presence */
+/* Source-Serif display titles ("Todo List", review numbers, pomo time) */
+.view-title,
 .review-value, .success-center strong, .health-cell strong, .mini-stat strong,
 .pomo-big-time, .pomo-task-name, .modal-title, .thu-title, .guide-card strong {
-  font-weight: 550 !important;
+  font-weight: 600 !important;
   font-family: var(--font-serif);
   letter-spacing: -0.01em;
 }
-/* Uppercase micro-labels: lighter, more letter-spacing — Notion-style */
+/* Uppercase micro-labels — calm but legible */
 .bank-title, .sec-title, .sub-sec-title, .dash-title, .hud-panel-title,
 .cal-day-name, .cal-day-title, .cal-hover-title, .archive-subgroup-header,
 .review-label, .carry-mini-title {
-  font-weight: 450 !important;
+  font-weight: 500 !important;
   letter-spacing: 0.10em;
   color: var(--text3);
 }
-/* Body / list text: a calm 380 (Notion-light) */
+/* Body / list text: 420 — Notion's actual body weight */
 .bank-task-title, .dash-row-title, .dash-task-title, .dash-row-sub,
 .task-title, .archived-title,
 .cal-hover-item, .cal-quick-add .cqa-title, .modal-body, .dash-task-meta,
@@ -3680,23 +3678,23 @@ strong, b {
 .task-item, .task-text, .subtask-line, .archived-task,
 .modal-input, .modal-textarea, .modal-select, input, textarea, select,
 .dash-task-row, .dash-task-row span {
-  font-weight: 380 !important;
+  font-weight: 420 !important;
 }
-/* Active nav stays a hair heavier so it reads as selected */
-.nav-item.active { font-weight: 500 !important; }
-/* Toasts: lighter */
-.toast, .toast-msg { font-weight: 380 !important; }
-/* Chips: airy. chip-time-left gets its own (400) rule earlier — leave it alone. */
-.chip { font-weight: 430 !important; }
-/* Open Todo / standard small buttons inherit the calm weight, not bold */
-.btn, .btn-sm, .btn-ghost, .btn-primary, button { font-weight: 430 !important; }
+/* Active nav stays heavier so it reads as selected */
+.nav-item.active { font-weight: 540 !important; }
+/* Toasts */
+.toast, .toast-msg { font-weight: 420 !important; }
+/* Chips: light but readable. chip-time-left has its own rule earlier. */
+.chip { font-weight: 460 !important; }
+/* Buttons: clearly readable, not bold */
+.btn, .btn-sm, .btn-ghost, .btn-primary, button { font-weight: 470 !important; }
 
-/* Calendar — week view: numbers stay airy, day-of-week micro-labels stay
-   subdued. All-day chips render in their own colors but always at light
-   weight so they recede into the canvas. */
+/* Calendar — week view */
 .cwk-num, .cwk-num *,
-.cwk-day-header.today .cwk-num { font-weight: 380 !important; letter-spacing: -0.01em; }
-.cwk-dow, .cal-day-name { font-weight: 420 !important; letter-spacing: 0.12em; }
-.cwk-allday-item, .cal-mini-chip, .cal-mini-chip.exam { font-weight: 400 !important; }
-.cwk-allday-more { font-weight: 420 !important; }
-.cal-num { font-weight: 400 !important; }
+.cwk-day-header.today .cwk-num { font-weight: 460 !important; letter-spacing: -0.01em; }
+.cwk-dow, .cal-day-name { font-weight: 500 !important; letter-spacing: 0.12em; }
+.cwk-allday-item, .cal-mini-chip, .cal-mini-chip.exam { font-weight: 440 !important; }
+.cwk-allday-more { font-weight: 470 !important; }
+.cal-num { font-weight: 450 !important; }
+/* Calendar month label ("May 17 – 23, 2026") — Notion-style serif */
+.cal-month, .cal-month-label { font-weight: 500 !important; font-family: var(--font-serif); letter-spacing: -0.005em; }
