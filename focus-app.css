@@ -655,17 +655,20 @@ label {
 .btn-ghost:hover { background: var(--bg2); color: var(--text); }
 
 /* ── CHIPS ── */
-.chip { display: inline-flex; align-items: center; padding: 1px 5px; border-radius: 2px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
-.chip-must   { background: var(--must-dim);          color: var(--must); }
-.chip-high   { background: rgba(168,84,24,.09);      color: var(--orange); }
-.chip-medium { background: rgba(42,107,68,.07);      color: var(--green); }
-.chip-low    { background: rgba(90,74,136,.09);      color: var(--purple); }
-.chip-due    { background: var(--bg3);               color: var(--text3); }
-.chip-due.due-soon-red { background: var(--must-dim); color: var(--red); }
-.chip-due.due-soon-yellow { background: rgba(168,84,24,.11); color: var(--orange); }
-.chip-due.due-soon-green { background: rgba(42,107,68,.09); color: var(--green); }
-.chip-habit  { background: rgba(90,74,136,.09);      color: var(--purple); }
-.chip-unassigned { background: var(--accent-dim); color: var(--accent); }
+/* Notion-style chips: rounded square, soft pastel background, low-contrast
+   matched text, no uppercase shouting, no bold. Use the same palette as
+   the time-left chips so the row reads as one calm visual system. */
+.chip { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: 4px; font-size: 10px; font-weight: 430; text-transform: none; letter-spacing: 0; }
+.chip-must   { background: #fdebec;  color: #a52822; }
+.chip-high   { background: #fbecdd;  color: #955a04; }
+.chip-medium { background: #edf3ec;  color: #316644; }
+.chip-low    { background: #f4f0f7;  color: #6940a5; }
+.chip-due    { background: #ececeb;  color: #6b6b6b; }
+.chip-due.due-soon-red    { background: #fdebec;  color: #a52822; }
+.chip-due.due-soon-yellow { background: #fbf3db;  color: #886a13; }
+.chip-due.due-soon-green  { background: #edf3ec;  color: #316644; }
+.chip-habit       { background: #f4f0f7;  color: #6940a5; }
+.chip-unassigned  { background: #e7f3f8;  color: #2c5d80; }
 
 /* ── PROGRESS ── */
 .progress-bar-wrap { padding: 9px 14px; border-bottom: 1px solid var(--border); }
@@ -678,7 +681,7 @@ label {
 /* ── BANK ── */
 .bank { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
 .bank-header { padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-.bank-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); }
+.bank-title { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .12em; color: var(--text3); }
 .bank-body { padding: 10px; }
 .bank-add {
   width: 100%; text-align: left;
@@ -718,35 +721,38 @@ label {
 .bmt-opt:hover { color: var(--text); }
 .bmt-opt.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.07); }
 
-/* Urgency: left edge stripe + subtle background tint per item */
-.bank-task[data-urgency] { border-left: 4px solid transparent; }
-.bank-task[data-urgency="overdue"] {
-  border-left-color: var(--must);
-  background: linear-gradient(90deg, var(--must-dim) 0%, var(--bg2) 28%);
-}
-.bank-task[data-urgency="urgent"]  { border-left-color: var(--orange); background: linear-gradient(90deg, rgba(245,144,64,.18) 0%, var(--bg2) 28%); }
-.bank-task[data-urgency="soon"]    { border-left-color: var(--yellow); background: linear-gradient(90deg, rgba(233,196,106,.16) 0%, var(--bg2) 28%); }
-.bank-task[data-urgency="week"]    { border-left-color: var(--accent); }
-.bank-task[data-urgency="far"]     { border-left-color: var(--green); opacity: .92; }
-.bank-task[data-urgency="no-due"]  { border-left-color: var(--text3); opacity: .82; }
+/* Urgency: a 2px stripe in Notion-palette muted tones. The time-left chip
+   carries the primary signal — the stripe is a quiet secondary cue. */
+.bank-task[data-urgency] { border-left: 2px solid transparent; background: var(--bg2); }
+.bank-task[data-urgency="overdue"] { border-left-color: #d9787a; }
+.bank-task[data-urgency="urgent"]  { border-left-color: #d2974a; }
+.bank-task[data-urgency="soon"]    { border-left-color: #d2b14a; }
+.bank-task[data-urgency="week"]    { border-left-color: #7ea5c4; }
+.bank-task[data-urgency="far"]     { border-left-color: #8db49a; opacity: .96; }
+.bank-task[data-urgency="no-due"]  { border-left-color: #cfcfce; opacity: .9; }
 
-/* Time-left chip — colored by urgency */
+/* Time-left chip — Notion-palette colored pill. Muted background, low-
+   contrast text, no border, no bold. Sits at the row's right edge as a
+   soft typographic signal rather than a colored alarm. */
 .chip-time-left {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .02em;
-  padding: 2px 8px;
-  border-radius: 10px;
+  font-size: 10px !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  padding: 1px 8px !important;
+  border-radius: 4px !important;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
   margin-left: auto;
+  border: none !important;
+  box-shadow: none !important;
 }
-.chip-time-left.u-overdue { background: var(--must); color: #fff; }
-.chip-time-left.u-urgent  { background: var(--orange); color: #fff; }
-.chip-time-left.u-soon    { background: var(--yellow); color: var(--text); }
-.chip-time-left.u-week    { background: var(--accent); color: #fff; }
-.chip-time-left.u-far     { background: rgba(77,212,154,.18); color: var(--green); }
-.chip-time-left.u-no-due  { background: var(--bg3); color: var(--text3); }
+.chip-time-left.u-overdue { background: #fdebec !important; color: #a52822 !important; }
+.chip-time-left.u-urgent  { background: #fbecdd !important; color: #955a04 !important; }
+.chip-time-left.u-soon    { background: #fbf3db !important; color: #886a13 !important; }
+.chip-time-left.u-week    { background: #e7f3f8 !important; color: #2c5d80 !important; }
+.chip-time-left.u-far     { background: #edf3ec !important; color: #316644 !important; }
+.chip-time-left.u-no-due  { background: #ececeb !important; color: #6b6b6b !important; }
 
 /* Event-mode row: accent dot, distinct chip palette */
 .bank-event { --event-accent: var(--accent); }
@@ -870,7 +876,7 @@ label {
 .drag-cue { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 20px; color: var(--text3); font-size: 12px; cursor: grab; flex-shrink: 0; opacity: .55; transition: opacity var(--tr), color var(--tr); }
 .bank-task:hover .drag-cue { color: var(--accent); opacity: 1; }
 .drag-hint { margin-left: auto; font-size: 9px; color: var(--text3); border: 1px solid var(--border); border-radius: 999px; padding: 2px 5px; text-transform: uppercase; letter-spacing: .04em; flex-shrink: 0; }
-.bank-task-title { font-size: 12px; font-weight: 400; line-height: 1.4; margin-bottom: 5px; color: var(--text); }
+.bank-task-title { font-size: 12px; font-weight: 400; line-height: 1.4; margin-bottom: 5px; color: var(--text); letter-spacing: .005em; }
 .bank-task-meta { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .bank-task-actions {
   position: absolute;
@@ -883,6 +889,41 @@ label {
 }
 .bank-task:hover .bank-task-actions { opacity: 1; }
 .bank-task .bank-task-meta { padding-right: 56px; }
+
+/* Quick complete checkbox in bank rows — small, calm, only colored on hover */
+.bank-task-cb {
+  width: 16px; height: 16px; flex-shrink: 0;
+  border: 1.5px solid var(--border2);
+  border-radius: 5px;
+  background: var(--surface);
+  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: transparent;
+  font-size: 11px; line-height: 1;
+  transition: border-color var(--tr), background var(--tr), color var(--tr);
+  margin-top: 2px;
+}
+.bank-task-cb:hover { border-color: var(--green); color: var(--green); }
+.bank-task.completed-flash .bank-task-cb { background: var(--green); border-color: var(--green); color: #fff; }
+
+/* Tiny × quick-delete in the top-right of every bank row */
+.bank-task-x {
+  position: absolute;
+  top: 6px; right: 6px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text3);
+  font-size: 12px; line-height: 1;
+  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transition: opacity var(--tr), background var(--tr), color var(--tr);
+  z-index: 2;
+}
+.bank-task:hover .bank-task-x { opacity: .9; }
+.bank-task-x:hover { background: rgba(229,109,109,.12); color: var(--must); opacity: 1; }
 
 /* ── CALENDAR ── */
 .cal-panel { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
@@ -958,7 +999,7 @@ label {
 }
 .cal-cell > * { pointer-events: none; }
 .cal-cell:hover { background: var(--bg3); }
-.cal-cell.today { background: var(--accent-dim); color: var(--accent); font-weight: 700; border-color: var(--accent); }
+.cal-cell.today { background: var(--accent-dim); color: var(--accent); font-weight: 450 !important; border-color: var(--accent); }
 .cal-cell.selected { border-color: var(--accent); }
 .cal-cell.has-tasks::after { content: ''; position: absolute; bottom: 2px; right: 3px; width: 3px; height: 3px; border-radius: 50%; background: var(--accent); }
 .cal-cell.has-tasks::after { content: ''; position: absolute; bottom: 2px; right: 3px; width: 3px; height: 3px; border-radius: 50%; background: var(--accent); }
@@ -1027,6 +1068,78 @@ label {
 .cal-hover-item.test .cal-hover-dot { background: var(--must); }
 .cal-hover-item.habit .cal-hover-dot { background: var(--purple); }
 .cal-hover-meta { display: block; color: var(--text3); font-size: 9px; margin-top: 1px; text-transform: uppercase; letter-spacing: .04em; }
+
+/* Google-Calendar-style quick-add popover (opens on calendar dbl-click) */
+.cal-quick-add {
+  position: fixed;
+  z-index: 980;
+  min-width: 280px;
+  max-width: 320px;
+  padding: 14px 14px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  display: none;
+  animation: toastLift .15s ease;
+}
+.cal-quick-add.show { display: block; }
+.cal-quick-add .cqa-date {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+.cal-quick-add .cqa-title {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 14px;
+  font-weight: 500;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.cal-quick-add .cqa-title:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+.cal-quick-add .cqa-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
+.cal-quick-add .cqa-row label { font-size: 10px; color: var(--text3); min-width: 38px; text-transform: uppercase; letter-spacing: .08em; }
+.cal-quick-add .cqa-row input, .cal-quick-add .cqa-row select {
+  flex: 1;
+  padding: 5px 7px;
+  font-size: 12px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+}
+.cal-quick-add .cqa-actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 8px; }
+.cal-quick-add .cqa-btn {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text);
+}
+.cal-quick-add .cqa-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.cal-quick-add .cqa-more {
+  font-size: 10px;
+  color: var(--text3);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  margin-right: auto;
+  padding: 0;
+}
+.cal-quick-add .cqa-more:hover { color: var(--accent); }
+.cal-cell.dragging-quick { background: var(--accent-dim); }
 
 /* ── WORKBENCH ── */
 .workbench {
@@ -3144,25 +3257,26 @@ label {
 .cwk-day-header.today .cwk-num {
   background: var(--accent);
   color: #fff;
-  width: 28px; height: 28px;
+  width: 26px; height: 26px;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-weight: 700;
+  font-weight: 450 !important;
 }
 .cwk-day-header.selected { background: var(--accent-dim); }
 .cwk-dow {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 9px;
+  font-weight: 420 !important;
   text-transform: uppercase;
-  letter-spacing: .06em;
+  letter-spacing: .12em;
   color: var(--text3);
 }
 .cwk-num {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 380 !important;
   color: var(--text);
-  width: 28px; height: 28px;
+  width: 26px; height: 26px;
   display: flex; align-items: center; justify-content: center;
+  letter-spacing: -0.01em;
 }
 
 /* All-day strip */
@@ -3184,21 +3298,41 @@ label {
   color: var(--accent);
   border: none;
   border-radius: 4px;
-  padding: 3px 6px;
+  padding: 2px 6px;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 400 !important;
+  letter-spacing: -0.005em;
   text-align: left;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: pointer;
   font-family: inherit;
-  transition: filter var(--tr);
+  transition: filter var(--tr), background var(--tr);
 }
-.cwk-allday-item:hover { filter: brightness(1.15); }
-.cwk-allday-item.sig-exam { background: var(--must-dim); color: var(--must); }
-.cwk-allday-item.sig-due { background: rgba(245,144,64,.18); color: var(--orange); }
-.cwk-allday-item.sig-habit { background: rgba(176,127,255,.18); color: var(--purple); }
+.cwk-allday-item:hover { filter: brightness(1.05); }
+.cwk-allday-item.sig-exam  { background: var(--must-dim);            color: var(--must); }
+.cwk-allday-item.sig-due   { background: rgba(245,144,64,.14);       color: var(--orange); }
+.cwk-allday-item.sig-habit { background: rgba(176,127,255,.14);      color: var(--purple); }
+
+/* "+N more" / "Show less" expander — sits inside the column, visually
+   subordinate to real items so a busy day stays scannable. */
+.cwk-allday-more {
+  background: transparent;
+  border: none;
+  color: var(--text3);
+  font-size: 9px;
+  font-weight: 420 !important;
+  letter-spacing: .04em;
+  padding: 2px 6px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: inherit;
+  transition: background var(--tr), color var(--tr);
+}
+.cwk-allday-more:hover { background: var(--bg3); color: var(--text); }
+.cwk-allday-col.expanded { overflow: visible; }
 
 /* Scrollable hour grid */
 .cal-week-scroll {
@@ -3411,3 +3545,98 @@ label {
   .cwk-block-time { font-size: 9px; }
   .cwk-allday-item { font-size: 9px; }
 }
+
+/* ════════════════════════════════════════════════════════════
+ *  NOTION-LIKE TYPOGRAPHY OVERRIDES
+ *  Appended last so it wins the cascade. Caps heavy weights
+ *  globally, switches to a more Notion-style system stack
+ *  with proper kerning + ligatures, and disables synthetic
+ *  bold so the type stays crisp at small sizes.
+ * ════════════════════════════════════════════════════════════ */
+:root {
+  --font-ui: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+             "Helvetica Neue", Inter, Arial, sans-serif;
+  --font-serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+}
+html, body {
+  font-family: var(--font-ui);
+  font-weight: 380;
+  letter-spacing: -0.003em;
+  font-feature-settings: "kern" 1, "calt" 1, "ss01" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-synthesis-weight: none;
+  font-synthesis: none;
+}
+button, input, select, textarea { font-family: var(--font-ui); font-synthesis: none; }
+
+/* Cap weight everywhere — anything that was 700/800 collapses to 500.
+   We keep `strong`/`b` and Source-Serif displays slightly heavier (550)
+   so emphasis still reads, just calmer.
+   `!important` is unavoidable here: many existing rules use 700/800 with
+   high specificity (.clt-opt, .cvt-opt, .nav-item, .cal-day-name, .chip…)
+   and we want a uniform Notion-light feel across all of them. */
+body, body * {
+  font-weight: 380 !important;
+}
+body h1, body h2, body h3, body h4, body h5, body h6,
+.modal-title, .nav-item, .sec-title, .sub-sec-title, .bank-title, .dash-title,
+.hud-panel-title, .hud-score-val, .hud-stat-num,
+.cal-day-name, .cal-day-title, .cal-hover-title, .cal-num, .cal-month-label,
+.cal-mini-chip.exam,
+.cvt-opt, .cvt-opt.active, .clt-opt, .clt-opt.active,
+.bmt-opt, .bmt-opt.active,
+.archive-subgroup-header, .archive-subgroup-header span,
+.filter-chip, .filter-chip.active,
+.review-label, .progress-pct,
+.day-btn, .pri-btn, .ical-tab, .mini-btn, .month-choice,
+.toast-action, .btn-sm,
+.modal-section-title,
+.carry-mini-title, .mt-tab-label,
+strong, b {
+  font-weight: 500 !important;
+}
+/* Source-Serif display text gets a touch more presence */
+.review-value, .success-center strong, .health-cell strong, .mini-stat strong,
+.pomo-big-time, .pomo-task-name, .modal-title, .thu-title, .guide-card strong {
+  font-weight: 550 !important;
+  font-family: var(--font-serif);
+  letter-spacing: -0.01em;
+}
+/* Uppercase micro-labels: lighter, more letter-spacing — Notion-style */
+.bank-title, .sec-title, .sub-sec-title, .dash-title, .hud-panel-title,
+.cal-day-name, .cal-day-title, .cal-hover-title, .archive-subgroup-header,
+.review-label, .carry-mini-title {
+  font-weight: 450 !important;
+  letter-spacing: 0.10em;
+  color: var(--text3);
+}
+/* Body / list text: a calm 380 (Notion-light) */
+.bank-task-title, .dash-row-title, .dash-task-title, .dash-row-sub,
+.task-title, .archived-title,
+.cal-hover-item, .cal-quick-add .cqa-title, .modal-body, .dash-task-meta,
+.bank-task-meta, .sub-sec-title + *, p, li,
+.task-item, .task-text, .subtask-line, .archived-task,
+.modal-input, .modal-textarea, .modal-select, input, textarea, select,
+.dash-task-row, .dash-task-row span {
+  font-weight: 380 !important;
+}
+/* Active nav stays a hair heavier so it reads as selected */
+.nav-item.active { font-weight: 500 !important; }
+/* Toasts: lighter */
+.toast, .toast-msg { font-weight: 380 !important; }
+/* Chips: airy. chip-time-left gets its own (400) rule earlier — leave it alone. */
+.chip { font-weight: 430 !important; }
+/* Open Todo / standard small buttons inherit the calm weight, not bold */
+.btn, .btn-sm, .btn-ghost, .btn-primary, button { font-weight: 430 !important; }
+
+/* Calendar — week view: numbers stay airy, day-of-week micro-labels stay
+   subdued. All-day chips render in their own colors but always at light
+   weight so they recede into the canvas. */
+.cwk-num, .cwk-num *,
+.cwk-day-header.today .cwk-num { font-weight: 380 !important; letter-spacing: -0.01em; }
+.cwk-dow, .cal-day-name { font-weight: 420 !important; letter-spacing: 0.12em; }
+.cwk-allday-item, .cal-mini-chip, .cal-mini-chip.exam { font-weight: 400 !important; }
+.cwk-allday-more { font-weight: 420 !important; }
+.cal-num { font-weight: 400 !important; }

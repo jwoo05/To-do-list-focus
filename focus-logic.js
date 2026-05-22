@@ -249,6 +249,43 @@ function todayStr(){
   const d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 }
 function pad(n){ return String(n).padStart(2,'0'); }
+// True when a timestamp (ms epoch) falls on the given YYYY-MM-DD local date.
+function isSameDay(ts, dateStr){
+  if(!ts || !dateStr) return false;
+  const d = new Date(Number(ts));
+  if(Number.isNaN(d.getTime())) return false;
+  return (d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())) === dateStr;
+}
+
+// True when an event "occurs" on the given YYYY-MM-DD — direct match OR
+// matches a recurring event (weekly/daily/monthly) honoring EXDATE skips
+// and recurrenceUntil. Lets iCal RRULE events render on every matching day.
+function eventOccursOn(e, ds){
+  if(!e || !ds) return false;
+  if(e.date === ds) return true;
+  if(e.exdates && e.exdates.includes(ds)) return false;
+  const rec = (e.recurrence||'').toLowerCase();
+  if(!rec || rec==='none') return false;
+  if(!e.date || ds < e.date) return false;
+  if(e.recurrenceUntil && ds > e.recurrenceUntil) return false;
+  const days = Array.isArray(e.recurrenceDays) ? e.recurrenceDays : [];
+  const targetDow = new Date(ds+'T00:00:00').getDay();
+  if(rec === 'daily') return true;
+  if(rec === 'weekly'){
+    if(days.length) return days.includes(targetDow);
+    // Fall back to same-DOW as the original start
+    return new Date(e.date+'T00:00:00').getDay() === targetDow;
+  }
+  if(rec === 'monthly'){
+    return new Date(e.date+'T00:00:00').getDate() === new Date(ds+'T00:00:00').getDate();
+  }
+  if(rec === 'yearly'){
+    const orig = new Date(e.date+'T00:00:00');
+    const t = new Date(ds+'T00:00:00');
+    return orig.getMonth()===t.getMonth() && orig.getDate()===t.getDate();
+  }
+  return false;
+}
 function fmtDate(s){
   if(!s) return ''; const d=new Date(s+'T00:00:00');
   return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
@@ -1120,7 +1157,11 @@ function renderBank(){
       ondragleave="onTaskRowDragLeave(event)"
       ondrop="onBankTaskDrop(event,'${t.id}')"
       onclick="editTask('${t.id}')">
+      <button class="bank-task-x" type="button" title="Delete task" aria-label="Delete"
+        onclick="event.stopPropagation(); deleteBankTask('${t.id}')">✕</button>
       <div class="bank-task-top">
+        <button class="bank-task-cb" type="button" title="Mark complete" aria-label="Complete"
+          onclick="event.stopPropagation(); completeBankTask('${t.id}', event.currentTarget)">✓</button>
         <span class="drag-cue" title="Drag to a calendar day">⋮⋮</span>
         <div class="bank-task-title">${esc(t.title)}</div>
         ${timeLeft ? `<span class="chip chip-time-left u-${urgency}">${esc(timeLeft)}</span>` : '<span class="drag-hint">Drag</span>'}
@@ -1251,6 +1292,87 @@ function toggleBankLimit(){
   renderBank();
 }
 
+// Quick × delete from the task bank — soft-delete (recoverable from
+// Settings → Deleted Items, identical to the modal Delete button).
+function deleteBankTask(id){
+  const t = S.tasks.find(x=>x.id===id);
+  if(!t) return;
+  softDeleteTask(id);
+}
+
+// Quick ✓ complete from the task bank — for one-off tasks this archives
+// (existing toggleTask behavior); for habits it marks today's date done
+// and, if the habit window is over, archives the habit so the bank clears.
+function completeBankTask(id, btnEl){
+  const t = S.tasks.find(x=>x.id===id);
+  if(!t) return;
+  if(btnEl){
+    const row = btnEl.closest('.bank-task');
+    if(row) row.classList.add('completed-flash');
+  }
+  // Defer just enough for the check animation to render.
+  setTimeout(()=>{
+    if(t.isHabit){
+      const today = todayStr();
+      if(!t.completedDates) t.completedDates = {};
+      t.completedDates[today] = true;
+      t.completedAt = Date.now();
+      // If the habit window has ended (or all scheduled days through habitEnd
+      // are complete), archive the habit so it leaves the bank into archive.
+      if(habitFullyCompleted(t)){
+        t.archived = true;
+        t.archivedAt = Date.now();
+        showToast(`Habit "${t.title}" completed → Archive`,'Undo',()=>{
+          t.archived = false;
+          if(t.completedDates) t.completedDates[today] = false;
+          save(); render();
+        });
+      } else {
+        showToast(`Habit "${t.title}" checked for today`,'Undo',()=>{
+          if(t.completedDates) t.completedDates[today] = false;
+          save(); render();
+        });
+      }
+    } else {
+      t.completed = true;
+      t.completedAt = Date.now();
+      t.archived = true;
+      t.archivedAt = Date.now();
+      showToast(`Completed "${t.title}" → Archive`,'Undo',()=>{
+        t.completed = false;
+        t.completedAt = null;
+        t.archived = false;
+        save(); render();
+      });
+    }
+    save(); render();
+  }, 120);
+}
+
+// A habit is "fully completed" once we've passed its habitEnd AND every
+// scheduled day inside [habitStart..habitEnd] is checked.
+function habitFullyCompleted(t){
+  if(!t || !t.isHabit) return false;
+  if(!t.habitEnd) return false;
+  const today = todayStr();
+  if(today < t.habitEnd) return false;
+  const start = t.habitStart || todayStr();
+  const days = Array.isArray(t.scheduledDays) ? t.scheduledDays : [];
+  if(!days.length) return true;
+  const cd = t.completedDates || {};
+  const d = new Date(start+'T00:00:00');
+  const end = new Date(t.habitEnd+'T00:00:00');
+  while(d <= end){
+    const dow = d.getDay();
+    if(days.includes(dow)){
+      const ds = d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+      if(!cd[ds]) return false;
+    }
+    d.setDate(d.getDate()+1);
+  }
+  return true;
+}
+
 function priLabel(p){
   return {MUST:'⚡ MUST', high:'🔥 High', medium:'✅ Med', low:'💧 Low'}[p]||p;
 }
@@ -1265,8 +1387,12 @@ function renderCenter(){
   // Don't show a habit in the Habits sub-section if it's already taking the
   // top spot in MUST — avoids the same row appearing twice.
   const habits = scheduledWork.filter(t=>t.isHabit && t.priority!=='MUST' && !isArchivedForTodo(t));
-  const archivedTasks = S.tasks.filter(isArchivedForTodo);
-  const archivedDueSignals = completedDueSignals();
+  // Archive only shows TODAY's archived items — yesterday's stay in storage
+  // (recoverable via Settings → Deleted Items) but the day's archive is a
+  // fresh slate each morning. Keeps the panel small and ceremonious.
+  const _todayStr = todayStr();
+  const archivedTasks = S.tasks.filter(t => isArchivedForTodo(t) && isSameDay(t.archivedAt || t.completedAt, _todayStr));
+  const archivedDueSignals = completedDueSignals().filter(({date}) => date === _todayStr);
   syncSortControls();
 
   const mustIncomplete = must.some(t=>!isTaskDone(t,today));
@@ -1346,12 +1472,14 @@ function renderCenter(){
     ? habits.map(t=>taskItemHTML(t,'habit',today)).join('')
     : `<div class="sec-drop-hint">No habits for today. Drop a task here to make a habit.</div>`;
 
-  // Archive
+  // Archive — today's archive only. Yesterday's items are retained in
+  // storage (recoverable via Settings) but the panel shows only the
+  // current day's completions to keep the surface light.
   document.getElementById('archiveList').innerHTML = (archivedTasks.length || archivedDueSignals.length)
     ? `${archivedDueSignals.length ? `
         <div class="archive-subgroup">
           <div class="archive-subgroup-header">
-            <span>Due Dates</span>
+            <span>Due Dates · today</span>
             <span>${archivedDueSignals.length}</span>
           </div>
           ${archivedDueSignals.map(({task,date})=>`
@@ -1365,7 +1493,7 @@ function renderCenter(){
       ${archivedTasks.length ? `
         <div class="archive-subgroup">
           <div class="archive-subgroup-header">
-            <span>Completed Tasks</span>
+            <span>Completed Today</span>
             <span>${archivedTasks.length}</span>
           </div>
           ${archivedTasks.map(t=>`
@@ -1783,6 +1911,8 @@ function showToast(message, actionLabel, action){
   el.innerHTML=`<span>${esc(message)}</span>${actionLabel?`<button class="toast-action" type="button">${esc(actionLabel)}</button>`:''}`;
   if(actionLabel) el.querySelector('button').onclick=()=>{ action?.(); el.remove(); };
   stack.appendChild(el);
+  // Cap visible toasts at 3 — drop the OLDEST (top of stack) when a new one arrives.
+  while(stack.children.length > 3) stack.firstElementChild?.remove();
   setTimeout(()=>el.remove(),7000);
 }
 
@@ -2109,6 +2239,123 @@ function openAddTaskForDate(ds){
   // Focus title input shortly after opening
   setTimeout(()=>{ const el=document.getElementById('fTitle'); if(el) el.focus(); }, 100);
   openModal('mAddTask');
+}
+
+// ── Google-Calendar-style quick-add popover ─────────────────────────────
+// Spawned by double-clicking any calendar cell. Floats near the click,
+// captures a title + start/end time + kind (event/task), creates the item
+// inline, and offers a "More options…" escape hatch into the full modal.
+let _quickAddEl = null;
+function openQuickAdd(evt, ds){
+  if(evt){ evt.preventDefault?.(); evt.stopPropagation?.(); }
+  if(!ds) ds = calSelectedDate || todayStr();
+  // Single instance — close any previous
+  closeQuickAdd();
+  const el = document.createElement('div');
+  el.className = 'cal-quick-add show';
+  el.innerHTML = `
+    <div class="cqa-date">${esc(fmtDate(ds))}</div>
+    <input type="text" class="cqa-title" id="cqaTitle" placeholder="Add title (Enter to save)" autocomplete="off">
+    <div class="cqa-row">
+      <label>Kind</label>
+      <select id="cqaKind">
+        <option value="event">Event</option>
+        <option value="task">Task</option>
+      </select>
+    </div>
+    <div class="cqa-row">
+      <label>Time</label>
+      <input type="time" id="cqaStart" value="09:00">
+      <span style="font-size:10px;color:var(--text3)">–</span>
+      <input type="time" id="cqaEnd" value="10:00">
+    </div>
+    <div class="cqa-actions">
+      <button type="button" class="cqa-more" onclick="quickAddMoreOptions('${ds}')">More options…</button>
+      <button type="button" class="cqa-btn" onclick="closeQuickAdd()">Cancel</button>
+      <button type="button" class="cqa-btn primary" onclick="quickAddSave('${ds}')">Save</button>
+    </div>`;
+  document.body.appendChild(el);
+  _quickAddEl = el;
+  // Position near the click; clamp to viewport
+  const w = 300, h = 230;
+  const x = evt ? evt.clientX : (window.innerWidth/2 - w/2);
+  const y = evt ? evt.clientY : (window.innerHeight/2 - h/2);
+  const left = Math.min(window.innerWidth - w - 14, Math.max(14, x + 12));
+  const top  = Math.min(window.innerHeight - h - 14, Math.max(14, y + 12));
+  el.style.left = left + 'px';
+  el.style.top  = top  + 'px';
+  // Focus title; save on Enter, close on Esc
+  const input = el.querySelector('#cqaTitle');
+  setTimeout(()=>input?.focus(), 30);
+  el.addEventListener('keydown', (e)=>{
+    if(e.key==='Enter'){ e.preventDefault(); quickAddSave(ds); }
+    else if(e.key==='Escape'){ e.preventDefault(); closeQuickAdd(); }
+  });
+  // Close when clicking outside
+  setTimeout(()=>{
+    document.addEventListener('pointerdown', _quickAddOutside, true);
+  }, 0);
+}
+function _quickAddOutside(e){
+  if(!_quickAddEl) return;
+  if(_quickAddEl.contains(e.target)) return;
+  closeQuickAdd();
+}
+function closeQuickAdd(){
+  if(_quickAddEl){ _quickAddEl.remove(); _quickAddEl = null; }
+  document.removeEventListener('pointerdown', _quickAddOutside, true);
+}
+function quickAddMoreOptions(ds){
+  const titleVal = _quickAddEl?.querySelector('#cqaTitle')?.value || '';
+  closeQuickAdd();
+  openAddTaskForDate(ds);
+  setTimeout(()=>{ const t=document.getElementById('fTitle'); if(t && titleVal){ t.value = titleVal; } }, 120);
+}
+function quickAddSave(ds){
+  if(!_quickAddEl) return;
+  const title = (_quickAddEl.querySelector('#cqaTitle')?.value || '').trim();
+  const kind  = _quickAddEl.querySelector('#cqaKind')?.value || 'event';
+  const start = _quickAddEl.querySelector('#cqaStart')?.value || '';
+  const end   = _quickAddEl.querySelector('#cqaEnd')?.value || '';
+  if(!title){ _quickAddEl.querySelector('#cqaTitle')?.focus(); return; }
+  if(kind === 'event'){
+    const ev = {
+      id: uid(),
+      icsUid: '',
+      createdAt: Date.now(),
+      title,
+      subject: '',
+      date: ds, endDate: ds, noEndDate: false,
+      time: start, endTime: end,
+      allDay: !start,
+      recurrence: 'none', recurrenceDays: [],
+      location: '', notes: '',
+      reminder: 'none',
+      type: 'event',
+      color: eventColorForType('event')
+    };
+    S.events.push(ev);
+    showToast(`Added event "${title}" on ${fmtDate(ds)}`);
+  } else {
+    const t = {
+      id: uid(), createdAt: Date.now(),
+      title, subject: '', type: 'task',
+      priority: 'medium',
+      due: ds, scheduledDates: [ds], scheduledDays: [],
+      scheduledTime: start || '',
+      isHabit: false, notes: '', focusPoints: 0,
+      subtasks: [], progress: 0,
+      completedDates: {}, dueCompletedDates: {}, skippedDates: {},
+      habitStart: '', habitEnd: '',
+      archived: false, completed: false,
+      calendarSignal: 'due', dailySection: 'Study',
+      customOrder: Date.now()
+    };
+    S.tasks.push(t);
+    showToast(`Added task "${title}" for ${fmtDate(ds)}`);
+  }
+  closeQuickAdd();
+  save(); render();
 }
 
 function renderModalSubtasks(){
@@ -3591,6 +3838,21 @@ async function importEvents(events, sourceMeta){
     const date=ev.due||ev.dtstart||'';
     // Per-source color wins; fall back to per-event COLOR; finally type default.
     const inferredColor = sm.color || ev.color || eventColorForType(importType.type || 'event');
+    // Build a clean description that preserves Google-Calendar features
+    // (organizer, attendees, conference URL, status) inside the notes field.
+    const noteExtras = [];
+    if(ev.organizer?.name || ev.organizer?.email) noteExtras.push(`Organizer: ${ev.organizer.name || ev.organizer.email}`);
+    if(ev.attendees?.length) noteExtras.push(`Attendees: ${ev.attendees.map(a=>a.name||a.email).filter(Boolean).join(', ')}`);
+    if(ev.conferenceUrl) noteExtras.push(`Meet: ${ev.conferenceUrl}`);
+    if(ev.url) noteExtras.push(`Link: ${ev.url}`);
+    if(ev.status && ev.status!=='CONFIRMED') noteExtras.push(`Status: ${ev.status.toLowerCase()}`);
+    const combinedNotes = [ev.description||'', noteExtras.join('\n')].filter(Boolean).join('\n\n').trim();
+
+    // Detect a weekly recurrence — these become habit tasks (with scheduledDays)
+    // or recurring events (recurrence/recurrenceDays) so they show on every
+    // matching day of the calendar, not just the first.
+    const weeklyDays = rruleToScheduledDays(ev.rrule, ev.dtstart || date);
+
     if(importType.kind==='event'){
       const type=importType.type || 'event';
       const candidate={
@@ -3600,25 +3862,45 @@ async function importEvents(events, sourceMeta){
         time: ev.startTime || '',
         endTime: ev.endTime || '',
         allDay: ev.allDay !== false && !ev.startTime,
-        location:ev.location||'', notes:ev.description||'',
+        location:ev.location||'', notes: combinedNotes,
         color: inferredColor,
-        sourceId: sm.id || ''
+        sourceId: sm.id || '',
+        // Google Calendar feature preservation
+        organizer: ev.organizer || null,
+        attendees: ev.attendees || [],
+        conferenceUrl: ev.conferenceUrl || '',
+        url: ev.url || '',
+        status: ev.status || '',
+        visibility: ev.visibility || '',
+        recurrence: ev.rrule ? (ev.rrule.FREQ||'').toLowerCase() : 'none',
+        recurrenceDays: weeklyDays || [],
+        recurrenceUntil: ev.rrule?.UNTIL || '',
+        recurrenceCount: ev.rrule?.COUNT || 0,
+        exdates: ev.exdates || []
       };
       const dupe=findPossibleDuplicate(candidate,'event');
       if(dupe && await confirmDuplicate(candidate,dupe)){ skipped++; continue; }
       S.events.push(candidate);
     }else{
+      const isWeeklyRecurring = !!(weeklyDays && weeklyDays.length);
       const candidate={
         id:uid(), icsUid:ev.uid||uid(), createdAt:Date.now(),
         archived:false, completed:false, completedAt:null, completedDates:{},
         title:ev.summary, subject:'', type:'assignment',
-        priority:'medium', due:date, scheduledDates:[],
-        scheduledDays:[], scheduledTime: ev.startTime || ev.dueTime || '',
-        isHabit:false,
-        notes:ev.description||'', focusPoints:0, subtasks:[], progress:0,
+        priority:'medium', due:isWeeklyRecurring?'':date, scheduledDates:[],
+        scheduledDays: isWeeklyRecurring ? weeklyDays : [],
+        habitStart: isWeeklyRecurring ? (ev.dtstart || date || '') : '',
+        habitEnd:   isWeeklyRecurring ? (ev.rrule?.UNTIL || '') : '',
+        scheduledTime: ev.startTime || ev.dueTime || '',
+        isHabit: isWeeklyRecurring,
+        notes: combinedNotes, focusPoints:0, subtasks:[], progress:0,
         dueCompletedDates:{}, customOrder:Date.now()+added,
-        calendarSignal:'due', dailySection:'Study',
-        sourceId: sm.id || ''
+        calendarSignal: isWeeklyRecurring ? 'habit' : 'due', dailySection:'Study',
+        sourceId: sm.id || '',
+        organizer: ev.organizer || null,
+        attendees: ev.attendees || [],
+        conferenceUrl: ev.conferenceUrl || '',
+        url: ev.url || ''
       };
       const dupe=findPossibleDuplicate(candidate,'task');
       if(dupe && await confirmDuplicate(candidate,dupe)){ skipped++; continue; }
@@ -3755,6 +4037,7 @@ function confirmDuplicate(candidate,duplicate){
 function parseICS(text){
   const events=[];
   let calendarName='';
+  let calendarColor='';
   const lines=text.replace(/\r\n|\r/g,'\n').split('\n');
   const unfolded=[];
   for(const line of lines){
@@ -3763,46 +4046,127 @@ function parseICS(text){
   }
   let ev=null;
   let inCalendar=false;
-  for(const line of unfolded){
+  let inAlarm=false;
+  // Skip non-event blocks (VTIMEZONE, VFREEBUSY, VJOURNAL) so their nested
+  // SUMMARY/DTSTART lines don't bleed into the previous event. (Google
+  // exports include VTIMEZONE blocks that would otherwise corrupt parsing.)
+  let inOtherBlock=null;
+  for(const rawLine of unfolded){
+    const line=rawLine.trim();
+    if(!line) continue;
     if(line==='BEGIN:VCALENDAR'){ inCalendar=true; continue; }
     if(line==='END:VCALENDAR'){ inCalendar=false; continue; }
-    if(line==='BEGIN:VEVENT'){ev={};continue;}
-    if(line==='END:VEVENT'){if(ev)events.push(ev);ev=null;continue;}
+    if(line==='BEGIN:VALARM'){ inAlarm=true; continue; }
+    if(line==='END:VALARM'){ inAlarm=false; continue; }
+    if(line==='BEGIN:VTIMEZONE' || line==='BEGIN:STANDARD' || line==='BEGIN:DAYLIGHT' ||
+       line==='BEGIN:VFREEBUSY' || line==='BEGIN:VJOURNAL'){
+      inOtherBlock = line.replace('BEGIN:','');
+      continue;
+    }
+    if(inOtherBlock && line==='END:'+inOtherBlock){ inOtherBlock=null; continue; }
+    if(inOtherBlock) continue;
+    if(line==='BEGIN:VEVENT' || line==='BEGIN:VTODO'){ ev={ _isTodo: line==='BEGIN:VTODO' }; continue; }
+    if(line==='END:VEVENT' || line==='END:VTODO'){ if(ev) events.push(ev); ev=null; continue; }
+    if(inAlarm) continue;
     const col=line.indexOf(':');
     if(col<0) continue;
     const key=line.slice(0,col), val=line.slice(col+1);
+    const bareKey = key.split(';')[0].toUpperCase();
     // Calendar-level properties (only valid outside a VEVENT)
     if(!ev && inCalendar){
-      if(key.startsWith('X-WR-CALNAME')) calendarName = unescapeICS(val).trim();
+      if(bareKey==='X-WR-CALNAME') calendarName = unescapeICS(val).trim();
+      else if(bareKey==='X-APPLE-CALENDAR-COLOR' || bareKey==='COLOR' || bareKey==='X-WR-CALCOLOR') calendarColor = val.trim();
       continue;
     }
     if(!ev) continue;
-    if(key.startsWith('DTSTART')){
-      const parsed = parseICSDateTime(val);
-      ev.dtstart = parsed.date;
-      ev.startTime = parsed.time;
-      ev.allDay = parsed.allDay;
+    switch(bareKey){
+      case 'DTSTART': {
+        const parsed = parseICSDateTime(val);
+        ev.dtstart = parsed.date;
+        ev.startTime = parsed.time;
+        ev.allDay = parsed.allDay;
+        break;
+      }
+      case 'DTEND': {
+        const parsed = parseICSDateTime(val);
+        ev.dtend = parsed.date;
+        ev.endTime = parsed.time;
+        break;
+      }
+      case 'DUE': {
+        const parsed = parseICSDateTime(val);
+        ev.due = parsed.date;
+        if(parsed.time) ev.dueTime = parsed.time;
+        break;
+      }
+      case 'SUMMARY':       ev.summary     = unescapeICS(val); break;
+      case 'DESCRIPTION':   ev.description = unescapeICS(val); break;
+      case 'LOCATION':      ev.location    = unescapeICS(val); break;
+      case 'CATEGORIES':    ev.categories  = unescapeICS(val); break;
+      case 'URL':           ev.url         = val.trim(); break;
+      case 'UID':           ev.uid         = val.trim(); break;
+      case 'STATUS':        ev.status      = val.trim().toUpperCase(); break;
+      case 'TRANSP':        ev.transp      = val.trim().toUpperCase(); break;
+      case 'CLASS':         ev.visibility  = val.trim().toUpperCase(); break;
+      case 'ORGANIZER':     ev.organizer   = parseIcsPerson(key, val); break;
+      case 'ATTENDEE': {
+        const a = parseIcsPerson(key, val);
+        if(a){ (ev.attendees = ev.attendees || []).push(a); }
+        break;
+      }
+      case 'CONFERENCE':
+      case 'X-GOOGLE-CONFERENCE': ev.conferenceUrl = val.trim(); break;
+      case 'RRULE':         ev.rrule       = parseRRule(val); break;
+      case 'EXDATE':        (ev.exdates = ev.exdates || []).push(parseICSDateTime(val).date); break;
+      case 'RDATE':         (ev.rdates  = ev.rdates  || []).push(parseICSDateTime(val).date); break;
+      case 'RECURRENCE-ID': ev.recurrenceId = parseICSDateTime(val).date; break;
+      case 'COLOR':
+      case 'X-APPLE-CALENDAR-COLOR': ev.color = val.trim(); break;
+      case 'PRIORITY':      ev.priority    = Number(val); break;
+      case 'X-MICROSOFT-CDO-BUSYSTATUS': ev.busy = val.trim(); break;
+      default: break;
     }
-    else if(key.startsWith('DTEND')){
-      const parsed = parseICSDateTime(val);
-      ev.dtend = parsed.date;
-      ev.endTime = parsed.time;
-    }
-    else if(key.startsWith('SUMMARY')) ev.summary=unescapeICS(val);
-    else if(key.startsWith('DESCRIPTION')) ev.description=unescapeICS(val);
-    else if(key.startsWith('DUE')){
-      const parsed = parseICSDateTime(val);
-      ev.due = parsed.date;
-      if(parsed.time) ev.dueTime = parsed.time;
-    }
-    else if(key.startsWith('LOCATION')) ev.location=unescapeICS(val);
-    else if(key.startsWith('CATEGORIES')) ev.categories=unescapeICS(val);
-    else if(key.startsWith('URL')) ev.url=unescapeICS(val);
-    else if(key.startsWith('UID')) ev.uid=val;
-    // Per-event color (some Apple/Outlook exports include this)
-    else if(/^(COLOR|X-APPLE-CALENDAR-COLOR)/i.test(key)) ev.color = val.trim();
   }
-  return { name: calendarName, events };
+  return { name: calendarName, color: calendarColor, events };
+}
+
+// Extract CN=Display Name and mailto: from an ATTENDEE / ORGANIZER line.
+// Example: ORGANIZER;CN=Jay W:mailto:jay@example.com
+function parseIcsPerson(key, val){
+  const cnMatch = key.match(/CN=([^;:]+)/i);
+  const email = String(val||'').replace(/^mailto:/i,'').trim();
+  if(!cnMatch && !email) return null;
+  return { name: cnMatch ? cnMatch[1].trim() : '', email };
+}
+
+// Parse an RRULE value (e.g. "FREQ=WEEKLY;BYDAY=MO,WE,FR;COUNT=10") into
+// a struct usable by importEvents to build a recurring habit/event.
+function parseRRule(val){
+  const out = {};
+  String(val||'').split(';').forEach(seg=>{
+    const [k,v] = seg.split('=');
+    if(!k || v == null) return;
+    out[k.trim().toUpperCase()] = v.trim();
+  });
+  if(out.BYDAY) out.BYDAY = out.BYDAY.split(',').map(s=>s.trim().toUpperCase());
+  if(out.UNTIL) out.UNTIL = parseICSDateTime(out.UNTIL).date;
+  if(out.COUNT) out.COUNT = Number(out.COUNT);
+  if(out.INTERVAL) out.INTERVAL = Number(out.INTERVAL);
+  return out;
+}
+
+// RRULE BYDAY → JS day-of-week index (Sun=0)
+const ICAL_BYDAY_TO_DOW = { SU:0, MO:1, TU:2, WE:3, TH:4, FR:5, SA:6 };
+function rruleToScheduledDays(rrule, dtstart){
+  if(!rrule || rrule.FREQ !== 'WEEKLY') return null;
+  if(Array.isArray(rrule.BYDAY) && rrule.BYDAY.length){
+    return rrule.BYDAY.map(d => ICAL_BYDAY_TO_DOW[d]).filter(n=>Number.isFinite(n));
+  }
+  if(dtstart){
+    const dow = new Date(dtstart+'T00:00:00').getDay();
+    return Number.isFinite(dow) ? [dow] : null;
+  }
+  return null;
 }
 
 // Parse the value portion of DTSTART / DTEND / DUE. Returns {date, time, allDay}.
@@ -3859,7 +4223,7 @@ function renderCalendar(){
   for(let d=1;d<=daysInMonth;d++){
     const ds=y+'-'+pad(mo+1)+'-'+pad(d);
     const allDayTasks=S.tasks.filter(t=>!t.archived&&(t.scheduledDates?.includes(ds)||(t.due===ds&&!isDueSignalDone(t,ds))||isHabitDueToday(t,ds)));
-    const allDayEvents=S.events.filter(e=>e.date===ds);
+    const allDayEvents=S.events.filter(e=>eventOccursOn(e,ds));
     const dayTasks = calViewMode==='events' ? [] : allDayTasks;
     const dayEvents = calViewMode==='tasks' ? [] : allDayEvents;
     const hasTasks=dayTasks.length>0 || dayEvents.length>0;
@@ -3878,7 +4242,7 @@ function renderCalendar(){
       role="button"
       tabindex="0"
       onclick="selectCalDate(event,'${ds}')"
-      ondblclick="openAddTaskForDate('${ds}')"
+      ondblclick="openQuickAdd(event,'${ds}')"
       onkeydown="if(event.key==='Enter'||event.key===' '){selectCalDate(event,'${ds}')}"
       onpointerenter="startCalHover(event,'${ds}')"
       onpointermove="moveCalHover(event)"
@@ -3911,7 +4275,7 @@ function renderCalendar(){
 }
 function calendarItemsForDate(ds){
   const allDayTasks=S.tasks.filter(t=>!t.archived&&(t.scheduledDates?.includes(ds)||(t.due===ds&&!isDueSignalDone(t,ds))||isHabitDueToday(t,ds)));
-  const allDayEvents=S.events.filter(e=>e.date===ds);
+  const allDayEvents=S.events.filter(e=>eventOccursOn(e,ds));
   return {
     tasks: calViewMode==='events' ? [] : allDayTasks,
     events: calViewMode==='tasks' ? [] : allDayEvents
@@ -4212,7 +4576,7 @@ function collectTimedItems(ds){
   if(!showEvents) return [];
   const out = [];
   S.events.forEach(e => {
-    if(e.date !== ds) return;
+    if(!eventOccursOn(e, ds)) return;
     const start = timeStrToMinutes(e.time);
     if(start === null) return;
     const end = timeStrToMinutes(e.endTime);
@@ -4248,13 +4612,24 @@ function collectAllDayItems(ds){
   }
   if(showEvents){
     S.events.forEach(e => {
-      if(e.date !== ds) return;
+      if(!eventOccursOn(e, ds)) return;
       if(timeStrToMinutes(e.time) !== null) return; // timed events go to hour grid
       out.push({ kind:'event', id:e.id, title:e.title, sig: e.type==='test'?'exam':(e.type||'event'), accent: e.color });
     });
   }
   return out;
 }
+
+// Toggle the expand state of a single day's all-day strip in week view.
+// State lives on window so it survives a render() pass; we cap visible
+// items at 3 by default so busy days don't dominate the calendar.
+function toggleAlldayColumn(ds){
+  if(!window._alldayExpanded) window._alldayExpanded = new Set();
+  if(window._alldayExpanded.has(ds)) window._alldayExpanded.delete(ds);
+  else window._alldayExpanded.add(ds);
+  renderWeekView();
+}
+
 function renderWeekView(){
   const grid = document.getElementById('calWeekGrid');
   const dayhead = document.getElementById('calWeekDayhead');
@@ -4287,23 +4662,38 @@ function renderWeekView(){
     const isSel   = d.ds === calSelectedDate;
     return `<button type="button" class="cwk-day-header ${isToday?'today':''} ${isSel?'selected':''}"
       onclick="selectCalDate(event,'${d.ds}')"
-      ondblclick="openAddTaskForDate('${d.ds}')">
+      ondblclick="openQuickAdd(event,'${d.ds}')">
       <div class="cwk-dow">${DAY_NAMES[d.date.getDay()]}</div>
       <div class="cwk-num">${d.date.getDate()}</div>
     </button>`;
   }).join('');
 
-  // All-day strip (tasks/events without a specific time)
+  // All-day strip (tasks/events without a specific time).
+  // Cap each column at 3 visible items; surplus collapses into a "+N more"
+  // button that toggles the column open. Persists across re-renders.
   const showTasks = calViewMode !== 'events';
+  const ALLDAY_CAP = 3;
+  if(!window._alldayExpanded) window._alldayExpanded = new Set();
   let alldayHasContent = false;
   allday.innerHTML = `<div class="cwk-time-cell"><span>all day</span></div>` + days.map(d => {
     const items = collectAllDayItems(d.ds);
     if(items.length) alldayHasContent = true;
-    return `<div class="cwk-allday-col" data-date="${d.ds}"
+    const expanded = window._alldayExpanded.has(d.ds);
+    const overflow = items.length > ALLDAY_CAP && !expanded;
+    const visible = overflow ? items.slice(0, ALLDAY_CAP) : items;
+    const hidden = items.length - visible.length;
+    const itemsHtml = visible.map(it => `<button type="button" class="cwk-allday-item sig-${it.sig}" onclick="event.stopPropagation(); ${it.kind==='task'?`editTask('${it.id}')`:`editEvent('${it.id}')`}" title="${esc(it.title)}">${esc(it.title)}</button>`).join('');
+    const moreBtn = hidden > 0
+      ? `<button type="button" class="cwk-allday-more" onclick="event.stopPropagation(); toggleAlldayColumn('${d.ds}')">+${hidden} more</button>`
+      : (expanded && items.length > ALLDAY_CAP
+          ? `<button type="button" class="cwk-allday-more" onclick="event.stopPropagation(); toggleAlldayColumn('${d.ds}')">Show less</button>`
+          : '');
+    return `<div class="cwk-allday-col ${expanded?'expanded':''}" data-date="${d.ds}"
       ondragover="onCalDragOver(event)"
       ondrop="onCalDrop(event,'${d.ds}')"
       ondragleave="onCalDragLeave(event)">
-      ${items.map(it => `<button type="button" class="cwk-allday-item sig-${it.sig}" onclick="${it.kind==='task'?`editTask('${it.id}')`:`editEvent('${it.id}')`}">${esc(it.title)}</button>`).join('')}
+      ${itemsHtml}
+      ${moreBtn}
     </div>`;
   }).join('');
   allday.style.display = alldayHasContent ? '' : 'none';
@@ -4353,7 +4743,7 @@ function renderWeekView(){
 
     gridHtml += `<div class="cwk-day-col ${d.ds===today?'today':''}" data-date="${d.ds}"
       style="height:${gridHeight}px"
-      ondblclick="openAddTaskForDate('${d.ds}')"
+      ondblclick="openQuickAdd(event,'${d.ds}')"
       ondragover="onCalDragOver(event)"
       ondrop="onCalDrop(event,'${d.ds}')"
       ondragleave="onCalDragLeave(event)">
@@ -4407,7 +4797,7 @@ function setupCalViewResizeSync(){
 function renderCalDayTasks(){
   const ds=calSelectedDate;
   const tasks = calViewMode==='events' ? [] : S.tasks.filter(t=>!t.archived&&(t.scheduledDates?.includes(ds)||(t.due===ds&&!isDueSignalDone(t,ds))||isHabitDueToday(t,ds)));
-  const events = calViewMode==='tasks' ? [] : S.events.filter(e=>e.date===ds);
+  const events = calViewMode==='tasks' ? [] : S.events.filter(e=>eventOccursOn(e,ds));
   const wrap=document.getElementById('calDayTasks');
   if(!tasks.length && !events.length){ wrap.innerHTML=`<div class="cal-day-title">${fmtDate(ds)}</div><div class="empty" style="font-size:11px;padding:12px 0">No ${currentPage==='calendar'?'events':'tasks or tests'}</div>`; return; }
   wrap.innerHTML=`<div class="cal-day-title">${fmtDate(ds)}</div>`+
