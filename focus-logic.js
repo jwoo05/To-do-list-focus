@@ -4847,8 +4847,11 @@ function startCalSplitResize(e){
   document.body.style.userSelect = 'none';
   function onMove(ev){
     const newBottom = startTop + (ev.clientY - startY);
-    const calH = Math.max(180, newBottom - colRect.top - headingH);
-    const fraction = Math.max(0.3, Math.min(0.9, calH / total));
+    // Clamp the calendar height to a minimum that keeps the month grid
+    // legible (header + toolbar + 6 rows × ~28px = ~260px). Below this
+    // the grid overflows and starts overlapping the day card.
+    const calH = Math.max(260, Math.min(total - 80, newBottom - colRect.top - headingH));
+    const fraction = Math.max(0.32, Math.min(0.88, calH / total));
     panel.style.flex = `${fraction} 1 0`;
     dayCard.style.flex = `${1 - fraction} 1 0`;
     // Re-fit the hour grid live so the week-view stays in view

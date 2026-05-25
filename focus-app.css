@@ -1029,25 +1029,31 @@ label {
 .cal-grid {
   display: grid;
   grid-template-columns: repeat(7,1fr);
-  /* Auto-grow rows so the month grid fills its container vertically.
-     This kills the big white gap below the grid in Events-mode (few
-     items) and keeps cells comfortable when there are many. */
-  grid-auto-rows: minmax(var(--cal-cell-h), 1fr);
+  /* Rows distribute the available height equally with no hard minimum.
+     PREVIOUS BUG: minmax(55px, 1fr) enforced 55 × 6 = 330px minimum,
+     so when the user dragged the calendar smaller than 330px the
+     grid overflowed and rows visually stacked into the day-tasks card.
+     `1fr` lets each row shrink as small as needed. Cell text/chips
+     are still readable down to ~32px; below that, overflow:hidden
+     on the parent clips the chip overflow cleanly. */
+  grid-auto-rows: 1fr;
   gap: 2px;
-  /* Inside the calendar column, the grid takes the available space
-     above the day-tasks card. */
   flex: 1 1 0;
   min-height: 0;
   align-content: stretch;
+  overflow: hidden;
 }
 .cal-day-name { text-align: center; font-size: 9px; font-weight: 700; color: var(--text3); padding: 3px 0; text-transform: uppercase; letter-spacing: .04em; }
 .cal-cell {
-  min-height: var(--cal-cell-h);
+  /* No hard min-height — `grid-auto-rows: 1fr` on the parent distributes
+     space and each cell takes its share. Falls back to 32px only when
+     the grid has no defined height. */
+  min-height: 32px;
   display: flex; flex-direction: column; align-items: flex-start;
   border-radius: var(--radius);
   font-size: 11px;
   cursor: pointer;
-  transition: all var(--tr);
+  transition: background var(--tr), border-color var(--tr);
   position: relative;
   border: 1px solid transparent;
   padding: 3px;
@@ -1398,10 +1404,14 @@ label {
   flex-direction: column;
   flex: 1 1 0;
   min-height: 0;
+  /* Clip the grid when the column is shorter than the grid's natural
+     min-height. Without this, the month grid overlapped the day-tasks
+     card below when the user dragged the split smaller. */
+  overflow: hidden;
 }
 .workbench .bank-body { overflow: visible; padding: 10px; }
 .workbench .cal-body  {
-  overflow: visible;
+  overflow: hidden;
   padding: 10px;
   display: flex;
   flex-direction: column;
