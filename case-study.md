@@ -124,7 +124,7 @@ The same architectural pass also coalesced rapid `render()` calls through `reque
 
 Late in the iteration cycle, I had a long, blunt conversation with myself about the actual reason I keep building productivity tools: the standard ones don't fit how my brain operates under load. I have an ENTJ-pattern strategic drive paired with an ADHD-pattern executive system, which is a common combination among high-achieving builders. The two systems fight each other constantly.
 
-I decided not to ship the resulting feature set immediately — I parked it in a documented patch (`cognitive-scaffolds.patch` + README) so it could be re-applied later once the foundation was rock-solid. **But the design work is what matters most about this project**, so I'll walk through it.
+I shipped the resulting five-feature scaffold system once the persistence and rendering foundations were rock-solid. Each scaffold is opt-in via `S.settings.scaffolds.<name>` so any one of them can be turned off without removing the code.
 
 ### Scaffold 1 — First Step (kills transition paralysis)
 
@@ -160,7 +160,7 @@ The premise: ENTJ-pattern users plan for the idealized version of life where eve
 
 A focus session fires an intrusive toast every 25 minutes: *"⏱ Time check: 3:47 PM · check on your people."* Uses the existing capped (3-item) toast stack so it never piles up. Externalizes the internal clock that ADHD-pattern Default Mode Network suppresses during hyperfocus.
 
-**Why I parked these:** Adding behavioral scaffolds on top of an unreliable persistence layer would have been irresponsible. The foundation came first. The full patch is preserved in the repo and ready for the next iteration.
+**The foundation came first.** Adding behavioral scaffolds on top of an unreliable persistence layer would have been irresponsible. Once the local-first save, render coalescing, and schema auto-migration were stable, I shipped all five scaffolds together — each one independently toggleable from settings so users can opt in to the ones that match their cognitive pattern.
 
 ---
 
@@ -212,7 +212,6 @@ A focus session fires an intrusive toast every 25 minutes: *"⏱ Time check: 3:4
 
 ## 10. What's next
 
-- **Re-apply the cognitive scaffolds** patch onto the now-solid foundation
 - **Habit Brain Map** — a force-directed visualization of habit interconnections, with AI-proposed habit merges gated by goal-preservation checkboxes
 - **Whisper-based audio transcription** for video ingestion (opt-in, dynamic import to preserve single-file ethos)
 - **Mobile gesture polish** — pinch-zoom on the touch calendar with the same persistence model

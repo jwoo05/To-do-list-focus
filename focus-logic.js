@@ -38,8 +38,25 @@ const DEF = {
     // Calendar zoom level (1.0 = default). Scales month-cell height,
     // week-view hourPx, and how many chips fit per month cell.
     // Adjust via Cmd/Ctrl+scroll, pinch on trackpad, or Cmd/Ctrl + = / -.
-    calZoom: 1.0
-  }
+    calZoom: 1.0,
+    // ── COGNITIVE SCAFFOLDS ──
+    // Five features for ADHD/ENTJ executive-function support.
+    scaffolds: {
+      firstStep: true,      // show "first 5-second move" on task cards
+      quickCapture: true,   // Cmd+K global brain-dump
+      dopamineGate: true,   // visually dim planning tasks until execute work
+      domainModes: true,    // assign tasks to domains (Active / KTLO)
+      timeAnchor: true      // intrusive toast every focus interval
+    },
+    dopamineGate: {
+      minExecuteMinutes: 15,
+      enforce: 'soft'
+    }
+  },
+  // Brain-dump inbox — captured ideas waiting to be processed
+  brainDump: [],
+  // Domains the user is running. { [name]: { mode, color, createdAt } }
+  domains: {}
 };
 
 // Calendar source palette — aesthetic-matching set used to color imported
@@ -133,7 +150,11 @@ function normalizeState(state){
   state.tasks = (state.tasks||[]).map(t=>Object.assign({
     type:'task', priority:'medium', due:'', scheduledDates:[], scheduledDays:[],
     dailySection:'Study', calendarSignal:'auto', subtasks:[], progress:0, customOrder:0,
-    completedDates:{}, dueCompletedDates:{}, skippedDates:{}, habitStart:'', habitEnd:'', archived:false, completed:false, focusPoints:0
+    completedDates:{}, dueCompletedDates:{}, skippedDates:{}, habitStart:'', habitEnd:'', archived:false, completed:false, focusPoints:0,
+    // ── Cognitive-scaffold fields ──
+    firstStep:'',     // the 5-second move ("put left shoe on")
+    taskKind:'',      // 'execute' | 'plan' | ''
+    domain:''         // free-text domain name, looked up in S.domains
   }, t));
   state.tasks.forEach((t,i)=>{
     if(t.dailySection==='Admin') t.dailySection='Study';
@@ -181,6 +202,15 @@ function normalizeState(state){
   state.mustOverrides = Array.isArray(state.mustOverrides) ? state.mustOverrides : [];
   state.icalSources = Array.isArray(state.icalSources) ? state.icalSources : [];
   state.events = (state.events||[]).map(e=>Object.assign({type:'event', color:eventColorForType(e.type||'event')}, e));
+  // ── Cognitive scaffold defaults for existing users ──
+  state.brainDump = Array.isArray(state.brainDump) ? state.brainDump : [];
+  state.domains = (state.domains && typeof state.domains === 'object') ? state.domains : {};
+  if(!state.settings.scaffolds || typeof state.settings.scaffolds !== 'object'){
+    state.settings.scaffolds = { firstStep:true, quickCapture:true, dopamineGate:true, domainModes:true, timeAnchor:true };
+  }
+  if(!state.settings.dopamineGate || typeof state.settings.dopamineGate !== 'object'){
+    state.settings.dopamineGate = { minExecuteMinutes:15, enforce:'soft' };
+  }
   return state;
 }
 function save(){ saveUserDataToFirebase(); }
@@ -533,6 +563,10 @@ function renderDashboard(){
   }
   renderDashboardTodayTasks(today);
   renderDashboardHabits();
+  // Cognitive scaffolds dashboard widgets — guarded so absence of DOM
+  // elements (older builds) just no-ops.
+  renderGateBadge();
+  renderDomainPanel();
   // Focus & Habit Health and Advice panels were removed from the dashboard
   // markup — guard the renders so they no-op cleanly if the DOM elements
   // are absent.
@@ -1183,9 +1217,15 @@ function renderBank(){
     const hasSubs = subtasks.length > 0;
     const expanded = window._bankExpanded.has(t.id);
     const doneCount = subtasks.filter(s => s.done).length;
+    // Cognitive-scaffold visual state
+    const ktlo = typeof isKtloTask === 'function' && isKtloTask(t);
+    const gated = typeof isPlanTaskGated === 'function' && isPlanTaskGated(t);
+    const domainColor = (t.domain && S.domains?.[t.domain]?.color) || '';
+    const showFirstStep = !!(t.firstStep && S.settings?.scaffolds?.firstStep);
     return `
-    <div class="bank-task fade-up ${unassigned?'unassigned':''}" draggable="true"
+    <div class="bank-task fade-up ${unassigned?'unassigned':''} ${ktlo?'ktlo':''} ${gated?'plan-gated':''}" draggable="true"
       data-urgency="${urgency}"
+      ${domainColor?`style="--domain-color:${esc(domainColor)}"`:''}
       ondragstart="onBankDragStart(event,'${t.id}')"
       ondragend="onTaskDragEnd(event)"
       ondragover="onBankTaskDragOver(event,'${t.id}')"
@@ -1201,12 +1241,17 @@ function renderBank(){
         <div class="bank-task-title">${esc(t.title)}</div>
         ${timeLeft ? `<span class="chip chip-time-left u-${urgency}">${esc(timeLeft)}</span>` : '<span class="drag-hint">Drag</span>'}
       </div>
+      ${showFirstStep ? `<div class="bank-first-step">▸ <em>first move:</em> ${esc(t.firstStep)}</div>` : ''}
       <div class="bank-task-meta">
         <span class="chip chip-${t.priority==='MUST'?'must':t.priority==='high'?'high':t.priority==='low'?'low':'medium'}">
           ${priLabel(t.priority)}
         </span>
         ${dueChipHTML(t)}
         ${t.isHabit?`<span class="chip chip-habit">Habit</span>`:''}
+        ${t.domain ? `<span class="chip chip-domain" style="background:${esc(domainColor)}22;color:${esc(domainColor)}">${esc(t.domain)}${ktlo?' · KTLO':''}</span>`:''}
+        ${t.taskKind==='execute' ? `<span class="chip chip-execute">⚡ execute</span>` : ''}
+        ${t.taskKind==='plan' ? `<span class="chip chip-plan">🧠 plan</span>` : ''}
+        ${gated ? `<span class="chip chip-gated">🔒 ${dopamineGateStatus().remaining}m to unlock</span>` : ''}
         ${hasSubs?`<button class="chip chip-subtasks" onclick="event.stopPropagation(); toggleBankSubtasks('${t.id}')" title="${expanded?'Hide':'Show'} subtasks">${expanded?'▾':'▸'} ${doneCount}/${subtasks.length} steps</button>`:''}
         ${unassigned?`<span class="chip chip-unassigned">Task not assigned yet</span>`:''}
         ${t.scheduledTime?`<span class="chip chip-due">⏰ ${t.scheduledTime}</span>`:''}
@@ -2196,6 +2241,11 @@ function editTask(id){
   refreshDailySectionOptions(t.dailySection||'Study');
   document.getElementById('fCalendarSignal').value = t.calendarSignal||'auto';
   document.getElementById('fNotes').value = t.notes||'';
+  // Cognitive scaffold fields (guarded — older builds may lack these inputs)
+  const _fs = document.getElementById('fFirstStep'); if(_fs) _fs.value = t.firstStep || '';
+  const _tk = document.getElementById('fTaskKind');  if(_tk) _tk.value = t.taskKind || '';
+  const _fd = document.getElementById('fDomain');    if(_fd) _fd.value = t.domain   || '';
+  if(typeof refreshDomainSuggestions === 'function') refreshDomainSuggestions();
   editModalSubtasks = (t.subtasks||[]).map(s=>({text:s.text, done:!!s.done, doneDates:Object.assign({}, s.doneDates||{})}));
   renderModalSubtasks();
   document.getElementById('fIsHabit').checked = t.isHabit;
@@ -2242,6 +2292,11 @@ function saveTask(){
   t.dailySection = document.getElementById('fDailySection').value || 'Study';
   t.calendarSignal = document.getElementById('fCalendarSignal').value || 'auto';
   t.notes = document.getElementById('fNotes').value;
+  // Cognitive scaffolds — persist and lazily create the domain
+  t.firstStep = (document.getElementById('fFirstStep')?.value || '').trim().slice(0,80);
+  t.taskKind  = document.getElementById('fTaskKind')?.value || '';
+  t.domain    = (document.getElementById('fDomain')?.value || '').trim().slice(0,40);
+  if(t.domain && typeof ensureDomain === 'function') ensureDomain(t.domain);
   t.isHabit = document.getElementById('fIsHabit').checked;
   t.scheduledDays = [...editSelectedDays];
   t.habitStart = t.isHabit ? (document.getElementById('fHabitStart')?.value || '') : '';
@@ -2332,6 +2387,11 @@ function resetAddForm(){
   refreshDailySectionOptions('Study');
   document.getElementById('fCalendarSignal').value='auto';
   document.getElementById('fNotes').value='';
+  // Reset cognitive scaffold fields
+  const _fs = document.getElementById('fFirstStep'); if(_fs) _fs.value='';
+  const _tk = document.getElementById('fTaskKind');  if(_tk) _tk.value='';
+  const _fd = document.getElementById('fDomain');    if(_fd) _fd.value='';
+  if(typeof refreshDomainSuggestions === 'function') refreshDomainSuggestions();
   editModalSubtasks=[];
   renderModalSubtasks();
   document.getElementById('fIsHabit').checked=false;
@@ -4818,12 +4878,19 @@ function bindCalZoomListeners(){
     const delta = -Math.sign(e.deltaY) * CAL_ZOOM_STEP;
     setCalZoom(cur + delta);
   }, { passive: false });
-  // Cmd/Ctrl + = / - / 0
+  // Cmd/Ctrl + = / - / 0 (zoom) AND Cmd/Ctrl + K (Quick Capture)
   window.addEventListener('keydown', (e) => {
     if(!(e.ctrlKey || e.metaKey)) return;
-    // Only when a calendar is currently visible
+
+    // ── Cmd/Ctrl + K — Quick Capture (works anywhere) ──
+    if((e.key === 'k' || e.key === 'K') && S.settings?.scaffolds?.quickCapture){
+      e.preventDefault();
+      openQuickCapture();
+      return;
+    }
+
+    // ── Calendar zoom keys (only when a calendar is on screen) ──
     if(!document.querySelector('#calPanel, #calendarPageHost')) return;
-    // Ignore when typing in inputs
     const tag = (e.target?.tagName || '').toLowerCase();
     if(tag === 'input' || tag === 'textarea' || e.target?.isContentEditable) return;
     if(e.key === '=' || e.key === '+'){ e.preventDefault(); zoomIn(); }
@@ -6173,6 +6240,239 @@ function checkThursdayReview(){
       document.getElementById('thuCard').style.display='flex';
     }
   }
+}
+
+// ════════════════════════════════════════════════════════════
+//  COGNITIVE SCAFFOLDS
+//  Five features externalizing executive function for ADHD/ENTJ users:
+//    1. First Step    — task surfaces its 5-second move
+//    2. Quick Capture — Cmd+K opens a 3-word brain-dump anywhere
+//    3. Dopamine Gate — plan tasks dimmed until N min of execute work
+//    4. Domain Modes  — KTLO vs Active per domain
+//    5. Time Anchor   — intrusive toast every 25 min during focus
+// ════════════════════════════════════════════════════════════
+
+// ── 2. QUICK CAPTURE ──
+let _captureEl = null;
+function openQuickCapture(){
+  if(_captureEl){ closeQuickCapture(); return; }
+  const el = document.createElement('div');
+  el.className = 'quick-capture show';
+  const unprocessed = (S.brainDump||[]).filter(b=>!b.processed).length;
+  el.innerHTML = `
+    <div class="qc-label">Brain dump · 3 words · ${unprocessed} unprocessed</div>
+    <input type="text" class="qc-input" id="qcInput" placeholder="e.g. restaurant marketing idea" autocomplete="off" maxlength="80">
+    <div class="qc-hint">Enter to save · Esc to close · Cmd+K toggles</div>`;
+  document.body.appendChild(el);
+  _captureEl = el;
+  const input = el.querySelector('#qcInput');
+  setTimeout(()=>input?.focus(), 20);
+  input.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){ e.preventDefault(); saveQuickCapture(input.value); }
+    else if(e.key === 'Escape'){ e.preventDefault(); closeQuickCapture(); }
+  });
+  setTimeout(()=>document.addEventListener('pointerdown', _qcOutside, true), 0);
+}
+function _qcOutside(e){
+  if(!_captureEl) return;
+  if(_captureEl.contains(e.target)) return;
+  closeQuickCapture();
+}
+function closeQuickCapture(){
+  if(_captureEl){ _captureEl.remove(); _captureEl = null; }
+  document.removeEventListener('pointerdown', _qcOutside, true);
+}
+function saveQuickCapture(text){
+  const clean = String(text||'').trim();
+  if(!clean){ closeQuickCapture(); return; }
+  if(!Array.isArray(S.brainDump)) S.brainDump = [];
+  S.brainDump.unshift({ id: uid(), text: clean.slice(0,80), createdAt: Date.now(), processed:false });
+  save();
+  closeQuickCapture();
+  if(typeof showToast === 'function'){
+    showToast(`Captured: "${clean.slice(0,40)}"`, 'Review', openBrainDumpPanel);
+  }
+  renderGateBadge();
+}
+function openBrainDumpPanel(){
+  let panel = document.getElementById('brainDumpPanel');
+  if(!panel){
+    panel = document.createElement('div');
+    panel.id = 'brainDumpPanel';
+    panel.className = 'overlay';
+    panel.innerHTML = `<div class="modal" role="dialog" aria-modal="true" style="min-width:380px;max-width:520px">
+      <div class="modal-header">
+        <span class="modal-title">Brain Dump</span>
+        <button class="modal-close" onclick="document.getElementById('brainDumpPanel').classList.remove('show')">✕</button>
+      </div>
+      <div class="modal-body" style="max-height:62vh;overflow-y:auto">
+        <div id="brainDumpList"></div>
+      </div>
+    </div>`;
+    document.body.appendChild(panel);
+  }
+  renderBrainDumpList();
+  panel.classList.add('show');
+}
+function renderBrainDumpList(){
+  const list = document.getElementById('brainDumpList');
+  if(!list) return;
+  const items = (S.brainDump||[]).filter(b=>!b.processed);
+  if(!items.length){ list.innerHTML = `<div class="empty" style="padding:20px;text-align:center;color:var(--text3);font-size:12px">Inbox empty. Cmd+K to capture.</div>`; return; }
+  list.innerHTML = items.map(b => `
+    <div class="brain-dump-row">
+      <span class="bd-text">${esc(b.text)}</span>
+      <span class="bd-time">${new Date(b.createdAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}</span>
+      <button class="task-action" title="Convert to task" onclick="brainDumpToTask('${b.id}')">→ task</button>
+      <button class="task-action" title="Mark processed" onclick="brainDumpProcess('${b.id}')">✓</button>
+      <button class="task-action" title="Delete" onclick="brainDumpDelete('${b.id}')">✕</button>
+    </div>`).join('');
+}
+function brainDumpToTask(id){
+  const b = (S.brainDump||[]).find(x=>x.id===id);
+  if(!b) return;
+  if(typeof resetAddForm === 'function') resetAddForm();
+  const titleEl = document.getElementById('fTitle');
+  if(titleEl) titleEl.value = b.text;
+  brainDumpProcess(id);
+  if(typeof openModal === 'function') openModal('mAddTask');
+  document.getElementById('brainDumpPanel')?.classList.remove('show');
+}
+function brainDumpProcess(id){
+  const b = (S.brainDump||[]).find(x=>x.id===id);
+  if(!b) return;
+  b.processed = true;
+  save();
+  renderBrainDumpList();
+  renderGateBadge();
+}
+function brainDumpDelete(id){
+  S.brainDump = (S.brainDump||[]).filter(x=>x.id!==id);
+  save();
+  renderBrainDumpList();
+  renderGateBadge();
+}
+
+// ── 3. DOPAMINE GATE ──
+function dopamineGateStatus(){
+  const required = Number(S.settings?.dopamineGate?.minExecuteMinutes) || 15;
+  const today = todayStr();
+  let earned = 0;
+  (S.sessions || []).forEach(s => {
+    if(!s || !s.startedAt) return;
+    const day = new Date(s.startedAt);
+    const ds = `${day.getFullYear()}-${pad(day.getMonth()+1)}-${pad(day.getDate())}`;
+    if(ds !== today) return;
+    const t = S.tasks.find(x => x.id === s.taskId);
+    if(t && t.taskKind === 'execute'){
+      const mins = Number(s.actualMinutes || s.minutes || s.focusMinutes || 0);
+      if(Number.isFinite(mins)) earned += mins;
+    }
+  });
+  // Manual completion of execute tasks today counts as 5min credit each
+  (S.tasks || []).forEach(t => {
+    if(t.taskKind !== 'execute' || !t.completedAt) return;
+    if(isSameDay(t.completedAt, today)) earned += 5;
+  });
+  earned = Math.floor(earned);
+  return { earned, required, satisfied: earned >= required, remaining: Math.max(0, required - earned) };
+}
+function isPlanTaskGated(t){
+  if(!S.settings?.scaffolds?.dopamineGate) return false;
+  if(!t || t.taskKind !== 'plan') return false;
+  return !dopamineGateStatus().satisfied;
+}
+
+// ── 4. DOMAIN MODES ──
+function ensureDomain(name, mode='active'){
+  if(!name) return null;
+  if(!S.domains) S.domains = {};
+  if(!S.domains[name]){
+    const colors = ['#7aa2ff','#4dd49a','#f59040','#b07fff','#ff7faa','#e9c46a','#9fe0c7','#7fc7ff'];
+    const idx = Object.keys(S.domains).length % colors.length;
+    S.domains[name] = { mode, color: colors[idx], createdAt: Date.now() };
+  }
+  return S.domains[name];
+}
+function setDomainMode(name, mode){
+  if(!S.domains || !S.domains[name]) ensureDomain(name, mode);
+  else S.domains[name].mode = (mode === 'ktlo' ? 'ktlo' : 'active');
+  save();
+  renderDomainPanel();
+  if(typeof renderBank === 'function') renderBank();
+}
+function isKtloTask(t){
+  if(!S.settings?.scaffolds?.domainModes) return false;
+  if(!t || !t.domain) return false;
+  return S.domains?.[t.domain]?.mode === 'ktlo';
+}
+function refreshDomainSuggestions(){
+  const dl = document.getElementById('domainSuggestions');
+  if(!dl) return;
+  const names = Object.keys(S.domains || {});
+  dl.innerHTML = names.map(n => `<option value="${esc(n)}">`).join('');
+}
+
+// ── 5. TIME ANCHOR ──
+let _anchorTimer = null;
+function startTimeAnchor(){
+  if(!S.settings?.scaffolds?.timeAnchor) return;
+  stopTimeAnchor();
+  const intervalMs = 25 * 60 * 1000;
+  _anchorTimer = setInterval(() => {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+    if(typeof showToast === 'function'){
+      showToast(`⏱ Time check: ${timeStr} · check on your people`, 'OK', () => {});
+    }
+  }, intervalMs);
+}
+function stopTimeAnchor(){
+  if(_anchorTimer){ clearInterval(_anchorTimer); _anchorTimer = null; }
+}
+
+// ── DASHBOARD WIDGETS ──
+function renderGateBadge(){
+  const wrap = document.getElementById('dashGateBadge');
+  if(!wrap) return;
+  if(!S.settings?.scaffolds?.dopamineGate){ wrap.style.display='none'; return; }
+  const st = dopamineGateStatus();
+  wrap.style.display = '';
+  if(st.satisfied){
+    wrap.innerHTML = `<div class="gate-pill gate-satisfied">✓ Planning unlocked · ${st.earned}m execute today</div>`;
+  } else {
+    const pct = Math.min(100, Math.round((st.earned/st.required)*100));
+    wrap.innerHTML = `<div class="gate-pill gate-locked">
+      <span>Execute ${st.earned}/${st.required} min · planning soft-locked</span>
+      <div class="gate-bar"><span style="width:${pct}%"></span></div>
+    </div>`;
+  }
+}
+function renderDomainPanel(){
+  const wrap = document.getElementById('dashDomains');
+  if(!wrap) return;
+  if(!S.settings?.scaffolds?.domainModes){ wrap.style.display='none'; return; }
+  wrap.style.display = '';
+  const names = Object.keys(S.domains || {});
+  if(!names.length){
+    wrap.innerHTML = `<div class="dash-title">Domains</div>
+      <div class="empty" style="font-size:11px;color:var(--text3)">Tag tasks with a domain (e.g. "school", "lifting", "drums") to see Active vs KTLO modes here.</div>`;
+    return;
+  }
+  const counts = {};
+  (S.tasks||[]).forEach(t => { if(t.domain && !isArchivedForTodo(t)) counts[t.domain] = (counts[t.domain]||0) + 1; });
+  wrap.innerHTML = `<div class="dash-title">Domains</div>
+    <div class="domain-list">${names.map(n => {
+      const d = S.domains[n];
+      const c = counts[n] || 0;
+      const active = d.mode !== 'ktlo';
+      return `<div class="domain-row ${active?'active':'ktlo'}">
+        <span class="domain-swatch" style="background:${esc(d.color||'#7aa2ff')}"></span>
+        <span class="domain-name">${esc(n)}</span>
+        <span class="domain-count">${c}</span>
+        <button class="domain-mode" onclick="setDomainMode('${esc(n)}','${active?'ktlo':'active'}')">${active?'Active':'KTLO'}</button>
+      </div>`;
+    }).join('')}</div>`;
 }
 
 // ════════════════════════════════════════════════════════════

@@ -20,7 +20,7 @@ A single-page productivity engine, written in three hand-rolled files (HTML / CS
 
 **3. Local-first persistence is a UX feature, not an engineering convenience.** I learned this the hard way after users reported tasks disappearing on refresh. Refactored `save()` to write localStorage synchronously every time, with cloud sync debounced 400ms and flushed on `beforeunload`. Same architectural pass coalesced rapid `render()` calls through `requestAnimationFrame`, fixing a long-standing completion lag.
 
-**4. Cognitive scaffolds for neurodivergent users.** A five-feature system designed for ADHD/ENTJ-pattern brains: **First Step** (every task surfaces its 5-second move), **Quick Capture** (`Cmd+K` from anywhere — 3-word brain dump), **Dopamine Gate** (soft-locks planning tasks until N min of execute work today), **Domain Modes** (KTLO vs Active per life domain), **Time Anchor** (intrusive toast every 25 min during focus). Deliberately parked as a documented patch until the foundation was rock-solid.
+**4. Cognitive scaffolds for neurodivergent users.** A five-feature system designed for ADHD/ENTJ-pattern brains, shipped once the persistence foundation was rock-solid: **First Step** (every task surfaces its 5-second move), **Quick Capture** (`Cmd+K` from anywhere — 3-word brain dump), **Dopamine Gate** (soft-locks planning tasks until N min of execute work today), **Domain Modes** (KTLO vs Active per life domain), **Time Anchor** (intrusive toast every 25 min during focus). Each is independently toggleable from settings so users can opt in to the ones that fit their cognitive pattern.
 
 ## What I learned
 

@@ -414,12 +414,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <!-- Dashboard grid -->
       <div class="dashboard-grid">
+        <!-- Cognitive scaffolds: dopamine-gate status + domain modes -->
+        <div class="dash-panel dash-wide" id="dashScaffolds" style="grid-column:1/4">
+          <div id="dashGateBadge"></div>
+          <div id="dashDomains" style="margin-top:8px"></div>
+        </div>
         <!-- Today's Tasks — primary card, full width on top -->
         <div class="dash-panel dash-wide dash-today-tasks" style="grid-column:1/4">
           <div class="dash-title-row">
             <div class="dash-title">Today's Tasks</div>
             <div class="dash-title-meta">
               <span id="dashTodayCounter">0 of 0 done</span>
+              <button class="btn-sm btn-outline" onclick="openBrainDumpPanel()" title="Brain Dump · Cmd+K">🧠 Inbox</button>
               <button class="btn-sm btn-outline" onclick="showPage('todo',document.querySelector('.nav-item[data-page=\\'todo\\']'))">Open Todo →</button>
             </div>
           </div>
@@ -1094,6 +1100,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <label>Task Title</label>
         <input id="fTitle" placeholder="What needs to be done?">
       </div>
+      <!-- Cognitive scaffold: First Step (Zero-G micro-commitment) -->
+      <div class="form-row">
+        <label>First Step <span class="field-hint" style="font-weight:400;color:var(--text3);font-size:10px">— the 5-second move</span></label>
+        <input id="fFirstStep" placeholder="e.g. put left shoe on · open the PDF · type one sentence" maxlength="80">
+      </div>
       <div class="form-grid">
         <div class="form-row">
           <label>Subject / Course</label>
@@ -1108,6 +1119,22 @@ document.addEventListener('DOMContentLoaded', () => {
             <option value="reading">Reading</option>
             <option value="other">Other</option>
           </select>
+        </div>
+      </div>
+      <!-- Cognitive scaffolds: Task Kind + Domain -->
+      <div class="form-grid">
+        <div class="form-row">
+          <label>Task Kind <span class="field-hint" style="font-weight:400;color:var(--text3);font-size:10px">— gates planning behind execution</span></label>
+          <select id="fTaskKind">
+            <option value="">— untagged —</option>
+            <option value="execute">Execute (cortisol · the hard thing)</option>
+            <option value="plan">Plan (dopamine · strategy &amp; optimization)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Domain <span class="field-hint" style="font-weight:400;color:var(--text3);font-size:10px">— e.g. school, lifting, drums</span></label>
+          <input id="fDomain" placeholder="school" list="domainSuggestions" maxlength="40">
+          <datalist id="domainSuggestions"></datalist>
         </div>
       </div>
       <div class="form-row">

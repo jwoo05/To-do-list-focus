@@ -4157,3 +4157,203 @@ strong, b {
   font-size: 9px;
   letter-spacing: 0;
 }
+
+/* ════════════════════════════════════════════════════════════
+ *  COGNITIVE SCAFFOLDS — Five UI surfaces for executive-function support
+ *  1. Quick Capture popover (Cmd+K)
+ *  2. Brain Dump panel
+ *  3. First Step row on bank cards
+ *  4. Dopamine gate badge + gated/KTLO chip styling
+ *  5. Domain panel on dashboard
+ * ════════════════════════════════════════════════════════════ */
+
+/* ── Quick Capture (Cmd+K) ── */
+.quick-capture {
+  position: fixed;
+  top: 22%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1200;
+  min-width: 420px;
+  max-width: 540px;
+  padding: 16px 18px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  box-shadow: 0 24px 64px rgba(0,0,0,.22), 0 0 0 1px rgba(0,0,0,.04);
+  display: none;
+  animation: toastLift .15s ease;
+}
+.quick-capture.show { display: block; }
+.quick-capture .qc-label {
+  font-size: 10px;
+  font-weight: 500 !important;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .10em;
+  margin-bottom: 8px;
+}
+.quick-capture .qc-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 16px !important;
+  font-weight: 420 !important;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+}
+.quick-capture .qc-input:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+.quick-capture .qc-hint {
+  margin-top: 8px;
+  font-size: 10px;
+  color: var(--text3);
+}
+
+/* ── Brain Dump panel rows ── */
+.brain-dump-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.brain-dump-row .bd-text { font-weight: 420 !important; color: var(--text); }
+.brain-dump-row .bd-time { font-size: 10px; color: var(--text3); font-variant-numeric: tabular-nums; }
+.brain-dump-row .task-action { font-size: 10px; padding: 3px 8px; }
+
+/* ── First Step (Zero-G) bar on bank cards ── */
+.bank-first-step {
+  margin: 4px 0 5px 22px;
+  padding: 4px 8px;
+  background: rgba(134,168,200,.08);
+  border-left: 2px solid #7ea5c4;
+  border-radius: 0 4px 4px 0;
+  font-size: 11px;
+  font-weight: 430 !important;
+  color: var(--text2);
+  line-height: 1.4;
+}
+.bank-first-step em {
+  font-style: normal;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text3);
+  margin-right: 4px;
+}
+
+/* ── Dopamine Gate badge (dashboard) ── */
+.gate-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 460 !important;
+}
+.gate-pill.gate-locked {
+  background: rgba(245,144,64,.08);
+  color: var(--orange);
+  border: 1px solid rgba(245,144,64,.20);
+  flex-direction: column;
+  align-items: stretch;
+}
+.gate-pill.gate-satisfied {
+  background: rgba(77,212,154,.08);
+  color: var(--green);
+  border: 1px solid rgba(77,212,154,.22);
+}
+.gate-bar {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(245,144,64,.16);
+  overflow: hidden;
+}
+.gate-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--orange);
+  transition: width .3s ease;
+}
+
+/* Gated planning task — dimmed, soft-lock chip */
+.bank-task.plan-gated {
+  opacity: .55;
+  filter: grayscale(.35);
+}
+.bank-task.plan-gated:hover { opacity: .85; filter: grayscale(0); }
+.chip-gated {
+  background: rgba(245,144,64,.10) !important;
+  color: var(--orange) !important;
+  border: 1px solid rgba(245,144,64,.24);
+}
+.chip-execute {
+  background: rgba(229,109,109,.10) !important;
+  color: var(--must) !important;
+}
+.chip-plan {
+  background: rgba(176,127,255,.10) !important;
+  color: var(--purple) !important;
+}
+.chip-domain {
+  font-weight: 460 !important;
+  letter-spacing: 0;
+}
+
+/* ── Domain panel (dashboard) ── */
+.domain-list { display: flex; flex-direction: column; gap: 4px; }
+.domain-row {
+  display: grid;
+  grid-template-columns: 12px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  font-size: 12px;
+}
+.domain-row.ktlo { opacity: .58; }
+.domain-row .domain-swatch {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+}
+.domain-row .domain-name { font-weight: 460 !important; color: var(--text); }
+.domain-row .domain-count {
+  font-size: 10px;
+  color: var(--text3);
+  font-variant-numeric: tabular-nums;
+}
+.domain-row .domain-mode {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 10px;
+  font-weight: 470 !important;
+  padding: 3px 9px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color var(--tr), color var(--tr);
+}
+.domain-row.active .domain-mode {
+  background: rgba(77,212,154,.10);
+  color: var(--green);
+  border-color: rgba(77,212,154,.26);
+}
+.domain-row.ktlo .domain-mode {
+  background: var(--bg3);
+  color: var(--text3);
+}
+.domain-row .domain-mode:hover { border-color: var(--accent); color: var(--accent); }
+
+/* KTLO bank task: visually quieter */
+.bank-task.ktlo {
+  opacity: .65;
+  filter: saturate(.7);
+}
+.bank-task.ktlo .chip { opacity: .8; }
+.bank-task.ktlo:hover { opacity: 1; filter: saturate(1); }
