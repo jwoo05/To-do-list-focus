@@ -34,7 +34,11 @@ const DEF = {
     pomo:{ presetMode:'classic', focus:25, shortBreak:5, longBreak:15, cycles:4 },
     // How many all-day items to show per week-view column before
     // collapsing into "+N more". User-adjustable via the all-day gutter.
-    alldayCap: 3
+    alldayCap: 3,
+    // Calendar zoom level (1.0 = default). Scales month-cell height,
+    // week-view hourPx, and how many chips fit per month cell.
+    // Adjust via Cmd/Ctrl+scroll, pinch on trackpad, or Cmd/Ctrl + = / -.
+    calZoom: 1.0
   }
 };
 
@@ -4385,6 +4389,8 @@ function unescapeICS(s){ return String(s||'').replace(/\\n/gi,' ').replace(/\\,/
 // ════════════════════════════════════════════════════════════
 function renderCalendar(){
   applyCalSplit();
+  applyCalZoomCss();
+  bindCalZoomListeners();
   const y=calViewDate.getFullYear(), mo=calViewDate.getMonth();
   const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   // Header label depends on layout
@@ -4420,15 +4426,21 @@ function renderCalendar(){
     const isToday=ds===today;
     const isSel=ds===calSelectedDate;
     // Chip text shows just the title — the color stripe already encodes
-    // the category (exam=red, due=orange, habit=purple, event=accent).
-    // Tooltip carries the full title in case it's truncated.
-    const chips=[
+    // the category. How many chips fit scales with calZoom: at 1.0 → 3,
+    // at 1.5 → 5, at 0.7 → 2. Anything beyond shows "+N more".
+    const zoomChipCap = Math.max(2, Math.round(3 * (Number(S.settings?.calZoom) || 1)));
+    const allChips = [
       ...dayEvents.map(e=>`<span class="cal-mini-chip ${e.type==='test'?'exam':e.type||'event'}" style="border-left-color:${esc(e.color||eventColorForType(e.type))}" title="${esc(e.title)}">${esc(e.title)}</span>`),
       ...dayTasks.map(t=>{
         const sig=calendarSignalForTask(t,ds);
         return `<span class="cal-mini-chip ${sig}" draggable="true" title="${esc(t.title)}" ondragstart="onDayTaskDragStart(event,'${t.id}','${ds}')">${esc(t.title)}</span>`;
       })
-    ].slice(0,3).join('');
+    ];
+    const overflow = allChips.length - zoomChipCap;
+    const chips = (overflow > 0
+      ? allChips.slice(0, zoomChipCap).concat([`<span class="cal-mini-chip cal-mini-more" title="+${overflow} more on this day">+${overflow}</span>`])
+      : allChips
+    ).join('');
     html+=`<div class="cal-cell ${isToday?'today':''} ${isSel?'selected':''} ${hasTasks?'has-tasks':''} ${hasExam?'has-exam':''}"
       data-date="${ds}"
       role="button"
@@ -4738,6 +4750,88 @@ function setCalLayout(layout){
   renderCalendar();
 }
 
+// ── Calendar zoom ─────────────────────────────────────────────
+// Adjusts how dense the calendar is. Scales month cell height,
+// week-view hourPx, and how many chips fit per month cell.
+// Triggered by:
+//   - Cmd/Ctrl + scroll wheel on the calendar
+//   - Pinch-to-zoom on trackpad (browser fires wheel + ctrlKey=true)
+//   - Cmd/Ctrl + = / - / 0 keys
+const CAL_ZOOM_MIN = 0.5;
+const CAL_ZOOM_MAX = 2.5;
+const CAL_ZOOM_STEP = 0.10;
+let _zoomToastT = null;
+function setCalZoom(z, opts){
+  const newZoom = Math.max(CAL_ZOOM_MIN, Math.min(CAL_ZOOM_MAX, Math.round(z * 100) / 100));
+  if(!S.settings) S.settings = {};
+  S.settings.calZoom = newZoom;
+  applyCalZoomCss();
+  save();
+  renderCalendar();
+  // Brief toast so users see what zoom they're at
+  if(!opts || !opts.silent) showZoomToast(newZoom);
+}
+function applyCalZoomCss(){
+  const z = Math.max(CAL_ZOOM_MIN, Math.min(CAL_ZOOM_MAX, Number(S.settings?.calZoom) || 1));
+  // Scale the cell minimum height. Density override (--cal-cell-h) acts as
+  // the baseline; we multiply by zoom and set a separate var for the grid.
+  const root = document.documentElement;
+  const baseH = parseFloat(getComputedStyle(root).getPropertyValue('--cal-cell-h')) || 55;
+  root.style.setProperty('--cal-cell-h-zoom', `${Math.round(baseH * z)}px`);
+  root.style.setProperty('--cal-zoom', String(z));
+}
+function showZoomToast(z){
+  // Tiny floating chip near the calendar header showing the % zoom level.
+  let el = document.getElementById('calZoomToast');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'calZoomToast';
+    el.className = 'cal-zoom-toast';
+    document.body.appendChild(el);
+  }
+  el.textContent = `${Math.round(z * 100)}%`;
+  el.classList.add('show');
+  if(_zoomToastT) clearTimeout(_zoomToastT);
+  _zoomToastT = setTimeout(() => el.classList.remove('show'), 900);
+}
+function zoomIn(){  setCalZoom((Number(S.settings?.calZoom) || 1) + CAL_ZOOM_STEP); }
+function zoomOut(){ setCalZoom((Number(S.settings?.calZoom) || 1) - CAL_ZOOM_STEP); }
+function zoomReset(){ setCalZoom(1.0); }
+
+// Wire wheel + keyboard listeners on first render (idempotent).
+let _zoomBound = false;
+function bindCalZoomListeners(){
+  if(_zoomBound) return;
+  _zoomBound = true;
+  // Cmd/Ctrl + wheel anywhere on the calendar (handles pinch on macOS,
+  // which fires wheel with ctrlKey=true). Bound globally and filtered
+  // to only fire when the cursor is over the calendar surface.
+  window.addEventListener('wheel', (e) => {
+    if(!(e.ctrlKey || e.metaKey)) return;
+    // Only consume the event when the pointer is over a calendar surface
+    const t = e.target;
+    if(!t || !t.closest) return;
+    const onCal = t.closest('#calPanel, #calendarPageHost, .cal-week-wrap, .cal-panel');
+    if(!onCal) return;
+    e.preventDefault();
+    const cur = Number(S.settings?.calZoom) || 1;
+    const delta = -Math.sign(e.deltaY) * CAL_ZOOM_STEP;
+    setCalZoom(cur + delta);
+  }, { passive: false });
+  // Cmd/Ctrl + = / - / 0
+  window.addEventListener('keydown', (e) => {
+    if(!(e.ctrlKey || e.metaKey)) return;
+    // Only when a calendar is currently visible
+    if(!document.querySelector('#calPanel, #calendarPageHost')) return;
+    // Ignore when typing in inputs
+    const tag = (e.target?.tagName || '').toLowerCase();
+    if(tag === 'input' || tag === 'textarea' || e.target?.isContentEditable) return;
+    if(e.key === '=' || e.key === '+'){ e.preventDefault(); zoomIn(); }
+    else if(e.key === '-' || e.key === '_'){ e.preventDefault(); zoomOut(); }
+    else if(e.key === '0'){ e.preventDefault(); zoomReset(); }
+  });
+}
+
 // ── Google-Calendar style Week Hour View ──
 function getWeekStartDate(date){
   const d = new Date(date);
@@ -4949,14 +5043,18 @@ function renderWeekView(){
   const _wrap = wrap;
   const _dayhead = dayhead;
   const _allday  = allday;
-  let hourPx = WEEK_HOUR_PX;
+  const zoom = Math.max(0.5, Math.min(2.5, Number(S.settings?.calZoom) || 1));
+  let hourPx = Math.round(WEEK_HOUR_PX * zoom);
   if(_wrap){
     const wrapH    = _wrap.clientHeight;
     const dayheadH = _dayhead ? _dayhead.offsetHeight : 0;
     const alldayH  = _allday  ? _allday.offsetHeight  : 0;
     const avail    = wrapH - dayheadH - alldayH - 8; // 8px gap budget
     const fit      = Math.floor(avail / hours);
-    if(fit >= 26) hourPx = fit;   // 26 ≈ minimum readable hour row
+    // When zoomed-out (zoom<1) — prefer fitting more hours in view, no scroll.
+    // When zoomed-in (zoom>1) — honor the user's chosen hourPx; scroll if it overflows.
+    if(zoom <= 1 && fit >= 26) hourPx = fit;
+    else hourPx = Math.max(26, hourPx);
   }
   const gridHeight = hours * hourPx;
 
