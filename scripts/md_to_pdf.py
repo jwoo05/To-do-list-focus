@@ -23,6 +23,7 @@ from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, PageBreak, HRFlowable,
     Table, TableStyle, ListFlowable, ListItem, KeepTogether
 )
+from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfgen import canvas
 
 
@@ -293,167 +294,263 @@ def parse_markdown(md_text):
     return blocks
 
 
+# ── TABLE COLUMN WIDTHS ─────────────────────────────────────────────────────
+# Allocate column widths proportional to the natural pixel-width of the
+# longest cell in each column. This stops narrow columns like "#" or "v1"
+# from taking 1/3 of the table just because there are 3 columns.
+USABLE_WIDTH = 6.5 * inch  # 8.5" page - 1.0" margins on each side
+
+def _strip_md(s):
+    """Strip markdown markup for width measurement."""
+    s = re.sub(r"\*\*([^*]+)\*\*", r"\1", s)
+    s = re.sub(r"(?<!\*)\*([^*]+)\*(?!\*)", r"\1", s)
+    s = re.sub(r"`([^`]+)`", r"\1", s)
+    s = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", s)
+    return s
+
+def calc_col_widths(rows, total_width=USABLE_WIDTH,
+                    body_font=None, body_size=11):
+    """
+    Return a list of column widths summing to ~total_width, allocated
+    proportionally to the max natural-width content in each column.
+    Narrow content (single digits, short tags) gets a tight column;
+    long prose gets the lion's share. A floor (44pt) keeps even tiny
+    columns clickable and visually balanced.
+    """
+    if not rows:
+        return None
+    body_font = body_font or BODY_FONT
+    n_cols = len(rows[0])
+    pad_horizontal = 14  # left+right cell padding budget
+    col_natural = [0.0] * n_cols
+    for row in rows:
+        for ci, cell in enumerate(row[:n_cols]):
+            stripped = _strip_md(cell)
+            # Measure the longest "word run" — proxy for the minimum-width
+            # a column needs to avoid ugly mid-word wraps.
+            longest_chunk = max(stripped.split(), key=len, default="")
+            min_w = stringWidth(longest_chunk, body_font, body_size) + pad_horizontal
+            # Also factor a "comfortable" width = average string length × 0.55
+            comfy_w = stringWidth(stripped[:60], body_font, body_size) * 0.85 + pad_horizontal
+            col_natural[ci] = max(col_natural[ci], min_w, comfy_w * 0.55)
+    floor = 44
+    col_natural = [max(floor, w) for w in col_natural]
+    total = sum(col_natural)
+    if total <= 0:
+        return [total_width / n_cols] * n_cols
+    # Scale to exactly fit the usable width.
+    return [w * total_width / total for w in col_natural]
+
+
 # ── BUILD FLOWABLES ─────────────────────────────────────────────────────────
+# Helper: render a single parsed block to its flowable(s) without applying
+# any cross-block KeepTogether logic. Returns a list of flowables.
+def render_block(kind, payload, styles):
+    if kind == "h1":
+        return [Paragraph(inline(payload), styles["H1"])]
+    if kind == "h2":
+        return [Paragraph(inline(payload), styles["H2"])]
+    if kind == "h3":
+        return [Paragraph(inline(payload), styles["H3"])]
+    if kind == "p":
+        return [Paragraph(inline(payload), styles["Body"])]
+    if kind == "ul":
+        items = [ListItem(Paragraph(inline(it), styles["Bullet"]),
+                          bulletColor=TEXT3, leftIndent=14)
+                 for it in payload]
+        return [ListFlowable(items, bulletType="bullet",
+                             start="•", bulletFontName=BODY_FONT,
+                             bulletFontSize=10, leftIndent=18,
+                             bulletDedent=10), Spacer(1, 4)]
+    if kind == "ol":
+        items = [ListItem(Paragraph(inline(it), styles["Bullet"]),
+                          leftIndent=14)
+                 for it in payload]
+        return [ListFlowable(items, bulletType="1",
+                             bulletFontName=BODY_FONT,
+                             bulletFontSize=10, leftIndent=18,
+                             bulletDedent=10), Spacer(1, 4)]
+    if kind == "quote":
+        return [Paragraph(inline(payload), styles["Quote"])]
+    if kind == "quote_attr":
+        return [Paragraph("— " + inline(payload), styles["QuoteAttr"])]
+    if kind == "code":
+        safe = (payload.replace("&", "&amp;")
+                      .replace("<", "&lt;").replace(">", "&gt;")
+                      .replace("\n", "<br/>")
+                      .replace(" ", "&nbsp;"))
+        return [Paragraph(safe, styles["Code"])]
+    if kind == "hr":
+        return [Spacer(1, 6),
+                HRFlowable(width="100%", thickness=0.5,
+                           color=RULE, spaceBefore=4, spaceAfter=10)]
+    if kind == "table":
+        col_widths = calc_col_widths(payload)
+        data = [[Paragraph(inline(c), styles["Body"]) for c in row]
+                for row in payload]
+        t = Table(data, hAlign="LEFT", repeatRows=1, colWidths=col_widths)
+        t.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), CODE_BG),
+            ("TEXTCOLOR", (0, 0), (-1, 0), TEXT),
+            ("FONTNAME", (0, 0), (-1, 0), HEAD_BOLD),
+            ("FONTSIZE", (0, 0), (-1, 0), 10),
+            ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
+            ("TOPPADDING", (0, 0), (-1, 0), 6),
+            ("LEFTPADDING", (0, 0), (-1, -1), 6),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+            ("GRID", (0, 0), (-1, -1), 0.4, RULE),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ]))
+        return [Spacer(1, 4), t, Spacer(1, 8)]
+    return []
+
+
 def build_story(md_text, styles):
     """
-    Render the blocks into Platypus flowables, wrapping atomic visual
-    groups in KeepTogether so the layout engine never splits them
-    across pages mid-element. Atomic groups:
-      • a heading + the first paragraph that follows it
-      • an entire bullet/ordered list
-      • a blockquote + its attribution
-      • a code block
-      • a table (with its header row guaranteed to repeat if it ever does
-        wrap to a second page, via Table's `repeatRows=1`)
+    Render blocks with section-aware page breaking.
+
+    Section detection: any heading (h1/h2/h3) starts a section. The
+    section bundles together:
+      • the heading itself
+      • the immediately-following lead-in paragraph (if any)
+      • the next "main visual" — a table, list, blockquote, or code block
+        that follows the lead-in (if present)
+
+    The entire bundle is wrapped in KeepTogether so it either lands on
+    the current page or moves whole to the next. This prevents the
+    "heading + one sentence stranded with a giant whitespace below
+    because the table couldn't fit" pattern the user flagged.
+
+    For very large sections (e.g. a 20-row table), ReportLab falls back
+    to splitting naturally inside the table.
     """
     blocks = parse_markdown(md_text)
-    # Resolve title/subtitle pair first so we can pre-skip the metadata paragraph
+    # Resolve title/subtitle pair first
     if blocks and blocks[0][0] == "h1" and len(blocks) > 1 and blocks[1][0] == "p" and "**" in blocks[1][1]:
+        # Render the title and the subtitle as a glued unit, then skip them
+        story_prefix = [
+            KeepTogether([
+                Paragraph(inline(blocks[0][1]), styles["Title"]),
+                Paragraph(inline(blocks[1][1]), styles["Subtitle"]),
+            ])
+        ]
+        blocks[0] = ("__skip__", None)
         blocks[1] = ("__skip__", None)
+    else:
+        story_prefix = []
 
-    story = []
-    first_h1 = True
-    i = 0
+    story = list(story_prefix)
     n = len(blocks)
+    i = 0
+    HEADING_KINDS = ("h1", "h2", "h3")
+    MAIN_KINDS = ("table", "ul", "ol", "code", "quote")
 
     while i < n:
         kind, payload = blocks[i]
-
         if kind == "__skip__":
             i += 1
             continue
 
-        if kind == "h1":
-            head_style = styles["Title"] if first_h1 else styles["H1"]
-            first_h1 = False
-            # Rely on `keepWithNext` to glue the heading to the next flowable
-            # without dragging an entire long paragraph into a KeepTogether
-            # (which can force unnatural page breaks). The title also has
-            # keepWithNext set so it stays attached to the metadata subtitle.
-            story.append(Paragraph(inline(payload), head_style))
+        # Section start: heading + ALL consecutive lead-in paragraphs +
+        # the first main visual (table/list/code/quote) that follows.
+        # The whole bundle rides as a KeepTogether unit so a section
+        # never starts with just heading + one sentence stranded above
+        # a giant whitespace.
+        if kind in HEADING_KINDS:
+            section = render_block(kind, payload, styles)
+            consumed = []  # indices to mark __skip__
+            j = i + 1
+            # Walk forward: gobble paragraphs, then attach the first main.
+            # Stop at: another heading, hr, or the second main.
+            while j < n:
+                bk, bp = blocks[j]
+                if bk == "__skip__":
+                    j += 1
+                    continue
+                if bk == "p":
+                    section += render_block("p", bp, styles)
+                    consumed.append(j)
+                    j += 1
+                    continue
+                if bk in MAIN_KINDS:
+                    # Attach a "reasonably sized" main visual if it's the
+                    # first thing after the lead-in paragraphs.
+                    small_enough = (
+                        (bk == "table" and len(bp) <= 12) or
+                        (bk in ("ul", "ol") and len(bp) <= 10) or
+                        (bk == "code" and bp.count("\n") <= 20) or
+                        (bk == "quote")
+                    )
+                    if small_enough:
+                        section += render_block(bk, bp, styles)
+                        consumed.append(j)
+                        # If quote, absorb its attribution too.
+                        if bk == "quote" and j + 1 < n and blocks[j+1][0] == "quote_attr":
+                            section += render_block("quote_attr", blocks[j+1][1], styles)
+                            consumed.append(j + 1)
+                    # Whether or not we attached it, stop the section here —
+                    # everything after the main visual belongs to its own
+                    # paragraph/section flow.
+                    break
+                # Heading / hr / anything else terminates the section.
+                break
+
+            for idx in consumed:
+                blocks[idx] = ("__skip__", None)
+            story.append(KeepTogether(section))
             i += 1
             continue
 
-        if kind in ("h2", "h3"):
-            style_key = "H2" if kind == "h2" else "H3"
-            # We rely on the style's `keepWithNext=True` to prevent the
-            # heading from orphaning at the page bottom — that flag glues
-            # the heading to the next flowable WITHOUT forcing the entire
-            # paragraph into a KeepTogether unit (which previously caused
-            # long lead-in paragraphs to either split mid-line or get
-            # pushed to the next page in their entirety).
-            story.append(Paragraph(inline(payload), styles[style_key]))
-            i += 1
-            continue
-
+        # Standalone blocks (after their section has already been consumed)
         if kind == "p":
-            # Wrap every paragraph in KeepTogether so it either fits on the
-            # current page or moves whole to the next. ReportLab only ever
-            # splits a paragraph mid-line when it genuinely doesn't fit on
-            # a fresh page (rare for prose), so this keeps every line of
-            # every paragraph together at LinkedIn-portfolio quality.
-            story.append(KeepTogether(Paragraph(inline(payload), styles["Body"])))
+            story.append(KeepTogether(render_block("p", payload, styles)))
             i += 1
             continue
 
-        if kind == "ul":
-            items = [ListItem(Paragraph(inline(it), styles["Bullet"]),
-                              bulletColor=TEXT3, leftIndent=14)
-                     for it in payload]
-            lf = ListFlowable(items, bulletType="bullet",
-                              start="•", bulletFontName=BODY_FONT,
-                              bulletFontSize=10, leftIndent=18,
-                              bulletDedent=10)
-            # Short lists (≤6 items) stay glued together; longer lists are
-            # allowed to break naturally so they don't push a huge gap.
+        if kind in ("ul", "ol"):
+            flows = render_block(kind, payload, styles)
             if len(payload) <= 6:
-                story.append(KeepTogether([lf, Spacer(1, 4)]))
+                story.append(KeepTogether(flows))
             else:
-                story.append(lf)
-                story.append(Spacer(1, 4))
-            i += 1
-            continue
-
-        if kind == "ol":
-            items = [ListItem(Paragraph(inline(it), styles["Bullet"]),
-                              leftIndent=14)
-                     for it in payload]
-            lf = ListFlowable(items, bulletType="1",
-                              bulletFontName=BODY_FONT,
-                              bulletFontSize=10, leftIndent=18,
-                              bulletDedent=10)
-            if len(payload) <= 6:
-                story.append(KeepTogether([lf, Spacer(1, 4)]))
-            else:
-                story.append(lf)
-                story.append(Spacer(1, 4))
+                story.extend(flows)
             i += 1
             continue
 
         if kind == "quote":
-            # Glue quote + attribution into a single keep-together unit
-            group = [Paragraph(inline(payload), styles["Quote"])]
+            flows = render_block("quote", payload, styles)
             if i + 1 < n and blocks[i+1][0] == "quote_attr":
-                group.append(Paragraph("— " + inline(blocks[i+1][1]),
-                                       styles["QuoteAttr"]))
-                i += 1  # consume the attribution
-            story.append(KeepTogether(group))
+                flows += render_block("quote_attr", blocks[i+1][1], styles)
+                blocks[i+1] = ("__skip__", None)
+            story.append(KeepTogether(flows))
             i += 1
             continue
 
         if kind == "quote_attr":
-            # Should normally be absorbed by the quote above; render defensively
-            story.append(Paragraph("— " + inline(payload), styles["QuoteAttr"]))
+            story.extend(render_block("quote_attr", payload, styles))
             i += 1
             continue
 
         if kind == "code":
-            safe = (payload.replace("&", "&amp;")
-                          .replace("<", "&lt;").replace(">", "&gt;")
-                          .replace("\n", "<br/>")
-                          .replace(" ", "&nbsp;"))
-            # Short code blocks stay together; very long ones can wrap
             line_count = payload.count("\n") + 1
-            cp = Paragraph(safe, styles["Code"])
+            flows = render_block("code", payload, styles)
             if line_count <= 14:
-                story.append(KeepTogether(cp))
+                story.append(KeepTogether(flows))
             else:
-                story.append(cp)
+                story.extend(flows)
             i += 1
             continue
 
         if kind == "hr":
-            story.append(Spacer(1, 6))
-            story.append(HRFlowable(width="100%", thickness=0.5,
-                                    color=RULE, spaceBefore=4, spaceAfter=10))
+            story.extend(render_block("hr", payload, styles))
             i += 1
             continue
 
         if kind == "table":
-            rows = payload
-            data = [[Paragraph(inline(c), styles["Body"]) for c in row]
-                    for row in rows]
-            t = Table(data, hAlign="LEFT", repeatRows=1,
-                      colWidths=[None]*len(rows[0]))
-            t.setStyle(TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), CODE_BG),
-                ("TEXTCOLOR", (0, 0), (-1, 0), TEXT),
-                ("FONTNAME", (0, 0), (-1, 0), HEAD_BOLD),
-                ("FONTSIZE", (0, 0), (-1, 0), 10),
-                ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
-                ("TOPPADDING", (0, 0), (-1, 0), 6),
-                ("LEFTPADDING", (0, 0), (-1, -1), 6),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-                ("GRID", (0, 0), (-1, -1), 0.4, RULE),
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ]))
-            # Small tables (≤8 rows) stay glued. Larger tables use
-            # `repeatRows=1` so the header reappears if they do wrap.
-            block = [Spacer(1, 4), t, Spacer(1, 8)]
-            if len(rows) <= 8:
-                story.append(KeepTogether(block))
+            flows = render_block("table", payload, styles)
+            if len(payload) <= 8:
+                story.append(KeepTogether(flows))
             else:
-                story.extend(block)
+                story.extend(flows)
             i += 1
             continue
 
