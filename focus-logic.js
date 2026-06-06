@@ -561,6 +561,8 @@ function renderDashboard(){
     pct.textContent=todayStats.pct+'%';
     label.textContent=`${todayStats.done} of ${todayStats.total} done`;
   }
+  renderHomeHero();
+  bindHomeDisclosures();
   renderDashboardTodayTasks(today);
   renderDashboardHabits();
   // Cognitive scaffolds dashboard widgets — guarded so absence of DOM
@@ -6473,6 +6475,42 @@ function renderDomainPanel(){
         <button class="domain-mode" onclick="setDomainMode('${esc(n)}','${active?'ktlo':'active'}')">${active?'Active':'KTLO'}</button>
       </div>`;
     }).join('')}</div>`;
+}
+
+// ── MINIMAL HOME / SHORTCUTS MODAL ───────────────────────────
+// Update the greeting + date in the home hero. Called on every
+// render so the time-of-day and the date stay fresh.
+function renderHomeHero(){
+  const greetEl = document.getElementById('homeGreeting');
+  const dateEl  = document.getElementById('homeDate');
+  if(!greetEl && !dateEl) return;
+  const name = (S.settings?.name || '').trim();
+  const h = new Date().getHours();
+  const part = h < 5 ? 'Late night' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : h < 21 ? 'Good evening' : 'Good night';
+  if(greetEl) greetEl.textContent = name ? `${part}, ${name}` : part;
+  if(dateEl){
+    const d = new Date();
+    dateEl.textContent = d.toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+  }
+}
+
+// Open the comprehensive Shortcuts & Tips modal.
+function openShortcutsModal(){
+  if(typeof openModal === 'function') openModal('mShortcuts');
+}
+
+// Persist <details> disclosure state per-key so the user's expand/
+// collapse choices survive reloads.
+function bindHomeDisclosures(){
+  document.querySelectorAll('.home-disclosure[data-key]').forEach(d => {
+    if(d.dataset._bound) return;
+    d.dataset._bound = '1';
+    const key = 'home_disc_' + d.dataset.key;
+    try { if(localStorage.getItem(key) === 'open') d.open = true; } catch(_){}
+    d.addEventListener('toggle', () => {
+      try { localStorage.setItem(key, d.open ? 'open' : 'closed'); } catch(_){}
+    });
+  });
 }
 
 // ════════════════════════════════════════════════════════════

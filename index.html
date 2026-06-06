@@ -282,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
     <nav class="nav">
       <button class="nav-item active" data-page="dashboard" onclick="showPage('dashboard',this)">
-        <span>◈</span> Dashboard
+        <span>◈</span> Home
         <span class="nav-badge" id="navMissed">0</span>
       </button>
       <button class="nav-item" data-page="todo" onclick="showPage('todo',this)">
@@ -361,22 +361,28 @@ document.addEventListener('DOMContentLoaded', () => {
          PAGE: DASHBOARD
     ═══════════════════════════════════════ -->
     <section class="page active" id="page-dashboard">
-      <div class="view-header">
+      <!-- MINIMAL HOME — quiet by design.
+           Only the essentials are shown on first sight; everything else
+           tucks behind a "Show more" disclosure so the page never
+           overwhelms a fresh user but stays one click away for power users. -->
+      <div class="home-hero">
         <div>
-          <div class="view-title">Dashboard</div>
-          <div class="view-sub">A quiet overview before you choose what to do next.</div>
+          <div class="home-greeting" id="homeGreeting">Good morning</div>
+          <div class="home-date" id="homeDate"></div>
         </div>
-        <div class="view-actions">
-          <button class="btn btn-accent" onclick="openModal('mAddTask')">+ New task</button>
-        </div>
+        <button class="home-help-btn" onclick="openShortcutsModal()"
+                title="Shortcuts & Tips" aria-label="Shortcuts and tips">
+          <span class="home-help-icon">?</span>
+          <span class="home-help-label">Shortcuts</span>
+        </button>
       </div>
 
-      <!-- Thursday Review -->
+      <!-- Thursday Review — only on Thursdays, dismissable -->
       <div id="thuCard" class="thu-card" style="display:none">
         <div class="thu-icon">🌙</div>
         <div>
           <div class="thu-title">Thursday Night Review</div>
-          <div class="thu-body">It's Thursday — plan your weekend before the chaos begins. What needs to happen this weekend?</div>
+          <div class="thu-body">It's Thursday — plan your weekend before the chaos begins.</div>
           <div style="margin-top:8px;display:flex;gap:6px">
             <button class="btn-sm btn-primary" onclick="document.getElementById('thuCard').style.display='none';openModal('mAddTask')">Plan weekend</button>
             <button class="btn-sm btn-ghost"   onclick="document.getElementById('thuCard').style.display='none'">Dismiss</button>
@@ -384,90 +390,122 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
 
-      <!-- Quick Add -->
-      <div class="sec">
-        <div class="sec-header" onclick="toggleSec(this)">
-          <span>⚡</span>
-          <span class="sec-title">Quick Add</span>
-          <span class="sec-chevron">›</span>
+      <!-- Today's focus card — the only thing demanding attention -->
+      <div class="home-focus-card">
+        <div class="home-focus-label">
+          <span>Today</span>
+          <span id="dashTodayCounter" class="home-focus-counter">0 of 0 done</span>
         </div>
-        <div class="sec-body">
-          <div class="nlp-bar">
-            <input class="nlp-input" id="nlpInput"
-              placeholder='Type naturally — "MUST submit essay by Friday" or "gym habit tuesday thursday saturday"'
-              onkeydown="if(event.key==='Enter')parseNLPInput()">
-            <button class="nlp-send" onclick="parseNLPInput()">Parse →</button>
-          </div>
-          <div class="nlp-preview" id="nlpPreview">
-            <div class="nlp-row" id="nlpFields"></div>
-            <div class="nlp-confirm-row">
-              <button class="btn-sm btn-primary" onclick="confirmNLP()">Add Task</button>
-              <button class="btn-sm btn-ghost"   onclick="editNLP()">Fix & Teach</button>
-              <button class="btn-sm btn-ghost"   onclick="dismissNLP()">Dismiss</button>
-            </div>
-          </div>
+        <div id="dashTodayTasks" class="dash-today-list"></div>
+        <div class="home-focus-actions">
+          <button class="btn-sm btn-outline" onclick="showPage('todo',document.querySelector('.nav-item[data-page=\\'todo\\']'))">Open Todo List →</button>
         </div>
       </div>
 
-      <!-- Review strip (week/month) -->
-      <div class="review-strip" id="reviewStrip"></div>
-
-      <!-- Dashboard grid -->
-      <div class="dashboard-grid">
-        <!-- Cognitive scaffolds: dopamine-gate status + domain modes -->
-        <div class="dash-panel dash-wide" id="dashScaffolds" style="grid-column:1/4">
-          <div id="dashGateBadge"></div>
-          <div id="dashDomains" style="margin-top:8px"></div>
-        </div>
-        <!-- Today's Tasks — primary card, full width on top -->
-        <div class="dash-panel dash-wide dash-today-tasks" style="grid-column:1/4">
-          <div class="dash-title-row">
-            <div class="dash-title">Today's Tasks</div>
-            <div class="dash-title-meta">
-              <span id="dashTodayCounter">0 of 0 done</span>
-              <button class="btn-sm btn-outline" onclick="openBrainDumpPanel()" title="Brain Dump · Cmd+K">🧠 Inbox</button>
-              <button class="btn-sm btn-outline" onclick="showPage('todo',document.querySelector('.nav-item[data-page=\\'todo\\']'))">Open Todo →</button>
-            </div>
-          </div>
-          <div id="dashTodayTasks" class="dash-today-list"></div>
-        </div>
-        <div class="dash-panel dash-wide" style="grid-column:1/3">
-          <div class="dash-title">Today's Success Rate</div>
-          <div class="success-meter">
-            <svg width="154" height="154" viewBox="0 0 154 154">
-              <circle class="success-track" cx="77" cy="77" r="62"></circle>
-              <circle class="success-fill" id="dashSuccessRing" cx="77" cy="77" r="62" stroke-dasharray="389.56" stroke-dashoffset="389.56"></circle>
-            </svg>
-            <div class="success-center">
-              <strong id="dashSuccessPct">0%</strong>
-              <span id="dashSuccessLabel">0 of 0 done</span>
-            </div>
-          </div>
-        </div>
-        <div class="dash-panel" style="grid-column:3/4">
-          <div class="dash-title">Today's Habits</div>
-          <div id="dashHabits"></div>
-        </div>
-        <div class="dash-panel dash-wide" id="missedPanel" style="display:none;grid-column:1/4">
-          <div class="dash-title">Missed Work — carry over?</div>
-          <div id="missedCarryList"></div>
-        </div>
+      <!-- Quick capture + add — calm action bar -->
+      <div class="home-actions">
+        <button class="home-action-btn" onclick="openModal('mAddTask')">
+          <span class="home-action-icon">+</span>
+          <span class="home-action-text">Add task</span>
+        </button>
+        <button class="home-action-btn" onclick="openQuickCapture()">
+          <span class="home-action-icon">🧠</span>
+          <span class="home-action-text">Capture</span>
+          <kbd class="home-action-kbd">⌘K</kbd>
+        </button>
+        <button class="home-action-btn" onclick="openBrainDumpPanel()">
+          <span class="home-action-icon">📥</span>
+          <span class="home-action-text">Inbox</span>
+        </button>
       </div>
 
-      <!-- Analytics charts -->
-      <div class="analytics-grid">
-        <div class="dash-panel">
-          <div class="dash-title">Completion Trend</div>
-          <svg class="chart" id="completionLineChart" viewBox="0 0 420 140"></svg>
-        </div>
-        <div class="dash-panel">
-          <div class="dash-title">Focus Minutes</div>
-          <svg class="chart" id="focusBarChart" viewBox="0 0 420 140"></svg>
-        </div>
-        <div class="dash-panel">
-          <div class="dash-title">Habit Keep Rate</div>
-          <svg class="chart" id="habitLineChart" viewBox="0 0 420 140"></svg>
-        </div>
+      <!-- Everything below the fold is behind disclosure widgets.
+           Closed by default; remembered via localStorage on toggle. -->
+      <div class="home-more">
+        <details class="home-disclosure" data-key="home-stats">
+          <summary>Today's stats</summary>
+          <div class="home-disclosure-body">
+            <div class="review-strip" id="reviewStrip"></div>
+            <div class="home-stats-grid">
+              <div class="dash-panel home-stat-panel">
+                <div class="dash-title">Success rate</div>
+                <div class="success-meter">
+                  <svg width="120" height="120" viewBox="0 0 154 154">
+                    <circle class="success-track" cx="77" cy="77" r="62"></circle>
+                    <circle class="success-fill" id="dashSuccessRing" cx="77" cy="77" r="62" stroke-dasharray="389.56" stroke-dashoffset="389.56"></circle>
+                  </svg>
+                  <div class="success-center">
+                    <strong id="dashSuccessPct">0%</strong>
+                    <span id="dashSuccessLabel">0 of 0 done</span>
+                  </div>
+                </div>
+              </div>
+              <div class="dash-panel home-stat-panel">
+                <div class="dash-title">Today's habits</div>
+                <div id="dashHabits"></div>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="home-disclosure" data-key="home-scaffolds">
+          <summary>Cognitive scaffolds <span class="home-disclosure-hint">— for ADHD-pattern execution</span></summary>
+          <div class="home-disclosure-body">
+            <div class="home-scaffold-help">
+              Five optional tools that externalize executive function.
+              Each one is toggleable; off for users who don't need them.
+              <a class="home-link" onclick="openShortcutsModal()">Learn more →</a>
+            </div>
+            <div id="dashGateBadge"></div>
+            <div id="dashDomains" style="margin-top:10px"></div>
+          </div>
+        </details>
+
+        <details class="home-disclosure" data-key="home-quickadd">
+          <summary>Natural-language Quick Add</summary>
+          <div class="home-disclosure-body">
+            <div class="nlp-bar">
+              <input class="nlp-input" id="nlpInput"
+                placeholder='Type naturally — "MUST submit essay by Friday" or "gym habit tuesday thursday saturday"'
+                onkeydown="if(event.key==='Enter')parseNLPInput()">
+              <button class="nlp-send" onclick="parseNLPInput()">Parse →</button>
+            </div>
+            <div class="nlp-preview" id="nlpPreview">
+              <div class="nlp-row" id="nlpFields"></div>
+              <div class="nlp-confirm-row">
+                <button class="btn-sm btn-primary" onclick="confirmNLP()">Add Task</button>
+                <button class="btn-sm btn-ghost"   onclick="editNLP()">Fix & Teach</button>
+                <button class="btn-sm btn-ghost"   onclick="dismissNLP()">Dismiss</button>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="home-disclosure" data-key="home-charts">
+          <summary>Trend charts <span class="home-disclosure-hint">— 14-day history</span></summary>
+          <div class="home-disclosure-body">
+            <div class="analytics-grid">
+              <div class="dash-panel">
+                <div class="dash-title">Completion trend</div>
+                <svg class="chart" id="completionLineChart" viewBox="0 0 420 140"></svg>
+              </div>
+              <div class="dash-panel">
+                <div class="dash-title">Focus minutes</div>
+                <svg class="chart" id="focusBarChart" viewBox="0 0 420 140"></svg>
+              </div>
+              <div class="dash-panel">
+                <div class="dash-title">Habit keep rate</div>
+                <svg class="chart" id="habitLineChart" viewBox="0 0 420 140"></svg>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- Missed Work — only renders if missed work exists -->
+      <div class="dash-panel dash-wide" id="missedPanel" style="display:none">
+        <div class="dash-title">Missed work — carry over?</div>
+        <div id="missedCarryList"></div>
       </div>
     </section>
 
@@ -999,6 +1037,147 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="form-actions" style="padding:14px 20px; border-top:1px solid var(--border); display:flex; gap:8px; justify-content:flex-end">
       <button class="btn btn-outline" onclick="closeModal('mFocusBlock')">Cancel</button>
       <button class="btn btn-accent" onclick="saveFocusBlock()">Add block</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SHORTCUTS & TIPS — feature discovery surface
+     Comprehensive, hidden until the user wants it.
+═══════════════════════════════════════ -->
+<div class="overlay" id="mShortcuts">
+  <div class="modal" style="width:min(640px,95vw);max-height:88vh;display:flex;flex-direction:column">
+    <div class="modal-header">
+      <span class="modal-title">Shortcuts &amp; Tips</span>
+      <button class="modal-close" onclick="closeModal('mShortcuts')">✕</button>
+    </div>
+    <div class="modal-body" style="overflow-y:auto;flex:1">
+
+      <div class="shortcuts-section">
+        <div class="shortcuts-section-title">Keyboard</div>
+        <div class="shortcuts-row">
+          <div class="shortcuts-keys"><kbd>⌘</kbd><span>+</span><kbd>K</kbd></div>
+          <div class="shortcuts-text">
+            <strong>Quick Capture</strong> — open the brain-dump popover from anywhere. Type up to 80 chars, hit Enter to save. Press again or Esc to close.
+          </div>
+        </div>
+        <div class="shortcuts-row">
+          <div class="shortcuts-keys"><kbd>⌘</kbd><span>+</span><kbd>scroll</kbd></div>
+          <div class="shortcuts-text">
+            <strong>Calendar zoom</strong> — hover the calendar, hold Cmd/Ctrl, scroll up to zoom in (more chips, taller cells), down to zoom out. Pinch on trackpad works too.
+          </div>
+        </div>
+        <div class="shortcuts-row">
+          <div class="shortcuts-keys"><kbd>⌘</kbd><span>+</span><kbd>=</kbd></div>
+          <div class="shortcuts-text"><strong>Calendar zoom in</strong> — 10% step.</div>
+        </div>
+        <div class="shortcuts-row">
+          <div class="shortcuts-keys"><kbd>⌘</kbd><span>+</span><kbd>−</kbd></div>
+          <div class="shortcuts-text"><strong>Calendar zoom out</strong> — 10% step.</div>
+        </div>
+        <div class="shortcuts-row">
+          <div class="shortcuts-keys"><kbd>⌘</kbd><span>+</span><kbd>0</kbd></div>
+          <div class="shortcuts-text"><strong>Calendar reset zoom</strong> — back to 100%.</div>
+        </div>
+        <div class="shortcuts-row">
+          <div class="shortcuts-keys"><kbd>Enter</kbd></div>
+          <div class="shortcuts-text">In the Add Task modal, submits and closes. In Quick Capture, saves the dump.</div>
+        </div>
+        <div class="shortcuts-row">
+          <div class="shortcuts-keys"><kbd>Esc</kbd></div>
+          <div class="shortcuts-text">Closes any open modal or popover.</div>
+        </div>
+      </div>
+
+      <div class="shortcuts-section">
+        <div class="shortcuts-section-title">Mouse &amp; drag</div>
+        <div class="shortcuts-row">
+          <div class="shortcuts-keys"><span class="shortcuts-glyph">⇄</span></div>
+          <div class="shortcuts-text"><strong>Drag a task from the Bank onto a calendar day</strong> to schedule it. Drag back to the bank to unschedule.</div>
+        </div>
+        <div class="shortcuts-row">
+          <div class="shortcuts-keys"><span class="shortcuts-glyph">⇕</span></div>
+          <div class="shortcuts-text"><strong>Drag the handle below the all-day strip</strong> to make it taller or shorter. The cap auto-derives from height.</div>
+        </div>
+        <div class="shortcuts-row">
+          <div class="shortcuts-keys"><span class="shortcuts-glyph">⇕</span></div>
+          <div class="shortcuts-text"><strong>Drag the slim handle between the calendar grid and the day card</strong> in the Todo List to resize the split.</div>
+        </div>
+        <div class="shortcuts-row">
+          <div class="shortcuts-keys"><span class="shortcuts-glyph">⇄</span></div>
+          <div class="shortcuts-text"><strong>Drag the vertical divider</strong> between Bank / Today / Calendar columns to adjust column widths.</div>
+        </div>
+        <div class="shortcuts-row">
+          <div class="shortcuts-keys"><span class="shortcuts-glyph">2×</span></div>
+          <div class="shortcuts-text"><strong>Double-click any calendar day</strong> to open a Google-Calendar-style quick-add popover for that date.</div>
+        </div>
+        <div class="shortcuts-row">
+          <div class="shortcuts-keys"><span class="shortcuts-glyph">›</span></div>
+          <div class="shortcuts-text"><strong>Click "May 2026"</strong> in the Add Task date pickers to pick any month + year.</div>
+        </div>
+        <div class="shortcuts-row">
+          <div class="shortcuts-keys"><span class="shortcuts-glyph">✏️</span></div>
+          <div class="shortcuts-text"><strong>Click the emoji</strong> next to "Todo List" to change the page icon — 30-emoji palette matched to the aesthetic.</div>
+        </div>
+      </div>
+
+      <div class="shortcuts-section">
+        <div class="shortcuts-section-title">Cognitive scaffolds</div>
+        <div class="shortcuts-row">
+          <div class="shortcuts-keys"><span class="shortcuts-glyph">▸</span></div>
+          <div class="shortcuts-text">
+            <strong>First Step</strong> — when adding a task, fill in "the 5-second move" (e.g. <em>put left shoe on</em>). It shows as a soft blue bar under the task and is what your brain sees first — friction-free entry instead of the full chore.
+          </div>
+        </div>
+        <div class="shortcuts-row">
+          <div class="shortcuts-keys"><span class="shortcuts-glyph">🧠</span></div>
+          <div class="shortcuts-text">
+            <strong>Quick Capture</strong> — press <kbd>⌘K</kbd> from anywhere to dump a 3-word idea. Review them later via the 📥 Inbox button on the Today card. Each capture can become a task with one click.
+          </div>
+        </div>
+        <div class="shortcuts-row">
+          <div class="shortcuts-keys"><span class="shortcuts-glyph">🔒</span></div>
+          <div class="shortcuts-text">
+            <strong>Dopamine Gate</strong> — tag tasks as <em>Execute</em> (cortisol) or <em>Plan</em> (dopamine). Plan tasks dim until you log 15 min of execute work today. Soft enforcement: dimmed, not blocked. Default 15 min, configurable.
+          </div>
+        </div>
+        <div class="shortcuts-row">
+          <div class="shortcuts-keys"><span class="shortcuts-glyph">●</span></div>
+          <div class="shortcuts-text">
+            <strong>Domain Modes</strong> — tag tasks with a domain (school, lifting, drums…). Each domain runs in <em>Active</em> or <em>KTLO</em> (keep-the-lights-on) mode. KTLO tasks fade so they don't compete with active builds. Toggle in the Cognitive scaffolds section.
+          </div>
+        </div>
+        <div class="shortcuts-row">
+          <div class="shortcuts-keys"><span class="shortcuts-glyph">⏱</span></div>
+          <div class="shortcuts-text">
+            <strong>Time Anchor</strong> — when enabled, fires a discreet toast every 25 min during focus sessions: <em>"Time check: 3:47 PM · check on your people."</em> Externalizes the internal clock that hyperfocus suppresses.
+          </div>
+        </div>
+      </div>
+
+      <div class="shortcuts-section">
+        <div class="shortcuts-section-title">Hidden details</div>
+        <ul class="shortcuts-list">
+          <li>The all-day strip caps each column at a height-derived number of items — drag the handle to change density.</li>
+          <li>The calendar grid fits one viewport without scrolling at zoom ≤ 100%. Zoom in to expand hour rows for finer time precision.</li>
+          <li>Tasks with subtasks show a <code>▸ 0/N steps</code> chip; click to expand inline. Each step can have its own scheduled date via the 📅 icon.</li>
+          <li>Hover a row in the Bank to reveal the ✕ delete (left-red on hover) and the ⧉ ✎ action buttons.</li>
+          <li>Bank rows auto-color their left edge by urgency: red (overdue) → orange (24h) → yellow (week) → blue (later).</li>
+          <li>Toasts stack at most 3 — older ones evict to keep the screen calm.</li>
+          <li>The Archive on the Todo List shows <strong>today's</strong> completions only — yesterday's stay in storage but don't pollute today's view.</li>
+          <li>Press the <strong>Today</strong> button on the calendar to jump back to the current week / day.</li>
+          <li>iCal imports preserve recurring events (RRULE), exceptions (EXDATE), time zones, and per-calendar colors.</li>
+        </ul>
+      </div>
+
+      <div class="shortcuts-section">
+        <div class="shortcuts-section-title">Turn things off</div>
+        <p class="shortcuts-body">Every scaffold is opt-out. Open Settings (⚙ in the sidebar) → Scaffolds to toggle First Step, Quick Capture, Dopamine Gate, Domain Modes, or Time Anchor individually. The app falls back to a clean classic todo list when all five are off.</p>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('mShortcuts')">Got it</button>
     </div>
   </div>
 </div>
