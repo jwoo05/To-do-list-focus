@@ -2064,26 +2064,80 @@ function restoreDeleted(id){
 // and "Show less" controls. State lives on window so it persists while
 // the modal is open. Resets to 10 when the modal closes.
 let _deletedShown = 10;
+let _deletedQuery = '';
+let _deletedFrom  = '';   // YYYY-MM-DD or ''
+let _deletedTo    = '';   // YYYY-MM-DD or ''
+
+function _matchesDeletedFilters(d){
+  // Title / subject search
+  if(_deletedQuery){
+    const q = _deletedQuery.toLowerCase();
+    const hay = `${d.item?.title||''} ${d.item?.subject||''} ${d.item?.notes||''}`.toLowerCase();
+    if(!hay.includes(q)) return false;
+  }
+  // Date range — compares the deletion timestamp's YYYY-MM-DD to the
+  // From / To inputs. Inclusive on both ends. Either side can be empty.
+  if(_deletedFrom || _deletedTo){
+    if(!d.deletedAt) return false;
+    const dt = new Date(d.deletedAt);
+    if(Number.isNaN(dt.getTime())) return false;
+    const ds = `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`;
+    if(_deletedFrom && ds < _deletedFrom) return false;
+    if(_deletedTo   && ds > _deletedTo)   return false;
+  }
+  return true;
+}
+
 function renderDeletedList(){
   const wrap=document.getElementById('deletedList');
   // Always update the count badge on the Settings button
   const badge = document.getElementById('deletedCountBadge');
-  const items=S.deleted||[];
-  if(badge) badge.textContent = String(items.length);
+  const allItems = S.deleted || [];
+  if(badge) badge.textContent = String(allItems.length);
   if(!wrap) return;
-  // Update modal sub-label and Restore-all button visibility
+
+  // Apply filters
+  const items = allItems.filter(_matchesDeletedFilters);
+  const filtersActive = !!(_deletedQuery || _deletedFrom || _deletedTo);
+
+  // Update modal sub-label
   const sub = document.getElementById('deletedModalSub');
-  if(sub) sub.textContent = items.length === 1 ? '1 item' : `${items.length} items`;
+  if(sub){
+    if(filtersActive){
+      sub.textContent = `${items.length} of ${allItems.length} ${allItems.length === 1 ? 'item' : 'items'}`;
+    } else {
+      sub.textContent = allItems.length === 1 ? '1 item' : `${allItems.length} items`;
+    }
+  }
+  // Restore-all uses the visible (filtered) set so the user can bulk-
+  // restore only the rows matching their search.
   const restoreAllBtn = document.getElementById('deletedRestoreAllBtn');
   if(restoreAllBtn) restoreAllBtn.style.display = items.length ? '' : 'none';
 
+  // Show the "Clear" filter button only when filters are active
+  const clrBtn = document.getElementById('deletedFiltersClear');
+  if(clrBtn) clrBtn.style.display = filtersActive ? '' : 'none';
+  const searchClear = document.getElementById('deletedSearchClear');
+  if(searchClear) searchClear.style.display = _deletedQuery ? '' : 'none';
+
   if(!items.length){
-    wrap.innerHTML = `
-      <div class="deleted-empty">
-        <div class="deleted-empty-icon">🗂️</div>
-        <div class="deleted-empty-title">No deleted items</div>
-        <div class="deleted-empty-body">Tasks you delete will show up here so you can restore them.</div>
-      </div>`;
+    if(allItems.length === 0){
+      // Truly empty
+      wrap.innerHTML = `
+        <div class="deleted-empty">
+          <div class="deleted-empty-icon">🗂️</div>
+          <div class="deleted-empty-title">No deleted items</div>
+          <div class="deleted-empty-body">Tasks you delete will show up here so you can restore them.</div>
+        </div>`;
+    } else {
+      // No matches for current filters
+      wrap.innerHTML = `
+        <div class="deleted-empty">
+          <div class="deleted-empty-icon">🔎</div>
+          <div class="deleted-empty-title">No matches</div>
+          <div class="deleted-empty-body">Try a different search term or date range. ${allItems.length} item${allItems.length===1?'':'s'} hidden by the current filters.</div>
+        </div>`;
+    }
     document.getElementById('deletedShowMore').style.display = 'none';
     document.getElementById('deletedShowLess').style.display = 'none';
     return;
@@ -2134,8 +2188,17 @@ function renderDeletedList(){
 }
 function openDeletedModal(){
   _deletedShown = 10;
+  _deletedQuery = '';
+  _deletedFrom = '';
+  _deletedTo = '';
+  // Clear the input fields visually so the user always starts fresh
+  const s = document.getElementById('deletedSearchInput'); if(s) s.value = '';
+  const f = document.getElementById('deletedFromDate');   if(f) f.value = '';
+  const t = document.getElementById('deletedToDate');     if(t) t.value = '';
   if(typeof openModal === 'function') openModal('mDeleted');
   renderDeletedList();
+  // Focus the search box so the user can start typing immediately
+  setTimeout(() => { s?.focus(); }, 50);
 }
 function showMoreDeleted(){
   _deletedShown += 10;
@@ -2148,10 +2211,48 @@ function showLessDeleted(){
   document.getElementById('deletedList')?.scrollIntoView({behavior:'smooth', block:'start'});
 }
 function restoreAllDeleted(){
-  const items = (S.deleted || []).slice();
+  // Operate on the currently-visible (filtered) set so the user can
+  // bulk-restore only the items matching their search/date range.
+  const items = (S.deleted || []).filter(_matchesDeletedFilters);
   if(!items.length) return;
-  if(!confirm(`Restore all ${items.length} deleted items?`)) return;
+  const filtered = !!(_deletedQuery || _deletedFrom || _deletedTo);
+  const msg = filtered
+    ? `Restore all ${items.length} matching deleted items?`
+    : `Restore all ${items.length} deleted items?`;
+  if(!confirm(msg)) return;
   items.forEach(d => restoreDeleted(d.id));
+}
+// Search input handlers — keep state in sync with the inputs.
+function onDeletedSearchInput(){
+  const s = document.getElementById('deletedSearchInput');
+  _deletedQuery = (s?.value || '').trim();
+  _deletedShown = 10; // reset pagination so the user sees matches from the top
+  renderDeletedList();
+}
+function clearDeletedSearch(){
+  _deletedQuery = '';
+  const s = document.getElementById('deletedSearchInput'); if(s) s.value = '';
+  _deletedShown = 10;
+  renderDeletedList();
+  document.getElementById('deletedSearchInput')?.focus();
+}
+function onDeletedFilterChange(){
+  const f = document.getElementById('deletedFromDate');
+  const t = document.getElementById('deletedToDate');
+  _deletedFrom = f?.value || '';
+  _deletedTo   = t?.value || '';
+  _deletedShown = 10;
+  renderDeletedList();
+}
+function clearDeletedFilters(){
+  _deletedQuery = '';
+  _deletedFrom = '';
+  _deletedTo = '';
+  const s = document.getElementById('deletedSearchInput'); if(s) s.value = '';
+  const f = document.getElementById('deletedFromDate');   if(f) f.value = '';
+  const t = document.getElementById('deletedToDate');     if(t) t.value = '';
+  _deletedShown = 10;
+  renderDeletedList();
 }
 
 function showToast(message, actionLabel, action){

@@ -1243,6 +1243,35 @@ document.addEventListener('DOMContentLoaded', () => {
         <button class="deleted-restore-all" id="deletedRestoreAllBtn"
                 onclick="restoreAllDeleted()" type="button">Restore all</button>
       </div>
+      <!-- Search + date range filters. All optional; "Clear" wipes them
+           and shows everything again. Calm row that sits above the list. -->
+      <div class="deleted-filters">
+        <div class="deleted-search">
+          <span class="deleted-search-icon">🔎</span>
+          <input type="text" id="deletedSearchInput"
+                 class="deleted-search-input"
+                 placeholder="Search by title or subject…"
+                 autocomplete="off"
+                 oninput="onDeletedSearchInput()">
+          <button type="button" id="deletedSearchClear"
+                  class="deleted-search-clear"
+                  onclick="clearDeletedSearch()"
+                  style="display:none"
+                  aria-label="Clear search">✕</button>
+        </div>
+        <div class="deleted-date-range">
+          <label class="deleted-date-label">From</label>
+          <input type="date" id="deletedFromDate" class="deleted-date-input"
+                 onchange="onDeletedFilterChange()" aria-label="From date">
+          <label class="deleted-date-label">To</label>
+          <input type="date" id="deletedToDate" class="deleted-date-input"
+                 onchange="onDeletedFilterChange()" aria-label="To date">
+          <button type="button" id="deletedFiltersClear"
+                  class="deleted-filters-clear"
+                  onclick="clearDeletedFilters()"
+                  style="display:none">Clear</button>
+        </div>
+      </div>
       <div id="deletedList" class="deleted-list-v2"></div>
       <div class="deleted-footer">
         <button id="deletedShowMore" class="deleted-more-btn"

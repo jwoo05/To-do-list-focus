@@ -5184,3 +5184,122 @@ strong, b {
   max-width: 280px;
   margin: 0 auto;
 }
+
+/* ── Deleted-items filters: search + date range ── */
+.deleted-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+}
+
+/* Search input — magnifier icon + text input + clear x */
+.deleted-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  transition: border-color var(--tr), background var(--tr);
+}
+.deleted-search:focus-within {
+  border-color: var(--accent);
+  background: var(--surface);
+}
+.deleted-search-icon {
+  font-size: 11px;
+  color: var(--text3);
+  opacity: .7;
+  flex-shrink: 0;
+}
+.deleted-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 6px 0;
+  font-size: 12px;
+  font-weight: 430 !important;
+  color: var(--text);
+  font-family: var(--font-ui);
+  letter-spacing: -0.003em;
+}
+.deleted-search-input::placeholder { color: var(--text3); font-weight: 420 !important; }
+.deleted-search-clear {
+  background: transparent;
+  border: none;
+  color: var(--text3);
+  font-size: 11px;
+  width: 18px; height: 18px;
+  border-radius: 3px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--tr), color var(--tr);
+}
+.deleted-search-clear:hover { background: var(--bg3); color: var(--text); }
+
+/* Date range row */
+.deleted-date-range {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.deleted-date-label {
+  font-size: 9px;
+  font-weight: 500 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text3);
+  padding: 0 2px;
+}
+.deleted-date-input {
+  flex: 1;
+  min-width: 120px;
+  padding: 5px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 430 !important;
+  color: var(--text);
+  font-family: var(--font-ui);
+  transition: border-color var(--tr);
+}
+.deleted-date-input:focus { outline: none; border-color: var(--accent); }
+.deleted-date-input::-webkit-calendar-picker-indicator {
+  opacity: .5;
+  cursor: pointer;
+  filter: grayscale(1);
+}
+.deleted-date-input:hover::-webkit-calendar-picker-indicator { opacity: 1; }
+
+.deleted-filters-clear {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 460 !important;
+  padding: 4px 9px;
+  cursor: pointer;
+  transition: border-color var(--tr), color var(--tr), background var(--tr);
+}
+.deleted-filters-clear:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--surface);
+}
+
+/* Mobile: stack the date range vertically so it doesn't crowd */
+@media (max-width: 480px) {
+  .deleted-date-range { gap: 4px; }
+  .deleted-date-input { min-width: 0; flex: 1 1 40%; }
+  .deleted-filters-clear { width: 100%; margin-top: 2px; }
+}
