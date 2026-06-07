@@ -2060,15 +2060,98 @@ function restoreDeleted(id){
   save(); render(); renderDeletedList();
 }
 
+// Paginated deleted-items view — shows 10 at a time with "Show 10 more"
+// and "Show less" controls. State lives on window so it persists while
+// the modal is open. Resets to 10 when the modal closes.
+let _deletedShown = 10;
 function renderDeletedList(){
   const wrap=document.getElementById('deletedList');
-  if(!wrap) return;
+  // Always update the count badge on the Settings button
+  const badge = document.getElementById('deletedCountBadge');
   const items=S.deleted||[];
-  wrap.innerHTML=items.length ? items.map(d=>`
-    <div class="deleted-row">
-      <span>${esc(d.item?.title||'Deleted item')}</span>
-      <button class="btn-sm btn-ghost" onclick="restoreDeleted('${d.id}')">Restore</button>
-    </div>`).join('') : `<div class="empty" style="padding:14px;text-align:left">No deleted items.</div>`;
+  if(badge) badge.textContent = String(items.length);
+  if(!wrap) return;
+  // Update modal sub-label and Restore-all button visibility
+  const sub = document.getElementById('deletedModalSub');
+  if(sub) sub.textContent = items.length === 1 ? '1 item' : `${items.length} items`;
+  const restoreAllBtn = document.getElementById('deletedRestoreAllBtn');
+  if(restoreAllBtn) restoreAllBtn.style.display = items.length ? '' : 'none';
+
+  if(!items.length){
+    wrap.innerHTML = `
+      <div class="deleted-empty">
+        <div class="deleted-empty-icon">🗂️</div>
+        <div class="deleted-empty-title">No deleted items</div>
+        <div class="deleted-empty-body">Tasks you delete will show up here so you can restore them.</div>
+      </div>`;
+    document.getElementById('deletedShowMore').style.display = 'none';
+    document.getElementById('deletedShowLess').style.display = 'none';
+    return;
+  }
+
+  const shown = Math.min(_deletedShown, items.length);
+  const slice = items.slice(0, shown);
+
+  wrap.innerHTML = slice.map(d => {
+    const title = esc(d.item?.title || 'Deleted item');
+    const subject = d.item?.subject ? esc(d.item.subject) : '';
+    const when = d.deletedAt
+      ? new Date(d.deletedAt).toLocaleDateString(undefined, {month:'short', day:'numeric'})
+      : '';
+    return `
+      <div class="deleted-row-v2">
+        <div class="del-row-main">
+          <div class="del-row-title" title="${title}">${title}</div>
+          <div class="del-row-meta">
+            ${subject ? `<span class="del-row-subject">${subject}</span>` : ''}
+            ${when    ? `<span class="del-row-when">deleted ${when}</span>` : ''}
+          </div>
+        </div>
+        <button class="del-row-restore" type="button"
+                onclick="restoreDeleted('${d.id}')"
+                aria-label="Restore ${title}">
+          <span class="del-row-restore-icon">↩</span>
+          <span class="del-row-restore-label">Restore</span>
+        </button>
+      </div>`;
+  }).join('');
+
+  // Pagination buttons
+  const more = document.getElementById('deletedShowMore');
+  const less = document.getElementById('deletedShowLess');
+  const hidden = items.length - shown;
+  if(more){
+    if(hidden > 0){
+      more.style.display = '';
+      more.textContent = `Show ${Math.min(10, hidden)} more · ${hidden} hidden`;
+    } else {
+      more.style.display = 'none';
+    }
+  }
+  if(less){
+    less.style.display = (shown > 10) ? '' : 'none';
+  }
+}
+function openDeletedModal(){
+  _deletedShown = 10;
+  if(typeof openModal === 'function') openModal('mDeleted');
+  renderDeletedList();
+}
+function showMoreDeleted(){
+  _deletedShown += 10;
+  renderDeletedList();
+}
+function showLessDeleted(){
+  _deletedShown = 10;
+  renderDeletedList();
+  // Scroll the modal back to top so the user sees the start of the list
+  document.getElementById('deletedList')?.scrollIntoView({behavior:'smooth', block:'start'});
+}
+function restoreAllDeleted(){
+  const items = (S.deleted || []).slice();
+  if(!items.length) return;
+  if(!confirm(`Restore all ${items.length} deleted items?`)) return;
+  items.forEach(d => restoreDeleted(d.id));
 }
 
 function showToast(message, actionLabel, action){

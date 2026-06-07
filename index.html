@@ -1228,6 +1228,39 @@ document.addEventListener('DOMContentLoaded', () => {
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════
+     DELETED ITEMS — paginated 10-at-a-time, restore inline
+═══════════════════════════════════════ -->
+<div class="overlay" id="mDeleted">
+  <div class="modal" style="width:min(540px,95vw);max-height:84vh;display:flex;flex-direction:column">
+    <div class="modal-header">
+      <span class="modal-title">Deleted items</span>
+      <button class="modal-close" onclick="closeModal('mDeleted')">✕</button>
+    </div>
+    <div class="modal-body" style="overflow-y:auto;flex:1;padding:0">
+      <div class="deleted-modal-head">
+        <span class="deleted-modal-sub" id="deletedModalSub">— items</span>
+        <button class="deleted-restore-all" id="deletedRestoreAllBtn"
+                onclick="restoreAllDeleted()" type="button">Restore all</button>
+      </div>
+      <div id="deletedList" class="deleted-list-v2"></div>
+      <div class="deleted-footer">
+        <button id="deletedShowMore" class="deleted-more-btn"
+                onclick="showMoreDeleted()" type="button" style="display:none">
+          Show 10 more
+        </button>
+        <button id="deletedShowLess" class="deleted-less-btn"
+                onclick="showLessDeleted()" type="button" style="display:none">
+          Show less
+        </button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('mDeleted')">Done</button>
+    </div>
+  </div>
+</div>
+
 <!-- WELCOME / FEATURE TOUR -->
 <div class="overlay" id="mWelcome">
   <div class="modal" style="width:min(560px,95vw)">
@@ -1750,8 +1783,12 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
       <div class="form-row" style="margin-top:12px">
-        <label>Deleted Items</label>
-        <div class="deleted-list" id="deletedList"></div>
+        <label>Deleted Items <span class="field-hint" style="font-weight:400;color:var(--text3);font-size:10px">— recover any task you've deleted</span></label>
+        <button type="button" class="btn-sm btn-outline deleted-open-btn" onclick="openDeletedModal()">
+          <span class="del-open-icon">↩</span>
+          <span class="del-open-text">View deleted items</span>
+          <span class="del-open-count" id="deletedCountBadge">0</span>
+        </button>
       </div>
       <div class="form-row settings-signout-row" style="margin-top:16px">
         <button class="btn btn-signout" onclick="handleLogOut()">⏻ &nbsp;Log out</button>

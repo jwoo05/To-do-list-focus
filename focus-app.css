@@ -4980,3 +4980,207 @@ strong, b {
     border-bottom: 1px solid var(--border2);
   }
 }
+
+/* ════════════════════════════════════════════════════════════
+ *  DELETED ITEMS — Settings CTA button + paginated modal
+ * ════════════════════════════════════════════════════════════ */
+
+/* The "View deleted items (N)" button in Settings */
+.deleted-open-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 12px;
+  font-size: 12px;
+  font-weight: 460 !important;
+}
+.del-open-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px; height: 18px;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--text3);
+  transition: color var(--tr);
+}
+.deleted-open-btn:hover .del-open-icon { color: var(--accent); }
+.del-open-text { letter-spacing: -0.003em; }
+.del-open-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  padding: 1px 6px;
+  margin-left: 4px;
+  background: var(--bg3);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 480 !important;
+  color: var(--text3);
+  font-variant-numeric: tabular-nums;
+}
+.deleted-open-btn:hover .del-open-count {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+/* Modal header bar inside the deleted-items modal */
+.deleted-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.deleted-modal-sub {
+  font-size: 10px;
+  font-weight: 500 !important;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.deleted-restore-all {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text3);
+  font-size: 11px;
+  font-weight: 460 !important;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: border-color var(--tr), color var(--tr), background var(--tr);
+}
+.deleted-restore-all:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--bg2);
+}
+
+/* List of deleted rows — clean two-column grid: text | restore */
+.deleted-list-v2 {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 20px 4px;
+}
+.deleted-row-v2 {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+  transition: background var(--tr);
+}
+.deleted-row-v2:last-child { border-bottom: none; }
+.deleted-row-v2:hover { background: var(--bg2); margin: 0 -10px; padding-left: 10px; padding-right: 10px; border-radius: 6px; }
+
+.del-row-main { min-width: 0; }
+.del-row-title {
+  font-size: 13px;
+  font-weight: 440 !important;
+  color: var(--text);
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.003em;
+}
+.del-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 3px;
+  font-size: 10px;
+  color: var(--text3);
+  font-weight: 430 !important;
+}
+.del-row-subject {
+  padding: 1px 6px;
+  background: var(--bg3);
+  border-radius: 3px;
+  color: var(--text2);
+}
+.del-row-when { letter-spacing: 0.02em; }
+
+.del-row-restore {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text2);
+  font-size: 11px;
+  font-weight: 460 !important;
+  cursor: pointer;
+  transition: border-color var(--tr), color var(--tr), background var(--tr);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.del-row-restore:hover {
+  border-color: #6fbf8e;
+  color: #316644;
+  background: #edf3ec;
+}
+.del-row-restore-icon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+/* Pagination footer */
+.deleted-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  padding: 14px 20px 18px;
+}
+.deleted-more-btn,
+.deleted-less-btn {
+  width: 100%;
+  max-width: 280px;
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  color: var(--text3);
+  font-size: 11px;
+  font-weight: 460 !important;
+  cursor: pointer;
+  transition: border-color var(--tr), color var(--tr), background var(--tr);
+  letter-spacing: 0.02em;
+}
+.deleted-more-btn:hover,
+.deleted-less-btn:hover {
+  border-color: var(--accent);
+  border-style: solid;
+  color: var(--accent);
+  background: var(--bg2);
+}
+
+/* Empty state */
+.deleted-empty {
+  text-align: center;
+  padding: 56px 20px 36px;
+}
+.deleted-empty-icon {
+  font-size: 38px;
+  opacity: .6;
+  margin-bottom: 12px;
+}
+.deleted-empty-title {
+  font-size: 14px;
+  font-weight: 500 !important;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.deleted-empty-body {
+  font-size: 11px;
+  color: var(--text3);
+  font-weight: 430 !important;
+  line-height: 1.55;
+  max-width: 280px;
+  margin: 0 auto;
+}
