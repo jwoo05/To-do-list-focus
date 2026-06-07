@@ -1275,15 +1275,61 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
     <div class="modal-body">
       <input type="hidden" id="editId">
+      <!-- REQUIRED — the only thing the user must fill -->
       <div class="form-row">
-        <label>Task Title</label>
-        <input id="fTitle" placeholder="What needs to be done?">
+        <label>Task Title <span class="required-marker" aria-label="required">*</span></label>
+        <input id="fTitle" placeholder="What needs to be done?" required>
       </div>
-      <!-- Cognitive scaffold: First Step (Zero-G micro-commitment) -->
+      <!-- First Step is the only "soft-required" calm prompt visible above
+           the fold. It's optional but tiny enough not to overwhelm. -->
       <div class="form-row">
-        <label>First Step <span class="field-hint" style="font-weight:400;color:var(--text3);font-size:10px">— the 5-second move</span></label>
-        <input id="fFirstStep" placeholder="e.g. put left shoe on · open the PDF · type one sentence" maxlength="80">
+        <label>First Step <span class="field-hint" style="font-weight:400;color:var(--text3);font-size:10px">— the 5-second move (optional)</span></label>
+        <input id="fFirstStep" placeholder="e.g. put left shoe on · open the PDF" maxlength="80">
       </div>
+
+      <!-- Quick priority picker — small enough to stay visible -->
+      <div class="form-row">
+        <label>Priority</label>
+        <div class="priority-picker">
+          <button class="pri-btn pri-must" data-p="MUST"   onclick="selectPri('MUST',this)">MUST</button>
+          <button class="pri-btn pri-high" data-p="high"   onclick="selectPri('high',this)">High</button>
+          <button class="pri-btn pri-med active" data-p="medium" onclick="selectPri('medium',this)">Medium</button>
+          <button class="pri-btn pri-low"  data-p="low"    onclick="selectPri('low',this)">Low</button>
+        </div>
+      </div>
+
+      <!-- Compact due-date bar — always visible, never overwhelming -->
+      <div class="form-row">
+        <label>Due Date <span class="field-hint" style="font-weight:400;color:var(--text3);font-size:10px">— optional, click 📅 for calendar</span></label>
+        <div class="date-bar">
+          <input type="date" class="date-bar-input" id="fDueInput"
+                 onchange="setDueDate(this.value)" aria-label="Due date">
+          <button type="button" class="date-bar-quick" onclick="setDueToToday()">Today</button>
+          <button type="button" class="date-bar-quick" onclick="clearDueDate()">Clear</button>
+          <button type="button" class="date-bar-expand" id="dueExpandBtn"
+                  onclick="toggleDatePickerExpand('due')"
+                  aria-expanded="false" aria-controls="duePickerWrap"
+                  title="Show calendar">📅</button>
+        </div>
+        <div class="schedule-picker due-picker" id="duePickerWrap" hidden>
+          <div class="schedule-picker-head">
+            <button type="button" class="mini-btn" onclick="moveDuePickerMonth(-1)">‹</button>
+            <button type="button" class="schedule-picker-title" id="duePickerTitle" onclick="openPickerMonthYear('due', this)" title="Pick month + year">May 2026</button>
+            <button type="button" class="mini-btn" onclick="moveDuePickerMonth(1)">›</button>
+          </div>
+          <div class="schedule-picker-grid" id="duePickerGrid"></div>
+        </div>
+        <input type="hidden" id="fDue">
+        <div id="dueDateChips" class="schedule-chips"></div>
+      </div>
+
+      <!-- Everything else collapses into "More options". The single
+           expressive button hides Subject, Type, Work Days, Subsection,
+           Calendar Highlight, Habit settings, Task Kind, Domain, Notes,
+           and Subtasks until the user wants them. -->
+      <details class="form-more" id="formMore" data-key="addtask-more">
+        <summary>More options <span class="form-more-hint">— subject, type, work days, habit, notes, …</span></summary>
+
       <div class="form-grid">
         <div class="form-row">
           <label>Subject / Course</label>
@@ -1316,50 +1362,28 @@ document.addEventListener('DOMContentLoaded', () => {
           <datalist id="domainSuggestions"></datalist>
         </div>
       </div>
+      <!-- Work Days only — Priority moved above the disclosure, Due Date too -->
       <div class="form-row">
-        <label>Priority</label>
-        <div class="priority-picker">
-          <button class="pri-btn pri-must" data-p="MUST"   onclick="selectPri('MUST',this)">MUST</button>
-          <button class="pri-btn pri-high" data-p="high"   onclick="selectPri('high',this)">High</button>
-          <button class="pri-btn pri-med active" data-p="medium" onclick="selectPri('medium',this)">Medium</button>
-          <button class="pri-btn pri-low"  data-p="low"    onclick="selectPri('low',this)">Low</button>
+        <label>Work Days <span class="field-hint" style="font-weight:400;color:var(--text3);font-size:10px">— optional, expand 📅 for multi-select</span></label>
+        <div class="date-bar">
+          <input type="date" class="date-bar-input" id="fScheduleDate"
+                 aria-label="Add a work day">
+          <button type="button" class="date-bar-quick" onclick="addScheduledDateValue(todayStr())">Today</button>
+          <button type="button" class="date-bar-quick" onclick="addScheduledDate()">+ Add</button>
+          <button type="button" class="date-bar-expand" id="scheduleExpandBtn"
+                  onclick="toggleDatePickerExpand('schedule')"
+                  aria-expanded="false" aria-controls="schedulePickerWrap"
+                  title="Show calendar">📅</button>
         </div>
-      </div>
-      <div class="form-grid">
-        <div class="form-row">
-          <label>Due Date</label>
-          <div class="schedule-picker due-picker">
-            <div class="schedule-picker-head">
-              <button type="button" class="mini-btn" onclick="moveDuePickerMonth(-1)">‹</button>
-              <button type="button" class="schedule-picker-title" id="duePickerTitle" onclick="openPickerMonthYear('due', this)" title="Pick month + year">May 2026</button>
-              <button type="button" class="mini-btn" onclick="moveDuePickerMonth(1)">›</button>
-            </div>
-            <div class="schedule-picker-grid" id="duePickerGrid"></div>
-            <div class="schedule-picker-manual">
-              <button type="button" class="btn btn-outline btn-sm" onclick="setDueToToday()">Today</button>
-              <button type="button" class="btn btn-outline btn-sm" onclick="clearDueDate()">Clear</button>
-            </div>
+        <div class="schedule-picker" id="schedulePickerWrap" hidden>
+          <div class="schedule-picker-head">
+            <button type="button" class="mini-btn" onclick="moveSchedulePickerMonth(-1)">‹</button>
+            <button type="button" class="schedule-picker-title" id="schedulePickerTitle" onclick="openPickerMonthYear('schedule', this)" title="Pick month + year">May 2026</button>
+            <button type="button" class="mini-btn" onclick="moveSchedulePickerMonth(1)">›</button>
           </div>
-          <input type="hidden" id="fDue">
-          <div id="dueDateChips" class="schedule-chips"></div>
+          <div class="schedule-picker-grid" id="schedulePickerGrid"></div>
         </div>
-        <div class="form-row">
-            <label>Work Days</label>
-            <div class="schedule-picker">
-              <div class="schedule-picker-head">
-                <button type="button" class="mini-btn" onclick="moveSchedulePickerMonth(-1)">‹</button>
-                <button type="button" class="schedule-picker-title" id="schedulePickerTitle" onclick="openPickerMonthYear('schedule', this)" title="Pick month + year">May 2026</button>
-                <button type="button" class="mini-btn" onclick="moveSchedulePickerMonth(1)">›</button>
-              </div>
-              <div class="schedule-picker-grid" id="schedulePickerGrid"></div>
-              <div class="schedule-picker-manual">
-                <button type="button" class="btn btn-outline btn-sm" onclick="addScheduledDateValue(todayStr())">Today</button>
-                <input type="date" id="fScheduleDate" aria-label="Add exact work day">
-                <button type="button" class="btn btn-outline" onclick="addScheduledDate()">+ Add exact date</button>
-              </div>
-            </div>
-            <div id="scheduledDateChips"></div>
-          </div>
+        <div id="scheduledDateChips"></div>
       </div>
       <div class="form-grid">
         <div class="form-row">
@@ -1422,6 +1446,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <button class="btn btn-outline" type="button" onclick="addModalSubtask()">Add</button>
         </div>
       </div>
+      </details><!-- end "More options" disclosure -->
+
       <div class="form-actions">
         <button class="btn btn-outline" id="taskToEventBtn" onclick="convertTaskToEvent()" style="display:none;margin-right:auto">Convert to Event</button>
         <button class="btn btn-danger"  id="deleteBtn" onclick="deleteTask()" style="display:none">Delete</button>

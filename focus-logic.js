@@ -2240,6 +2240,9 @@ function editTask(id){
   document.getElementById('fSubject').value = t.subject||'';
   document.getElementById('fType').value = t.type||'task';
   document.getElementById('fDue').value = t.due||'';
+  // Sync the typable date bar so the compact UI reflects the loaded value
+  const _dueBar = document.getElementById('fDueInput');
+  if(_dueBar) _dueBar.value = t.due || '';
   refreshDailySectionOptions(t.dailySection||'Study');
   document.getElementById('fCalendarSignal').value = t.calendarSignal||'auto';
   document.getElementById('fNotes').value = t.notes||'';
@@ -2386,6 +2389,13 @@ function resetAddForm(){
   document.getElementById('fSubject').value='';
   document.getElementById('fType').value='task';
   document.getElementById('fDue').value='';
+  const _dueBarReset = document.getElementById('fDueInput');
+  if(_dueBarReset) _dueBarReset.value = '';
+  // Collapse the expandable calendar grids back to default (compact bar only)
+  document.getElementById('duePickerWrap')?.setAttribute('hidden','');
+  document.getElementById('schedulePickerWrap')?.setAttribute('hidden','');
+  document.getElementById('dueExpandBtn')?.classList.remove('active');
+  document.getElementById('scheduleExpandBtn')?.classList.remove('active');
   refreshDailySectionOptions('Study');
   document.getElementById('fCalendarSignal').value='auto';
   document.getElementById('fNotes').value='';
@@ -2772,12 +2782,41 @@ function setDueDate(ds){
   if(input.value){
     duePickerDate = new Date(input.value+'T00:00:00');
   }
+  // Mirror the value into the typable input bar so they stay in sync
+  const bar = document.getElementById('fDueInput');
+  if(bar) bar.value = input.value || '';
   renderDuePicker();
+}
+
+// Toggle the expandable calendar grid for the date pickers in Add Task.
+// 'due' or 'schedule'. The compact <input type="date"> bar is the default;
+// the full month grid only renders when the user explicitly asks for it.
+function toggleDatePickerExpand(which){
+  const wrapId = which === 'due' ? 'duePickerWrap' : 'schedulePickerWrap';
+  const btnId  = which === 'due' ? 'dueExpandBtn'   : 'scheduleExpandBtn';
+  const wrap = document.getElementById(wrapId);
+  const btn  = document.getElementById(btnId);
+  if(!wrap) return;
+  const opening = wrap.hasAttribute('hidden');
+  if(opening){
+    wrap.removeAttribute('hidden');
+    btn?.setAttribute('aria-expanded', 'true');
+    btn?.classList.add('active');
+    // Render the grid now that it's visible
+    if(which === 'due') renderDuePicker();
+    else renderSchedulePicker();
+  } else {
+    wrap.setAttribute('hidden', '');
+    btn?.setAttribute('aria-expanded', 'false');
+    btn?.classList.remove('active');
+  }
 }
 function setDueToToday(){ setDueDate(todayStr()); }
 function clearDueDate(){
   const input=document.getElementById('fDue');
   if(input) input.value = '';
+  const bar = document.getElementById('fDueInput');
+  if(bar) bar.value = '';
   renderDuePicker();
 }
 function moveDuePickerMonth(delta){
@@ -5829,6 +5868,17 @@ function setupWorkbenchCollapseReopen(){
   const wb=document.getElementById('todoWorkbench');
   if(!wb || wb.dataset.collapseReopenReady) return;
   wb.dataset.collapseReopenReady='1';
+  // On first ever visit to the Todo List page, fold the Bank so the
+  // user lands on Calendar + Today (the two attention-pivotal panels).
+  // Persisted in localStorage so we only do this once.
+  try {
+    if(!localStorage.getItem('todo_bank_initial_fold_v1')){
+      const bank = document.getElementById('workbenchBank');
+      if(bank) bank.classList.add('collapsed');
+      localStorage.setItem('todo_bank_initial_fold_v1', '1');
+      updateWorkbenchCollapseUI();
+    }
+  } catch(_){}
   const colMap={workbenchBank:'bank',workbenchToday:'today',workbenchCalendar:'cal'};
   wb.addEventListener('pointerdown',e=>{
     if(e.target.closest('.col-strip,.workbench-col.collapsed')){

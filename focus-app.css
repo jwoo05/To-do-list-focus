@@ -1281,12 +1281,19 @@ label {
   transition: flex .3s cubic-bezier(.4,0,.2,1), min-width .3s cubic-bezier(.4,0,.2,1);
   overscroll-behavior: contain;
 }
-#workbenchBank     { flex: 1 1 260px; min-width: 180px; }
-#workbenchToday    { flex: 1.4 1 320px; min-width: 220px; }
+/* Column order in the Todo List workbench:
+   1. Calendar (left)  →  2. Today (middle)  →  3. Bank (right)
+   The HTML order stays Bank-Today-Calendar so existing JS keeps working;
+   `order` swaps visual position only. */
+#workbenchBank     { flex: 1 1 260px; min-width: 180px; order: 5; }
+#workbenchToday    { flex: 1.4 1 320px; min-width: 220px; order: 3; }
 /* Calendar column: doesn't scroll itself — the hour grid inside fits
    exactly the available height (dynamic hourPx in JS). Bottom edge
-   aligns with the other two columns. */
-#workbenchCalendar { flex: 1.1 1 280px; min-width: 200px; overflow: hidden; }
+   aligns with the other two columns. Order 1 = leftmost. */
+#workbenchCalendar { flex: 1.1 1 280px; min-width: 200px; overflow: hidden; order: 1; }
+/* Resize grips at the new visual boundaries (integer order values). */
+#resizeTodayCal   { order: 2; }  /* between Calendar (1) and Today (3) */
+#resizeBankToday  { order: 4; }  /* between Today (3) and Bank (5) */
 .workbench-col.collapsed {
   flex: 0 0 38px !important;
   min-width: 38px !important;
@@ -4672,4 +4679,141 @@ strong, b {
   color: var(--text2);
   font-weight: 420 !important;
   margin: 0;
+}
+
+/* ════════════════════════════════════════════════════════════
+ *  ADD TASK MODAL — minimal by default
+ *  Required marker, compact date-bar, "More options" disclosure
+ * ════════════════════════════════════════════════════════════ */
+
+/* Subtle "*" marker on the only required field (title) */
+.required-marker {
+  color: #d9787a;
+  font-weight: 500 !important;
+  margin-left: 4px;
+  font-size: 12px;
+}
+
+/* Compact date-input bar — replaces the always-visible calendar grid */
+.date-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+.date-bar:focus-within { border-color: var(--accent); background: var(--surface); }
+.date-bar-input {
+  flex: 1;
+  min-width: 130px;
+  background: transparent;
+  border: none;
+  padding: 5px 6px;
+  font-size: 13px;
+  font-weight: 430 !important;
+  color: var(--text);
+  font-family: var(--font-ui);
+}
+.date-bar-input:focus { outline: none; }
+.date-bar-input::-webkit-calendar-picker-indicator {
+  opacity: .55;
+  cursor: pointer;
+  filter: grayscale(1);
+  transition: opacity var(--tr);
+}
+.date-bar-input:hover::-webkit-calendar-picker-indicator { opacity: 1; filter: none; }
+
+.date-bar-quick {
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text2);
+  font-size: 11px;
+  font-weight: 460 !important;
+  cursor: pointer;
+  transition: border-color var(--tr), color var(--tr), background var(--tr);
+}
+.date-bar-quick:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--bg2);
+}
+.date-bar-expand {
+  width: 28px; height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text2);
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color var(--tr), color var(--tr), background var(--tr), transform var(--tr);
+}
+.date-bar-expand:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--bg2);
+}
+.date-bar-expand.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.04);
+}
+
+/* Schedule-picker is no longer always-visible; it lives inside a
+   collapsed [hidden] wrapper that we toggle open on demand. */
+.schedule-picker[hidden] { display: none !important; }
+.schedule-picker { margin-top: 8px; }
+
+/* "More options" disclosure inside the Add Task modal */
+.form-more {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.form-more > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 10px 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 470 !important;
+  color: var(--text2);
+  user-select: none;
+  transition: color var(--tr);
+}
+.form-more > summary::-webkit-details-marker { display: none; }
+.form-more > summary::before {
+  content: "›";
+  display: inline-block;
+  width: 12px;
+  color: var(--text3);
+  font-size: 14px;
+  transition: transform var(--tr);
+}
+.form-more[open] > summary::before { transform: rotate(90deg); }
+.form-more > summary:hover { color: var(--text); }
+.form-more-hint {
+  font-weight: 440 !important;
+  color: var(--text3);
+  font-size: 11px;
+  margin-left: 2px;
+}
+.form-more > *:not(summary) { padding-top: 4px; }
+
+/* Mobile: stack date-bar pieces */
+@media (max-width: 560px) {
+  .date-bar { flex-direction: column; align-items: stretch; gap: 4px; padding: 4px; }
+  .date-bar-input { width: 100%; min-width: 0; }
+  .date-bar-quick, .date-bar-expand { width: 100%; }
 }
