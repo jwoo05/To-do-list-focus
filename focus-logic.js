@@ -5868,17 +5868,9 @@ function setupWorkbenchCollapseReopen(){
   const wb=document.getElementById('todoWorkbench');
   if(!wb || wb.dataset.collapseReopenReady) return;
   wb.dataset.collapseReopenReady='1';
-  // On first ever visit to the Todo List page, fold the Bank so the
-  // user lands on Calendar + Today (the two attention-pivotal panels).
-  // Persisted in localStorage so we only do this once.
-  try {
-    if(!localStorage.getItem('todo_bank_initial_fold_v1')){
-      const bank = document.getElementById('workbenchBank');
-      if(bank) bank.classList.add('collapsed');
-      localStorage.setItem('todo_bank_initial_fold_v1', '1');
-      updateWorkbenchCollapseUI();
-    }
-  } catch(_){}
+  // (Bank-folded-on-enter is handled in showPage() — every navigation
+  // to the Todo List page collapses the bank by default, so attention
+  // lands on Calendar + Today first.)
   const colMap={workbenchBank:'bank',workbenchToday:'today',workbenchCalendar:'cal'};
   wb.addEventListener('pointerdown',e=>{
     if(e.target.closest('.col-strip,.workbench-col.collapsed')){
@@ -6002,12 +5994,18 @@ function triggerHaptic(ms = 8) {
 
 function showPage(page, el){
   triggerHaptic();
+  // Sidebar shortcut: nav items "today" / "bank" / "archive" all land on
+  // the unified Todo List page; the JS just scrolls to the right section.
+  // Note: when the user explicitly clicks the "Bank" shortcut, we
+  // DON'T re-collapse the bank — they're asking to see it.
+  let bankShortcut = false;
   if(['today','bank','archive'].includes(page)){
     const target = {
       today:'workbenchToday',
       bank:'workbenchBank',
       archive:'secArchive'
     }[page];
+    if(page === 'bank') bankShortcut = true;
     page='todo';
     setTimeout(()=>document.getElementById(target)?.scrollIntoView({behavior:'smooth',block:'start'}),50);
   }
@@ -6019,6 +6017,16 @@ function showPage(page, el){
   document.querySelector('.workspace')?.scrollTo({top:0,behavior:'smooth'});
   mountInteractiveSurface();
   render();
+  // Always fold the Task Bank when the user enters the Todo List page,
+  // unless they explicitly used the "Bank" shortcut from elsewhere.
+  // This makes Calendar + Today's-tasks the first-glance attention pair.
+  if(page === 'todo' && !bankShortcut){
+    requestAnimationFrame(() => {
+      const bank = document.getElementById('workbenchBank');
+      if(bank) bank.classList.add('collapsed');
+      if(typeof updateWorkbenchCollapseUI === 'function') updateWorkbenchCollapseUI();
+    });
+  }
 }
 
 // Mobile bottom tab "Settings" — opens the settings modal but also keeps the
