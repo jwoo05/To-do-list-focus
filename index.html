@@ -433,6 +433,24 @@ document.addEventListener('DOMContentLoaded', () => {
         </button>
       </div>
 
+      <!-- Install-as-app banner — only renders when the site is NOT
+           already installed and the browser is install-eligible.
+           See pwaInstall.js for the show/hide logic. -->
+      <div class="install-banner" id="installBanner" hidden>
+        <div class="install-banner-body">
+          <div class="install-banner-icon">◈</div>
+          <div class="install-banner-text">
+            <div class="install-banner-title">Add Focus Hub to your home screen</div>
+            <div class="install-banner-sub" id="installBannerSub">Use it like a real app — opens in its own window, no browser tabs.</div>
+          </div>
+          <div class="install-banner-actions">
+            <button class="install-btn-primary" id="installBtn">Install</button>
+            <button class="install-btn-link" onclick="openInstallGuide()">How?</button>
+            <button class="install-btn-close" onclick="dismissInstallBanner()" title="Dismiss" aria-label="Dismiss">✕</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Everything below the fold is behind disclosure widgets.
            Closed by default; remembered via localStorage on toggle. -->
       <div class="home-more">
@@ -1051,6 +1069,84 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="form-actions" style="padding:14px 20px; border-top:1px solid var(--border); display:flex; gap:8px; justify-content:flex-end">
       <button class="btn btn-outline" onclick="closeModal('mFocusBlock')">Cancel</button>
       <button class="btn btn-accent" onclick="saveFocusBlock()">Add block</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     INSTALL GUIDE — per-platform "Add to home screen" instructions
+═══════════════════════════════════════ -->
+<div class="overlay" id="mInstallGuide">
+  <div class="modal" style="width:min(520px,95vw);max-height:84vh;display:flex;flex-direction:column">
+    <div class="modal-header">
+      <span class="modal-title">Install Focus Hub</span>
+      <button class="modal-close" onclick="closeModal('mInstallGuide')">✕</button>
+    </div>
+    <div class="modal-body" style="overflow-y:auto;flex:1">
+      <p class="install-intro">
+        Focus Hub is a Progressive Web App. Installing it gives you a real
+        icon on your home screen, a standalone window without browser tabs,
+        and the same offline-capable shell you'd expect from a native app.
+        Pick your platform below.
+      </p>
+
+      <div class="install-platform">
+        <div class="install-plat-head"><span>🍎</span> macOS — Safari</div>
+        <ol class="install-steps">
+          <li>Open <strong>whattodo-sable.vercel.app</strong> in Safari.</li>
+          <li>From the menu bar: <strong>File → Add to Dock…</strong></li>
+          <li>Confirm the name and tap <strong>Add</strong>.</li>
+          <li>The icon now lives in your Dock and Launchpad — opens in its own window.</li>
+        </ol>
+      </div>
+
+      <div class="install-platform">
+        <div class="install-plat-head"><span>🍎</span> iPhone / iPad — Safari</div>
+        <ol class="install-steps">
+          <li>Open the site in <strong>Safari</strong> (not Chrome).</li>
+          <li>Tap the <strong>Share</strong> button (square with up-arrow).</li>
+          <li>Scroll and tap <strong>Add to Home Screen</strong>.</li>
+          <li>Tap <strong>Add</strong>. The icon appears on your home screen.</li>
+        </ol>
+      </div>
+
+      <div class="install-platform">
+        <div class="install-plat-head"><span>🪟</span> Windows — Chrome / Edge</div>
+        <ol class="install-steps">
+          <li>Open the site in Chrome or Edge.</li>
+          <li>Look for the <strong>install icon</strong> ⊕ in the right side of the address bar.</li>
+          <li>Click it, then click <strong>Install</strong>.</li>
+          <li>The app opens in its own window and pins to your Start menu / Taskbar.</li>
+        </ol>
+      </div>
+
+      <div class="install-platform">
+        <div class="install-plat-head"><span>🤖</span> Android — Chrome</div>
+        <ol class="install-steps">
+          <li>Open the site in Chrome.</li>
+          <li>Tap the <strong>three-dot menu</strong> in the top right.</li>
+          <li>Tap <strong>Install app</strong> (or <strong>Add to Home Screen</strong>).</li>
+          <li>Confirm. The icon appears on your home screen.</li>
+        </ol>
+      </div>
+
+      <div class="install-platform">
+        <div class="install-plat-head"><span>🐧</span> ChromeOS / Linux Chrome</div>
+        <ol class="install-steps">
+          <li>Open the site in Chrome.</li>
+          <li>Click the <strong>install icon</strong> ⊕ in the address bar.</li>
+          <li>Click <strong>Install</strong>. The app opens in its own window.</li>
+        </ol>
+      </div>
+
+      <div class="install-note">
+        <strong>Already installed?</strong> Look for the Focus Hub icon on your home
+        screen / Dock / Start menu. The install banner on this page only shows
+        when the browser thinks you haven't installed it yet.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('mInstallGuide')">Got it</button>
     </div>
   </div>
 </div>
@@ -1910,6 +2006,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <script src="focus-logic.js"></script>
+<script src="pwa-install.js"></script>
 
 <!-- Tweaks Panel -->
 <div id="tweaks-root"></div>

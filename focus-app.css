@@ -5148,3 +5148,171 @@ strong, b {
   .deleted-date-input { min-width: 0; flex: 1 1 40%; }
   .deleted-filters-clear { width: 100%; margin-top: 2px; }
 }
+
+/* ════════════════════════════════════════════════════════════
+ *  INSTALL AS APP — banner + per-platform guide modal
+ * ════════════════════════════════════════════════════════════ */
+
+/* The banner appears on the Home page above the disclosures.
+   Only renders when the browser is install-eligible and the user
+   hasn't already installed or dismissed it. */
+.install-banner {
+  margin: 18px 0 4px;
+  background: linear-gradient(135deg,
+    rgba(44, 74, 139, 0.08),
+    rgba(122, 162, 255, 0.06));
+  border: 1px solid rgba(44, 74, 139, 0.18);
+  border-radius: 10px;
+  padding: 14px 16px;
+  position: relative;
+}
+.install-banner[hidden] { display: none; }
+.install-banner-body {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+.install-banner-icon {
+  width: 36px; height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 540 !important;
+  flex-shrink: 0;
+}
+.install-banner-text { min-width: 0; }
+.install-banner-title {
+  font-size: 13px;
+  font-weight: 540 !important;
+  color: var(--text);
+  letter-spacing: -0.003em;
+  line-height: 1.3;
+}
+.install-banner-sub {
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 430 !important;
+  color: var(--text2);
+  line-height: 1.4;
+}
+.install-banner-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.install-btn-primary {
+  padding: 6px 14px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 470 !important;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  transition: background var(--tr), transform var(--tr);
+}
+.install-btn-primary:hover { background: #1f3870; }
+.install-btn-primary:active { transform: scale(0.97); }
+.install-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.install-btn-link {
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 460 !important;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background var(--tr);
+}
+.install-btn-link:hover { background: var(--accent-dim); }
+.install-btn-close {
+  background: transparent;
+  border: none;
+  color: var(--text3);
+  width: 24px; height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 460 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--tr), color var(--tr);
+}
+.install-btn-close:hover { background: var(--bg3); color: var(--text); }
+
+@media (max-width: 540px) {
+  .install-banner-body { grid-template-columns: auto 1fr; }
+  .install-banner-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+    border-top: 1px solid rgba(44, 74, 139, 0.12);
+    padding-top: 10px;
+    margin-top: 4px;
+  }
+}
+
+/* ── Install guide modal ── */
+.install-intro {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text2);
+  font-weight: 430 !important;
+  margin: 0 0 18px;
+}
+.install-platform {
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.install-platform:last-of-type { border-bottom: none; padding-bottom: 0; }
+.install-plat-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 540 !important;
+  color: var(--text);
+  margin-bottom: 8px;
+  letter-spacing: -0.003em;
+}
+.install-plat-head span:first-child { font-size: 16px; }
+.install-steps {
+  margin: 0;
+  padding: 0 0 0 20px;
+  list-style: decimal;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.install-steps li {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text2);
+  font-weight: 430 !important;
+}
+.install-steps li strong {
+  font-weight: 540 !important;
+  color: var(--text);
+}
+.install-note {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: var(--bg2);
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--text3);
+  font-weight: 430 !important;
+}
+.install-note strong { color: var(--text2); font-weight: 540 !important; }
