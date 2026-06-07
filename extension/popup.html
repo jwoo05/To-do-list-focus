@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Focus Hub</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <!-- The popup is built as a single translucent surface with a calm
+       Notion-paper palette and a faint backdrop blur. The toolbar
+       icon IS the "folded tab"; this popup is the unfolded view. -->
+
+  <header class="hub-head">
+    <div class="hub-brand">
+      <span class="hub-brand-mark">◈</span>
+      <span class="hub-brand-name">Focus Hub</span>
+    </div>
+    <button class="hub-open" id="openFullBtn" title="Open full app" aria-label="Open full app">
+      <span class="hub-open-icon">⤢</span>
+      <span class="hub-open-label">Open full app</span>
+    </button>
+  </header>
+
+  <section class="hub-greeting">
+    <div class="hub-greet-text" id="greetText">Good afternoon</div>
+    <div class="hub-greet-date" id="greetDate"></div>
+  </section>
+
+  <!-- Quick Capture — the primary action of the popup. Auto-focused
+       on open so the user can type immediately and hit Enter. -->
+  <section class="hub-capture">
+    <div class="hub-capture-label">
+      <span>Quick capture</span>
+      <span class="hub-capture-hint">Enter to save · 3 words ideal</span>
+    </div>
+    <div class="hub-capture-bar">
+      <span class="hub-capture-icon">🧠</span>
+      <input type="text" class="hub-capture-input" id="captureInput"
+             placeholder="e.g. restaurant marketing idea"
+             autocomplete="off" maxlength="80">
+      <button class="hub-capture-send" id="captureSend"
+              title="Save and open Focus Hub" aria-label="Save">→</button>
+    </div>
+    <div class="hub-capture-status" id="captureStatus"></div>
+  </section>
+
+  <!-- Disclosure: today's tasks. Folded by default to keep the popup
+       compact — click to unfold. -->
+  <details class="hub-disclosure" id="todayDisclosure">
+    <summary>
+      <span class="hub-disc-title">Today</span>
+      <span class="hub-disc-hint">tap to expand · opens full list</span>
+    </summary>
+    <div class="hub-disc-body" id="todayBody">
+      <div class="hub-empty">Open the full app to see today's tasks.</div>
+    </div>
+  </details>
+
+  <!-- Action row -->
+  <footer class="hub-actions">
+    <button class="hub-action" data-route="/?addtask=1">
+      <span class="hub-action-icon">+</span>
+      <span class="hub-action-text">Add task</span>
+    </button>
+    <button class="hub-action" data-route="/?inbox=1">
+      <span class="hub-action-icon">📥</span>
+      <span class="hub-action-text">Inbox</span>
+    </button>
+    <button class="hub-action" data-route="/?shortcuts=1">
+      <span class="hub-action-icon">⌨</span>
+      <span class="hub-action-text">Shortcuts</span>
+    </button>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

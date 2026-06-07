@@ -6758,6 +6758,64 @@ function bindHomeDisclosures(){
 // ════════════════════════════════════════════════════════════
 //  INIT
 // ════════════════════════════════════════════════════════════
+// ── Deep-link handling for the browser extension ──
+// The Focus Hub Chrome extension hands off quick-captures by opening
+// the site at /?capture=<text>. We absorb that into S.brainDump, show
+// a toast, and clean the URL so a refresh doesn't double-add. Same
+// mechanism handles ?addtask, ?inbox, ?shortcuts deep-links from the
+// extension's action row.
+function handleExtensionDeepLink(){
+  try {
+    const u = new URL(window.location.href);
+    const cap = u.searchParams.get('capture');
+    const wantAdd = u.searchParams.get('addtask');
+    const wantInbox = u.searchParams.get('inbox');
+    const wantShortcuts = u.searchParams.get('shortcuts');
+    let cleaned = false;
+    if(cap){
+      if(!Array.isArray(S.brainDump)) S.brainDump = [];
+      S.brainDump.unshift({
+        id: uid(),
+        text: String(cap).slice(0, 80),
+        createdAt: Date.now(),
+        processed: false,
+        source: 'extension'
+      });
+      save();
+      if(typeof showToast === 'function'){
+        showToast(`Captured from extension: "${cap.slice(0,40)}"`, 'Review',
+          () => typeof openBrainDumpPanel === 'function' && openBrainDumpPanel());
+      }
+      u.searchParams.delete('capture');
+      cleaned = true;
+    }
+    if(wantAdd){
+      setTimeout(() => {
+        if(typeof resetAddForm === 'function') resetAddForm();
+        if(typeof openModal === 'function') openModal('mAddTask');
+      }, 400);
+      u.searchParams.delete('addtask');
+      cleaned = true;
+    }
+    if(wantInbox){
+      setTimeout(() => typeof openBrainDumpPanel === 'function' && openBrainDumpPanel(), 400);
+      u.searchParams.delete('inbox');
+      cleaned = true;
+    }
+    if(wantShortcuts){
+      setTimeout(() => typeof openShortcutsModal === 'function' && openShortcutsModal(), 400);
+      u.searchParams.delete('shortcuts');
+      cleaned = true;
+    }
+    if(cleaned){
+      // Strip the consumed params from the URL bar without reloading
+      window.history.replaceState({}, '', u.pathname + (u.search ? '?' + u.searchParams.toString() : ''));
+    }
+  } catch(e) {
+    console.warn('[extension deep-link]', e);
+  }
+}
+
 (function init(){
   // Start active time tracking
   if(S.settings.activeDate!==todayStr()){
@@ -6772,6 +6830,7 @@ function bindHomeDisclosures(){
   const pr=getPomoConfig();
   updateHUDDisplay(pr.focus*60,pr.focus*60);
   render();
+  handleExtensionDeepLink();
   checkThursdayReview();
 
   // Refresh EOPR every minute

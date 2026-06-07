@@ -1,0 +1,316 @@
+/* ════════════════════════════════════════════════════════════
+ *  FOCUS HUB — EXTENSION POPUP
+ *  Translucent "liquid glass" surface using the same Notion-paper
+ *  color tokens as the main site, with a slight backdrop blur so
+ *  the underlying page bleeds through faintly.
+ * ════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Color tokens mirrored from the main site (Notion-paper palette) */
+  --surface:     rgba(250, 247, 242, 0.78);
+  --surface-2:   rgba(245, 240, 232, 0.65);
+  --surface-3:   rgba(240, 234, 224, 0.55);
+  --border:      rgba(0, 0, 0, 0.08);
+  --border-2:    rgba(0, 0, 0, 0.12);
+  --text:        #1F1D1B;
+  --text-2:      #4A453E;
+  --text-3:      #8A847B;
+  --accent:      #2C4A8B;
+  --accent-dim:  rgba(44, 74, 139, 0.12);
+  --green:       #316644;
+  --green-dim:   #edf3ec;
+  --orange:      #955a04;
+
+  --font-ui:     ui-sans-serif, -apple-system, BlinkMacSystemFont,
+                 "Segoe UI", "Helvetica Neue", Inter, Arial, sans-serif;
+  --font-serif:  "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --radius:      6px;
+  --radius-lg:   10px;
+  --tr:          0.16s ease;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0; padding: 0;
+  font-family: var(--font-ui);
+  font-weight: 420;
+  font-synthesis: none;
+  letter-spacing: -0.003em;
+  -webkit-font-smoothing: antialiased;
+  color: var(--text);
+}
+
+body {
+  width: 340px;
+  /* Liquid-glass: translucent surface + backdrop blur. The blur acts on
+     whatever the popup is anchored over (a webpage), giving the "floating
+     translucent panel" feel the user asked for, while the color tokens
+     keep the calm Notion aesthetic. */
+  background: var(--surface);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.4) inset,
+    0 16px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+/* ── Header ── */
+.hub-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px 8px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.18);
+}
+.hub-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.hub-brand-mark {
+  font-size: 14px;
+  color: var(--accent);
+  font-weight: 540;
+}
+.hub-brand-name {
+  font-size: 13px;
+  font-weight: 540;
+  color: var(--text);
+  letter-spacing: -0.005em;
+}
+.hub-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-3);
+  font-size: 10px;
+  font-weight: 470;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color var(--tr), color var(--tr), background var(--tr);
+}
+.hub-open:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(255, 255, 255, 0.4);
+}
+.hub-open-icon { font-size: 11px; line-height: 1; }
+.hub-open-label { letter-spacing: 0.02em; }
+
+/* ── Greeting ── */
+.hub-greeting {
+  padding: 14px 16px 12px;
+}
+.hub-greet-text {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 540;
+  color: var(--text);
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+.hub-greet-date {
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--text-3);
+  font-weight: 440;
+}
+
+/* ── Quick Capture ── */
+.hub-capture {
+  padding: 0 16px 12px;
+}
+.hub-capture-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.hub-capture-hint {
+  font-weight: 440;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--text-3);
+  opacity: 0.85;
+}
+.hub-capture-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color var(--tr), background var(--tr);
+}
+.hub-capture-bar:focus-within {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.85);
+}
+.hub-capture-icon { font-size: 14px; flex-shrink: 0; opacity: 0.85; }
+.hub-capture-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 4px 0;
+  font-size: 13px;
+  font-weight: 430;
+  color: var(--text);
+  font-family: inherit;
+  letter-spacing: -0.003em;
+}
+.hub-capture-input::placeholder {
+  color: var(--text-3);
+  font-weight: 420;
+}
+.hub-capture-send {
+  width: 26px; height: 26px;
+  background: var(--accent);
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--tr), transform var(--tr);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+.hub-capture-send:hover { background: #1f3870; transform: scale(1.05); }
+.hub-capture-send:active { transform: scale(0.96); }
+.hub-capture-status {
+  min-height: 14px;
+  margin-top: 6px;
+  font-size: 10px;
+  font-weight: 440;
+  color: var(--green);
+  opacity: 0;
+  transition: opacity var(--tr);
+}
+.hub-capture-status.show { opacity: 1; }
+
+/* ── Disclosure (Today's tasks, folded by default) ── */
+.hub-disclosure {
+  margin: 0 8px 8px;
+  padding: 0;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.25);
+}
+.hub-disclosure > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 11px;
+  user-select: none;
+  border-radius: var(--radius);
+  transition: background var(--tr);
+}
+.hub-disclosure > summary::-webkit-details-marker { display: none; }
+.hub-disclosure > summary:hover { background: rgba(255, 255, 255, 0.45); }
+.hub-disc-title {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.hub-disc-hint {
+  font-size: 9px;
+  font-weight: 440;
+  letter-spacing: 0.02em;
+  color: var(--text-3);
+  opacity: 0.75;
+}
+.hub-disc-body {
+  padding: 4px 12px 12px;
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+.hub-empty {
+  padding: 8px 0;
+  color: var(--text-3);
+  font-size: 11px;
+  font-style: italic;
+}
+
+/* ── Action row ── */
+.hub-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  padding: 8px 12px 14px;
+  border-top: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.18);
+}
+.hub-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 6px;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 460;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color var(--tr), color var(--tr), background var(--tr);
+}
+.hub-action:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(255, 255, 255, 0.75);
+}
+.hub-action-icon { font-size: 13px; line-height: 1; }
+.hub-action-text { letter-spacing: -0.003em; }
+
+/* ── Dark theme — respects the OS pref ── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface:    rgba(28, 26, 24, 0.75);
+    --surface-2:  rgba(38, 35, 32, 0.65);
+    --surface-3:  rgba(50, 45, 40, 0.55);
+    --border:     rgba(255, 255, 255, 0.08);
+    --border-2:   rgba(255, 255, 255, 0.14);
+    --text:       #E9E4DC;
+    --text-2:     #BFB8AE;
+    --text-3:     #837C72;
+    --accent:     #7AA2FF;
+    --accent-dim: rgba(122, 162, 255, 0.14);
+  }
+  body {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+      0 16px 48px rgba(0, 0, 0, 0.45);
+  }
+  .hub-head, .hub-actions { background: rgba(255, 255, 255, 0.04); }
+  .hub-capture-bar { background: rgba(255, 255, 255, 0.06); }
+  .hub-capture-bar:focus-within { background: rgba(255, 255, 255, 0.12); }
+  .hub-disclosure { background: rgba(255, 255, 255, 0.04); }
+  .hub-action { background: rgba(255, 255, 255, 0.06); }
+  .hub-action:hover { background: rgba(255, 255, 255, 0.14); }
+}
