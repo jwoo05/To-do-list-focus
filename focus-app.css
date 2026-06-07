@@ -4817,3 +4817,166 @@ strong, b {
   .date-bar-input { width: 100%; min-width: 0; }
   .date-bar-quick, .date-bar-expand { width: 100%; }
 }
+
+/* ════════════════════════════════════════════════════════════
+ *  SIDEBAR SHORTCUTS BUTTON + HOVER POPUP
+ *  Hover the ⌨ button → compact preview fades in to the right.
+ *  Click → full Shortcuts & Tips modal.
+ * ════════════════════════════════════════════════════════════ */
+.sidebar-shortcuts-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.shortcuts-hover-pop {
+  position: absolute;
+  bottom: 50%;
+  left: calc(100% + 12px);
+  transform: translate(-6px, 50%);
+  width: 320px;
+  padding: 14px 14px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  box-shadow: 0 20px 48px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.04);
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity .14s ease, transform .14s ease, visibility 0s linear .14s;
+  z-index: 1100;
+}
+/* Reveal on hover OR keyboard focus */
+.sidebar-shortcuts-wrap:hover .shortcuts-hover-pop,
+.sidebar-shortcuts-wrap:focus-within .shortcuts-hover-pop {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+  transform: translate(0, 50%);
+  transition: opacity .14s ease, transform .14s ease;
+}
+/* Arrow on the left edge pointing back to the button */
+.shortcuts-hover-pop::before {
+  content: "";
+  position: absolute;
+  left: -6px; top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  width: 10px; height: 10px;
+  background: var(--surface);
+  border-left: 1px solid var(--border2);
+  border-bottom: 1px solid var(--border2);
+}
+
+.shp-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+  font-weight: 500 !important;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.shp-title-hint {
+  font-weight: 440 !important;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: none;
+  color: var(--text3);
+  opacity: .8;
+}
+.shp-row {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 5px 0;
+}
+.shp-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 6px 0;
+}
+.shp-keys {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+.shp-keys kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  padding: 2px 6px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 480 !important;
+  color: var(--text2);
+  letter-spacing: 0;
+}
+.shp-keys span { font-size: 9px; color: var(--text3); }
+.shp-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px; height: 22px;
+  background: var(--bg2);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 460 !important;
+  color: var(--text2);
+}
+.shp-text {
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 430 !important;
+  color: var(--text);
+}
+.shp-footer {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  text-align: right;
+}
+.shp-more-btn {
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 460 !important;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background var(--tr);
+}
+.shp-more-btn:hover { background: var(--accent-dim); }
+
+/* Mobile / collapsed sidebar — show the popup ABOVE the button instead
+   of beside it, since horizontal space is tight. */
+@media (max-width: 768px) {
+  .shortcuts-hover-pop {
+    left: auto;
+    right: -10px;
+    bottom: calc(100% + 10px);
+    transform: translateY(6px);
+    width: 280px;
+  }
+  .sidebar-shortcuts-wrap:hover .shortcuts-hover-pop,
+  .sidebar-shortcuts-wrap:focus-within .shortcuts-hover-pop {
+    transform: translateY(0);
+  }
+  .shortcuts-hover-pop::before {
+    left: auto;
+    right: 18px;
+    top: auto;
+    bottom: -6px;
+    transform: rotate(-135deg);
+    border-left: 1px solid var(--border2);
+    border-bottom: 1px solid var(--border2);
+  }
+}

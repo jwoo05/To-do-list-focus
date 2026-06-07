@@ -305,6 +305,52 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
       <div class="sidebar-actions">
         <button class="sidebar-action-btn" onclick="openModal('mSettings')" title="Settings" aria-label="Settings">⚙</button>
+        <!-- Shortcuts button — hover shows a compact preview, click opens
+             the full Shortcuts & Tips modal. The popup is positioned by
+             CSS relative to this wrapper. -->
+        <div class="sidebar-shortcuts-wrap">
+          <button class="sidebar-action-btn variant-info"
+                  onclick="openShortcutsModal()"
+                  aria-label="Shortcuts and tips">⌨</button>
+          <div class="shortcuts-hover-pop" role="tooltip" aria-hidden="true">
+            <div class="shp-title">
+              <span>Shortcuts</span>
+              <span class="shp-title-hint">click for full list</span>
+            </div>
+            <div class="shp-row">
+              <div class="shp-keys"><kbd>⌘</kbd><span>+</span><kbd>K</kbd></div>
+              <div class="shp-text">Quick Capture · brain-dump from anywhere</div>
+            </div>
+            <div class="shp-row">
+              <div class="shp-keys"><kbd>⌘</kbd><span>+</span><kbd>scroll</kbd></div>
+              <div class="shp-text">Zoom the calendar (pinch on trackpad)</div>
+            </div>
+            <div class="shp-row">
+              <div class="shp-keys"><kbd>⌘</kbd><span>+</span><kbd>0</kbd></div>
+              <div class="shp-text">Reset calendar zoom to 100%</div>
+            </div>
+            <div class="shp-row">
+              <div class="shp-keys"><kbd>Esc</kbd></div>
+              <div class="shp-text">Close any modal or popover</div>
+            </div>
+            <div class="shp-divider"></div>
+            <div class="shp-row">
+              <div class="shp-keys"><span class="shp-glyph">2×</span></div>
+              <div class="shp-text">Double-click a calendar day for quick-add</div>
+            </div>
+            <div class="shp-row">
+              <div class="shp-keys"><span class="shp-glyph">⇄</span></div>
+              <div class="shp-text">Drag a task onto a calendar day to schedule</div>
+            </div>
+            <div class="shp-row">
+              <div class="shp-keys"><span class="shp-glyph">⇕</span></div>
+              <div class="shp-text">Drag handles to resize panels &amp; strips</div>
+            </div>
+            <div class="shp-footer">
+              <button class="shp-more-btn" onclick="openShortcutsModal()">See all shortcuts &amp; tips →</button>
+            </div>
+          </div>
+        </div>
         <button class="sidebar-action-btn variant-info" onclick="openModal('mWelcome')" title="Quick Tour" aria-label="Quick tour">?</button>
         <button class="sidebar-action-btn variant-danger" onclick="handleLogOut()" title="Log out" aria-label="Log out">⏻</button>
       </div>
