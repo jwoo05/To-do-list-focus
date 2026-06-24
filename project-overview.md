@@ -2,11 +2,13 @@
 
 ## An HCI Case Study in Designing for Neurodivergent Executive Function
 
+:::meta
 **Jay Woo** — Informatics, University of Washington
-**Role:** Sole researcher, designer, and engineer
-**Discipline:** Human–Computer Interaction · Interaction Design · Front-End Engineering
-**Live product:** whattodo-sable.vercel.app
-**Surfaces:** Responsive web app · Installable PWA · Chrome extension
+**Role** · Sole researcher, designer, and engineer
+**Discipline** · Human–Computer Interaction · Interaction Design · Front-End Engineering
+**Live product** · whattodo-sable.vercel.app
+**Surfaces** · Responsive web app · Installable PWA · Chrome extension
+:::
 
 ---
 

@@ -117,6 +117,16 @@ def build_styles():
         borderPadding=8, spaceAfter=8,
         allowOrphans=2, allowWidows=2,
     )
+    # Tight stacked header metadata — each field on its own row.
+    out["Meta"] = ParagraphStyle(
+        "Meta", parent=s["Normal"],
+        fontName=HEAD_FONT, fontSize=10.5, leading=17,
+        textColor=TEXT2, spaceBefore=2, spaceAfter=16,
+    )
+    out["MetaName"] = ParagraphStyle(
+        "MetaName", parent=out["Meta"],
+        fontSize=11.5, textColor=TEXT,
+    )
     return out
 
 
@@ -161,6 +171,19 @@ def parse_markdown(md_text):
 
     while i < len(lines):
         line = lines[i].rstrip()
+
+        # Meta block — ::: meta … ::: — a tight stacked header where each
+        # line stays on its own row (not collapsed into a paragraph).
+        if line.strip() == ":::meta":
+            meta_lines = []
+            i += 1
+            while i < len(lines) and lines[i].strip() != ":::":
+                if lines[i].strip():
+                    meta_lines.append(lines[i].rstrip())
+                i += 1
+            i += 1  # skip closing :::
+            blocks.append(("meta", meta_lines))
+            continue
 
         # Fenced code block
         if line.startswith("```"):
@@ -352,6 +375,18 @@ def render_block(kind, payload, styles):
         return [Paragraph(inline(payload), styles["H2"])]
     if kind == "h3":
         return [Paragraph(inline(payload), styles["H3"])]
+    if kind == "meta":
+        # Each metadata line on its own row. First line (the name) gets
+        # a slightly larger, darker treatment.
+        flows = []
+        for idx, ml in enumerate(payload):
+            st = styles["MetaName"] if idx == 0 else styles["Meta"]
+            # Tight inter-line spacing within the block: only the last
+            # line keeps the block's trailing space.
+            if idx < len(payload) - 1:
+                st = ParagraphStyle("MetaRow", parent=st, spaceAfter=1)
+            flows.append(Paragraph(inline(ml), st))
+        return flows
     if kind == "p":
         return [Paragraph(inline(payload), styles["Body"])]
     if kind == "ul":
@@ -502,6 +537,11 @@ def build_story(md_text, styles):
             continue
 
         # Standalone blocks (after their section has already been consumed)
+        if kind == "meta":
+            story.append(KeepTogether(render_block("meta", payload, styles)))
+            i += 1
+            continue
+
         if kind == "p":
             story.append(KeepTogether(render_block("p", payload, styles)))
             i += 1
