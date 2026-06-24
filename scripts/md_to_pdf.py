@@ -25,6 +25,8 @@ from reportlab.platypus import (
 )
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfgen import canvas
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 
 
 # ── STYLES ──────────────────────────────────────────────────────────────────
@@ -34,6 +36,23 @@ BODY_BOLD = "Times-Bold"
 HEAD_FONT = "Helvetica"
 HEAD_BOLD = "Helvetica-Bold"
 MONO_FONT = "Courier"
+
+# Korean / CJK fallback font. The built-in Times/Helvetica fonts have no
+# Hangul or arrow glyphs, so those render as black "tofu" boxes. We register
+# a CJK Unicode font (ships with reportlab — no external file) and route any
+# Hangul / arrow runs to it via inline(). Reads cleanly in a Korea-facing doc.
+CJK_FONT = "HYSMyeongJo-Medium"
+try:
+    pdfmetrics.registerFont(UnicodeCIDFont(CJK_FONT))
+    _CJK_OK = True
+except Exception:
+    _CJK_OK = False
+
+# Characters that the base Latin fonts lack and that the CJK font supplies:
+# Hangul syllables + jamo, CJK symbols/punctuation, and the arrows block.
+_CJK_RUN = re.compile(
+    r"([가-힣㄰-㆏　-〿←-⇿＀-￯]+)"
+)
 
 # Calm "Notion-paper" palette
 TEXT = colors.HexColor("#1F1D1B")
@@ -148,6 +167,10 @@ def inline(text):
     # Bold then italic
     text = BOLD.sub(lambda m: f"<b>{m.group(1)}</b>", text)
     text = ITALIC.sub(lambda m: f"<i>{m.group(1)}</i>", text)
+    # Route Korean / arrow runs through the CJK font so they don't render as
+    # missing-glyph boxes in the Latin base fonts.
+    if _CJK_OK:
+        text = _CJK_RUN.sub(lambda m: f'<font name="{CJK_FONT}">{m.group(1)}</font>', text)
     # em-dash, en-dash, smart quotes  — leave as-is, they're already unicode
     return text
 

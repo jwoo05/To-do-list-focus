@@ -3,7 +3,7 @@
 ## An HCI Case Study in Designing for Neurodivergent Executive Function
 
 :::meta
-**Jay Woo** — Informatics, University of Washington
+**Woojin (Jay) Jung** — Informatics, University of Washington
 **Role** · Sole researcher, designer, and engineer
 **Discipline** · Human–Computer Interaction · Interaction Design · Front-End Engineering
 **Live product** · whattodo-sable.vercel.app
@@ -132,7 +132,7 @@ The calendar was the most-iterated component, and the clearest example of design
 ### Iteration E — Recoverability and recognition (smaller, but telling)
 
 - **Deleted items.** A flat, unscannable wall of deletions became a paginated modal (10 at a time) with **search and date-range filters** and a clean two-column layout — supporting *user control and freedom* (easy undo) at scale.
-- **Discoverability of shortcuts.** Hidden power (⌘K capture, drag-to-schedule, calendar zoom) is useless if undiscoverable. I added a **Shortcuts & Tips** surface — but when an early hover-preview popup proved *distracting* in testing, I removed it in favor of a calm click-to-open panel. (Knowing when to *remove* an idea is as much the job as adding one.)
+- **Discoverability of shortcuts.** Hidden power (Cmd+K capture, drag-to-schedule, calendar zoom) is useless if undiscoverable. I added a **Shortcuts & Tips** surface — but when an early hover-preview popup proved *distracting* in testing, I removed it in favor of a calm click-to-open panel. (Knowing when to *remove* an idea is as much the job as adding one.)
 
 ---
 
@@ -160,7 +160,7 @@ The calendar was the most-iterated component, and the clearest example of design
 
 - **Neurodivergent-first, universally better.** Every accommodation built for the ADHD/ENTJ persona — lighter typography, less visual noise, faster capture, more user control — measurably improved the experience for *all* participants. The neurodivergent power user is the canary; the neurotypical user is the beneficiary.
 - **Bilingual reality.** The product is used with mixed English/Korean task content (e.g. real tasks like *깐마늘 밴드* and *과외 찾기* sit alongside `PHYS 122` coursework). The typography and layout were tuned to render mixed scripts cleanly — a small but genuine internationalization consideration for a Korea-facing context.
-- **Keyboard and focus paths.** Core actions are keyboard-reachable (⌘K capture, Esc to dismiss, Enter to submit), and disclosure controls respond to focus, not just hover.
+- **Keyboard and focus paths.** Core actions are keyboard-reachable (Cmd+K capture, Esc to dismiss, Enter to submit), and disclosure controls respond to focus, not just hover.
 - **Respecting user agency.** Every scaffold is opt-out. The app degrades gracefully to a clean, classic todo list when all five are disabled — a deliberate choice to never *impose* the neurodivergent framing on a user who doesn't want it.
 
 ---
@@ -195,4 +195,4 @@ I am applying this same conviction — research-grounded, evidence-driven, and r
 
 ---
 
-*Focus Hub is a live, working product in private beta. The deployed app, full source, and a deeper engineering case study are available on request. Designed and built by Jay Woo, University of Washington Informatics.*
+*Focus Hub is a live, working product in private beta. The deployed app, full source, and a deeper engineering case study are available on request. Designed and built by Woojin (Jay) Jung, University of Washington Informatics.*
