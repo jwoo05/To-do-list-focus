@@ -5720,6 +5720,143 @@ strong, b {
 .bank-task-meta{ gap:6px !important; margin-top:6px !important; }
 .bank-task-meta .chip{ font-size:11px !important; padding:2px 8px !important; }
 
+/* ── Task sheet: rows that open one at a time ── */
+.cup-rows{ margin-top:16px; border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; background:var(--surface); }
+.cup-row + .cup-row{ border-top:1px solid var(--border); }
+.cup-row-h{ display:flex; align-items:center; gap:12px; width:100%; padding:13px 14px; text-align:left; font-size:14px; }
+.cup-row-h:hover{ background:var(--bg2); }
+.cup-row-ic{ width:28px; height:28px; border-radius:8px; display:grid; place-items:center; background:var(--bg2); color:var(--text2); font-size:14px; flex:none; }
+.cup-row.open .cup-row-ic{ background:var(--accent-dim); color:var(--accent); }
+.cup-row-l{ width:96px; flex:none; color:var(--text2); }
+.cup-row-v{ flex:1; min-width:0; display:flex; align-items:center; gap:7px; font-weight:500; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cup-row-none{ color:var(--text3); font-weight:400; }
+.cup-row-c{ color:var(--text3); transition:transform var(--tr); }
+.cup-row.open .cup-row-c{ transform:rotate(90deg); }
+.cup-row-b{ padding:4px 14px 16px 54px; animation:fadeUp .15s ease; }
+.cup-pri-dot{ width:9px; height:9px; border-radius:50%; display:inline-block; flex:none; }
+.cup-ts-notes{ margin-top:14px; }
+.cup-gtabs{ display:flex; gap:4px; flex-wrap:wrap; margin-bottom:10px; }
+.cup-gtab{ padding:6px 12px; border-radius:999px; font-size:12.5px; color:var(--text2); border:1px solid transparent; }
+.cup-gtab:hover{ background:var(--bg2); }
+.cup-gtab.on{ border-color:var(--gc); color:var(--text); background:color-mix(in srgb, var(--gc) 12%, transparent); font-weight:600; }
+.cup-gtab-edit{ color:var(--accent); margin-left:auto; }
+.cup-flist{ display:flex; flex-direction:column; gap:10px; }
+.cup-flist-area{ display:flex; flex-direction:column; gap:2px; }
+.cup-fopt{ display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:var(--radius); text-align:left; font-size:13.5px; }
+.cup-fopt:hover{ background:var(--bg2); }
+.cup-fopt.on{ background:var(--accent-dim); box-shadow:inset 3px 0 0 var(--accent); }
+.cup-fopt b{ font-weight:600; }
+.cup-fopt .cup-dim{ margin-left:auto; }
+.cup-fopt-kid{ padding-left:27px; }
+.cup-fnew input{ border:1px dashed var(--border2); background:none; font-size:13px; margin-top:2px; }
+.cup-fnew input:focus{ border-style:solid; }
+@media (max-width: 560px){ .cup-row-b{ padding-left:14px; } .cup-row-l{ width:auto; } }
+
+/* ── Categories window ── */
+.cup-cats-modal{ width:min(620px,96vw) !important; }
+.cup-cat-group{ border:1px solid var(--border); border-left:4px solid var(--gc); border-radius:var(--radius-lg); padding:10px 12px; margin-top:12px; }
+.cup-cat-gh{ display:flex; align-items:center; gap:8px; }
+.cup-cat-color{ width:20px; height:20px; border-radius:6px; flex:none; }
+.cup-cat-gname{ border:0; background:none; font-family:'Source Serif 4',Georgia,serif; font-size:16px; font-weight:600; padding:4px 2px; }
+.cup-cat-gname:focus{ background:var(--bg2); }
+.cup-cat-areas{ display:flex; flex-direction:column; gap:4px; margin-top:6px; }
+.cup-cat-area{ display:flex; align-items:center; gap:8px; }
+.cup-cat-area input{ flex:1; min-width:0; border:0; background:none; padding:6px 4px; font-size:13.5px; }
+.cup-cat-area input:focus{ background:var(--bg2); }
+.cup-cat-move{ width:auto; font-size:11.5px; padding:3px 6px; }
+.cup-ts-x:disabled{ opacity:.3; cursor:default; }
+.cup-cat-newgroup{ margin-top:14px; }
+.cup-side-cats{ display:block; width:100%; text-align:left; font-size:11.5px; color:var(--text3); padding:8px 8px 4px; }
+.cup-side-cats:hover{ color:var(--accent); }
+
+/* ── Pages (Notion-style) ── */
+.cup-pages .cup-page{ display:flex; align-items:flex-start; gap:10px; width:100%; padding:8px 4px; border-top:1px solid var(--border); text-align:left; }
+.cup-pages .cup-pile-h + .cup-page{ border-top:0; }
+.cup-page:hover{ background:var(--bg2); }
+.cup-page-ic{ font-size:15px; line-height:1.3; }
+.cup-page-main{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; }
+.cup-page-main b{ font-size:13.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cup-page-main span{ font-size:12px; color:var(--text3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cup-tpage .cup-tname{ padding-left:40px; color:var(--text3); }
+.cup-tpage-area .cup-tname{ padding-left:26px; }
+.cup-tpage:hover .cup-tname{ color:var(--text); }
+.cup-note-modal{ width:min(860px,96vw) !important; height:min(88vh,900px); max-height:none !important; display:flex; flex-direction:column; overflow:hidden !important; }
+.cup-note-top{ display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid var(--border); }
+.cup-note-top .sp{ flex:1; }
+.cup-note-crumbs{ font-size:12px; color:var(--text3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+.cup-note-saved{ font-size:11px; color:var(--text3); white-space:nowrap; }
+.cup-note-move{ width:auto; max-width:200px; font-size:12px; padding:4px 8px; }
+.cup-note-scroll{ flex:1; overflow-y:auto; padding:28px max(24px, calc((100% - 680px)/2)) 60px; }
+.cup-note-title{ width:100%; border:0; background:none; font-family:'Source Serif 4',Georgia,serif; font-size:34px; font-weight:700; letter-spacing:-.5px; padding:0; border-radius:0; }
+.cup-note-title:focus{ background:none; }
+.cup-note-bar{ position:sticky; top:-28px; z-index:1; display:flex; flex-wrap:wrap; align-items:center; gap:2px; margin:12px 0 14px; padding:6px 0; background:var(--surface); border-bottom:1px solid var(--border); }
+.cup-note-bar button{ padding:5px 9px; border-radius:var(--radius); font-size:12.5px; color:var(--text2); }
+.cup-note-bar button:hover{ background:var(--bg2); color:var(--text); }
+.cup-note-sep{ width:1px; height:18px; background:var(--border); margin:0 4px; }
+.cup-note-body{ min-height:300px; outline:none; font-size:15px; line-height:1.7; color:var(--text); }
+.cup-note-body:empty::before{ content:attr(data-placeholder); color:var(--text3); }
+.cup-note-body h2{ font-family:'Source Serif 4',Georgia,serif; font-size:24px; font-weight:600; margin:18px 0 6px; }
+.cup-note-body h3{ font-size:18px; font-weight:600; margin:14px 0 4px; }
+.cup-note-body p, .cup-note-body div{ margin:2px 0; }
+.cup-note-body ul, .cup-note-body ol{ padding-left:24px; margin:4px 0; }
+.cup-note-body ul.todo{ list-style:none; padding-left:4px; }
+.cup-note-body ul.todo > li{ position:relative; padding-left:26px; cursor:text; }
+.cup-note-body ul.todo > li::before{ content:''; position:absolute; left:0; top:.35em; width:15px; height:15px; border:1.5px solid var(--border2); border-radius:4px; cursor:pointer; }
+.cup-note-body ul.todo > li.done{ color:var(--text3); text-decoration:line-through; }
+.cup-note-body ul.todo > li.done::before{ background:var(--accent); border-color:var(--accent); }
+.cup-note-body blockquote{ border-left:3px solid var(--text); padding:2px 0 2px 14px; margin:8px 0; color:var(--text2); }
+.cup-note-body hr{ border:0; border-top:1px solid var(--border); margin:16px 0; }
+.cup-note-body a{ color:var(--accent); }
+@media (max-width: 640px){ .cup-note-modal{ width:100vw !important; height:100vh; border-radius:0; } .cup-note-title{ font-size:26px; } .cup-note-scroll{ padding:18px 16px 60px; } .cup-note-move{ max-width:120px; } }
+
+/* ── Just start ── */
+.cup-start{ display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:8px 8px 8px 16px; margin-bottom:14px; box-shadow:var(--shadow); }
+.cup-start:focus-within{ border-color:var(--accent); }
+.cup-start-ic{ color:var(--accent); font-size:18px; }
+.cup-start input{ flex:1; min-width:0; border:0; background:none; font-size:15px; padding:8px 0; }
+.cup-start input:focus{ background:none; }
+.cup-start .btn{ padding:9px 18px; }
+
+/* ── Garden ── */
+.cup-mini-garden{ gap:5px; }
+.cup-mini-tree{ font-size:16px; line-height:1; }
+.cup-garden-modal{ width:min(620px,96vw) !important; }
+.cup-g-tabs{ margin-bottom:14px; }
+.cup-g-today{ display:flex; gap:16px; align-items:center; padding:14px; border-radius:var(--radius-lg); background:color-mix(in srgb, var(--green) 9%, var(--surface)); border:1px solid color-mix(in srgb, var(--green) 25%, var(--border)); }
+.cup-g-big{ font-size:56px; line-height:1; min-width:64px; text-align:center; }
+.cup-g-stage{ font-family:'Source Serif 4',Georgia,serif; font-size:19px; font-weight:600; }
+.cup-g-next{ font-size:12.5px; color:var(--green); margin-top:6px; font-weight:500; }
+.cup-g-stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }
+.cup-g-stats div{ border:1px solid var(--border); border-radius:var(--radius-lg); padding:10px; text-align:center; display:flex; flex-direction:column; gap:2px; }
+.cup-g-stats b{ font-size:20px; font-family:'Source Serif 4',Georgia,serif; }
+.cup-g-stats span{ font-size:11.5px; color:var(--text3); }
+.cup-g-h{ font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); margin:18px 0 8px; }
+.cup-g-forest{ display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
+.cup-g-cell{ aspect-ratio:1; border-radius:8px; background:var(--bg2); display:grid; place-items:center; font-size:20px; max-width:100%; }
+.cup-g-cell.now{ outline:2px solid var(--green); }
+.cup-g-species{ display:grid; grid-template-columns:repeat(6,1fr); gap:6px; }
+.cup-g-species div{ border:1px solid var(--border); border-radius:var(--radius-lg); padding:8px 4px; text-align:center; font-size:11.5px; display:flex; flex-direction:column; gap:2px; }
+.cup-g-species span{ font-size:22px; }
+.cup-g-species em{ font-style:normal; color:var(--text3); font-size:10.5px; }
+.cup-g-species .locked{ opacity:.45; }
+/* friends & groups */
+.cup-soc-intro{ text-align:center; padding:8px 12px; }
+.cup-soc-intro h3{ font-family:'Source Serif 4',Georgia,serif; font-size:20px; margin:6px 0; }
+.cup-soc-intro p{ font-size:13px; color:var(--text2); max-width:46ch; margin:6px auto; line-height:1.55; }
+.cup-soc-code{ display:flex; align-items:center; gap:10px; font-size:13px; color:var(--text2); margin-bottom:8px; }
+.cup-soc-code b{ font-family:ui-monospace,Menlo,monospace; font-size:16px; letter-spacing:.12em; color:var(--text); background:var(--bg2); padding:3px 10px; border-radius:var(--radius); }
+.cup-soc-row{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.cup-person{ display:flex; align-items:center; gap:10px; padding:9px 4px; border-top:1px solid var(--border); font-size:13.5px; }
+.cup-person.me{ background:var(--accent-dim); border-radius:var(--radius); padding:9px 8px; }
+.cup-person-tree{ font-size:20px; width:26px; text-align:center; }
+.cup-person-stats{ margin-left:auto; display:flex; gap:10px; font-size:12px; color:var(--text2); font-variant-numeric:tabular-nums; }
+.cup-rank{ font-size:12px; color:var(--text3); width:28px; text-align:right; }
+.cup-group-card{ border:1px solid var(--border); border-radius:var(--radius-lg); padding:10px 12px; margin-top:12px; }
+.cup-group-h{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px; }
+.cup-group-h b{ font-size:15px; }
+.cup-soc-foot{ margin-top:14px; text-align:right; }
+@media (max-width: 560px){ .cup-g-species{ grid-template-columns:repeat(3,1fr); } .cup-soc-row{ grid-template-columns:1fr; } .cup-person-stats{ gap:6px; } .cup-start input{ font-size:14px; } }
+
 </style>
 <script>
 /* Immediately apply saved theme + density to avoid flash */
@@ -6101,6 +6238,12 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
 
+      <!-- Just start: type → Enter → focus -->
+      <form class="cup-start" onsubmit="cupJustStart(event)">
+        <span class="cup-start-ic">◎</span>
+        <input id="cupStartInput" placeholder="What are you working on? Type it and press Enter to start focusing" autocomplete="off" aria-label="What are you working on?">
+        <button type="submit" class="btn btn-accent">Start</button>
+      </form>
       <!-- Next up: one task at a time (calm Home) -->
       <div class="home-focus-card cup-next" id="cupNextUp"></div>
       <!-- Today's focus card — shown with "See everything" -->
@@ -7513,6 +7656,57 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <!-- SETTINGS -->
+<!-- Garden, friends & groups -->
+<div class="overlay" id="mCupGarden">
+  <div class="modal cup-garden-modal">
+    <div class="modal-header"><span class="modal-title">Your garden</span><button class="modal-close" onclick="closeModal('mCupGarden')" aria-label="Close">✕</button></div>
+    <div class="modal-body" id="cupGardenBody"></div>
+  </div>
+</div>
+
+<!-- Page (Notion-style note) -->
+<div class="overlay" id="mCupNote">
+  <div class="modal cup-note-modal">
+    <div class="cup-note-top">
+      <span class="cup-note-crumbs" id="cupNoteCrumbs"></span>
+      <span class="cup-note-saved" id="cupNoteSaved"></span>
+      <span class="sp"></span>
+      <select id="cupNoteMove" class="cup-note-move" onchange="cupNoteMove(this.value)" aria-label="Move page to"></select>
+      <button class="cup-ts-x" onclick="cupNoteDelete()" title="Delete page" aria-label="Delete page">🗑</button>
+      <button class="modal-close" onclick="cupNoteClose()" aria-label="Close">✕</button>
+    </div>
+    <div class="cup-note-scroll">
+      <input id="cupNoteTitle" class="cup-note-title" placeholder="Untitled" oninput="cupNoteChanged()" autocomplete="off">
+      <div class="cup-note-bar" role="toolbar" aria-label="Formatting">
+        <button onclick="cupNoteCmd('h1')" title="Heading (type # then space)">H1</button>
+        <button onclick="cupNoteCmd('h2')" title="Subheading (## then space)">H2</button>
+        <button onclick="cupNoteCmd('p')" title="Normal text">¶</button>
+        <span class="cup-note-sep"></span>
+        <button onclick="cupNoteCmd('bold')" title="Bold"><b>B</b></button>
+        <button onclick="cupNoteCmd('italic')" title="Italic"><i>I</i></button>
+        <button onclick="cupNoteCmd('link')" title="Make the selected web address a link">🔗</button>
+        <span class="cup-note-sep"></span>
+        <button onclick="cupNoteCmd('ul')" title="Bullets (- then space)">• List</button>
+        <button onclick="cupNoteCmd('ol')" title="Numbered (1. then space)">1. List</button>
+        <button onclick="cupNoteCmd('todo')" title="Checklist ([] then space)">☐ To-do</button>
+        <button onclick="cupNoteCmd('quote')" title="Quote (> then space)">❝</button>
+        <button onclick="cupNoteCmd('hr')" title="Divider (--- then Enter)">―</button>
+      </div>
+      <div id="cupNoteBody" class="cup-note-body" contenteditable="true" spellcheck="true"
+        data-placeholder="Start writing… Type # for a heading, - for a list, [] for a checkbox."
+        oninput="cupNoteChanged()" onkeydown="cupNoteKey(event)" onclick="cupNoteClick(event)"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Categories: groups and areas -->
+<div class="overlay" id="mCupCats">
+  <div class="modal cup-cats-modal">
+    <div class="modal-header"><span class="modal-title">Categories</span><button class="modal-close" onclick="closeModal('mCupCats')" aria-label="Close">✕</button></div>
+    <div class="modal-body" id="cupCatsBody"></div>
+  </div>
+</div>
+
 <!-- Calm task sheet (add / edit) -->
 <div class="overlay" id="mCupTask">
   <div class="modal cup-ts-modal">
@@ -15347,14 +15541,32 @@ window.addEventListener('beforeunload', flushPendingSave);
 //  • Home gets a "Waiting on" card and a "Commitments & weekly load" disclosure.
 // ════════════════════════════════════════════════════════════
 
-const CUP_SPHERES = { school:'School', career:'Work & career', community:'Community', self:'Self' };
-const CUP_AREAS = [
+// Groups (School, Work & career, …) and their areas. Defaults below; each
+// person can add, rename and recolor them (stored in S.cup.groups / S.cup.areas).
+const CUP_DEFAULT_GROUPS = [
+  { key:'school', name:'School', color:'var(--accent)' },
+  { key:'career', name:'Work & career', color:'var(--orange)' },
+  { key:'community', name:'Community', color:'var(--purple)' },
+  { key:'self', name:'Self', color:'var(--green)' },
+];
+const CUP_DEFAULT_AREAS = [
   ['academics','Classes','school'], ['learning','Courses & self-study','school'],
   ['work','Work','career'], ['career','Internships & research','career'], ['opps','Competitions & opportunities','career'],
   ['clubs','Clubs','community'], ['church','Church','community'],
   ['habits','Habits','self'], ['personal','Personal life','self']
 ];
-const CUP_AREA = Object.fromEntries(CUP_AREAS.map(([k,n,s])=>[k,{name:n,sphere:s}]));
+const CUP_GROUP_COLORS = ['#2C4A8B','#A85418','#5A4A88','#2A6B44','#B83030','#1F7A8C','#9A6B00','#7A3E6B','#4A6B2A','#5A5750'];
+let CUP_SPHERES = {}, CUP_AREAS = [], CUP_AREA = {}, CUP_GROUP_COLOR = {};
+function cupTaxonomy(){
+  const arr = v => Array.isArray(v) ? v : (v && typeof v==='object' ? Object.values(v) : []);
+  const g = (typeof S!=='undefined' && S && S.cup && arr(S.cup.groups).length) ? arr(S.cup.groups) : CUP_DEFAULT_GROUPS;
+  const a = (typeof S!=='undefined' && S && S.cup && arr(S.cup.areas).length) ? arr(S.cup.areas).map(x=>[x.key,x.name,x.group]) : CUP_DEFAULT_AREAS;
+  CUP_SPHERES = Object.fromEntries(g.map(x=>[x.key,x.name]));
+  CUP_GROUP_COLOR = Object.fromEntries(g.map(x=>[x.key,x.color]));
+  CUP_AREAS = a.filter(x=>CUP_SPHERES[x[2]]);
+  CUP_AREA = Object.fromEntries(CUP_AREAS.map(([k,n,sp])=>[k,{name:n,sphere:sp}]));
+}
+cupTaxonomy();
 const CUP_STAGES = { target:'To apply', applied:'Applied', interview:'Interviewing', offer:'Offer', closed:'Closed' };
 const CUP_DOW = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const CUP_SEED = null;
@@ -15369,6 +15581,8 @@ function cupEnsure(){
   if(!Array.isArray(S.commitments)) S.commitments = S.commitments ? Object.values(S.commitments) : [];
   if(!S.cup || typeof S.cup !== 'object') S.cup = {};
   if(!Number.isFinite(+S.cup.capacity) || +S.cup.capacity <= 0) S.cup.capacity = 40;
+  if(Array.isArray(S.cup.groups) && !Array.isArray(S.cup.areas)) S.cup.areas = Object.values(S.cup.areas||{});
+  cupTaxonomy();
   // Older area keys fold into the two Self areas
   const legacy={ gym:'habits', projects:'personal', hobbies:'personal' };
   S.commitments.forEach(c=>{ if(legacy[c.area]) c.area=legacy[c.area]; });
@@ -15385,7 +15599,7 @@ const cupCommit = id => id ? cupCommits().find(c=>c.id===id) : null;
 // Archived folders leave the sidebar, planner, picker and calendar — restorable any time
 const cupActive = () => cupCommits().filter(c=>!c.archived);
 const cupByName = (a,b) => (a.name||'').localeCompare(b.name||'');
-const cupSphColor = area => ({school:'var(--accent)',career:'var(--orange)',community:'var(--purple)',self:'var(--green)'})[CUP_AREA[area]?.sphere] || 'var(--text3)';
+const cupSphColor = area => CUP_GROUP_COLOR[CUP_AREA[area]?.sphere] || 'var(--text3)';
 const cupR1 = x => Math.round(x*10)/10;
 // Week starts Sunday by default (matches the calendar); Settings can switch to Monday
 const cupSunStart = () => !(S.cup && S.cup.weekStart==='mon');
@@ -15694,6 +15908,7 @@ function cupRenderBankHead(){
       ${slots||c.when?`<div class="cup-fh-meta">◷ ${slots||esc(c.when)}</div>`:''}
       ${c.paceOf?cupPaceBar(c.paceOf):''}
       ${c.notes?`<div class="cup-fh-notes">${esc(c.notes)}</div>`:''}</div>
+      ${cupPagesHTML(cupBankSel, c.id, c.area)}
       ${cupHabitPile(S.tasks.filter(t=>t.isHabit&&!t.archived&&t.commitId===c.id), cupBankSel)}
       <div class="cup-pile-h cup-tasks-h"><span>Tasks</span><button class="cup-pile-add" onclick="cupAddTaskTo('${cupBankSel}')">+ Task</button></div>`;
   } else if(k==='area'){
@@ -15701,6 +15916,7 @@ function cupRenderBankHead(){
     head = `<div class="cup-folder-head" style="--cup-c:${cupSphColor(v)}">
       <div class="cup-fh-top"><div class="cup-fh-name">${CUP_AREA[v]?.name||''}</div><button class="mini-btn" onclick="cupOpenFolder(null,'${v}')">+ Folder</button></div>
       ${cs.length?`<div class="cup-fh-folders">${cs.map(c=>`<button class="filter-chip" onclick="cupSetBankSel('folder:${c.id}')">${esc(c.name)}</button>`).join('')}</div>`:''}</div>
+      ${cupPagesHTML(cupBankSel, '', v)}
       ${cupHabitPile(S.tasks.filter(t=>t.isHabit&&!t.archived&&t.area===v), cupBankSel)}
       <div class="cup-pile-h cup-tasks-h"><span>Tasks</span><button class="cup-pile-add" onclick="cupAddTaskTo('${cupBankSel}')">+ Task</button></div>`;
   } else if(cupBankSel==='apps'){
@@ -15725,14 +15941,16 @@ function cupRenderSideTree(){
   const host=document.getElementById('cupSideTree'); if(!host) return;
   const open=new Set(cupSideOpen), tasks=S.tasks.filter(t=>!cupDone(t)), cs=cupActive(), arch=cupCommits().filter(c=>c.archived).sort(cupByName);
   const active = currentPage==='todo' ? cupBankSel : null;
-  const rows = CUP_AREAS.filter(([k])=>cs.some(c=>c.area===k)||tasks.some(t=>t.area===k)).map(([k,n])=>{
+  const rows = CUP_AREAS.filter(([k])=>cs.some(c=>c.area===k)||tasks.some(t=>t.area===k)||cupNotes().some(x=>x.area===k)).map(([k,n])=>{
     const kids=cs.filter(c=>c.area===k).sort(cupByName), ex=open.has(k), cnt=tasks.filter(t=>t.area===k&&cupSoon(t)).length;
     return `<div class="cup-trow ${active==='area:'+k?'active':''}">
-        <button class="cup-chev ${ex?'open':''}" ${kids.length?'':'style="visibility:hidden"'} onclick="cupToggleSide('${k}')" aria-label="${ex?'Collapse':'Expand'} ${n}" aria-expanded="${ex}">›</button>
+        <button class="cup-chev ${ex?'open':''}" ${kids.length||cupNotesIn('',k).length?'':'style="visibility:hidden"'} onclick="cupToggleSide('${k}')" aria-label="${ex?'Collapse':'Expand'} ${n}" aria-expanded="${ex}">›</button>
         <button class="cup-tname" onclick="cupSetBankSel('area:${k}')"><span class="cup-sw" style="background:${cupSphColor(k)}"></span><span class="l">${n}</span></button>
         <span class="cup-n">${cnt||''}</span></div>
       ${ex?kids.map(c=>{const o=tasks.filter(t=>t.commitId===c.id&&cupSoon(t)).length;
-        return `<div class="cup-trow cup-kid ${active==='folder:'+c.id?'active':''}"><button class="cup-tname" onclick="cupSetBankSel('folder:${c.id}')"><span class="l">${esc(c.name)}</span></button><span class="cup-n">${o||''}</span></div>`}).join(''):''}`;
+        return `<div class="cup-trow cup-kid ${active==='folder:'+c.id?'active':''}"><button class="cup-tname" onclick="cupSetBankSel('folder:${c.id}')"><span class="l">${esc(c.name)}</span></button><span class="cup-n">${o||''}</span></div>`
+          + cupNotesIn(c.id).map(n=>`<div class="cup-trow cup-kid cup-tpage"><button class="cup-tname" onclick="cupOpenNote('${n.id}')"><span class="l">📄 ${esc(n.title||'Untitled')}</span></button></div>`).join('');}).join('')
+        + cupNotesIn('',k).map(n=>`<div class="cup-trow cup-kid cup-tpage cup-tpage-area"><button class="cup-tname" onclick="cupOpenNote('${n.id}')"><span class="l">📄 ${esc(n.title||'Untitled')}</span></button></div>`).join(''):''}`;
   }).join('');
   const archOpen=open.has('__arch');
   const pile = arch.length ? `<div class="cup-trow cup-arch-head">
@@ -15740,7 +15958,8 @@ function cupRenderSideTree(){
       <button class="cup-tname" onclick="cupToggleSide('__arch')"><span class="l">Archived</span></button><span class="cup-n">${arch.length}</span></div>
     ${archOpen?arch.map(c=>`<div class="cup-trow cup-kid cup-archived ${active==='folder:'+c.id?'active':''}"><button class="cup-tname" onclick="cupSetBankSel('folder:${c.id}')"><span class="l">${esc(c.name)}</span></button>
       <button class="cup-restore" onclick="cupArchiveFolder('${c.id}',false)" title="Restore ${esc(c.name)}" aria-label="Restore ${esc(c.name)}">↺</button></div>`).join(''):''}` : '';
-  const html = `<div class="cup-side-head"><span>Folders</span><span><button onclick="cupOpenImport()" title="Import many at once" aria-label="Import">⇪</button><button onclick="cupOpenFolder(null)" title="New folder" aria-label="New folder">+</button></span></div>${rows||'<div class="cup-side-empty">Add a folder for each class, club or project.</div>'}${pile}`;
+  const catLink = `<button class="cup-side-cats" onclick="cupOpenCats()">✎ Edit categories</button>`;
+  const html = `<div class="cup-side-head"><span>Folders</span><span><button onclick="cupOpenImport()" title="Import many at once" aria-label="Import">⇪</button><button onclick="cupOpenFolder(null)" title="New folder" aria-label="New folder">+</button></span></div>${rows||'<div class="cup-side-empty">Add a folder for each class, club or project.</div>'}${pile}${catLink}`;
   if(host._last!==html){ host.innerHTML=html; host._last=html; }
 }
 function cupToggleSide(k){ const s=new Set(cupSideOpen); s.has(k)?s.delete(k):s.add(k); cupSideOpen=[...s]; cupPersist(); cupRenderSideTree(); }
@@ -15912,6 +16131,7 @@ function cupRenderHome(){
   html += `<div class="cup-glance">
       ${cupWeekStrip()}
       <div class="cup-glance-side">
+        ${cupGardenMini()}
         <button class="cup-mini ${over?'over':''}" onclick="cupOpenLoad()" title="Weekly load — tap to plan">${cupCupSVG(L.ratio,22,26)}<span><b>${Math.round(L.after)}</b>/${L.cap}h</span></button>
         ${waiting.length?`<button class="cup-mini" onclick="cupSetHomeFull(true);setTimeout(()=>document.getElementById('cupHomeWaiting')?.scrollIntoView({behavior:'smooth',block:'center'}),60)" title="Waiting to hear back">⧗ <b>${waiting.length}</b></button>`:''}
         <button class="cup-mini" onclick="cupSetHomeFull(${!cupHomeFull})" title="${cupHomeFull?'Hide':'Show'} everything">${cupHomeFull?'▴ Less':`▾ All <b>${q.length}</b>`}</button>
@@ -16139,6 +16359,7 @@ function renderCup(){
   if(wb && wb.dataset.mcol!==cupMCol) cupSetMCol(cupMCol);
   cupRenderSideTree();
   cupRenderBankHead();
+  if(S.cup && S.cup.social && S.cup.social.on) cupPublishProfile(false);
   cupRenderHome();
 }
 
@@ -16694,7 +16915,7 @@ function cupImportAiUI(){
   b.textContent = has ? '✨ Sort with Claude' : 'Use your own API key →';
   b.title = has ? 'Send the box’s notes to Claude with your key' : 'Set up a Claude API key in Settings';
 }
-const CUP_IMPORT_SCHEMA = (()=>{
+const cupImportSchema = ()=>{
   const S_=t=>({type:t}), obj=(req,props)=>({type:'object',additionalProperties:false,required:req,properties:props});
   const pri={enum:['must','high','medium','low']};
   return obj(['actions'],{ actions:{ type:'array', items:{ anyOf:[
@@ -16704,7 +16925,7 @@ const CUP_IMPORT_SCHEMA = (()=>{
     obj(['do','name','area'],{ do:{const:'add_folder'}, name:S_('string'), area:{enum:CUP_AREAS.map(a=>a[1])}, role:S_('string'), hoursPerWeek:S_('number'), weeklyTimes:S_('string'), notes:S_('string') }),
     obj(['do','id'],{ do:{const:'update_task'}, id:S_('string'), title:S_('string'), due:{type:'string',format:'date'}, dueTime:S_('string'), status:{enum:['open','waiting','done']}, priority:pri, notes:S_('string'), folder:S_('string') }),
   ]}}});
-})();
+};
 async function cupAiSort(){
   if(!cupAiKey()){ closeModal('mCupImport'); openModal('mSettings'); setTimeout(()=>document.getElementById('cupAiKey')?.focus(),100); return; }
   const ta=document.getElementById('cupImportText'), notes=ta.value.trim();
@@ -16715,7 +16936,7 @@ async function cupAiSort(){
     const client=await cupAiClient(), model=cupAiModel();
     const req={
       model, max_tokens:16000,
-      output_config:{ effort:'medium', format:{ type:'json_schema', schema:CUP_IMPORT_SCHEMA } },
+      output_config:{ effort:'medium', format:{ type:'json_schema', schema:cupImportSchema() } },
       messages:[{ role:'user', content:[
         { type:'text', text:cupClaudePrompt(), cache_control:{type:'ephemeral'} },   // instructions + your folders/tasks (cached between imports)
         { type:'text', text:notes },
@@ -16794,77 +17015,94 @@ function cupTSSentence(){
   return bits.join(' · ');
 }
 function cupTSChip(on, label, click, extra=''){ return `<button type="button" class="cup-ts-chip ${on?'on':''}" onclick="${click}" ${extra}>${label}</button>`; }
+function cupTSRow(key, icon, label, value, body, cls=''){
+  const open=cupTS.open===key;
+  return `<div class="cup-row ${open?'open':''} ${cls}">
+    <button type="button" class="cup-row-h" onclick="cupTS.open=cupTS.open==='${key}'?'':'${key}';cupTSRender()" aria-expanded="${open}">
+      <span class="cup-row-ic">${icon}</span><span class="cup-row-l">${label}</span><span class="cup-row-v">${value}</span><span class="cup-row-c">›</span></button>
+    ${open?`<div class="cup-row-b">${body}</div>`:''}</div>`;
+}
 function cupTSRender(){
   const s=cupTS, host=document.getElementById('cupTSBody'); if(!host||!s) return;
   const today=cupTSDate(0), tmw=cupTSDate(1), fri=cupTSNextDow(5), nwk=cupTSDate(7);
-  const presetDue=[['',`No date`],[today,'Today'],[tmw,'Tomorrow'],[fri,'Fri '+cupParse(fri).getDate()],[nwk,'In a week']];
-  const custom = s.due && !presetDue.some(([v])=>v===s.due);
-  const times=[['','No time'],['09:00','9 am'],['12:00','Noon'],['17:00','5 pm'],['23:59','11:59 pm']];
-  const customT = s.dueTime && !times.some(([v])=>v===s.dueTime);
+  const DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  // values in words
+  const dueV = !s.due ? '<span class="cup-row-none">No date</span>' : (()=>{ const d=cupDays(s.due);
+    const w=d===0?'Today':d===1?'Tomorrow':cupParse(s.due).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+    return `<span class="${d<0?'cup-late':''}">${w}${s.dueTime?', '+cupT12(s.dueTime):''}</span>`; })();
+  const repV = s.kind!=='habit' ? '<span class="cup-row-none">Doesn’t repeat</span>' : (s.weeklyGoal?`${s.weeklyGoal}× a week`:(s.days.length===7?'Every day':s.days.map(d=>DN[d]).join(', ')))+(s.time?` · ${cupT12(s.time)}`:'');
+  const P=CUP_PRI.find(x=>x[0]===s.priority)||CUP_PRI[2];
+  const priV=`<span class="cup-pri-dot" style="background:${P[3]}"></span>${P[1]}`;
+  const c=s.folder.startsWith('folder:')?cupCommit(s.folder.slice(7)):null, ak=c?c.area:(s.folder.startsWith('area:')?s.folder.slice(5):'');
+  const folV = c ? `<span class="cup-pri-dot" style="background:${cupSphColor(c.area)}"></span>${esc(c.name)}` : ak ? `<span class="cup-pri-dot" style="background:${cupSphColor(ak)}"></span>${esc(CUP_AREA[ak]?.name||'')}` : '<span class="cup-row-none">Not filed</span>';
+  const workV = s.work ? (s.work===today?'Today':s.work===tmw?'Tomorrow':cupFmt(s.work)) : '<span class="cup-row-none">Not planned</span>';
+  const sentV = s.waiting ? `Sent ${cupFmt(s.submitted)}${s.decisionBy?' · answer by '+cupFmt(s.decisionBy):''}` : '<span class="cup-row-none">Not yet</span>';
+  const moreN=[s.firstStep?'first step':'', s.link?'link':'', s.subtasks.length?`${s.subtasks.length} step${s.subtasks.length>1?'s':''}`:''].filter(Boolean);
+  const chip=(on,l,click)=>`<button type="button" class="cup-ts-chip ${on?'on':''}" onclick="${click}">${l}</button>`;
+  const pick=(on,l,val,type,assign)=>`<label class="cup-ts-chip cup-ts-pick ${on?'on':''}">${l}<input type="${type}" value="${esc(val)}" onchange="${assign}=this.value;cupTSRender()"></label>`;
+
+  // folder picker: group tabs → areas with their folders, + new folder
+  if(!s.fGroup) s.fGroup = (ak && CUP_AREA[ak]?.sphere) || Object.keys(CUP_SPHERES)[0];
   const cs=cupActive();
-  const folderGroups = Object.entries(CUP_SPHERES).map(([sp,sn])=>{
-    const areas=CUP_AREAS.filter(a=>a[2]===sp);
-    const chips=areas.map(([k,n])=>{
-      const kids=cs.filter(c=>c.area===k).sort(cupByName);
-      return cupTSChip(s.folder==='area:'+k, `<i class="cup-dot" style="background:${cupSphColor(k)}"></i>${esc(n)}`, `cupTS.folder='area:${k}';cupTSRender()`, 'data-kind="area"')
-        + kids.map(c=>cupTSChip(s.folder==='folder:'+c.id, esc(c.name), `cupTS.folder='folder:${c.id}';cupTSRender()`, 'data-kind="folder"')).join('');
-    }).join('');
-    return `<div class="cup-ts-fgroup"><span class="cup-ts-fl">${sn}</span><div class="cup-ts-chips">${chips}</div></div>`;
-  }).join('');
+  const groupTabs=Object.entries(CUP_SPHERES).map(([g,n])=>`<button type="button" class="cup-gtab ${s.fGroup===g?'on':''}" style="--gc:${CUP_GROUP_COLOR[g]}" onclick="cupTS.fGroup='${g}';cupTSRender()">${esc(n)}</button>`).join('');
+  const areaList=CUP_AREAS.filter(a=>a[2]===s.fGroup).map(([k,n])=>{
+    const kids=cs.filter(f=>f.area===k).sort(cupByName);
+    return `<div class="cup-flist-area"><button type="button" class="cup-fopt ${s.folder==='area:'+k?'on':''}" onclick="cupTS.folder='area:${k}';cupTS.open='';cupTSRender()"><span class="cup-pri-dot" style="background:${cupSphColor(k)}"></span><b>${esc(n)}</b><span class="cup-dim">${kids.length?kids.length+' folder'+(kids.length>1?'s':''):'no folders'}</span></button>
+      ${kids.map(f=>`<button type="button" class="cup-fopt cup-fopt-kid ${s.folder==='folder:'+f.id?'on':''}" onclick="cupTS.folder='folder:${f.id}';cupTS.open='';cupTSRender()">${esc(f.name)}</button>`).join('')}
+      <div class="cup-fnew"><input placeholder="+ New folder in ${esc(n)}" onkeydown="if(event.key==='Enter'){event.preventDefault();cupTSNewFolder('${k}',this.value)}"></div></div>`;
+  }).join('') || '<div class="cup-dim">No areas in this group yet.</div>';
+
   host.innerHTML = `
     <input id="cupTSTitle" class="cup-ts-title" placeholder="What do you need to do?" value="${esc(s.title)}" oninput="cupTS.title=this.value" autocomplete="off">
-    <div class="cup-ts-sentence" id="cupTSSentence">${cupTSSentence()}</div>
-
-    <section class="cup-ts-q"><h4><span>✦</span>What is it?</h4>
-      <div class="cup-ts-chips">${cupTSChip(s.kind==='task','○ One-time to-do',"cupTS.kind='task';cupTSRender()")}${cupTSChip(s.kind==='habit','↻ Habit (repeats)',"cupTS.kind='habit';cupTSRender()")}</div></section>
-
-    ${s.kind==='task' ? `
-    <section class="cup-ts-q"><h4><span>⏰</span>When is it due?</h4>
-      <div class="cup-ts-chips">${presetDue.map(([v,l])=>cupTSChip(s.due===v,l,`cupTS.due='${v}';cupTSRender()`)).join('')}
-        <label class="cup-ts-chip cup-ts-pick ${custom?'on':''}">📅 ${custom?cupFmt(s.due):'Pick a date'}<input type="date" value="${esc(s.due)}" onchange="cupTS.due=this.value;cupTSRender()"></label></div>
-      ${s.due?`<div class="cup-ts-sub">By what time?</div><div class="cup-ts-chips">${times.map(([v,l])=>cupTSChip(s.dueTime===v,l,`cupTS.dueTime='${v}';cupTSRender()`)).join('')}
-        <label class="cup-ts-chip cup-ts-pick ${customT?'on':''}">🕒 ${customT?cupT12(s.dueTime):'Other time'}<input type="time" value="${esc(s.dueTime)}" onchange="cupTS.dueTime=this.value;cupTSRender()"></label></div>`:''}
-    </section>` : `
-    <section class="cup-ts-q"><h4><span>↻</span>How often?</h4>
-      <div class="cup-ts-days">${['S','M','T','W','T','F','S'].map((l,i)=>`<button type="button" class="cup-ts-day ${!s.weeklyGoal&&s.days.includes(i)?'on':''}" onclick="cupTSDay(${i})" aria-label="${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][i]}">${l}</button>`).join('')}</div>
-      <div class="cup-ts-sub">…or a number of times a week, any days</div>
-      <div class="cup-ts-chips">${[0,2,3,4,5].map(n=>cupTSChip(s.weeklyGoal===n,n?n+'× a week':'Fixed days',`cupTS.weeklyGoal=${n};cupTSRender()`)).join('')}</div>
-      <div class="cup-ts-sub">Time of day (optional)</div>
-      <div class="cup-ts-chips">${[['','Any time'],['07:00','Morning'],['12:00','Midday'],['18:00','Evening'],['22:30','Night']].map(([v,l])=>cupTSChip(s.time===v,l,`cupTS.time='${v}';cupTSRender()`)).join('')}</div>
-    </section>`}
-
-    <section class="cup-ts-q"><h4><span>★</span>How important?</h4>
-      <div class="cup-ts-pri">${CUP_PRI.map(([v,l,hint,col])=>`<button type="button" class="cup-ts-pricard ${s.priority===v?'on':''}" style="--pc:${col}" onclick="cupTS.priority='${v}';cupTSRender()"><b>${l}</b><span>${hint}</span></button>`).join('')}</div></section>
-
-    <section class="cup-ts-q"><h4><span>▤</span>Where does it go?</h4>
-      <div class="cup-ts-chips">${cupTSChip(!s.folder,'Nowhere yet',"cupTS.folder='';cupTSRender()")}</div>
-      ${folderGroups}</section>
-
-    ${s.kind==='task' ? `
-    <section class="cup-ts-q"><h4><span>⧗</span>Already sent it?</h4>
-      <div class="cup-ts-chips">${cupTSChip(!s.waiting,'Not yet',"cupTS.waiting=false;cupTSRender()")}${cupTSChip(s.waiting,'⧗ Sent — waiting to hear back',`cupTS.waiting=true;if(!cupTS.submitted)cupTS.submitted='${today}';cupTSRender()`)}</div>
-      ${s.waiting?`<div class="cup-ts-two"><label>Sent on<input type="date" value="${esc(s.submitted)}" onchange="cupTS.submitted=this.value;cupTSRender()"></label><label>Expect an answer by<input type="date" value="${esc(s.decisionBy)}" onchange="cupTS.decisionBy=this.value;cupTSRender()"></label></div>`:''}
-    </section>
-    <section class="cup-ts-q"><h4><span>◎</span>When will you work on it? <em>optional</em></h4>
-      <div class="cup-ts-chips">${[['','Not planned'],[today,'Today'],[tmw,'Tomorrow']].map(([v,l])=>cupTSChip(s.work===v,l,`cupTS.work='${v}';cupTSRender()`)).join('')}
-        <label class="cup-ts-chip cup-ts-pick ${s.work&&s.work!==today&&s.work!==tmw?'on':''}">📅 ${s.work&&s.work!==today&&s.work!==tmw?cupFmt(s.work):'Pick a day'}<input type="date" value="${esc(s.work)}" onchange="cupTS.work=this.value;cupTSRender()"></label></div>
-      <div class="cup-ts-hint">Shows it on that day’s list and in Next up.</div></section>` : ''}
-
-    <section class="cup-ts-q"><h4><span>✎</span>Details <em>optional</em></h4>
-      <textarea class="cup-ts-notes" rows="3" placeholder="Notes, what it's for, who to contact…" oninput="cupTS.notes=this.value">${esc(s.notes)}</textarea>
-      ${s.more ? `
-      <label class="cup-ts-field">First small step<input value="${esc(s.firstStep)}" placeholder="e.g. open the doc" oninput="cupTS.firstStep=this.value"></label>
-      <label class="cup-ts-field">Link<input type="url" value="${esc(s.link)}" placeholder="https://" oninput="cupTS.link=this.value"></label>
-      <div class="cup-ts-sub">Steps</div>
-      <div class="cup-ts-steps">${s.subtasks.map((st,i)=>`<div class="cup-ts-step"><button type="button" class="cup-check2 ${st.done?'d':''}" onclick="cupTS.subtasks[${i}].done=!cupTS.subtasks[${i}].done;cupTSRender()" aria-label="Toggle step"></button>
+    <div class="cup-rows">
+      ${s.kind!=='habit' ? cupTSRow('due','⏰','Due',dueV, `
+        <div class="cup-ts-chips">${[['', 'No date'],[today,'Today'],[tmw,'Tomorrow'],[fri,'Fri '+cupParse(fri).getDate()],[nwk,'In a week']].map(([v,l])=>chip(s.due===v,l,`cupTS.due='${v}';cupTSRender()`)).join('')}
+          ${pick(s.due&&![today,tmw,fri,nwk].includes(s.due),'📅 Other date',s.due,'date','cupTS.due')}</div>
+        ${s.due?`<div class="cup-ts-sub">Time</div><div class="cup-ts-chips">${[['','None'],['09:00','9 am'],['12:00','Noon'],['17:00','5 pm'],['23:59','11:59 pm']].map(([v,l])=>chip(s.dueTime===v,l,`cupTS.dueTime='${v}';cupTSRender()`)).join('')}
+          ${pick(s.dueTime&&!['09:00','12:00','17:00','23:59'].includes(s.dueTime),'🕒 Other',s.dueTime,'time','cupTS.dueTime')}</div>`:''}`) : ''}
+      ${cupTSRow('rep','↻','Repeats',repV, `
+        <div class="cup-ts-chips">${chip(s.kind!=='habit','Doesn’t repeat',"cupTS.kind='task';cupTSRender()")}${chip(s.kind==='habit'&&!s.weeklyGoal&&s.days.length===7,'Every day',"cupTS.kind='habit';cupTS.weeklyGoal=0;cupTS.days=[0,1,2,3,4,5,6];cupTSRender()")}${[3,4,5].map(n=>chip(s.kind==='habit'&&s.weeklyGoal===n,n+'× a week',`cupTS.kind='habit';cupTS.weeklyGoal=${n};cupTSRender()`)).join('')}</div>
+        <div class="cup-ts-sub">or on these days</div>
+        <div class="cup-ts-days">${['S','M','T','W','T','F','S'].map((l,i)=>`<button type="button" class="cup-ts-day ${s.kind==='habit'&&!s.weeklyGoal&&s.days.includes(i)?'on':''}" onclick="cupTSDay(${i})" aria-label="${DN[i]}">${l}</button>`).join('')}</div>
+        ${s.kind==='habit'?`<div class="cup-ts-sub">Time of day</div><div class="cup-ts-chips">${[['','Any'],['07:00','Morning'],['12:00','Midday'],['18:00','Evening'],['22:30','Night']].map(([v,l])=>chip(s.time===v,l,`cupTS.time='${v}';cupTSRender()`)).join('')}</div>`:''}`)}
+      ${cupTSRow('pri','★','Priority',priV, `<div class="cup-ts-pri">${CUP_PRI.map(([v,l,hint,col])=>`<button type="button" class="cup-ts-pricard ${s.priority===v?'on':''}" style="--pc:${col}" onclick="cupTS.priority='${v}';cupTS.open='';cupTSRender()"><b>${l}</b><span>${hint}</span></button>`).join('')}</div>`)}
+      ${cupTSRow('fol','▤','Folder',folV, `
+        <div class="cup-gtabs">${groupTabs}<button type="button" class="cup-gtab cup-gtab-edit" onclick="cupOpenCats()">✎ Categories</button></div>
+        <div class="cup-flist">${areaList}</div>
+        <button type="button" class="cup-more-btn" onclick="cupTS.folder='';cupTS.open='';cupTSRender()">Don’t file it</button>`)}
+      ${s.kind!=='habit' ? cupTSRow('work','◎','Work on',workV, `
+        <div class="cup-ts-chips">${[['','Not planned'],[today,'Today'],[tmw,'Tomorrow']].map(([v,l])=>chip(s.work===v,l,`cupTS.work='${v}';cupTSRender()`)).join('')}${pick(s.work&&![today,tmw].includes(s.work),'📅 Pick a day',s.work,'date','cupTS.work')}</div>
+        <div class="cup-ts-hint">Puts it on that day’s list and in Next up.</div>`) : ''}
+      ${s.kind!=='habit' ? cupTSRow('sent','⧗','Sent',sentV, `
+        <div class="cup-ts-chips">${chip(!s.waiting,'Not yet',"cupTS.waiting=false;cupTSRender()")}${chip(s.waiting,'Sent — waiting to hear back',`cupTS.waiting=true;if(!cupTS.submitted)cupTS.submitted='${today}';cupTSRender()`)}</div>
+        ${s.waiting?`<div class="cup-ts-two"><label>Sent on<input type="date" value="${esc(s.submitted)}" onchange="cupTS.submitted=this.value;cupTSRender()"></label><label>Answer by<input type="date" value="${esc(s.decisionBy)}" onchange="cupTS.decisionBy=this.value;cupTSRender()"></label></div>`:''}`) : ''}
+      ${cupTSRow('more','☰','Steps & link', moreN.length?moreN.join(' · '):'<span class="cup-row-none">None</span>', `
+        <label class="cup-ts-field">First small step<input value="${esc(s.firstStep)}" placeholder="e.g. open the doc" oninput="cupTS.firstStep=this.value"></label>
+        <label class="cup-ts-field">Link<input type="url" value="${esc(s.link)}" placeholder="https://" oninput="cupTS.link=this.value"></label>
+        <div class="cup-ts-sub">Steps</div>
+        <div class="cup-ts-steps">${s.subtasks.map((st,i)=>`<div class="cup-ts-step"><button type="button" class="cup-check2 ${st.done?'d':''}" onclick="cupTS.subtasks[${i}].done=!cupTS.subtasks[${i}].done;cupTSRender()" aria-label="Toggle step"></button>
           <input value="${esc(st.text)}" oninput="cupTS.subtasks[${i}].text=this.value"><button type="button" class="cup-ts-x" onclick="cupTS.subtasks.splice(${i},1);cupTSRender()" aria-label="Remove step">✕</button></div>`).join('')}
-        <button type="button" class="cup-more-btn" onclick="cupTS.subtasks.push({text:'',done:false});cupTSRender();setTimeout(()=>{const a=document.querySelectorAll('.cup-ts-step input');a[a.length-1]?.focus()},30)">+ Add a step</button></div>`
-      : `<button type="button" class="cup-more-btn" onclick="cupTS.more=true;cupTSRender()">+ First step, link, steps</button>`}
-    </section>`;
+          <button type="button" class="cup-more-btn" onclick="cupTS.subtasks.push({text:'',done:false});cupTSRender();setTimeout(()=>{const a=document.querySelectorAll('.cup-ts-step input');a[a.length-1]?.focus()},30)">+ Add a step</button></div>`)}
+    </div>
+    <textarea class="cup-ts-notes" rows="3" placeholder="Notes (optional)" oninput="cupTS.notes=this.value">${esc(s.notes)}</textarea>`;
   document.getElementById('cupTSDelete').style.display=s.id?'':'none';
   document.getElementById('cupTSHead').textContent=s.id?'Edit':'New';
 }
-function cupTSDay(i){ const s=cupTS; s.weeklyGoal=0; s.days=s.days.includes(i)?s.days.filter(d=>d!==i):[...s.days,i].sort(); if(!s.days.length) s.days=[i]; cupTSRender(); }
+function cupTSNewFolder(area, name){
+  name=String(name||'').trim(); if(!name) return;
+  cupEnsure();
+  const c={ id:uid(), name, area, role:'', hours:0, when:'', slots:[], notes:'', verdict:'', boosts:[] };
+  S.commitments.push(c); save();
+  cupTS.folder='folder:'+c.id; cupTS.open=''; cupTSRender(); render();
+  showToast(`New folder “${name}”. Set its hours and times from the sidebar later.`);
+}
+function cupTSDay(i){
+  const s=cupTS, fresh = s.kind!=='habit' || s.weeklyGoal || (s.days.length===7 && !s._picked);
+  s.kind='habit'; s.weeklyGoal=0; s._picked=true;
+  s.days = fresh ? [i] : (s.days.includes(i) ? s.days.filter(d=>d!==i) : [...s.days,i].sort());
+  if(!s.days.length) s.days=[i];
+  cupTSRender();
+}
 function cupTSSave(){
   const s=cupTS; if(!s) return;
   const title=(document.getElementById('cupTSTitle')?.value||s.title).trim();
@@ -16913,6 +17151,386 @@ openModal = function(id){
   }
   return _cupOpenModal2(id);
 };
+
+
+// ════════════════════════════════════════════════════════════
+//  CATEGORIES — groups (School, Work & career, Community, Self, …)
+//  and the areas inside them. Add, rename, recolor, remove.
+// ════════════════════════════════════════════════════════════
+function cupCatsEditable(){
+  cupEnsure();
+  const arr=v=>Array.isArray(v)?v:(v&&typeof v==='object'?Object.values(v):[]);
+  if(!arr(S.cup.groups).length) S.cup.groups=CUP_DEFAULT_GROUPS.map(g=>Object.assign({},g));
+  else S.cup.groups=arr(S.cup.groups);
+  if(!arr(S.cup.areas).length) S.cup.areas=CUP_DEFAULT_AREAS.map(([key,name,group])=>({key,name,group}));
+  else S.cup.areas=arr(S.cup.areas);
+}
+const cupSlug = n => (String(n).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'x')+'-'+Math.random().toString(36).slice(2,5);
+function cupCatsUse(area){ return { folders:cupCommits().filter(c=>c.area===area).length, tasks:S.tasks.filter(t=>t.area===area&&!cupDone(t)).length }; }
+function cupOpenCats(){ cupCatsEditable(); cupCatsRender(); openModal('mCupCats'); }
+function cupCatsRender(){
+  const host=document.getElementById('cupCatsBody'); if(!host) return;
+  host.innerHTML = `<p class="cup-explain">Groups hold areas; areas hold your folders. For example: <b>Community</b> → <b>Clubs</b> → <b>Synaptech</b>.</p>`
+   + S.cup.groups.map((g,gi)=>{
+      const areas=S.cup.areas.filter(a=>a.group===g.key);
+      return `<div class="cup-cat-group" style="--gc:${g.color}">
+        <div class="cup-cat-gh">
+          <button class="cup-cat-color" onclick="cupCatsColor(${gi})" title="Change color" aria-label="Change color" style="background:${g.color}"></button>
+          <input class="cup-cat-gname" value="${esc(g.name)}" onchange="cupCatsRenameGroup(${gi},this.value)" aria-label="Group name">
+          ${areas.length?'':`<button class="cup-ts-x" onclick="cupCatsDeleteGroup(${gi})" title="Remove empty group" aria-label="Remove group">✕</button>`}
+        </div>
+        <div class="cup-cat-areas">${areas.map(a=>{ const u=cupCatsUse(a.key), used=u.folders||u.tasks;
+          return `<div class="cup-cat-area"><span class="cup-pri-dot" style="background:${g.color}"></span>
+            <input value="${esc(a.name)}" onchange="cupCatsRenameArea('${a.key}',this.value)" aria-label="Area name">
+            <span class="cup-dim">${u.folders} folder${u.folders===1?'':'s'} · ${u.tasks} open</span>
+            <select class="cup-cat-move" onchange="cupCatsMoveArea('${a.key}',this.value)" aria-label="Move to group" title="Move to another group">${S.cup.groups.map(x=>`<option value="${x.key}" ${x.key===g.key?'selected':''}>${esc(x.name)}</option>`).join('')}</select>
+            <button class="cup-ts-x" ${used?'disabled title="Move or delete its folders and tasks first"':`onclick="cupCatsDeleteArea('${a.key}')" title="Remove area"`} aria-label="Remove area">✕</button></div>`; }).join('')}
+          <div class="cup-fnew"><input placeholder="+ Add an area to ${esc(g.name)} (e.g. Volunteering)" onkeydown="if(event.key==='Enter'){event.preventDefault();cupCatsAddArea('${g.key}',this.value)}"></div>
+        </div></div>`;
+    }).join('')
+   + `<div class="cup-fnew cup-cat-newgroup"><input placeholder="+ Add a group (e.g. Family, Faith, Side hustle)" onkeydown="if(event.key==='Enter'){event.preventDefault();cupCatsAddGroup(this.value)}"></div>
+      <button class="cup-more-btn" onclick="cupCatsReset()">Reset to the default categories</button>`;
+}
+function cupCatsChanged(){ save(); cupTaxonomy(); cupCatsRender(); render(); if(cupTS) cupTSRender(); }
+function cupCatsAddGroup(n){ n=String(n||'').trim(); if(!n) return; cupCatsEditable();
+  S.cup.groups.push({ key:cupSlug(n), name:n, color:CUP_GROUP_COLORS[S.cup.groups.length%CUP_GROUP_COLORS.length] }); cupCatsChanged();
+  setTimeout(()=>{ const a=document.querySelectorAll('.cup-cat-group .cup-fnew input'); a[a.length-1]?.focus(); },30); }
+function cupCatsAddArea(group,n){ n=String(n||'').trim(); if(!n) return; cupCatsEditable();
+  S.cup.areas.push({ key:cupSlug(n), name:n, group }); cupCatsChanged(); showToast(`Added “${n}”. Add folders to it from the sidebar or a task.`); }
+function cupCatsRenameGroup(i,n){ n=n.trim(); if(!n) return; S.cup.groups[i].name=n; cupCatsChanged(); }
+function cupCatsRenameArea(k,n){ n=n.trim(); if(!n) return; const a=S.cup.areas.find(x=>x.key===k); if(a){ a.name=n; cupCatsChanged(); } }
+function cupCatsMoveArea(k,g){ const a=S.cup.areas.find(x=>x.key===k); if(a){ a.group=g; cupCatsChanged(); } }
+function cupCatsDeleteArea(k){ const u=cupCatsUse(k); if(u.folders||u.tasks) return; S.cup.areas=S.cup.areas.filter(x=>x.key!==k); cupCatsChanged(); }
+function cupCatsDeleteGroup(i){ const g=S.cup.groups[i]; if(S.cup.areas.some(a=>a.group===g.key)) return; S.cup.groups.splice(i,1); cupCatsChanged(); }
+function cupCatsColor(i){ const g=S.cup.groups[i]; const cur=CUP_GROUP_COLORS.indexOf(g.color); g.color=CUP_GROUP_COLORS[(cur+1)%CUP_GROUP_COLORS.length]; cupCatsChanged(); }
+function cupCatsReset(){
+  const keep=new Set(CUP_DEFAULT_AREAS.map(a=>a[0]));
+  const used=S.cup.areas.filter(a=>!keep.has(a.key)&&(cupCatsUse(a.key).folders||cupCatsUse(a.key).tasks));
+  if(used.length){ showToast(`Can’t reset: “${used[0].name}” still has folders or tasks.`); return; }
+  S.cup.groups=CUP_DEFAULT_GROUPS.map(g=>Object.assign({},g)); S.cup.areas=CUP_DEFAULT_AREAS.map(([key,name,group])=>({key,name,group})); cupCatsChanged();
+}
+
+// ════════════════════════════════════════════════════════════
+//  PAGES — Notion-style notes that live inside folders and areas.
+//  S.notes = [{ id, title, html, area, commitId, createdAt, updatedAt }]
+//  Saves as you type. Shortcuts: "# " heading, "## " subheading,
+//  "- " bullet, "1. " numbered, "[] " checkbox, "> " quote, "---" divider.
+// ════════════════════════════════════════════════════════════
+function cupNotes(){ if(!Array.isArray(S.notes)) S.notes = S.notes ? Object.values(S.notes) : []; return S.notes; }
+const cupNotesIn = (commitId, area) => cupNotes().filter(n => commitId ? n.commitId===commitId : (n.area===area && !n.commitId)).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+// keep only safe formatting (pages sync to the cloud and render as HTML)
+const CUP_TAGS = new Set(['P','DIV','BR','H1','H2','H3','UL','OL','LI','B','STRONG','I','EM','U','S','A','BLOCKQUOTE','HR','CODE','PRE','SPAN']);
+function cupCleanHTML(html){
+  const doc=new DOMParser().parseFromString(`<div>${html||''}</div>`,'text/html'), root=doc.body.firstChild;
+  (function walk(el){
+    [...el.childNodes].forEach(n=>{
+      if(n.nodeType===3) return;
+      if(n.nodeType!==1){ n.remove(); return; }
+      if(!CUP_TAGS.has(n.tagName)){ if(/^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED)$/.test(n.tagName)) n.remove(); else { walk(n); n.replaceWith(...n.childNodes); } return; }
+      [...n.attributes].forEach(a=>{
+        const keep = (n.tagName==='A' && a.name==='href' && /^(https?:|mailto:)/i.test(a.value)) || (a.name==='class' && /^(todo|done)( (todo|done))?$/.test(a.value));
+        if(!keep) n.removeAttribute(a.name);
+      });
+      if(n.tagName==='A'){ n.setAttribute('target','_blank'); n.setAttribute('rel','noopener'); }
+      walk(n);
+    });
+  })(root);
+  return root.innerHTML;
+}
+const cupNoteText = n => (new DOMParser().parseFromString(n.html||'','text/html').body.textContent||'').replace(/\s+/g,' ').trim();
+
+let cupNoteId=null, cupNoteTimer=null;
+function cupNewNote(sel){
+  const [k,v]=String(sel||'').split(':');
+  const c = k==='folder' ? cupCommit(v) : null;
+  const n={ id:uid(), title:'', html:'', area:c?c.area:(k==='area'?v:''), commitId:c?c.id:'', createdAt:Date.now(), updatedAt:Date.now() };
+  cupNotes().push(n); save();
+  cupOpenNote(n.id, true);
+}
+function cupOpenNote(id, isNew){
+  const n=cupNotes().find(x=>x.id===id); if(!n) return;
+  cupNoteId=id;
+  const c=cupCommit(n.commitId), area=c?c.area:n.area;
+  const crumbs=[area&&CUP_AREA[area]?CUP_SPHERES[CUP_AREA[area].sphere]:'', area?CUP_AREA[area]?.name:'', c?c.name:''].filter(Boolean).map(esc).join(' › ');
+  document.getElementById('cupNoteCrumbs').innerHTML = crumbs || 'Not filed';
+  document.getElementById('cupNoteTitle').value = n.title||'';
+  document.getElementById('cupNoteBody').innerHTML = cupCleanHTML(n.html);
+  const sel=document.getElementById('cupNoteMove');
+  sel.innerHTML = '<option value="">Not filed</option>' + cupFolderOptions(c?'folder:'+c.id:(area?'area:'+area:'')).replace('<option value="">None</option>','');
+  document.getElementById('cupNoteSaved').textContent = n.updatedAt ? 'Saved' : '';
+  openModal('mCupNote');
+  setTimeout(()=> (isNew?document.getElementById('cupNoteTitle'):document.getElementById('cupNoteBody')).focus(), 60);
+}
+function cupNoteChanged(){
+  document.getElementById('cupNoteSaved').textContent='Saving…';
+  clearTimeout(cupNoteTimer); cupNoteTimer=setTimeout(cupNoteSave, 600);
+}
+function cupNoteSave(){
+  const n=cupNotes().find(x=>x.id===cupNoteId); if(!n) return;
+  n.title=document.getElementById('cupNoteTitle').value.trim();
+  n.html=cupCleanHTML(document.getElementById('cupNoteBody').innerHTML);
+  n.updatedAt=Date.now();
+  save(); cupRenderSideTree(); cupRenderBankHead();
+  document.getElementById('cupNoteSaved').textContent='Saved';
+}
+function cupNoteClose(){
+  clearTimeout(cupNoteTimer); cupNoteSave();
+  const n=cupNotes().find(x=>x.id===cupNoteId);
+  if(n && !n.title && !cupNoteText(n)){ S.notes=cupNotes().filter(x=>x.id!==n.id); save(); }   // drop empty new pages
+  cupNoteId=null; closeModal('mCupNote'); render();
+}
+function cupNoteMove(v){
+  const n=cupNotes().find(x=>x.id===cupNoteId); if(!n) return;
+  const [k,id]=v.split(':'); const c=k==='folder'?cupCommit(id):null;
+  n.commitId=c?c.id:''; n.area=c?c.area:(k==='area'?id:''); n.updatedAt=Date.now(); save();
+  cupOpenNote(n.id);
+}
+function cupNoteDelete(){
+  const n=cupNotes().find(x=>x.id===cupNoteId); if(!n) return;
+  S.notes=cupNotes().filter(x=>x.id!==n.id); cupNoteId=null; save(); closeModal('mCupNote'); render();
+  showToast(`Deleted “${n.title||'Untitled'}”.`,'Undo',()=>{ cupNotes().push(n); save(); render(); });
+}
+// toolbar + Notion-style shortcuts
+function cupNoteCmd(cmd){
+  const b=document.getElementById('cupNoteBody'); b.focus();
+  if(cmd==='h1') document.execCommand('formatBlock',false,'H2');
+  else if(cmd==='h2') document.execCommand('formatBlock',false,'H3');
+  else if(cmd==='p') document.execCommand('formatBlock',false,'P');
+  else if(cmd==='ul') document.execCommand('insertUnorderedList');
+  else if(cmd==='ol') document.execCommand('insertOrderedList');
+  else if(cmd==='todo'){ document.execCommand('insertUnorderedList'); const li=cupCaretBlock('LI'); if(li){ li.parentElement.classList.add('todo'); } }
+  else if(cmd==='quote') document.execCommand('formatBlock',false,'BLOCKQUOTE');
+  else if(cmd==='hr') document.execCommand('insertHorizontalRule');
+  else if(cmd==='link'){ const u=window.getSelection().toString(); const href=/^https?:/.test(u)?u:''; if(href) document.execCommand('createLink',false,href); else showToast('Select a web address (https://…) to make it a link.'); }
+  else document.execCommand(cmd);
+  cupNoteChanged();
+}
+function cupCaretBlock(tag){ let n=window.getSelection().anchorNode; while(n && n.id!=='cupNoteBody'){ if(n.nodeType===1 && (!tag||n.tagName===tag)) return n; n=n.parentNode; } return null; }
+function cupNoteKey(e){
+  if(e.key!==' ' && e.key!=='Enter') return;
+  const sel=window.getSelection(); if(!sel.rangeCount) return;
+  const node=sel.anchorNode; if(!node || node.nodeType!==3) return;
+  const before=node.textContent.slice(0, sel.anchorOffset);
+  const map={ '#':'h1', '##':'h2', '-':'ul', '*':'ul', '1.':'ol', '[]':'todo', '>':'quote' };
+  if(e.key===' ' && map[before] && (node.parentNode.id==='cupNoteBody' || /^(P|DIV)$/.test(node.parentNode.tagName))){
+    e.preventDefault(); node.textContent=node.textContent.slice(before.length); cupNoteCmd(map[before]);
+  } else if(e.key==='Enter' && before==='---'){ e.preventDefault(); node.textContent=''; cupNoteCmd('hr'); }
+}
+function cupNoteClick(e){
+  const li=e.target.closest('ul.todo > li'); if(!li) return;
+  if(e.clientX - li.getBoundingClientRect().left < 24){ e.preventDefault(); li.classList.toggle('done'); cupNoteChanged(); }
+}
+// page list (used in folder/area view)
+function cupPagesHTML(sel, commitId, area){
+  const list=cupNotesIn(commitId, area);
+  return `<div class="cup-pile cup-pages"><div class="cup-pile-h"><span>Pages</span><button class="cup-pile-add" onclick="cupNewNote('${sel}')">+ Page</button></div>
+    ${list.length ? list.map(n=>{ const t=cupNoteText(n); return `<button class="cup-page" onclick="cupOpenNote('${n.id}')"><span class="cup-page-ic">📄</span>
+      <span class="cup-page-main"><b>${esc(n.title||'Untitled')}</b>${t?`<span>${esc(t.slice(0,80))}</span>`:''}</span><span class="cup-dim">${cupFmt(cupISO(new Date(n.updatedAt||n.createdAt)))}</span></button>`; }).join('')
+      : '<div class="cup-dim" style="padding:2px 0 4px">Notes, meeting minutes, plans — anything for this folder.</div>'}</div>`;
+}
+
+// ════════════════════════════════════════════════════════════
+//  JUST START — type what you're doing, press Enter, the timer runs.
+// ════════════════════════════════════════════════════════════
+function cupJustStart(e){
+  if(e) e.preventDefault();
+  const inp=document.getElementById('cupStartInput'); const text=(inp?.value||'').trim();
+  if(!text){ inp?.focus(); return; }
+  let t=S.tasks.find(x=>!cupDone(x)&&!x.isHabit&&cupNorm(x.title)===cupNorm(text));
+  if(!t){ t=cupMakeTask({ title:text, scheduledDates:[todayStr()] }); S.tasks.push(t); save(); }
+  inp.value=''; render();
+  startPomoTask(t.id);
+  showToast(`Focusing on “${t.title}”. Your tree grows as you go 🌱`);
+}
+
+// ════════════════════════════════════════════════════════════
+//  GARDEN — every day grows a tree from what you already do:
+//  1 point per finished task, 1 per 25 focus minutes, ½ per habit.
+//  Streaks and full-grown trees earn gems; gems unlock new trees.
+// ════════════════════════════════════════════════════════════
+const CUP_STAGES_G = [[0,'·','Bare soil'],[1,'🌱','Sprout'],[3,'🌿','Sapling'],[6,'🌳','Tree'],[10,'🌸','In bloom']];
+const CUP_SPECIES = [[0,'🌳','Oak'],[10,'🌲','Pine'],[25,'🌴','Palm'],[50,'🎋','Bamboo'],[100,'🌵','Cactus'],[200,'🍁','Maple']];
+function cupDayPoints(ds){
+  const focus=(S.sessions||[]).filter(x=>x&&x.type==='focus'&&x.date===ds).reduce((a,x)=>a+(+x.dur||0),0);
+  const done=(S.tasks||[]).filter(t=>t&&!t.isHabit&&t.completedAt&&cupISO(new Date(t.completedAt))===ds).length;
+  const habits=(S.tasks||[]).filter(t=>t&&t.isHabit&&t.completedDates&&t.completedDates[ds]).length;
+  return { focus, done, habits, pts: done + Math.floor(focus/25) + habits*0.5 };
+}
+const cupStage = p => [...CUP_STAGES_G].reverse().find(s=>p>=s[0]);
+function cupGarden(){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const days=[]; for(let i=27;i>=0;i--){ const d=new Date(today); d.setDate(d.getDate()-i); const ds=cupISO(d); days.push(Object.assign({ds},cupDayPoints(ds))); }
+  let streak=0; for(let i=days.length-1;i>=0;i--){ if(days[i].pts>0) streak++; else if(i===days.length-1) continue; else break; }
+  const trees=days.filter(d=>d.pts>=6).length;
+  const gems = trees + [3,7,14,30].reduce((g,m,i)=>g+(streak>=m?[2,5,10,25][i]:0),0) + (S.cup&&S.cup.gemsBank||0);
+  const species = [...CUP_SPECIES].reverse().find(s=>gems>=s[0]);
+  const t=days[days.length-1];
+  const next=CUP_STAGES_G.find(s=>s[0]>t.pts);
+  const ws=cupWeekStart(); const week=days.filter(d=>d.ds>=cupISO(ws));
+  return { days, today:t, streak, gems, species, next, week:{ trees:week.filter(d=>d.pts>=6).length, focus:week.reduce((a,d)=>a+d.focus,0), done:week.reduce((a,d)=>a+d.done,0) } };
+}
+const cupTreeIcon = (pts, species) => pts>=10 ? '🌸' : pts>=6 ? species[1] : cupStage(pts)[1];
+function cupGardenMini(){
+  const g=cupGarden();
+  return `<button class="cup-mini cup-mini-garden" onclick="cupOpenGarden()" title="Your garden — today: ${cupStage(g.today.pts)[2]}">
+    <span class="cup-mini-tree">${cupTreeIcon(g.today.pts,g.species)}</span>${g.streak?`<b>${g.streak}</b>🔥`:''}<span class="cup-dim">💎${g.gems}</span></button>`;
+}
+let cupGardenTab='garden';
+function cupOpenGarden(tab){ if(tab) cupGardenTab=tab; cupRenderGarden(); openModal('mCupGarden'); if(cupGardenTab!=='garden') cupSocialRefresh(); }
+function cupRenderGarden(){
+  const host=document.getElementById('cupGardenBody'); if(!host) return;
+  const tabs=[['garden','🌳 Garden'],['friends','👋 Friends'],['groups','👥 Groups']];
+  let body='';
+  if(cupGardenTab==='garden'){
+    const g=cupGarden(), t=g.today, st=cupStage(t.pts);
+    const need = g.next ? Math.ceil((g.next[0]-t.pts)*2)/2 : 0;
+    body=`<div class="cup-g-today"><div class="cup-g-big">${cupTreeIcon(t.pts,g.species)}</div>
+        <div><div class="cup-g-stage">Today: ${st[2]}</div>
+          <div class="cup-dim">${t.done} task${t.done===1?'':'s'} done · ${t.focus} min focused · ${t.habits} habit${t.habits===1?'':'s'}</div>
+          <div class="cup-g-next">${g.next?`${need} more point${need===1?'':'s'} to grow into ${g.next[1]} ${g.next[2]} — finish a task or focus 25 min`:'Fully bloomed today. 🌸 Beautiful.'}</div></div></div>
+      <div class="cup-g-stats"><div><b>${g.streak}</b><span>day streak 🔥</span></div><div><b>💎 ${g.gems}</b><span>gems</span></div><div><b>${g.week.trees}</b><span>trees this week</span></div></div>
+      <div class="cup-g-h">Your forest · last 4 weeks</div>
+      <div class="cup-g-forest">${g.days.map(d=>`<div class="cup-g-cell ${d.ds===todayStr()?'now':''}" title="${cupFmt(d.ds)}: ${d.done} done · ${d.focus} min">${d.pts>0?cupTreeIcon(d.pts,g.species):''}</div>`).join('')}</div>
+      <div class="cup-g-h">Trees you can grow</div>
+      <div class="cup-g-species">${CUP_SPECIES.map(([need,ic,n])=>`<div class="${g.gems>=need?'':'locked'}"><span>${g.gems>=need?ic:'🔒'}</span>${n}<em>${need?`💎${need}`:'start'}</em></div>`).join('')}</div>
+      <p class="cup-dim-p">1 point per finished task, 1 per 25 focus minutes, ½ per habit. 6 points grows a full tree (+1 💎). Streaks of 3, 7, 14 and 30 days give bonus gems.</p>`;
+  } else body = cupSocialHTML(cupGardenTab);
+  host.innerHTML=`<div class="cup-gtabs cup-g-tabs">${tabs.map(([k,l])=>`<button class="cup-gtab ${cupGardenTab===k?'on':''}" style="--gc:var(--green)" onclick="cupGardenTab='${k}';cupRenderGarden();${k!=='garden'?'cupSocialRefresh()':''}">${l}</button>`).join('')}</div>${body}`;
+}
+
+// ════════════════════════════════════════════════════════════
+//  FRIENDS & GROUPS — opt-in. Shares only your name, weekly trees,
+//  focus minutes, tasks done and streak. Never tasks, notes or folders.
+//  Data lives in Firebase next to (not inside) your private planner.
+// ════════════════════════════════════════════════════════════
+const cupSocial = { friends:{}, requests:{}, groups:{}, profiles:{}, error:'', loaded:false };
+function cupSoc(){ cupEnsure(); if(!S.cup.social||typeof S.cup.social!=='object') S.cup.social={ on:false }; return S.cup.social; }
+function cupMyUid(){ return (typeof currentUser!=='undefined' && currentUser) ? currentUser.uid : null; }
+function cupDb(){ return typeof database!=='undefined' ? database : null; }
+function cupCode(){ const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let c=''; for(let i=0;i<6;i++) c+=a[Math.floor(Math.random()*a.length)]; return c; }
+function cupSocErr(e){
+  cupSocial.error = /permission/i.test(String(e&&(e.code||e.message))) ? 'Friends aren’t switched on for this site yet — the site owner needs to add the sharing rules in Firebase (see README).' : String(e&&e.message||e);
+  cupRenderGarden();
+}
+async function cupSocialEnable(){
+  const uid=cupMyUid(), db=cupDb(); if(!uid||!db){ showToast('Sign in first.'); return; }
+  const soc=cupSoc();
+  try{
+    if(!soc.code){ let code; for(let i=0;i<5;i++){ code=cupCode(); const ex=await db.ref('codes/'+code).get(); if(!ex.exists()) break; } await db.ref('codes/'+code).set(uid); soc.code=code; }
+    soc.on=true; save(); await cupPublishProfile(true); await cupSocialRefresh();
+  }catch(e){ cupSocErr(e); }
+}
+async function cupSocialDisable(){
+  const uid=cupMyUid(), db=cupDb(), soc=cupSoc(); soc.on=false; save();
+  try{ if(uid&&db) await db.ref('profiles/'+uid).remove(); }catch(_){}
+  cupRenderGarden();
+}
+let cupPublishedAt=0;
+async function cupPublishProfile(force){
+  const uid=cupMyUid(), db=cupDb(), soc=cupSoc(); if(!uid||!db||!soc.on) return;
+  if(!force && Date.now()-cupPublishedAt<120000) return;
+  cupPublishedAt=Date.now();
+  const g=cupGarden();
+  try{ await db.ref('profiles/'+uid).set({ name:(S.settings&&S.settings.name)||'Friend', code:soc.code||'', tree:cupTreeIcon(g.today.pts,g.species),
+    streak:g.streak, gems:g.gems, week:{ start:cupISO(cupWeekStart()), trees:g.week.trees, focus:g.week.focus, done:g.week.done }, updatedAt:Date.now() }); }
+  catch(e){ /* quiet in background */ }
+}
+async function cupSocialRefresh(){
+  const uid=cupMyUid(), db=cupDb(), soc=cupSoc(); if(!uid||!db||!soc.on){ cupRenderGarden(); return; }
+  cupSocial.error='';
+  try{
+    // accepted requests I sent → add them to my list
+    const acc=(await db.ref('friendAccept/'+uid).get()).val()||{};
+    for(const f of Object.keys(acc)){ await db.ref(`friends/${uid}/${f}`).set(true); await db.ref(`friendAccept/${uid}/${f}`).remove(); }
+    cupSocial.friends=(await db.ref('friends/'+uid).get()).val()||{};
+    cupSocial.requests=(await db.ref('friendReq/'+uid).get()).val()||{};
+    const myGroups=soc.groups||{};
+    cupSocial.groups={};
+    for(const gid of Object.keys(myGroups)){ const v=(await db.ref('groups/'+gid).get()).val(); if(v&&v.members&&v.members[uid]) cupSocial.groups[gid]=v; else delete myGroups[gid]; }
+    const ids=new Set([uid, ...Object.keys(cupSocial.friends), ...Object.values(cupSocial.groups).flatMap(g=>Object.keys(g.members||{}))]);
+    for(const id of ids){ cupSocial.profiles[id]=(await db.ref('profiles/'+id).get()).val(); }
+    cupSocial.loaded=true;
+  }catch(e){ cupSocErr(e); return; }
+  cupRenderGarden();
+}
+async function cupAddFriend(code){
+  code=String(code||'').trim().toUpperCase(); const uid=cupMyUid(), db=cupDb(); if(!code||!uid) return;
+  try{
+    const to=(await db.ref('codes/'+code).get()).val();
+    if(!to){ showToast('No one has that code — check it and try again.'); return; }
+    if(to===uid){ showToast('That’s your own code 🙂'); return; }
+    await db.ref(`friendReq/${to}/${uid}`).set({ name:(S.settings&&S.settings.name)||'Friend', at:Date.now() });
+    showToast('Friend request sent.');
+  }catch(e){ cupSocErr(e); }
+}
+async function cupAnswerReq(from, yes){
+  const uid=cupMyUid(), db=cupDb();
+  try{
+    if(yes){ await db.ref(`friends/${uid}/${from}`).set(true); await db.ref(`friendAccept/${from}/${uid}`).set(true); }
+    await db.ref(`friendReq/${uid}/${from}`).remove();
+    await cupSocialRefresh();
+  }catch(e){ cupSocErr(e); }
+}
+async function cupRemoveFriend(f){ const uid=cupMyUid(), db=cupDb(); try{ await db.ref(`friends/${uid}/${f}`).remove(); await cupSocialRefresh(); }catch(e){ cupSocErr(e); } }
+async function cupCreateGroup(name){
+  name=String(name||'').trim(); const uid=cupMyUid(), db=cupDb(), soc=cupSoc(); if(!name||!uid) return;
+  try{
+    const gid=db.ref('groups').push().key; const code=cupCode();
+    await db.ref('groups/'+gid).set({ name, owner:uid, code, createdAt:Date.now(), members:{ [uid]:true } });
+    await db.ref('groupCodes/'+code).set(gid);
+    soc.groups=Object.assign({},soc.groups,{[gid]:true}); save(); await cupSocialRefresh();
+    showToast(`Group created. Share the code ${code} to invite people.`);
+  }catch(e){ cupSocErr(e); }
+}
+async function cupJoinGroup(code){
+  code=String(code||'').trim().toUpperCase(); const uid=cupMyUid(), db=cupDb(), soc=cupSoc(); if(!code||!uid) return;
+  try{
+    const gid=(await db.ref('groupCodes/'+code).get()).val();
+    if(!gid){ showToast('No group has that code.'); return; }
+    await db.ref(`groups/${gid}/members/${uid}`).set(true);
+    soc.groups=Object.assign({},soc.groups,{[gid]:true}); save(); await cupSocialRefresh();
+  }catch(e){ cupSocErr(e); }
+}
+async function cupLeaveGroup(gid){ const uid=cupMyUid(), db=cupDb(), soc=cupSoc(); try{ await db.ref(`groups/${gid}/members/${uid}`).remove(); if(soc.groups) delete soc.groups[gid]; save(); await cupSocialRefresh(); }catch(e){ cupSocErr(e); } }
+async function cupCopyText(t){ try{ await navigator.clipboard.writeText(t); showToast('Copied '+t); }catch(_){ showToast(t); } }
+function cupPersonRow(id, p, extra=''){
+  const me=id===cupMyUid();
+  if(!p) return `<div class="cup-person"><span class="cup-person-tree">·</span><b>${me?'You':'Someone'}</b><span class="cup-dim">hasn’t shared yet</span>${extra}</div>`;
+  const stale = p.week && p.week.start!==cupISO(cupWeekStart());
+  const w = stale ? {trees:0,focus:0,done:0} : (p.week||{});
+  return `<div class="cup-person ${me?'me':''}"><span class="cup-person-tree">${p.tree||'🌱'}</span><b>${esc(me?'You':p.name)}</b>
+    <span class="cup-person-stats"><span title="trees this week">🌳 ${w.trees||0}</span><span title="focus minutes this week">⏱ ${w.focus||0}m</span><span title="tasks done this week">✓ ${w.done||0}</span>${p.streak?`<span title="streak">🔥 ${p.streak}</span>`:''}</span>${extra}</div>`;
+}
+function cupSocialHTML(tab){
+  const soc=cupSoc();
+  if(!cupMyUid()) return `<div class="cup-empty">Sign in to add friends and groups.</div>`;
+  if(!soc.on) return `<div class="cup-soc-intro"><div class="cup-g-big">👋</div><h3>Grow together</h3>
+    <p>Add friends or start a group to see each other’s trees, focus time and streaks for the week — a little nudge to keep going.</p>
+    <p class="cup-dim">Only your <b>name, trees, focus minutes, tasks-done count and streak</b> are shared. Never your tasks, notes or folders. You can turn it off any time.</p>
+    <button class="btn btn-accent" onclick="cupSocialEnable()">Turn on friends</button>${cupSocial.error?`<div class="cup-imp-errors" style="margin-top:12px">⚠ ${esc(cupSocial.error)}</div>`:''}</div>`;
+  const err=cupSocial.error?`<div class="cup-imp-errors">⚠ ${esc(cupSocial.error)}</div>`:'';
+  if(tab==='friends'){
+    const reqs=Object.entries(cupSocial.requests||{}), fr=Object.keys(cupSocial.friends||{});
+    const me=cupMyUid(), rows=[[me,cupSocial.profiles[me]||null], ...fr.map(f=>[f,cupSocial.profiles[f]])].sort((a,b)=>((b[1]&&b[1].week&&b[1].week.focus)||0)-((a[1]&&a[1].week&&a[1].week.focus)||0));
+    return `${err}<div class="cup-soc-code">Your friend code <b>${esc(soc.code||'—')}</b><button class="cup-more-btn" onclick="cupCopyText('${esc(soc.code||'')}')">Copy</button></div>
+      <div class="cup-fnew"><input placeholder="Enter a friend’s code and press Enter" onkeydown="if(event.key==='Enter'){cupAddFriend(this.value);this.value=''}"></div>
+      ${reqs.length?`<div class="cup-g-h">Requests</div>${reqs.map(([f,r])=>`<div class="cup-person"><span class="cup-person-tree">👋</span><b>${esc(r.name||'Someone')}</b><span class="cup-dim">wants to be friends</span>
+        <span style="flex:1"></span><button class="btn btn-ghost" onclick="cupAnswerReq('${f}',false)">Decline</button><button class="btn btn-accent" onclick="cupAnswerReq('${f}',true)">Accept</button></div>`).join('')}`:''}
+      <div class="cup-g-h">This week</div>
+      ${rows.map(([id,p])=>cupPersonRow(id,p, id===me?'':`<button class="cup-ts-x" onclick="cupRemoveFriend('${id}')" title="Remove friend" aria-label="Remove friend">✕</button>`)).join('')}
+      ${fr.length?'':'<p class="cup-dim-p">Share your code with a friend, or enter theirs above.</p>'}
+      <div class="cup-soc-foot"><button class="cup-more-btn" onclick="cupSocialDisable()">Stop sharing</button></div>`;
+  }
+  const gs=Object.entries(cupSocial.groups||{});
+  return `${err}<div class="cup-soc-row"><div class="cup-fnew"><input placeholder="New group name (e.g. Study squad) — Enter" onkeydown="if(event.key==='Enter'){cupCreateGroup(this.value);this.value=''}"></div>
+      <div class="cup-fnew"><input placeholder="Join with a group code — Enter" onkeydown="if(event.key==='Enter'){cupJoinGroup(this.value);this.value=''}"></div></div>
+    ${gs.length?gs.map(([gid,g])=>{ const ms=Object.keys(g.members||{}).map(m=>[m,cupSocial.profiles[m]]).sort((a,b)=>((b[1]&&b[1].week&&b[1].week.focus)||0)-((a[1]&&a[1].week&&a[1].week.focus)||0));
+      const forest=ms.reduce((a,[,p])=>a+((p&&p.week&&p.week.start===cupISO(cupWeekStart())&&p.week.trees)||0),0);
+      return `<div class="cup-group-card"><div class="cup-group-h"><b>${esc(g.name)}</b><span class="cup-dim">${ms.length} member${ms.length===1?'':'s'} · group forest 🌳 ${forest}</span><span style="flex:1"></span>
+        <button class="cup-more-btn" onclick="cupCopyText('${esc(g.code)}')">Invite code ${esc(g.code)}</button><button class="cup-more-btn" onclick="cupLeaveGroup('${gid}')">Leave</button></div>
+        ${ms.map(([id,p],i)=>cupPersonRow(id,p,`<span class="cup-rank">${i===0&&p?'🏆':'#'+(i+1)}</span>`)).join('')}</div>`; }).join('')
+      : '<p class="cup-dim-p">Make a group for your study friends, club or small group and share its code.</p>'}`;
+}
 
 </script>
 </body>
