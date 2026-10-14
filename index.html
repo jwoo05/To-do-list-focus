@@ -6250,6 +6250,113 @@ body.cup-selecting .cup-plus-fab{ display:none; }
 .cup-pace-prev{ grid-column:1/-1; margin-top:6px; padding:10px 12px; border-radius:8px; background:var(--bg2); font-size:13px; line-height:1.55; }
 .cup-dl-f{ margin-left:8px; font-size:11px; color:var(--text3); font-family:inherit; }
 
+/* ════════ Calmer Home ════════ */
+.cup-next-pace{ gap:2px; margin-top:16px; }
+.cup-pacemini{ display:flex; align-items:center; gap:10px; font-size:12.5px; padding:5px 0; }
+.cup-pacemini-n{ width:84px; flex:none; text-align:left; color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cup-pacemini-n:hover{ color:var(--text); }
+.cup-pacemini .cup-pace-bar{ flex:1; min-width:40px; }
+.cup-pacemini .cup-pace-behind, .cup-pacemini .cup-pace-even{ width:70px; text-align:right; font-size:12px; }
+.cup-pacemini .cup-pace-tick{ margin-left:0; padding:2px 8px; font-size:11.5px; }
+.cup-next-links{ display:flex; flex-wrap:wrap; gap:2px 6px; margin-top:8px; }
+.cup-next-links button{ display:inline-flex; align-items:center; gap:6px; padding:5px 8px; border-radius:6px; font-size:12.5px; color:var(--text3); }
+.cup-next-links button:hover{ background:var(--bg2); color:var(--text); }
+.cup-next-links .cup-ic{ width:14px; height:14px; }
+/* sidebar: folded sections */
+.cup-side-fold{ width:100%; background:none; border:0; cursor:pointer; padding-top:2px; padding-bottom:6px; }
+.cup-side-fold:hover{ color:var(--text); }
+.cup-side-fold span{ display:inline-flex; align-items:center; gap:6px; }
+.cup-side-fold .cup-fold-chev{ font-style:normal; font-size:12px; }
+.cup-side-extras{ padding-top:8px; }
+/* sidebar: collapse to a rail */
+.sidebar-logo{ position:relative; }
+.cup-side-toggle{ margin-left:auto; width:26px; height:26px; flex:none; border-radius:6px; color:var(--text3); font-size:15px; line-height:1; display:grid; place-items:center; }
+.cup-side-toggle:hover{ background:var(--bg2); color:var(--text); }
+.sidebar{ transition:width .18s ease, padding .18s ease; }
+body.cup-side-min .sidebar{ width:58px; padding:14px 7px; overflow:hidden; }
+body.cup-side-min .sidebar-logo{ flex-direction:column; gap:8px; padding:0 0 12px; }
+body.cup-side-min .sidebar-logo > div:not(.logo-mark){ display:none; }
+body.cup-side-min .cup-side-toggle{ margin:0; }
+body.cup-side-min .nav-item{ font-size:0; justify-content:center; padding-left:0; padding-right:0; gap:0; }
+body.cup-side-min .nav-item > span:first-child{ font-size:15px; }
+body.cup-side-min .nav-item .nav-badge{ display:none; }
+body.cup-side-min .cup-side, body.cup-side-min .cup-side-extras{ display:none; }
+body.cup-side-min .sidebar-bottom{ display:none; }
+
+/* ════════ Journal ════════ */
+.cup-j-modal{ width:min(760px,96vw) !important; height:min(90vh,940px); max-height:none !important; display:flex; flex-direction:column; overflow:hidden !important; }
+.cup-j-top{ display:flex; align-items:center; gap:4px; padding:10px 12px; }
+.cup-j-top .sp{ flex:1; }
+.cup-j-today{ padding:4px 10px; border-radius:6px; font-size:12.5px; color:var(--text2); border:1px solid var(--border); margin-left:4px; }
+.cup-j-today:hover{ color:var(--text); }
+.cup-j-scroll{ flex:1; overflow-y:auto; padding:18px max(26px, calc((100% - 600px)/2)) 70px; }
+.cup-j-date{ font-family:'Source Serif 4',Georgia,serif; font-size:32px; font-weight:600; letter-spacing:-.01em; line-height:1.15; }
+.cup-j-date span{ display:block; font-family:inherit; font-size:12px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); margin-bottom:4px; font-family:system-ui,sans-serif; }
+.cup-j-glance{ display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
+.cup-j-glance span{ font-size:11.5px; color:var(--text2); background:var(--bg2); border-radius:999px; padding:3px 10px; }
+.cup-j-head{ width:100%; margin-top:22px; border:0; border-bottom:1px solid var(--border); border-radius:0; background:none; padding:8px 0; font-size:19px; font-weight:500; }
+.cup-j-head:focus{ background:none; border-bottom-color:var(--accent); }
+.cup-j-moods{ display:flex; flex-wrap:wrap; gap:6px; margin:14px 0 6px; }
+.cup-j-moods button{ display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:999px; border:1px solid var(--border); font-size:12.5px; color:var(--text2); }
+.cup-j-moods button i{ width:9px; height:9px; border-radius:50%; border:1.5px solid var(--c); }
+.cup-j-moods button.on{ background:color-mix(in srgb, var(--c) 16%, transparent); border-color:var(--c); color:var(--text); }
+.cup-j-moods button.on i{ background:var(--c); }
+.cup-j-sec{ margin-top:28px; }
+.cup-j-sec h4{ display:flex; align-items:center; gap:8px; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); margin:0 0 10px; }
+.cup-j-q{ display:block; padding:10px 0; border-bottom:1px solid var(--border); }
+.cup-j-q span{ display:block; font-size:13px; font-weight:500; color:var(--text2); margin-bottom:2px; }
+.cup-j-q textarea, .cup-j-text{ width:100%; border:0; background:none; resize:none; padding:2px 0; font-size:15.5px; line-height:1.65; color:var(--text); overflow:hidden; min-height:28px; }
+.cup-j-q textarea:focus, .cup-j-text:focus{ background:none; outline:none; }
+.cup-j-text{ font-family:'Source Serif 4',Georgia,serif; font-size:17px; line-height:1.75; min-height:140px; }
+.cup-j-photos{ display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:8px; }
+.cup-ph{ position:relative; display:block; aspect-ratio:1; border-radius:10px; overflow:hidden; background:var(--bg2); }
+.cup-ph img{ width:100%; height:100%; object-fit:cover; display:block; cursor:zoom-in; }
+.cup-ph.missing::after{ content:'Photo not on this device'; position:absolute; inset:0; display:grid; place-items:center; font-size:10.5px; color:var(--text3); text-align:center; padding:6px; }
+.cup-ph button{ position:absolute; top:6px; right:6px; width:24px; height:24px; border-radius:50%; background:rgba(0,0,0,.55); color:#fff; font-size:11px; opacity:0; transition:opacity .15s; }
+.cup-ph:hover button{ opacity:1; }
+.cup-ph-add{ aspect-ratio:1; border:1.5px dashed var(--border2); border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; color:var(--text3); font-size:12px; cursor:pointer; position:relative; }
+.cup-ph-add:hover{ border-color:var(--accent); color:var(--accent); }
+.cup-ph-add input{ position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; }
+.cup-j-phnote{ margin-top:8px; font-size:12px; }
+.cup-lightbox{ position:fixed; inset:0; z-index:2000; display:none; place-items:center; background:rgba(0,0,0,.85); cursor:zoom-out; padding:24px; }
+.cup-lightbox.show{ display:grid; }
+.cup-lightbox img{ max-width:100%; max-height:100%; border-radius:8px; }
+@media (max-width:640px){ .cup-j-modal{ width:100vw !important; height:100vh; border-radius:0; } .cup-j-scroll{ padding:10px 18px 70px; } .cup-j-date{ font-size:26px; } .cup-j-photos{ grid-template-columns:repeat(3,1fr); } .cup-ph button{ opacity:1; } }
+/* Journal page */
+.cup-jp{ max-width:760px; }
+.cup-jp-hero{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:18px 20px; border:1px solid var(--border); border-radius:14px; background:var(--surface); }
+.cup-jp-hero-t{ font-family:'Source Serif 4',Georgia,serif; font-size:22px; font-weight:600; margin-bottom:2px; }
+.cup-jp-search{ margin:14px 0 4px; }
+.cup-jp-search input{ width:100%; }
+.cup-jp-month{ font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); margin:22px 0 8px; }
+.cup-jp-card{ display:flex; gap:16px; width:100%; text-align:left; padding:14px 6px; border-bottom:1px solid var(--border); border-radius:0; }
+.cup-jp-card:hover{ background:var(--bg2); border-radius:10px; }
+.cup-jp-day{ width:44px; flex:none; text-align:center; }
+.cup-jp-day b{ display:block; font-family:'Source Serif 4',Georgia,serif; font-size:26px; font-weight:600; line-height:1; }
+.cup-jp-day span{ font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; }
+.cup-jp-main{ min-width:0; flex:1; }
+.cup-jp-t{ display:flex; align-items:center; gap:8px; font-size:15.5px; font-weight:600; color:var(--text); }
+.cup-jp-mood{ width:9px; height:9px; border-radius:50%; background:var(--c); flex:none; }
+.cup-jp-ex{ margin-top:4px; font-size:13.5px; color:var(--text2); line-height:1.55; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.cup-jp-strip{ display:flex; gap:6px; margin-top:10px; }
+.cup-jp-strip .cup-ph{ width:64px; height:64px; aspect-ratio:auto; border-radius:8px; }
+.cup-jp-more{ align-self:center; font-size:12px; color:var(--text3); }
+.cup-jp-empty{ padding:40px 10px; text-align:center; color:var(--text3); font-size:14px; }
+/* calendar */
+.cal-mini-chip.cupc-journal{ font-style:italic; background:color-mix(in srgb, var(--c) 14%, transparent); padding-left:5px; }
+.cal-mini-chip.cupc-journal::before{ display:none; }
+.cupc-jph{ display:inline-block; width:7px; height:6px; border:1.2px solid currentColor; border-radius:1.5px; margin-right:4px; vertical-align:0; opacity:.7; }
+.cwk-allday-item.sig-journal{ font-style:italic; border-left-color:#d38cc4 !important; }
+.cup-jcal{ display:flex; flex-direction:column; align-items:flex-start; gap:3px; width:100%; text-align:left; margin:6px 0 10px; padding:10px 12px; border-radius:10px; border:1px dashed var(--border2); }
+.cup-jcal.has{ border-style:solid; background:color-mix(in srgb, #d38cc4 7%, var(--surface)); }
+.cup-jcal:hover{ border-color:#d38cc4; }
+.cup-jcal-l{ display:inline-flex; align-items:center; gap:6px; font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); }
+.cup-jcal-l i{ width:7px; height:7px; border-radius:50%; background:var(--c); display:inline-block; }
+.cup-jcal b{ font-size:14px; }
+.cup-jcal-ex{ font-size:12.5px; color:var(--text2); line-height:1.5; }
+.cup-jcal-empty{ font-size:13px; color:var(--text3); }
+.cup-jcal .cup-jp-strip .cup-ph{ width:52px; height:52px; }
+
 </style>
 <script>
 /* Immediately apply saved theme + density to avoid flash */
@@ -6531,6 +6638,9 @@ document.addEventListener('DOMContentLoaded', () => {
       </button>
       <button class="nav-item" data-page="compass" onclick="showPage('compass',this)">
         <span>◇</span> Goals
+      </button>
+      <button class="nav-item" data-page="journal" onclick="showPage('journal',this)">
+        <span>✎</span> Journal
       </button>
     </nav>
     <div class="cup-side-extras" id="cupSideExtras" aria-label="Upcoming and recent pages"></div>
@@ -7124,6 +7234,11 @@ document.addEventListener('DOMContentLoaded', () => {
     <!-- ═══════════════════════════════════════
          PAGE: FOCUS
     ═══════════════════════════════════════ -->
+    <section class="page" id="page-journal">
+      <div class="view-header"><div><div class="view-title">Journal</div>
+        <div class="view-sub">Reflections, daily writing and photos. Each day also shows on your calendar.</div></div></div>
+      <div id="cupJournalPage"></div>
+    </section>
     <section class="page" id="page-compass">
       <div class="view-header"><div><div class="view-title">Goals</div>
         <div class="view-sub">Deadlines, goals, principles and how far behind each class you are. Home stays calm.</div></div></div>
@@ -16540,11 +16655,14 @@ function cupRenderHome(){
   // class pace (auto-updates as the class moves) + today's to-dos folded
   const paces=cupPacePlans();
   const today=todayStr(), todayN=S.tasks.filter(t=>!t.isHabit&&!t.waiting&&!cupDone(t)&&(t.due===today||(t.scheduledDates||[]).includes(today)||(t.due&&t.due<today))).length;
-  html += `${paces.length?`<div class="cup-next-pace">${paces.map(p=>cupPaceRow(p)).join('')}</div>`:''}
+  html += `${paces.length?`<div class="cup-next-pace">${paces.map(p=>cupPaceRow(p,'mini')).join('')}</div>`:''}
     <div class="cup-next-fold"><button class="cup-fold-btn" onclick="cupTodayOpen=!cupTodayOpen;try{localStorage.setItem('cup_today_open',cupTodayOpen?'1':'0')}catch(_){};cupRenderHome()" aria-expanded="${cupTodayOpen}">
       <span class="cup-fold-chev ${cupTodayOpen?'open':''}">›</span>To-do today<span class="cup-dim">${todayN}</span></button>
       ${cupTodayOpen?`<div class="cup-next-today">${cupTodoHTML()}</div>`:''}</div>
-    <div class="cup-next-links"><button class="cup-more-btn" onclick="showPage('compass')">Deadlines, goals & principles →</button><button class="cup-more-btn" onclick="cupPaceOpen()">+ Track a class</button></div>`;
+    <div class="cup-next-links">
+      <button onclick="cupJOpen(todayStr())">${cupIc('note')}${cupJHas(cupJEntry(today))?'Today’s journal':'Reflect on today'}${cupJStreak()?` · ${cupJStreak()}d`:''}</button>
+      <button onclick="showPage('compass')">${cupIc('goal')}Goals & deadlines</button>
+      <button onclick="cupPaceOpen()">${cupIc('plus')}Track a class</button></div>`;
   // one task only — the rest is a quiet link
   html += `<div class="cup-next-foot">${q.length>1?`<button class="cup-more-btn" onclick="cupSetHomeFull(${!cupHomeFull})">${cupHomeFull?'Hide the full list':`${q.length-1} more coming up · see all`}</button>`:''}</div>${cupDaySel?cupDayPanel(cupDaySel):''}`;
   if(next._last!==html){ next.innerHTML=html; next._last=html; }
@@ -16762,9 +16880,10 @@ function cupDeleteFolder(){
 
 // ── called from Focus Hub's render() ──
 function renderCup(){
-  cupPlusMount();
+  cupPlusMount(); cupSideMount();
   try{ cupPaceReflow(); }catch(_){}
   if(typeof currentPage!=='undefined' && currentPage==='compass') cupRenderCompass();
+  if(typeof currentPage!=='undefined' && currentPage==='journal') cupRenderJournalPage();
   if(cupSel) setTimeout(cupSelPaint,0);
   cupRenderCalFilters();
   cupEnsure();
@@ -18709,9 +18828,10 @@ function cupRenderSideExtras(){
   const host=document.getElementById('cupSideExtras'); if(!host) return;
   const up=cupUpcoming(7);
   const pages=cupNotes().slice().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,5);
-  const html=`<div class="cup-side-head"><span>Upcoming</span></div>
-    ${up.length?up.map(x=>`<button class="cup-side-up" ${x.id?`onclick="editTask('${x.id}')"`:''}><i style="background:${x.color}"></i><span class="l">${esc(x.title)}</span><span class="cup-n">${x.ds!==todayStr()?'Tmrw ':''}${x.time?cupT12(x.time):''}</span></button>`).join(''):'<div class="cup-side-empty">Nothing timed today.</div>'}
-    ${pages.length?`<div class="cup-side-head" style="margin-top:10px"><span>Recent pages</span></div>${pages.map(n=>`<button class="cup-side-up" onclick="cupOpenNote('${n.id}')">${cupIc('page')}<span class="l">${esc(n.title||'Untitled')}</span></button>`).join('')}`:''}`;
+  const upOpen=cupSideOpen.includes('__up'), rpOpen=cupSideOpen.includes('__recent');
+  const html=`<button class="cup-side-head cup-side-fold" onclick="cupToggleSide('__up');cupRenderSideExtras()" aria-expanded="${upOpen}"><span><i class="cup-fold-chev ${upOpen?'open':''}">›</i> Upcoming</span><span class="cup-n">${up.length||''}</span></button>
+    ${!upOpen?'':up.length?up.map(x=>`<button class="cup-side-up" ${x.id?`onclick="editTask('${x.id}')"`:''}><i style="background:${x.color}"></i><span class="l">${esc(x.title)}</span><span class="cup-n">${x.ds!==todayStr()?'Tmrw ':''}${x.time?cupT12(x.time):''}</span></button>`).join(''):'<div class="cup-side-empty">Nothing timed today.</div>'}
+    ${pages.length?`<button class="cup-side-head cup-side-fold" onclick="cupToggleSide('__recent');cupRenderSideExtras()" aria-expanded="${rpOpen}"><span><i class="cup-fold-chev ${rpOpen?'open':''}">›</i> Recent pages</span></button>${!rpOpen?'':pages.map(n=>`<button class="cup-side-up" onclick="cupOpenNote('${n.id}')">${cupIc('page')}<span class="l">${esc(n.title||'Untitled')}</span></button>`).join('')}`:''}`;
   if(host._last!==html){ host.innerHTML=html; host._last=html; }
 }
 
@@ -18724,6 +18844,7 @@ const CUP_PLUS = [
   ['task','Task','check','“INFO 380 reading due fri 3pm”'],
   ['page','Page','page','A new page to write in'],
   ['note','Quick note','note','Adds a line to a page'],
+  ['journal','Journal','spark','Today’s journal — a thought, a win, a feeling'],
   ['event','Event','cal','“Coffee chat oct 19 10am”'],
   ['habit','Habit','habit','“Gym mon wed fri 7am”'],
   ['waiting','Waiting on','wait','Something you sent and are waiting to hear back on'],
@@ -18774,7 +18895,7 @@ function cupPlusWhereOptions(){
     : `<option value="">${isPage?'Pages (not filed)':'No folder'}</option>` + cupFolderOptions('').replace('<option value="">None</option>','') + (isPage&&pages.length?`<optgroup label="Inside a page">${pages.join('')}</optgroup>`:'');
   if(def && [...sel.options].some(o=>o.value===def)) sel.value=def;
   else if(def.startsWith('page:') && cupPlusType!=='note' && !isPage){ const n=cupNoteById(def.slice(5)); const f=n&&n.commitId?'folder:'+n.commitId:n&&n.area?'area:'+n.area:''; if([...sel.options].some(o=>o.value===f)) sel.value=f; }
-  sel.parentElement.style.display = (cupPlusType==='import'||cupPlusType==='folder') ? 'none' : '';
+  sel.parentElement.style.display = (cupPlusType==='import'||cupPlusType==='folder'||cupPlusType==='journal') ? 'none' : '';
 }
 function cupPlusSync(){
   const t=CUP_PLUS.find(x=>x[0]===cupPlusType);
@@ -18788,7 +18909,7 @@ function cupPlusInput(){
   const v=document.getElementById('cupPlusInput').value;
   if(!cupPlusPicked){   // guess the type from the words, until you pick one yourself
     const lo=v.toLowerCase(), was=cupPlusType;
-    cupPlusType = /\n/.test(v) ? 'import' : /\b(habit|daily|every ?day|weekdays|each (mon|tue|wed|thu|fri|sat|sun))/.test(lo) ? 'habit'
+    cupPlusType = /\n/.test(v) ? 'import' : /^(today i|i feel|i felt|grateful|reflection)\b/.test(lo) ? 'journal' : /\b(habit|daily|every ?day|weekdays|each (mon|tue|wed|thu|fri|sat|sun))/.test(lo) ? 'habit'
       : /\b(meeting|coffee chat|appointment|interview|dinner|lunch with|event)\b/.test(lo) && /\d\s*(am|pm)|\d:\d\d/.test(lo) ? 'event'
       : /\b(waiting on|heard back|applied to|submitted)\b/.test(lo) ? 'waiting' : 'task';
     if(was!==cupPlusType){ cupPlusWhereOptions(); cupPlusSync(); return; }
@@ -18819,6 +18940,7 @@ function cupPlusGo(){
   const n=parseNLP(raw), title=cupCleanTitle(raw)||raw;
   cupPlusClose(); inp.value='';
   if(type==='page'){ cupNewNote(where, raw); return; }
+  if(type==='journal'){ const j=cupJGet(todayStr()); if(!j.headline) j.headline=raw; else j.text=(j.text?j.text.replace(/\s+$/,'')+'\n\n':'')+raw; j.updatedAt=Date.now(); save(); render(); showToast('Added to today’s journal.','Open',()=>cupJOpen(todayStr())); return; }
   if(type==='folder'){ cupOpenFolder(null); setTimeout(()=>{ const f=document.getElementById('cupCName'); if(f){ f.value=raw; f.focus(); } },60); return; }
   if(type==='import'){ cupOpenImport(); const ta=document.getElementById('cupImportText'); if(ta&&raw){ ta.value=raw; cupRenderImportPreview(); } return; }
   if(type==='note'){
@@ -19082,6 +19204,13 @@ function cupPaceMinutes(t){ const m=[...String(t.notes||'').matchAll(/≈\s*(\d+
 const cupHrs = m => m>=60 ? `${Math.round(m/60*10)/10}h` : `${m}m`;
 function cupPaceRow(p, big){
   const pc=x=>Math.min(100, x/p.of*100);
+  if(big==='mini'){
+    const tip = p.behind ? `You ${p.prefix}${p.you} · Class ${p.prefix}${p.cls} · ${cupHrs(p.behind*p.mins)} to catch up${p.caught?' · even by '+cupFmt(p.caught):''}` : `You ${p.prefix}${p.you} · Class ${p.prefix}${p.cls}`;
+    return `<div class="cup-pacemini" title="${esc(tip)}"><button class="cup-pacemini-n" onclick="showPage('compass')">${esc((p.folder?p.folder.name:p.name).split(' · ')[0])}</button>
+      <span class="cup-pace-bar"><i class="you" style="width:${pc(p.you)}%"></i><span class="cls" style="left:${pc(p.cls)}%"></span></span>
+      <span class="${p.behind?'cup-pace-behind':'cup-pace-even'}">${p.behind?`${p.behind} behind`:p.ahead?`${p.ahead} ahead`:'even'}</span>
+      ${p.nextStep?`<button class="cup-pace-tick" onclick="toggleTask('${p.nextStep.id}')" title="Mark ${esc(p.nextStep.title)} done">✓ ${esc(p.prefix)}${p.nextStep.plan.step}</button>`:''}</div>`;
+  }
   const status = p.behind ? `<b class="cup-pace-behind">${p.behind} behind</b>` : p.ahead ? `<b class="cup-pace-ahead">${p.ahead} ahead</b>` : `<b class="cup-pace-even">Caught up</b>`;
   const left = p.behind ? `${cupHrs(p.behind*p.mins)} to catch up${p.caught?` · even by ${cupParse(p.caught).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})} at ${p.perDay}/day`:''}` : `${p.of-p.you} left in the course`;
   return `<div class="cup-pacerow ${big?'big':''}">
@@ -19234,6 +19363,248 @@ function cupRenderCompass(){
   </div>`;
   if(host._last!==html){ host.innerHTML=html; host._last=html; }
 }
+
+// ════════════════════════════════════════════════════════════
+//  JOURNAL — one entry per day: a headline, mood, guided prompts,
+//  free writing and photos. Shows on the calendar and in its own page.
+//  S.journal = [{ id, date, headline, mood, answers:{key:text}, text, photos:[ids], updatedAt }]
+//  Photos are stored apart from your planner data (photos/<uid>/<id>) so
+//  saving stays fast; this device keeps a copy for offline viewing.
+// ════════════════════════════════════════════════════════════
+const CUP_MOODS = [['rough','Rough','#e5484d'],['meh','Meh','#f59040'],['okay','Okay','#e9c46a'],['good','Good','#4dd49a'],['great','Great','#7aa2ff']];
+const CUP_PROMPTS = [
+  ['well','What went well?'],
+  ['hard','What was hard?'],
+  ['learned','What did I learn?'],
+  ['grateful','Grateful for'],
+  ['tomorrow','Tomorrow I will…'],
+];
+function cupJournal(){ if(!Array.isArray(S.journal)) S.journal = S.journal ? Object.values(S.journal) : []; S.journal.forEach(j=>{ if(!Array.isArray(j.photos)) j.photos=j.photos?Object.values(j.photos):[]; if(!j.answers||typeof j.answers!=='object') j.answers={}; }); return S.journal; }
+const cupJEntry = ds => cupJournal().find(j=>j.date===ds);
+const cupJHas = j => !!(j && (j.headline || j.text || j.mood || (j.photos||[]).length || Object.values(j.answers||{}).some(Boolean)));
+function cupJGet(ds){ let j=cupJEntry(ds); if(!j){ j={ id:uid(), date:ds, headline:'', mood:'', answers:{}, text:'', photos:[], updatedAt:0 }; cupJournal().push(j); } return j; }
+function cupJStreak(){ let n=0; const d=new Date(); if(!cupJHas(cupJEntry(cupISO(d)))) d.setDate(d.getDate()-1); while(cupJHas(cupJEntry(cupISO(d)))){ n++; d.setDate(d.getDate()-1); } return n; }
+
+// ── photos: compress → this device (IndexedDB) + your account (Firebase) ──
+let cupIdb=null;
+function cupIdbOpen(){ if(cupIdb) return cupIdb; cupIdb=new Promise((res,rej)=>{ try{ const r=indexedDB.open('focus-hub-photos',1); r.onupgradeneeded=()=>r.result.createObjectStore('p'); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }catch(e){ rej(e); } }); return cupIdb; }
+async function cupIdbDo(mode, fn){ const db=await cupIdbOpen(); return new Promise((res,rej)=>{ const tx=db.transaction('p',mode), st=tx.objectStore('p'); const r=fn(st); tx.oncomplete=()=>res(r&&r.result); tx.onerror=()=>rej(tx.error); }); }
+const cupPhotoCache={};
+function cupCompress(file, max=1280, q=0.82){
+  return new Promise((res,rej)=>{ const img=new Image(), url=URL.createObjectURL(file);
+    img.onload=()=>{ const k=Math.min(1, max/Math.max(img.width,img.height)), c=document.createElement('canvas'); c.width=Math.round(img.width*k); c.height=Math.round(img.height*k);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg',q)); };
+    img.onerror=()=>{ URL.revokeObjectURL(url); rej(new Error('That file isn’t a photo this browser can read.')); }; img.src=url; });
+}
+async function cupPhotoPut(id, data){
+  cupPhotoCache[id]=data;
+  try{ await cupIdbDo('readwrite', st=>st.put(data,id)); }catch(_){}
+  if(typeof currentUser!=='undefined' && currentUser){
+    try{ await database.ref(`photos/${currentUser.uid}/${id}`).set({ d:data, t:Date.now() }); return true; }
+    catch(e){ console.warn('Photo sync failed', e); return false; }
+  }
+  return false;
+}
+async function cupPhotoGet(id){
+  if(cupPhotoCache[id]) return cupPhotoCache[id];
+  try{ const d=await cupIdbDo('readonly', st=>st.get(id)); if(d){ cupPhotoCache[id]=d; return d; } }catch(_){}
+  if(typeof currentUser!=='undefined' && currentUser){
+    try{ const s=await database.ref(`photos/${currentUser.uid}/${id}`).once('value'); const v=s.val(); if(v&&v.d){ cupPhotoCache[id]=v.d; try{ await cupIdbDo('readwrite', st=>st.put(v.d,id)); }catch(_){} return v.d; } }catch(_){}
+  }
+  return '';
+}
+function cupPhotoDel(id){ delete cupPhotoCache[id]; cupIdbDo('readwrite', st=>st.delete(id)).catch(()=>{}); if(typeof currentUser!=='undefined'&&currentUser) database.ref(`photos/${currentUser.uid}/${id}`).remove().catch(()=>{}); }
+// fill every <img data-photo> on screen
+function cupPhotoFill(root){ (root||document).querySelectorAll('img[data-photo]:not([src])').forEach(async im=>{ const d=await cupPhotoGet(im.dataset.photo); if(d) im.src=d; else im.closest('.cup-ph')?.classList.add('missing'); }); }
+
+// ── the writing sheet ──
+let cupJDate=null, cupJTimer=null;
+function cupJMount(){
+  if(document.getElementById('mCupJournal')) return;
+  const el=document.createElement('div'); el.className='overlay'; el.id='mCupJournal';
+  el.innerHTML=`<div class="modal cup-j-modal">
+    <div class="cup-j-top">
+      <button class="cup-note-icbtn" onclick="cupJShift(-1)" aria-label="Previous day">‹</button>
+      <button class="cup-note-icbtn" onclick="cupJShift(1)" aria-label="Next day">›</button>
+      <button class="cup-j-today" onclick="cupJOpen(todayStr())">Today</button>
+      <span class="sp"></span><span class="cup-note-saved" id="cupJSaved"></span>
+      <button class="cup-note-ai" onclick="cupJClose();showPage('journal')">${cupIc('note')} All entries</button>
+      <button class="modal-close" onclick="cupJClose()" aria-label="Close">✕</button>
+    </div>
+    <div class="cup-j-scroll" id="cupJBody"></div>
+  </div>`;
+  el.addEventListener('click', e=>{ if(e.target===el) cupJClose(); });
+  document.body.appendChild(el);
+  const lb=document.createElement('div'); lb.id='cupLightbox'; lb.className='cup-lightbox'; lb.onclick=()=>lb.classList.remove('show'); lb.innerHTML='<img alt="">'; document.body.appendChild(lb);
+}
+function cupJOpen(ds, focusKey){
+  cupJMount(); cupJDate=ds||todayStr(); cupJRender();
+  if(!document.getElementById('mCupJournal').classList.contains('show')) openModal('mCupJournal');
+  setTimeout(()=>{ const f=focusKey?document.getElementById('cupJ_'+focusKey):document.getElementById('cupJHead'); if(f && !f.value) f.focus(); },80);
+}
+function cupJShift(n){ cupJFlush(); const d=cupParse(cupJDate); d.setDate(d.getDate()+n); cupJOpen(cupISO(d)); }
+function cupJRender(){
+  const ds=cupJDate, j=cupJEntry(ds)||{ headline:'', mood:'', answers:{}, text:'', photos:[] };
+  const d=cupParse(ds), g=cupDayPoints(ds);
+  const evs=(S.events||[]).filter(e=>eventOccursOn(e,ds)&&!e.cupFolder).slice(0,4);
+  const glance=[g.done?`${g.done} task${g.done>1?'s':''} done`:'', g.focus?`${cupHrs(g.focus)} focused`:'', g.habits?`${g.habits} habit${g.habits>1?'s':''}`:'', ...evs.map(e=>e.title)].filter(Boolean);
+  const body=document.getElementById('cupJBody');
+  body.innerHTML=`<div class="cup-j-date"><span>${d.toLocaleDateString(undefined,{weekday:'long'})}</span>${d.toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'})}</div>
+    ${glance.length?`<div class="cup-j-glance">${glance.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}
+    <input id="cupJHead" class="cup-j-head" placeholder="Today in one line…" value="${esc(j.headline||'')}" oninput="cupJChanged()" autocomplete="off">
+    <div class="cup-j-moods" role="radiogroup" aria-label="Mood">${CUP_MOODS.map(([k,l,c])=>`<button role="radio" aria-checked="${j.mood===k}" class="${j.mood===k?'on':''}" style="--c:${c}" onclick="cupJMood('${k}')"><i></i>${l}</button>`).join('')}</div>
+    <section class="cup-j-sec"><h4>Reflection</h4>
+      ${CUP_PROMPTS.map(([k,q])=>`<label class="cup-j-q"><span>${q}</span><textarea id="cupJ_${k}" rows="1" oninput="cupJGrow(this);cupJChanged()" placeholder="…">${esc((j.answers||{})[k]||'')}</textarea></label>`).join('')}
+    </section>
+    <section class="cup-j-sec"><h4>Writing</h4>
+      <textarea id="cupJText" class="cup-j-text" rows="6" oninput="cupJGrow(this);cupJChanged()" placeholder="Anything on your mind. No rules.">${esc(j.text||'')}</textarea>
+    </section>
+    <section class="cup-j-sec"><h4>Photos <span class="cup-dim">${(j.photos||[]).length?`${j.photos.length}`:''}</span></h4>
+      <div class="cup-j-photos">${(j.photos||[]).map(id=>`<div class="cup-ph"><img data-photo="${id}" alt="" onclick="cupJView(this)"><button onclick="cupJPhotoRemove('${id}')" aria-label="Remove photo">✕</button></div>`).join('')}
+        <label class="cup-ph-add">${cupIc('plus')}<span>Add photos</span><input type="file" accept="image/*" multiple onchange="cupJPhotoAdd(this.files);this.value=''"></label></div>
+      <div class="cup-dim cup-j-phnote" id="cupJPhNote"></div>
+    </section>`;
+  body.querySelectorAll('textarea').forEach(cupJGrow);
+  document.getElementById('cupJSaved').textContent = j.updatedAt ? 'Saved' : '';
+  cupPhotoFill(body);
+}
+function cupJGrow(t){ t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; }
+function cupJChanged(){ document.getElementById('cupJSaved').textContent='Saving…'; clearTimeout(cupJTimer); cupJTimer=setTimeout(cupJFlush,500); }
+function cupJFlush(){
+  clearTimeout(cupJTimer); if(!cupJDate || !document.getElementById('cupJHead')) return;
+  const head=document.getElementById('cupJHead').value.trim(), text=document.getElementById('cupJText').value;
+  const answers={}; CUP_PROMPTS.forEach(([k])=>{ const v=document.getElementById('cupJ_'+k)?.value.trim(); if(v) answers[k]=v; });
+  let j=cupJEntry(cupJDate);
+  if(!j && !head && !text.trim() && !Object.keys(answers).length) return;
+  j=j||cupJGet(cupJDate);
+  j.headline=head; j.text=text; j.answers=answers; j.updatedAt=Date.now();
+  save(); cupJRefreshViews();
+  const s=document.getElementById('cupJSaved'); if(s) s.textContent='Saved';
+}
+function cupJMood(k){ cupJFlush(); const j=cupJGet(cupJDate); j.mood = j.mood===k ? '' : k; j.updatedAt=Date.now(); save(); cupJRender(); cupJRefreshViews(); }
+async function cupJPhotoAdd(files){
+  files=[...(files||[])].filter(f=>/^image\//.test(f.type)); if(!files.length) return;
+  cupJFlush(); const j=cupJGet(cupJDate), note=document.getElementById('cupJPhNote');
+  if(j.photos.length+files.length>12){ showToast('Up to 12 photos a day.'); files=files.slice(0, Math.max(0,12-j.photos.length)); }
+  note.textContent=`Adding ${files.length} photo${files.length>1?'s':''}…`;
+  let synced=true;
+  for(const f of files){
+    try{ const data=await cupCompress(f), id=uid(); const ok=await cupPhotoPut(id,data); synced=synced&&ok; j.photos.push(id); }
+    catch(e){ showToast(e.message||'Couldn’t add that photo.'); }
+  }
+  j.updatedAt=Date.now(); save(); cupJRender(); cupJRefreshViews();
+  const n2=document.getElementById('cupJPhNote');
+  if(n2) n2.textContent = synced ? '' : (typeof currentUser!=='undefined'&&currentUser ? 'Saved on this device. Syncing photos to your account needs the updated Firebase rules (see README).' : 'Saved on this device.');
+}
+function cupJPhotoRemove(id){
+  const j=cupJEntry(cupJDate); if(!j) return;
+  const i=j.photos.indexOf(id); if(i<0) return;
+  j.photos.splice(i,1); j.updatedAt=Date.now(); save(); cupJRender(); cupJRefreshViews();
+  let undone=false;
+  showToast('Photo removed.','Undo',()=>{ undone=true; j.photos.splice(i,0,id); save(); cupJRender(); cupJRefreshViews(); });
+  setTimeout(()=>{ if(!undone && !cupJournal().some(x=>x.photos.includes(id))) cupPhotoDel(id); }, 8000);
+}
+function cupJView(img){ const lb=document.getElementById('cupLightbox'); lb.querySelector('img').src=img.src; lb.classList.add('show'); }
+function cupJClose(){ cupJFlush(); closeModal('mCupJournal'); cupJDate=null; render(); }
+function cupJRefreshViews(){ try{ cupRenderJournalPage(); }catch(_){} try{ if(typeof renderCalendar==='function' && document.getElementById('calGrid')?.offsetParent) renderCalendar(); }catch(_){} }
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') document.getElementById('cupLightbox')?.classList.remove('show'); });
+
+// ── Journal page: entries as a timeline, grouped by month ──
+let cupJQuery='';
+function cupRenderJournalPage(){
+  const host=document.getElementById('cupJournalPage'); if(!host) return;
+  if(host.contains(document.activeElement) && document.activeElement.tagName==='INPUT') { cupJListOnly(); return; }
+  const today=todayStr(), tj=cupJEntry(today), streak=cupJStreak();
+  host.innerHTML=`<div class="cup-jp">
+    <div class="cup-jp-hero">
+      <div><div class="cup-jp-hero-t">${cupJHas(tj)?'Today’s entry':'How was today?'}</div>
+        <div class="cup-dim">${streak?`${streak}-day writing streak · `:''}${(n=>`${n} entr${n===1?'y':'ies'}`)(cupJournal().filter(cupJHas).length)}</div></div>
+      <button class="btn btn-primary" onclick="cupJOpen(todayStr())">${cupJHas(tj)?'Keep writing':'Write today'}</button>
+    </div>
+    <div class="cup-jp-search"><input placeholder="Search your writing" value="${esc(cupJQuery)}" oninput="cupJQuery=this.value;cupJListOnly()"></div>
+    <div id="cupJList"></div></div>`;
+  cupJListOnly();
+}
+function cupJListOnly(){
+  const box=document.getElementById('cupJList'); if(!box) return;
+  const q=cupJQuery.trim().toLowerCase();
+  const list=cupJournal().filter(cupJHas).filter(j=>!q || [j.headline,j.text,...Object.values(j.answers||{})].join(' ').toLowerCase().includes(q)).sort((a,b)=>b.date.localeCompare(a.date));
+  if(!list.length){ box.innerHTML=`<div class="cup-jp-empty">${q?'Nothing matches.':'Your entries will show up here. One line a day is enough.'}</div>`; return; }
+  let html='', month='';
+  list.forEach(j=>{
+    const d=cupParse(j.date), m=d.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+    if(m!==month){ month=m; html+=`<div class="cup-jp-month">${m}</div>`; }
+    const mood=CUP_MOODS.find(x=>x[0]===j.mood);
+    const ex=(j.text||'').trim() || Object.entries(j.answers||{}).map(([k,v])=>`${(CUP_PROMPTS.find(p=>p[0]===k)||['',''])[1]} ${v}`).join(' · ');
+    html+=`<button class="cup-jp-card" onclick="cupJOpen('${j.date}')">
+      <div class="cup-jp-day"><b>${d.getDate()}</b><span>${d.toLocaleDateString(undefined,{weekday:'short'})}</span></div>
+      <div class="cup-jp-main">
+        <div class="cup-jp-t">${mood?`<i class="cup-jp-mood" style="--c:${mood[2]}" title="${mood[1]}"></i>`:''}${esc(j.headline||(mood?mood[1]:'Entry'))}</div>
+        ${ex?`<div class="cup-jp-ex">${esc(ex.slice(0,220))}</div>`:''}
+        ${(j.photos||[]).length?`<div class="cup-jp-strip">${j.photos.slice(0,5).map(id=>`<span class="cup-ph"><img data-photo="${id}" alt=""></span>`).join('')}${j.photos.length>5?`<span class="cup-jp-more">+${j.photos.length-5}</span>`:''}</div>`:''}
+      </div></button>`;
+  });
+  box.innerHTML=html; cupPhotoFill(box);
+}
+
+// ── calendar: a Journal chip on days you wrote, and a card in the day panel ──
+CUP_CALF.push(['journal','Journal','#d38cc4']);
+const _cupMonthChipsJ = cupMonthChips;
+cupMonthChips = function(evs, tasks, ds){
+  const out=_cupMonthChipsJ(evs, tasks, ds), j=cupJEntry(ds);
+  if(cupCalShow().journal && cupJHas(j)){ const mood=CUP_MOODS.find(x=>x[0]===j.mood);
+    out.unshift(`<span class="cal-mini-chip cupc cupc-journal" style="--c:${mood?mood[2]:'#d38cc4'}" title="Journal · ${esc(j.headline||'')}" onclick="event.stopPropagation();cupJOpen('${ds}')">${(j.photos||[]).length?'<b class="cupc-jph"></b>':''}${esc(j.headline||'Journal')}</span>`); }
+  return out;
+};
+const _cupAllDayJ = collectAllDayItems;
+collectAllDayItems = function(ds){
+  const out=_cupAllDayJ(ds), j=cupJEntry(ds);
+  if(cupCalShow().journal && cupJHas(j)) out.unshift({ kind:'journal', id:ds, title:'Journal · '+(j.headline||'entry'), sig:'journal', accent:null });
+  return out;
+};
+const _cupRenderWeekViewJ = renderWeekView;
+renderWeekView = function(){
+  _cupRenderWeekViewJ.apply(this, arguments);
+  document.querySelectorAll('#calWeekAllday .cwk-allday-item.sig-journal').forEach(b=>{ const ds=b.closest('[data-date]')?.dataset.date; if(ds) b.setAttribute('onclick',`event.stopPropagation();cupJOpen('${ds}')`); });
+};
+const _cupRenderCalDayTasks = renderCalDayTasks;
+renderCalDayTasks = function(){
+  _cupRenderCalDayTasks.apply(this, arguments);
+  const wrap=document.getElementById('calDayTasks'), ds=calSelectedDate; if(!wrap||!ds||!cupCalShow().journal) return;
+  const j=cupJEntry(ds), has=cupJHas(j), mood=has&&CUP_MOODS.find(x=>x[0]===j.mood), future=ds>todayStr();
+  if(future && !has) return;
+  const card=document.createElement('button'); card.className='cup-jcal '+(has?'has':''); card.onclick=()=>cupJOpen(ds);
+  card.innerHTML = has
+    ? `<span class="cup-jcal-l">${cupIc('note')} Journal${mood?` · <i style="--c:${mood[2]}"></i>${mood[1]}`:''}</span><b>${esc(j.headline||'Untitled entry')}</b>
+       ${(j.text||'').trim()?`<span class="cup-jcal-ex">${esc(j.text.trim().slice(0,140))}</span>`:''}
+       ${(j.photos||[]).length?`<span class="cup-jp-strip">${j.photos.slice(0,4).map(id=>`<span class="cup-ph"><img data-photo="${id}" alt=""></span>`).join('')}</span>`:''}`
+    : `<span class="cup-jcal-l">${cupIc('note')} Journal</span><span class="cup-jcal-empty">Write about this day</span>`;
+  const title=wrap.querySelector('.cal-day-title');
+  title ? title.after(card) : wrap.prepend(card);
+  cupPhotoFill(card);
+};
+
+
+// ════════════════════════════════════════════════════════════
+//  SIDEBAR — collapse to a slim rail (« button or ⌘\), reopen with ».
+// ════════════════════════════════════════════════════════════
+let cupSideMin=false; try{ cupSideMin=localStorage.getItem('cup_side_min')==='1'; }catch(_){}
+function cupSideCollapse(on){
+  cupSideMin = on===undefined ? !cupSideMin : !!on;
+  try{ localStorage.setItem('cup_side_min', cupSideMin?'1':'0'); }catch(_){}
+  document.body.classList.toggle('cup-side-min', cupSideMin);
+  const b=document.getElementById('cupSideToggle'); if(b){ b.textContent=cupSideMin?'»':'«'; b.title=cupSideMin?'Open sidebar (⌘\\)':'Collapse sidebar (⌘\\)'; b.setAttribute('aria-label', cupSideMin?'Open sidebar':'Collapse sidebar'); b.setAttribute('aria-expanded', String(!cupSideMin)); }
+  setTimeout(()=>{ window.dispatchEvent(new Event('resize')); try{ if(document.getElementById('calGrid')?.offsetParent) renderCalendar(); }catch(_){} }, 220);
+}
+function cupSideMount(){
+  const logo=document.querySelector('.sidebar .sidebar-logo'); if(!logo || document.getElementById('cupSideToggle')) return;
+  const b=document.createElement('button'); b.id='cupSideToggle'; b.className='cup-side-toggle'; b.onclick=()=>cupSideCollapse();
+  logo.appendChild(b);
+  document.querySelectorAll('.sidebar .nav-item').forEach(n=>{ if(!n.title) n.title=(n.textContent||'').replace(/\d+$/,'').trim(); });
+  cupSideCollapse(cupSideMin);
+}
+window.addEventListener('keydown', e=>{ if((e.metaKey||e.ctrlKey) && e.key==='\\'){ e.preventDefault(); cupSideCollapse(); } });
+if(document.readyState!=='loading') cupSideMount(); else document.addEventListener('DOMContentLoaded', cupSideMount);
 
 </script>
 </body>

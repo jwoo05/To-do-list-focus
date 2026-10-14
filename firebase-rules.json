@@ -8,7 +8,9 @@
     },
     "profiles": {
       ".read": "auth != null",
-      "$uid": { ".write": "auth != null && auth.uid === $uid" }
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid"
+      }
     },
     "codes": {
       ".read": "auth != null",
@@ -19,13 +21,17 @@
     "friendReq": {
       "$to": {
         ".read": "auth != null && auth.uid === $to",
-        "$from": { ".write": "auth != null && (auth.uid === $from || auth.uid === $to)" }
+        "$from": {
+          ".write": "auth != null && (auth.uid === $from || auth.uid === $to)"
+        }
       }
     },
     "friendAccept": {
       "$to": {
         ".read": "auth != null && auth.uid === $to",
-        "$from": { ".write": "auth != null && (auth.uid === $from || auth.uid === $to)" }
+        "$from": {
+          ".write": "auth != null && (auth.uid === $from || auth.uid === $to)"
+        }
       }
     },
     "friends": {
@@ -39,13 +45,23 @@
       "$gid": {
         ".write": "auth != null && (data.exists() ? data.child('owner').val() === auth.uid : newData.child('owner').val() === auth.uid)",
         "members": {
-          "$member": { ".write": "auth != null && auth.uid === $member" }
+          "$member": {
+            ".write": "auth != null && auth.uid === $member"
+          }
         }
       }
     },
     "groupCodes": {
       ".read": "auth != null",
-      "$code": { ".write": "auth != null && !data.exists()" }
+      "$code": {
+        ".write": "auth != null && !data.exists()"
+      }
+    },
+    "photos": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
     }
   }
 }
