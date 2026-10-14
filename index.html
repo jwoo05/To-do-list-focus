@@ -5975,6 +5975,222 @@ strong, b {
 .cup-prep-i{ padding:5px 12px; border:1px solid var(--border); border-radius:99px; font-size:12.5px; }
 .cup-prep-i.on{ background:var(--green); border-color:var(--green); color:#fff; }
 
+/* ════════ Pages v2: calmer, Notion-like ════════ */
+.cup-ic{ flex:none; vertical-align:-3px; }
+.cup-note-modal{ width:min(900px,96vw) !important; background:var(--surface); }
+.cup-note-top{ gap:4px; padding:8px 12px; border-bottom:0; }
+.cup-note-crumbs{ display:flex; align-items:center; gap:2px; font-size:12.5px; }
+.cup-note-crumbs button{ padding:3px 6px; border-radius:6px; color:var(--text2); max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cup-note-crumbs button:hover{ background:var(--bg2); color:var(--text); }
+.cup-crumb-sep{ color:var(--text3); opacity:.6; padding:0 1px; }
+.cup-note-icbtn{ width:28px; height:28px; display:grid; place-items:center; border-radius:6px; color:var(--text3); font-size:13px; font-weight:600; }
+.cup-note-icbtn:hover{ background:var(--bg2); color:var(--text); }
+.cup-note-ai{ display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:6px; font-size:12.5px; font-weight:500; color:var(--text2); border:1px solid var(--border); }
+.cup-note-ai:hover{ background:var(--bg2); color:var(--text); }
+.cup-note-move{ border:1px solid transparent; background:none; color:var(--text3); }
+.cup-note-move:hover{ background:var(--bg2); }
+.cup-note-scroll{ padding:44px max(28px, calc((100% - 700px)/2)) 80px; }
+.cup-note-title{ font-family:inherit; font-size:38px; font-weight:700; letter-spacing:-.02em; line-height:1.2; color:var(--text); }
+.cup-note-title::placeholder{ color:var(--text3); opacity:.55; }
+.cup-note-bar{ top:-44px; gap:0; margin:10px 0 18px; padding:4px 0; border-bottom:0; opacity:.55; transition:opacity .15s; }
+.cup-note-scroll:hover .cup-note-bar, .cup-note-bar:focus-within{ opacity:1; }
+.cup-note-bar button{ display:inline-flex; align-items:center; gap:4px; padding:5px 7px; border-radius:6px; color:var(--text3); }
+.cup-note-bar button:hover{ color:var(--text); }
+.cup-note-sep{ height:16px; margin:0 5px; }
+.cup-note-tip{ margin-left:auto; font-size:11.5px; color:var(--text3); }
+kbd{ font-family:ui-monospace,Menlo,monospace; font-size:.85em; padding:1px 5px; border-radius:4px; background:var(--bg2); border:1px solid var(--border); color:var(--text2); }
+.cup-note-body{ font-size:16px; line-height:1.65; color:var(--text); caret-color:var(--accent); }
+.cup-note-body > *{ position:relative; }
+.cup-note-body p, .cup-note-body div{ margin:1px 0; padding:2px 0; }
+.cup-note-body h2{ font-family:inherit; font-size:26px; font-weight:700; letter-spacing:-.01em; margin:26px 0 4px; }
+.cup-note-body h3{ font-size:19px; font-weight:650; margin:18px 0 2px; }
+.cup-note-body ul, .cup-note-body ol{ padding-left:22px; margin:2px 0; }
+.cup-note-body li{ padding:1px 0; }
+.cup-note-body li::marker{ color:var(--text3); }
+.cup-note-body ul.todo > li::before{ top:.32em; width:16px; height:16px; border-radius:4px; }
+.cup-note-body ul.todo > li.done::after{ content:''; position:absolute; left:5px; top:calc(.32em + 2px); width:5px; height:9px; border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg); pointer-events:none; }
+.cup-note-body blockquote{ border-left:3px solid var(--border2); color:var(--text); padding:0 0 0 14px; }
+.cup-note-body blockquote.callout{ border:0; background:var(--bg2); border-radius:8px; padding:12px 16px 12px 44px; }
+.cup-note-body blockquote.callout::before{ content:''; position:absolute; left:16px; top:15px; width:14px; height:14px; border-radius:50%; border:1.5px solid var(--accent); box-shadow:inset 0 0 0 3px var(--bg2), inset 0 0 0 10px var(--accent); }
+.cup-note-body pre{ font-family:ui-monospace,Menlo,monospace; font-size:13.5px; background:var(--bg2); border-radius:8px; padding:12px 14px; white-space:pre-wrap; }
+.cup-note-body hr{ margin:14px 0; }
+/* hint on whatever empty line you're on */
+.cup-note-body [data-ph]::before{ content:attr(data-ph); position:absolute; left:0; top:inherit; color:var(--text3); opacity:.6; pointer-events:none; white-space:nowrap; }
+.cup-note-body li[data-ph]::before{ left:auto; }
+.cup-note-body ul.todo > li[data-ph]::before{ content:''; }
+.cup-note-body ul.todo > li[data-ph]::after{ content:attr(data-ph); position:absolute; left:26px; color:var(--text3); opacity:.6; pointer-events:none; }
+.cup-note-body blockquote.callout[data-ph]::after{ content:attr(data-ph); position:absolute; left:44px; top:12px; color:var(--text3); opacity:.6; pointer-events:none; }
+.cup-note-body:empty::before{ opacity:.6; }
+.cup-note-body a.plink{ display:inline-flex; align-items:center; gap:4px; color:var(--text); text-decoration:none; border-bottom:1px solid var(--border2); cursor:pointer; font-weight:500; }
+.cup-note-body a.plink::before{ content:''; width:11px; height:13px; border:1.4px solid var(--text3); border-radius:2px; flex:none; }
+.cup-note-body a.plink:hover{ background:var(--bg2); }
+.cup-note-body li[data-task]{ }
+.cup-note-body .quizq{ font-weight:600; }
+.cup-note-body .ans{ display:inline-block; margin-top:2px; padding:2px 8px; border-radius:6px; background:var(--bg2); color:transparent; text-shadow:0 0 7px var(--text3); cursor:pointer; user-select:none; transition:all .15s; }
+.cup-note-body .ans.show{ color:var(--text); text-shadow:none; }
+/* pages inside */
+.cup-note-kids{ margin-top:36px; padding-top:12px; border-top:1px solid var(--border); }
+.cup-kids-h{ display:flex; align-items:center; justify-content:space-between; font-size:12px; color:var(--text3); margin-bottom:4px; }
+.cup-kids-h button{ display:inline-flex; align-items:center; gap:4px; padding:4px 8px; border-radius:6px; color:var(--text3); font-size:12.5px; }
+.cup-kids-h button:hover{ background:var(--bg2); color:var(--text); }
+.cup-kid-row{ display:flex; align-items:center; gap:8px; width:100%; padding:6px 6px; border-radius:6px; color:var(--text); font-size:14.5px; text-align:left; }
+.cup-kid-row:hover{ background:var(--bg2); }
+.cup-kid-row .cup-ic{ color:var(--text3); }
+.cup-kid-row em{ margin-left:auto; font-style:normal; font-size:11.5px; color:var(--text3); }
+/* "/" menu */
+.cup-note-modal{ position:relative; }
+.cup-slash{ position:absolute; z-index:20; width:290px; max-height:340px; overflow-y:auto; display:none; background:var(--surface); border:1px solid var(--border); border-radius:10px; box-shadow:0 10px 32px rgba(0,0,0,.16); padding:6px; }
+.cup-slash.show{ display:block; }
+.cup-slash-g{ font-size:10.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text3); padding:8px 8px 3px; }
+.cup-slash-it{ display:flex; align-items:center; gap:10px; width:100%; padding:6px 8px; border-radius:6px; text-align:left; }
+.cup-slash-it .cup-ic{ width:30px; height:30px; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text2); }
+.cup-slash-it span{ display:flex; flex-direction:column; min-width:0; }
+.cup-slash-it b{ font-size:13.5px; font-weight:500; color:var(--text); }
+.cup-slash-it em{ font-style:normal; font-size:11.5px; color:var(--text3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cup-slash-it.on, .cup-slash-it:hover{ background:var(--bg2); }
+.cup-slash-q{ width:100%; margin:2px 0 6px; font-size:13px; }
+.cup-slash-empty{ padding:10px; font-size:12.5px; color:var(--text3); }
+/* organize panel */
+.cup-org{ position:absolute; inset:0; z-index:25; display:none; background:color-mix(in srgb, var(--bg) 55%, transparent); backdrop-filter:blur(2px); overflow-y:auto; padding:48px 16px; }
+.cup-org.show{ display:block; }
+.cup-org-card{ max-width:620px; margin:0 auto; background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:0 18px 50px rgba(0,0,0,.18); padding:18px 20px 20px; }
+.cup-org-h{ display:flex; align-items:center; justify-content:space-between; font-size:16px; }
+.cup-org-h b{ display:inline-flex; align-items:center; gap:8px; }
+.cup-org-sub{ font-size:13px; color:var(--text2); line-height:1.55; margin:8px 0 12px; }
+.cup-org-opts{ display:flex; flex-wrap:wrap; gap:6px 14px; font-size:13px; margin-bottom:14px; }
+.cup-org-opts label{ display:inline-flex; align-items:center; gap:6px; color:var(--text2); }
+.cup-org-ways{ display:grid; gap:8px; }
+.cup-org-way{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; text-align:left; padding:11px 14px; border:1px solid var(--border); border-radius:10px; }
+.cup-org-way b{ display:inline-flex; align-items:center; gap:6px; font-size:14px; font-weight:600; }
+.cup-org-way span{ font-size:12.5px; color:var(--text3); }
+.cup-org-way:hover:not(:disabled){ border-color:var(--text3); }
+.cup-org-way.main{ border-color:var(--accent); background:var(--accent-dim); }
+.cup-org-way:disabled{ opacity:.5; cursor:default; }
+.cup-org-paste{ gap:8px; margin-top:10px; align-items:flex-end; }
+.cup-org-paste textarea{ flex:1; font-size:12.5px; }
+.cup-org-warn{ margin-top:12px; padding:10px 12px; border-radius:8px; background:color-mix(in srgb, var(--red, #e5484d) 10%, var(--surface)); color:var(--text); font-size:13px; }
+.cup-org-wait{ display:flex; align-items:center; gap:10px; margin-top:14px; font-size:13px; color:var(--text2); }
+.cup-spin{ width:14px; height:14px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:cupspin .8s linear infinite; }
+@keyframes cupspin{ to{ transform:rotate(360deg); } }
+.cup-org-prev-h{ margin:18px 0 6px; font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text3); }
+.cup-org-prev{ max-height:46vh; overflow-y:auto; border:1px solid var(--border); border-radius:10px; padding:4px 16px 12px; font-size:14.5px; min-height:0; }
+.cup-org-prev h2{ font-size:19px; margin:16px 0 2px; }
+.cup-org-prev h3{ font-size:15.5px; margin:10px 0 0; }
+.cup-org-tasks{ display:flex; align-items:center; gap:8px; margin-top:10px; font-size:13px; color:var(--text2); }
+.cup-org-save{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.cup-help-grid{ display:grid; grid-template-columns:1fr 1fr; gap:4px 16px; font-size:13px; }
+.cup-help-grid div{ display:flex; align-items:center; gap:10px; padding:4px 0; border-bottom:1px solid var(--border); }
+.cup-help-grid kbd{ min-width:58px; text-align:center; }
+.cup-help-grid span{ color:var(--text2); }
+/* sidebar pages */
+.cup-side-new{ display:flex; align-items:center; gap:8px; width:calc(100% - 8px); margin:0 4px 12px; padding:7px 10px; border-radius:8px; border:1px solid var(--border); color:var(--text2); font-size:13px; background:var(--surface); }
+.cup-side-new:hover{ color:var(--text); border-color:var(--text3); }
+.cup-side-new kbd{ margin-left:auto; font-size:10.5px; }
+.cup-tpg .cup-tname{ display:flex; align-items:center; gap:6px; padding-left:calc(4px + var(--d,0) * 14px); color:var(--text2); font-size:12.5px; }
+.cup-tpg .cup-tname .cup-ic{ width:14px; height:14px; color:var(--text3); }
+.cup-tpg.active .cup-tname, .cup-tpg:hover .cup-tname{ color:var(--text); }
+.cup-tpg .cup-chev{ margin-left:calc(var(--d,0) * 14px); }
+.cup-tpg .cup-tname{ padding-left:2px; }
+.cup-tadd{ width:22px; height:22px; display:grid; place-items:center; border-radius:5px; color:var(--text3); opacity:0; }
+.cup-tpg:hover .cup-tadd{ opacity:1; }
+.cup-tadd:hover{ background:var(--bg2); color:var(--text); }
+.cup-tadd .cup-ic{ width:13px; height:13px; }
+.cup-drop-on{ background:var(--accent-dim) !important; box-shadow:inset 0 0 0 1.5px var(--accent); }
+.cup-page-ic{ color:var(--text3); display:grid; place-items:center; }
+.cup-side-up .cup-ic{ width:14px; height:14px; color:var(--text3); margin-right:4px; }
+.cup-up .cup-ic{ color:var(--text3); }
+/* + bar */
+.cup-plus-fab{ position:fixed; right:22px; bottom:22px; z-index:900; width:48px; height:48px; border-radius:50%; display:grid; place-items:center; background:var(--text); color:var(--bg); box-shadow:0 6px 20px rgba(0,0,0,.22); transition:transform .12s; }
+.cup-plus-fab:hover{ transform:scale(1.06); }
+.cup-plus-fab .cup-ic{ width:22px; height:22px; stroke-width:1.8; }
+.cup-plus{ position:fixed; inset:0; z-index:1200; display:none; align-items:flex-start; justify-content:center; padding:12vh 16px 16px; background:rgba(0,0,0,.28); }
+.cup-plus.show{ display:flex; }
+.cup-plus-box{ width:min(620px,100%); background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:0 24px 60px rgba(0,0,0,.25); overflow:hidden; }
+.cup-plus-in{ display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--border); }
+.cup-plus-in > span{ color:var(--text3); display:grid; }
+.cup-plus-in input{ flex:1; min-width:0; border:0; background:none; font-size:17px; padding:4px 0; }
+.cup-plus-in input:focus{ background:none; outline:none; }
+.cup-plus-types{ display:flex; gap:4px; padding:10px 12px 4px; overflow-x:auto; scrollbar-width:none; }
+.cup-plus-types button{ display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:8px; font-size:12.5px; color:var(--text2); white-space:nowrap; border:1px solid transparent; }
+.cup-plus-types button:hover{ background:var(--bg2); }
+.cup-plus-types button.on{ background:var(--bg2); color:var(--text); border-color:var(--border); font-weight:500; }
+.cup-plus-row{ display:flex; align-items:center; gap:8px; padding:8px 16px; font-size:12.5px; }
+.cup-plus-lbl{ color:var(--text3); }
+.cup-plus-row select{ width:auto; max-width:240px; font-size:12.5px; padding:4px 8px; }
+.cup-plus-prev{ margin-left:auto; color:var(--accent); font-weight:500; }
+.cup-plus-foot{ display:flex; align-items:center; gap:14px; padding:10px 16px; border-top:1px solid var(--border); background:var(--bg2); font-size:11.5px; color:var(--text3); }
+.cup-plus-foot .btn{ margin-left:auto; padding:6px 16px; }
+@media (max-width: 760px){
+  .cup-plus-fab{ bottom:calc(84px + env(safe-area-inset-bottom)); right:16px; }
+  .cup-plus{ padding:0; align-items:flex-end; }
+  .cup-plus-box{ border-radius:16px 16px 0 0; }
+  .cup-plus-foot span{ display:none; }
+  .cup-note-scroll{ padding:22px 18px 80px; }
+  .cup-note-title{ font-size:30px; }
+  .cup-note-bar{ opacity:1; flex-wrap:nowrap; overflow-x:auto; }
+  .cup-note-tip{ display:none; }
+  .cup-help-grid{ grid-template-columns:1fr; }
+  .cup-note-ai{ padding:5px 8px; }
+}
+body.cup-dragging-page .cup-trow{ transition:background .1s; }
+/* hide the + button on the sign-in screen */
+#loginScreen:not([style*="none"]) ~ .cup-plus-fab{ display:none; }
+body:has(.overlay.show) .cup-plus-fab{ display:none; }
+body:has(.cup-plus.show) .cup-plus-fab{ display:none; }
+
+/* ════════ Calendar: filters + readable chips ════════ */
+.cup-calf{ display:flex; flex-wrap:wrap; gap:4px; margin:6px 0 8px; }
+.cup-calf-chip{ display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; border:1px solid var(--border); font-size:12px; color:var(--text3); background:none; }
+.cup-calf-chip i{ width:8px; height:8px; border-radius:50%; border:1.5px solid var(--c); }
+.cup-calf-chip.on{ color:var(--text); background:var(--bg2); }
+.cup-calf-chip.on i{ background:var(--c); }
+.cup-calf-chip:hover{ border-color:var(--text3); }
+.cup-calf-wrap{ position:relative; }
+.cup-calf-menu{ position:absolute; z-index:50; top:calc(100% + 4px); left:0; min-width:220px; background:var(--surface); border:1px solid var(--border); border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.18); padding:6px; }
+.cup-calf-menu label{ display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:6px; font-size:13px; cursor:pointer; }
+.cup-calf-menu label:hover{ background:var(--bg2); }
+.cup-calf-menu label i{ width:10px; height:10px; border-radius:3px; }
+.cup-calf-menu-foot{ display:flex; gap:6px; border-top:1px solid var(--border); margin-top:4px; padding-top:6px; }
+.cup-calf-menu-foot button{ flex:1; font-size:12px; padding:5px; border-radius:6px; color:var(--text2); }
+.cup-calf-menu-foot button:hover{ background:var(--bg2); color:var(--text); }
+.cal-mini-chip.cupc{ font-size:10.5px; line-height:1.35; padding:1px 5px; border-radius:4px; border-left:0; background:none; color:var(--text); cursor:pointer; }
+.cal-mini-chip.cupc i{ font-style:normal; color:var(--text3); margin-right:4px; font-variant-numeric:tabular-nums; font-size:.92em; }
+.cal-mini-chip.cupc-ev{ background:color-mix(in srgb, var(--c) 16%, transparent); box-shadow:inset 2px 0 0 var(--c); }
+.cal-mini-chip.cupc-ev.exam{ background:var(--must-dim); color:var(--must); font-weight:650 !important; }
+.cal-mini-chip.cupc:not(.cupc-ev){ --k:var(--accent); padding-left:13px; position:relative; }
+.cal-mini-chip.cupc:not(.cupc-ev)::before{ content:''; position:absolute; left:3px; top:50%; width:6px; height:6px; margin-top:-3px; border-radius:2px; border:1.3px solid var(--k); }
+.cal-mini-chip.cupc-assign{ --k:#f59040; }
+.cal-mini-chip.cupc-due{ --k:#f26060; }
+.cal-mini-chip.cupc-todo{ --k:#4dd49a; }
+.cal-mini-chip.cupc-habits{ --k:#b07fff; }
+.cal-mini-chip.cupc.is-due{ font-weight:600 !important; }
+.cal-mini-chip.cupc.is-due::before{ background:var(--k); transform:rotate(45deg); border-radius:1px; }
+.cal-mini-chip.cupc.done{ color:var(--text3); text-decoration:line-through; }
+.cal-mini-chip.cupc.done::before{ background:var(--k); }
+.cal-mini-chip.cupc:hover{ filter:brightness(1.15); background:var(--bg3); }
+.cal-cell .cal-num{ font-size:11px; }
+.cal-cell.has-tasks::after{ display:none; }
+/* week view */
+.cwk-block{ right:auto; }
+.cwk-block.sig-task{ background:color-mix(in srgb, var(--block-accent) 10%, var(--surface)); border-left-style:dashed; }
+.cwk-block.sig-due{ background:color-mix(in srgb, #f26060 14%, var(--surface)); border-left-color:#f26060; }
+.cwk-block[draggable="true"]{ cursor:grab; }
+.cwk-block-title{ font-size:11.5px; }
+.cwk-day-col.drag-over{ background:var(--accent-dim); }
+@media (max-width: 760px){ .cal-mini-chip.cupc{ font-size:9.5px; padding:1px 3px 1px 11px; } .cal-mini-chip.cupc i{ display:none; } .cup-calf{ flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; } }
+.cup-calf{ flex-wrap:nowrap; align-items:center; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; }
+.cup-calf::-webkit-scrollbar{ display:none; }
+.cup-calf-chip{ flex:none; white-space:nowrap; font-size:11.5px; padding:3px 9px; line-height:1.3; }
+.cup-calf-wrap{ flex:none; position:static; }
+.cup-calf-menu{ left:auto; right:12px; top:auto; margin-top:4px; }
+.cup-calf{ position:relative; overflow:visible; display:block; }
+.cup-calf-row{ display:flex; gap:4px; align-items:center; overflow-x:auto; scrollbar-width:none; }
+.cup-calf-row::-webkit-scrollbar{ display:none; }
+.cup-calf-menu{ position:absolute; right:0; left:auto; top:100%; }
+.cup-calf-menu label{ justify-content:flex-start; white-space:nowrap; }
+.cup-calf-menu input[type=checkbox]{ width:auto; height:auto; flex:none; margin:0; padding:0; }
+.cup-calf-menu label i{ flex:none; }
+
 </style>
 <script>
 /* Immediately apply saved theme + density to avoid flash */
@@ -6618,7 +6834,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button class="btn btn-sm btn-outline cal-focus-block-btn" id="focusBlockBtn" onclick="openFocusBlockModal()" title="Reserve time and pick tasks to focus on">+ Focus block</button>
               </div>
               <!-- View mode toggle -->
-              <div class="cal-view-toggle" id="calViewToggle">
+              <div class="cup-calf" id="cupCalFilters" role="group" aria-label="Show on calendar"></div>
+              <div class="cal-view-toggle" id="calViewToggle" style="display:none">
                 <button class="cvt-opt active" data-mode="tasks"  onclick="setCalViewMode('tasks')">Tasks</button>
                 <button class="cvt-opt"        data-mode="both"   onclick="setCalViewMode('both')">Both</button>
                 <button class="cvt-opt"        data-mode="events" onclick="setCalViewMode('events')">Events</button>
@@ -7800,31 +8017,31 @@ document.addEventListener('DOMContentLoaded', () => {
       <span class="cup-note-crumbs" id="cupNoteCrumbs"></span>
       <span class="cup-note-saved" id="cupNoteSaved"></span>
       <span class="sp"></span>
+      <button class="cup-note-ai" id="cupNoteAiBtn" onclick="cupOrgOpen()" title="Summarize this page and turn it into an organized note with action items, a quiz and a conclusion">Organize</button>
+      <button class="cup-note-icbtn" onclick="cupNoteHelp()" title="Commands and shortcuts" aria-label="Commands and shortcuts">?</button>
       <select id="cupNoteMove" class="cup-note-move" onchange="cupNoteMove(this.value)" aria-label="Move page to"></select>
-      <button class="cup-ts-x" onclick="cupNoteDelete()" title="Delete page" aria-label="Delete page">🗑</button>
+      <button class="cup-note-icbtn" onclick="cupNoteDelete()" title="Delete page" aria-label="Delete page"><svg class="cup-ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 9h5.8l.6-9"/></svg></button>
       <button class="modal-close" onclick="cupNoteClose()" aria-label="Close">✕</button>
     </div>
     <div class="cup-note-scroll">
       <input id="cupNoteTitle" class="cup-note-title" placeholder="Untitled" oninput="cupNoteChanged()" autocomplete="off">
       <div class="cup-note-bar" role="toolbar" aria-label="Formatting">
-        <button onclick="cupNoteCmd('h1')" title="Heading (type # then space)">H1</button>
-        <button onclick="cupNoteCmd('h2')" title="Subheading (## then space)">H2</button>
-        <button onclick="cupNoteCmd('p')" title="Normal text">¶</button>
+        <button onclick="cupNoteCmd('h1')" title="Heading · # then space" aria-label="Heading · # then space"><svg class="cup-ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3.5v9M9 3.5v9M3 8h6M12 7l1.5-1v6.5"/></svg></button><button onclick="cupNoteCmd('h2')" title="Subheading · ## then space" aria-label="Subheading · ## then space"><svg class="cup-ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5v9M8 3.5v9M2.5 8H8M10.5 7a1.5 1.5 0 0 1 3 0c0 1.5-3 3-3 5.5h3"/></svg></button>
+        <button onclick="cupNoteCmd('bold')" title="Bold · ⌘B" aria-label="Bold"><b>B</b></button>
+        <button onclick="cupNoteCmd('italic')" title="Italic · ⌘I" aria-label="Italic"><i>I</i></button>
         <span class="cup-note-sep"></span>
-        <button onclick="cupNoteCmd('bold')" title="Bold"><b>B</b></button>
-        <button onclick="cupNoteCmd('italic')" title="Italic"><i>I</i></button>
-        <button onclick="cupNoteCmd('link')" title="Make the selected web address a link">🔗</button>
+        <button onclick="cupNoteCmd('ul')" title="Bullets · - then space" aria-label="Bullets · - then space"><svg class="cup-ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="3.5" cy="4.5" r=".8"/><circle cx="3.5" cy="8" r=".8"/><circle cx="3.5" cy="11.5" r=".8"/><path d="M6.5 4.5h7M6.5 8h7M6.5 11.5h7"/></svg></button><button onclick="cupNoteCmd('ol')" title="Numbered · 1. then space" aria-label="Numbered · 1. then space"><svg class="cup-ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4.5h7M6.5 8h7M6.5 11.5h7M2.5 3.5l1-.5v3"/></svg></button><button onclick="cupNoteCmd('todo')" title="To-do · [] then space" aria-label="To-do · [] then space"><svg class="cup-ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="2.5"/><path d="M5.5 8.2l1.8 1.8 3.4-3.6"/></svg></button><button onclick="cupNoteCmd('quote')" title="Quote · > then space" aria-label="Quote · > then space"><svg class="cup-ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 3.5v9M6.5 5h7M6.5 8h7M6.5 11h4"/></svg></button><button onclick="cupNoteCmd('hr')" title="Divider · --- then Enter" aria-label="Divider · --- then Enter"><svg class="cup-ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8h11"/></svg></button><button onclick="cupNoteCmd('link')" title="Link a web address or another page" aria-label="Link a web address or another page"><svg class="cup-ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9a2.5 2.5 0 0 0 3.5 0l2-2a2.5 2.5 0 0 0-3.5-3.5l-.6.6"/><path d="M9 7a2.5 2.5 0 0 0-3.5 0l-2 2A2.5 2.5 0 0 0 7 12.5l.6-.6"/></svg></button>
         <span class="cup-note-sep"></span>
-        <button onclick="cupNoteCmd('ul')" title="Bullets (- then space)">• List</button>
-        <button onclick="cupNoteCmd('ol')" title="Numbered (1. then space)">1. List</button>
-        <button onclick="cupNoteCmd('todo')" title="Checklist ([] then space)">☐ To-do</button>
-        <button onclick="cupNoteCmd('quote')" title="Quote (> then space)">❝</button>
-        <button onclick="cupNoteCmd('hr')" title="Divider (--- then Enter)">―</button>
+        <button onclick="cupNoteCmd('page')" title="Page inside this page · /page" aria-label="Page inside this page · /page"><svg class="cup-ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2.5h5.5L12.5 5.5V13.5H4z"/><path d="M9.5 2.5v3h3"/></svg> Page</button><button onclick="cupNoteCmd('task')" title="Make this line a task · /task" aria-label="Make this line a task · /task"><svg class="cup-ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg> Task</button>
+        <span class="cup-note-tip">Type <kbd>/</kbd> for more</span>
       </div>
       <div id="cupNoteBody" class="cup-note-body" contenteditable="true" spellcheck="true"
-        data-placeholder="Start writing… Type # for a heading, - for a list, [] for a checkbox."
+        data-placeholder="Type / for commands, or just start writing"
         oninput="cupNoteChanged()" onkeydown="cupNoteKey(event)" onclick="cupNoteClick(event)"></div>
+      <div id="cupNoteKids" class="cup-note-kids"></div>
     </div>
+    <div id="cupSlash" class="cup-slash" role="listbox" aria-label="Commands"></div>
+    <div id="cupOrg" class="cup-org"></div>
   </div>
 </div>
 
@@ -12897,8 +13114,8 @@ function renderCalendar(){
   for(let i=0;i<firstDay;i++) html+=`<div class="cal-cell other-month"></div>`;
   for(let d=1;d<=daysInMonth;d++){
     const ds=y+'-'+pad(mo+1)+'-'+pad(d);
-    const allDayTasks=S.tasks.filter(t=>!t.archived&&(t.scheduledDates?.includes(ds)||(t.due===ds&&!isDueSignalDone(t,ds))||isHabitDueToday(t,ds)));
-    const allDayEvents=S.events.filter(e=>eventOccursOn(e,ds));
+    const allDayTasks=cupCalTasksOn(ds);
+    const allDayEvents=cupCalEventsOn(ds);
     const dayTasks = calViewMode==='events' ? [] : allDayTasks;
     const dayEvents = calViewMode==='tasks' ? [] : allDayEvents;
     const hasTasks=dayTasks.length>0 || dayEvents.length>0;
@@ -12910,11 +13127,7 @@ function renderCalendar(){
     // at 1.5 → 5, at 0.7 → 2. Anything beyond shows "+N more".
     const zoomChipCap = Math.max(2, Math.round(3 * (Number(S.settings?.calZoom) || 1)));
     const allChips = [
-      ...dayEvents.map(e=>`<span class="cal-mini-chip ${e.type==='test'?'exam':e.type||'event'}" style="border-left-color:${esc(e.color||eventColorForType(e.type))}" title="${esc(e.title)}">${esc(e.title)}</span>`),
-      ...dayTasks.map(t=>{
-        const sig=calendarSignalForTask(t,ds);
-        return `<span class="cal-mini-chip ${sig}" draggable="true" title="${esc(t.title)}" ondragstart="onDayTaskDragStart(event,'${t.id}','${ds}')">${esc(t.title)}</span>`;
-      })
+      ...(typeof cupMonthChips==='function' ? cupMonthChips(dayEvents, dayTasks, ds) : [])
     ];
     const overflow = allChips.length - zoomChipCap;
     const chips = (overflow > 0
@@ -12958,8 +13171,8 @@ function renderCalendar(){
   renderCalDayTasks();
 }
 function calendarItemsForDate(ds){
-  const allDayTasks=S.tasks.filter(t=>!t.archived&&(t.scheduledDates?.includes(ds)||(t.due===ds&&!isDueSignalDone(t,ds))||isHabitDueToday(t,ds)));
-  const allDayEvents=S.events.filter(e=>eventOccursOn(e,ds));
+  const allDayTasks=cupCalTasksOn(ds);
+  const allDayEvents=cupCalEventsOn(ds);
   return {
     tasks: calViewMode==='events' ? [] : allDayTasks,
     events: calViewMode==='tasks' ? [] : allDayEvents
@@ -13699,8 +13912,8 @@ function setupCalViewResizeSync(){
 }
 function renderCalDayTasks(){
   const ds=calSelectedDate;
-  const tasks = calViewMode==='events' ? [] : S.tasks.filter(t=>!t.archived&&(t.scheduledDates?.includes(ds)||(t.due===ds&&!isDueSignalDone(t,ds))||isHabitDueToday(t,ds)));
-  const events = calViewMode==='tasks' ? [] : S.events.filter(e=>eventOccursOn(e,ds));
+  const tasks = calViewMode==='events' ? [] : cupCalTasksOn(ds);
+  const events = calViewMode==='tasks' ? [] : cupCalEventsOn(ds);
   const wrap=document.getElementById('calDayTasks');
   if(!tasks.length && !events.length){ wrap.innerHTML=`<div class="cal-day-title">${fmtDate(ds)}</div><div class="empty" style="font-size:11px;padding:12px 0">No ${currentPage==='calendar'?'events':'tasks or tests'}</div>`; return; }
   wrap.innerHTML=`<div class="cal-day-title">${fmtDate(ds)}</div>`+
@@ -16073,14 +16286,14 @@ function cupRenderSideTree(){
   const active = currentPage==='todo' ? cupBankSel : null;
   const rows = CUP_AREAS.filter(([k])=>cs.some(c=>c.area===k)||tasks.some(t=>t.area===k)||cupNotes().some(x=>x.area===k)).map(([k,n])=>{
     const kids=cs.filter(c=>c.area===k).sort(cupByName), ex=open.has(k), cnt=tasks.filter(t=>t.area===k&&cupSoon(t)).length;
-    return `<div class="cup-trow ${active==='area:'+k?'active':''}">
+    return `<div class="cup-trow ${active==='area:'+k?'active':''}" ondragover="cupPgOver(event)" ondragleave="cupPgLeave(event)" ondrop="cupPgDrop(event,'area:${k}')">
         <button class="cup-chev ${ex?'open':''}" ${kids.length||cupNotesIn('',k).length?'':'style="visibility:hidden"'} onclick="cupToggleSide('${k}')" aria-label="${ex?'Collapse':'Expand'} ${n}" aria-expanded="${ex}">›</button>
         <button class="cup-tname" onclick="cupSetBankSel('area:${k}')"><span class="cup-sw" style="background:${cupSphColor(k)}"></span><span class="l">${n}</span></button>
         <span class="cup-n">${cnt||''}</span></div>
       ${ex?kids.map(c=>{const o=tasks.filter(t=>t.commitId===c.id&&cupSoon(t)).length;
-        return `<div class="cup-trow cup-kid ${active==='folder:'+c.id?'active':''}"><button class="cup-tname" onclick="cupSetBankSel('folder:${c.id}')"><span class="l">${esc(c.name)}</span></button><span class="cup-n">${o||''}</span></div>`
-          + cupNotesIn(c.id).map(n=>`<div class="cup-trow cup-kid cup-tpage"><button class="cup-tname" onclick="cupOpenNote('${n.id}')"><span class="l">📄 ${esc(n.title||'Untitled')}</span></button></div>`).join('');}).join('')
-        + cupNotesIn('',k).map(n=>`<div class="cup-trow cup-kid cup-tpage cup-tpage-area"><button class="cup-tname" onclick="cupOpenNote('${n.id}')"><span class="l">📄 ${esc(n.title||'Untitled')}</span></button></div>`).join(''):''}`;
+        return `<div class="cup-trow cup-kid ${active==='folder:'+c.id?'active':''}" ondragover="cupPgOver(event)" ondragleave="cupPgLeave(event)" ondrop="cupPgDrop(event,'folder:${c.id}')"><button class="cup-tname" onclick="cupSetBankSel('folder:${c.id}')"><span class="l">${esc(c.name)}</span></button><span class="cup-n">${o||''}</span></div>`
+          + cupSidePages(cupNotesIn(c.id), 2);}).join('')
+        + cupSidePages(cupNotesIn('',k), 1):''}`;
   }).join('');
   const archOpen=open.has('__arch');
   const pile = arch.length ? `<div class="cup-trow cup-arch-head">
@@ -16089,7 +16302,10 @@ function cupRenderSideTree(){
     ${archOpen?arch.map(c=>`<div class="cup-trow cup-kid cup-archived ${active==='folder:'+c.id?'active':''}"><button class="cup-tname" onclick="cupSetBankSel('folder:${c.id}')"><span class="l">${esc(c.name)}</span></button>
       <button class="cup-restore" onclick="cupArchiveFolder('${c.id}',false)" title="Restore ${esc(c.name)}" aria-label="Restore ${esc(c.name)}">↺</button></div>`).join(''):''}` : '';
   const catLink = `<button class="cup-side-cats" onclick="cupOpenCats()">✎ Edit categories</button>`;
-  const html = `<div class="cup-side-head"><span>Folders</span><span><button onclick="cupOpenImport()" title="Import many at once" aria-label="Import">⇪</button><button onclick="cupOpenFolder(null)" title="New folder" aria-label="New folder">+</button></span></div>${rows||'<div class="cup-side-empty">Add a folder for each class, club or project.</div>'}${pile}${catLink}`;
+  const loose=cupNotesLoose();
+  const pagesSec = `<div class="cup-side-head cup-pages-head" ondragover="cupPgOver(event)" ondragleave="cupPgLeave(event)" ondrop="cupPgDrop(event,'')"><span>Pages</span><span><button onclick="cupNewNote('')" title="New page" aria-label="New page">+</button></span></div>
+    ${loose.length?cupSidePages(loose,0):'<div class="cup-side-empty">Pages you don’t file yet live here. Drag one onto a folder or another page.</div>'}`;
+  const html = `<button class="cup-side-new" onclick="cupPlusOpen()">${cupIc('plus')}<span>New</span><kbd>⌘K</kbd></button>${pagesSec}<div class="cup-side-head" style="margin-top:10px"><span>Folders</span><span><button onclick="cupOpenImport()" title="Import many at once" aria-label="Import">⇪</button><button onclick="cupOpenFolder(null)" title="New folder" aria-label="New folder">+</button></span></div>${rows||'<div class="cup-side-empty">Add a folder for each class, club or project.</div>'}${pile}${catLink}`;
   if(host._last!==html){ host.innerHTML=html; host._last=html; }
 }
 function cupToggleSide(k){ const s=new Set(cupSideOpen); s.has(k)?s.delete(k):s.add(k); cupSideOpen=[...s]; cupPersist(); cupRenderSideTree(); }
@@ -16467,6 +16683,8 @@ function cupDeleteFolder(){
 
 // ── called from Focus Hub's render() ──
 function renderCup(){
+  cupPlusMount();
+  cupRenderCalFilters();
   cupEnsure();
   if(typeof currentUser!=='undefined' && currentUser && CUP_SEED && cupSeedVersion() < (CUP_SEED.version||1)) cupImportSeed();
   if(!renderCup._synced && typeof currentUser!=='undefined' && currentUser){ renderCup._synced=true; setTimeout(()=>cupAutoSync(false), 1500); }
@@ -17334,9 +17552,50 @@ function cupCatsReset(){
 //  "- " bullet, "1. " numbered, "[] " checkbox, "> " quote, "---" divider.
 // ════════════════════════════════════════════════════════════
 function cupNotes(){ if(!Array.isArray(S.notes)) S.notes = S.notes ? Object.values(S.notes) : []; return S.notes; }
-const cupNotesIn = (commitId, area) => cupNotes().filter(n => commitId ? n.commitId===commitId : (n.area===area && !n.commitId)).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+// Pages can live inside other pages (parentId). A page inside a page is filed
+// in the same folder as its parent, so moving a page moves everything inside it.
+const cupNoteById = id => id ? cupNotes().find(x=>x.id===id) : null;
+const cupNoteParent = n => n && n.parentId ? cupNoteById(n.parentId) : null;     // a missing parent counts as top level
+const cupNoteKidsOf = id => cupNotes().filter(n=>n.parentId===id).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+const cupNotesIn = (commitId, area) => cupNotes().filter(n => !cupNoteParent(n) && (commitId ? n.commitId===commitId : (n.area===area && !n.commitId))).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+const cupNotesLoose = () => cupNotes().filter(n => !cupNoteParent(n) && !n.area && !n.commitId).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+function cupNoteChain(n){ const out=[]; let p=cupNoteParent(n), g=0; while(p && g++<40){ out.unshift(p); p=cupNoteParent(p); } return out; }
+function cupNoteDesc(id){ const out=[], walk=i=>cupNoteKidsOf(i).forEach(k=>{ out.push(k); walk(k.id); }); walk(id); return out; }
+
+// Line icons (no emoji): 16px, stroke = currentColor
+const CUP_IC = {
+  page:'<path d="M4 2.5h5.5L12.5 5.5V13.5H4z"/><path d="M9.5 2.5v3h3"/>',
+  plus:'<path d="M8 3v10M3 8h10"/>',
+  check:'<rect x="2.5" y="2.5" width="11" height="11" rx="2.5"/><path d="M5.5 8.2l1.8 1.8 3.4-3.6"/>',
+  cal:'<rect x="2.5" y="3.5" width="11" height="10" rx="2"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/>',
+  habit:'<path d="M13 8a5 5 0 1 1-1.5-3.6"/><path d="M13 3v2.5h-2.5"/>',
+  wait:'<circle cx="8" cy="8" r="5.5"/><path d="M8 5v3l2 1.5"/>',
+  folder:'<path d="M2.5 4.5h4l1.2 1.5h5.8v7h-11z"/>',
+  note:'<path d="M3 4h10M3 8h10M3 12h6"/>',
+  import:'<path d="M8 2.5v8M5 7.5l3 3 3-3M3 13.5h10"/>',
+  spark:'<path d="M8 2l1.3 3.7L13 7l-3.7 1.3L8 12l-1.3-3.7L3 7l3.7-1.3z"/>',
+  link:'<path d="M7 9a2.5 2.5 0 0 0 3.5 0l2-2a2.5 2.5 0 0 0-3.5-3.5l-.6.6"/><path d="M9 7a2.5 2.5 0 0 0-3.5 0l-2 2A2.5 2.5 0 0 0 7 12.5l.6-.6"/>',
+  text:'<path d="M3.5 4h9M8 4v9"/>',
+  h1:'<path d="M3 3.5v9M9 3.5v9M3 8h6M12 7l1.5-1v6.5"/>',
+  h2:'<path d="M2.5 3.5v9M8 3.5v9M2.5 8H8M10.5 7a1.5 1.5 0 0 1 3 0c0 1.5-3 3-3 5.5h3"/>',
+  ul:'<circle cx="3.5" cy="4.5" r=".8"/><circle cx="3.5" cy="8" r=".8"/><circle cx="3.5" cy="11.5" r=".8"/><path d="M6.5 4.5h7M6.5 8h7M6.5 11.5h7"/>',
+  ol:'<path d="M6.5 4.5h7M6.5 8h7M6.5 11.5h7M2.5 3.5l1-.5v3"/>',
+  quote:'<path d="M3.5 3.5v9M6.5 5h7M6.5 8h7M6.5 11h4"/>',
+  callout:'<rect x="2.5" y="3" width="11" height="10" rx="2"/><path d="M5.5 6.5h5M5.5 9.5h3"/>',
+  hr:'<path d="M2.5 8h11"/>',
+  code:'<path d="M5.5 4.5L2.5 8l3 3.5M10.5 4.5l3 3.5-3 3.5"/>',
+  date:'<rect x="2.5" y="3.5" width="11" height="10" rx="2"/><path d="M2.5 6.5h11"/><circle cx="8" cy="10" r="1"/>',
+  quiz:'<circle cx="8" cy="8" r="5.5"/><path d="M6.3 6.4a1.8 1.8 0 1 1 2.5 1.6c-.5.2-.8.6-.8 1.1v.4M8 11.3v.2"/>',
+  week:'<rect x="2.5" y="3" width="11" height="10" rx="2"/><path d="M2.5 7h11M6.2 7v6M9.8 7v6"/>',
+  goal:'<circle cx="8" cy="8" r="5.5"/><circle cx="8" cy="8" r="2.5"/>',
+  leaf:'<path d="M3 13c0-6 4-9.5 10-10-.5 6-4 10-10 10z"/><path d="M3 13l5-5"/>',
+  help:'<circle cx="8" cy="8" r="5.5"/><path d="M6.3 6.4a1.8 1.8 0 1 1 2.5 1.6c-.5.2-.8.6-.8 1.1v.4M8 11.3v.2"/>',
+};
+const cupIc = (k, cls='') => `<svg class="cup-ic ${cls}" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${CUP_IC[k]||''}</svg>`;
+
 // keep only safe formatting (pages sync to the cloud and render as HTML)
 const CUP_TAGS = new Set(['P','DIV','BR','H1','H2','H3','UL','OL','LI','B','STRONG','I','EM','U','S','A','BLOCKQUOTE','HR','CODE','PRE','SPAN']);
+const CUP_KEEP_CLASS = new Set(['todo','done','ans','show','callout','plink','quizq']);
 function cupCleanHTML(html){
   const doc=new DOMParser().parseFromString(`<div>${html||''}</div>`,'text/html'), root=doc.body.firstChild;
   (function walk(el){
@@ -17345,10 +17604,13 @@ function cupCleanHTML(html){
       if(n.nodeType!==1){ n.remove(); return; }
       if(!CUP_TAGS.has(n.tagName)){ if(/^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED)$/.test(n.tagName)) n.remove(); else { walk(n); n.replaceWith(...n.childNodes); } return; }
       [...n.attributes].forEach(a=>{
-        const keep = (n.tagName==='A' && a.name==='href' && /^(https?:|mailto:)/i.test(a.value)) || (a.name==='class' && /^(todo|done)( (todo|done))?$/.test(a.value));
+        let keep = (n.tagName==='A' && a.name==='href' && /^(https?:|mailto:)/i.test(a.value))
+          || ((a.name==='data-page'||a.name==='data-task') && /^[a-z0-9]{4,24}$/i.test(a.value));
+        if(a.name==='class'){ const c=a.value.split(/\s+/).filter(x=>CUP_KEEP_CLASS.has(x)); if(c.length){ n.setAttribute('class',c.join(' ')); keep=true; } }
         if(!keep) n.removeAttribute(a.name);
       });
-      if(n.tagName==='A'){ n.setAttribute('target','_blank'); n.setAttribute('rel','noopener'); }
+      if(n.tagName==='A' && n.hasAttribute('href')){ n.setAttribute('target','_blank'); n.setAttribute('rel','noopener'); }
+      if(n.tagName==='A' && n.hasAttribute('data-page')) n.setAttribute('contenteditable','false');
       walk(n);
     });
   })(root);
@@ -17357,93 +17619,532 @@ function cupCleanHTML(html){
 const cupNoteText = n => (new DOMParser().parseFromString(n.html||'','text/html').body.textContent||'').replace(/\s+/g,' ').trim();
 
 let cupNoteId=null, cupNoteTimer=null;
-function cupNewNote(sel){
+// sel: '' | 'area:k' | 'folder:id' | 'page:id'
+function cupNewNote(sel, title, open=true){
   const [k,v]=String(sel||'').split(':');
-  const c = k==='folder' ? cupCommit(v) : null;
-  const n={ id:uid(), title:'', html:'', area:c?c.area:(k==='area'?v:''), commitId:c?c.id:'', createdAt:Date.now(), updatedAt:Date.now() };
+  const parent = k==='page' ? cupNoteById(v) : null;
+  const c = k==='folder' ? cupCommit(v) : parent ? cupCommit(parent.commitId) : null;
+  const area = c ? c.area : parent ? parent.area||'' : (k==='area'?v:'');
+  const n={ id:uid(), title:title||'', html:'', area, commitId:c?c.id:'', parentId:parent?parent.id:'', createdAt:Date.now(), updatedAt:Date.now() };
   cupNotes().push(n); save();
-  cupOpenNote(n.id, true);
+  if(open) cupOpenNote(n.id, !title);
+  return n;
 }
 function cupOpenNote(id, isNew){
-  const n=cupNotes().find(x=>x.id===id); if(!n) return;
-  cupNoteId=id;
+  const n=cupNoteById(id); if(!n) return;
+  if(cupNoteId && cupNoteId!==id){ clearTimeout(cupNoteTimer); cupNoteSave(); }
+  cupNoteId=id; cupSlashClose(); cupOrgClose();
   const c=cupCommit(n.commitId), area=c?c.area:n.area;
-  const crumbs=[area&&CUP_AREA[area]?CUP_SPHERES[CUP_AREA[area].sphere]:'', area?CUP_AREA[area]?.name:'', c?c.name:''].filter(Boolean).map(esc).join(' › ');
-  document.getElementById('cupNoteCrumbs').innerHTML = crumbs || 'Not filed';
+  const bits=[];
+  if(area&&CUP_AREA[area]) bits.push(`<button onclick="cupNoteGoFolder('area:${area}')">${esc(CUP_AREA[area].name)}</button>`);
+  if(c) bits.push(`<button onclick="cupNoteGoFolder('folder:${c.id}')">${esc(c.name)}</button>`);
+  cupNoteChain(n).forEach(p=>bits.push(`<button onclick="cupOpenNote('${p.id}')">${esc(p.title||'Untitled')}</button>`));
+  document.getElementById('cupNoteCrumbs').innerHTML = bits.length ? bits.join('<span class="cup-crumb-sep">/</span>') : '<span>Pages</span>';
   document.getElementById('cupNoteTitle').value = n.title||'';
-  document.getElementById('cupNoteBody').innerHTML = cupCleanHTML(n.html);
-  const sel=document.getElementById('cupNoteMove');
-  sel.innerHTML = '<option value="">Not filed</option>' + cupFolderOptions(c?'folder:'+c.id:(area?'area:'+area:'')).replace('<option value="">None</option>','');
+  const body=document.getElementById('cupNoteBody');
+  body.innerHTML = cupCleanHTML(n.html) || '<p><br></p>';
+  cupNoteRefreshLinks();
+  try{ document.execCommand('defaultParagraphSeparator',false,'p'); }catch(_){}
+  cupNoteMoveOptions(n);
+  cupNoteRenderKids();
   document.getElementById('cupNoteSaved').textContent = n.updatedAt ? 'Saved' : '';
-  openModal('mCupNote');
-  setTimeout(()=> (isNew?document.getElementById('cupNoteTitle'):document.getElementById('cupNoteBody')).focus(), 60);
+  cupOrgBtnSync();
+  if(!document.getElementById('mCupNote').classList.contains('show')) openModal('mCupNote');
+  document.querySelector('#mCupNote .cup-note-scroll').scrollTop=0;
+  setTimeout(()=>{ if(isNew) document.getElementById('cupNoteTitle').focus(); else { body.focus(); cupNotePh(); } }, 60);
+}
+function cupNoteGoFolder(sel){ cupNoteClose(); cupSetBankSel(sel); }
+function cupNoteMoveOptions(n){
+  const c=cupCommit(n.commitId), area=c?c.area:n.area;
+  const cur = n.parentId&&cupNoteParent(n) ? 'page:'+n.parentId : c ? 'folder:'+c.id : area ? 'area:'+area : '';
+  const bad=new Set([n.id, ...cupNoteDesc(n.id).map(x=>x.id)]);
+  const pageOpts=[]; const walk=(list,d)=>list.forEach(p=>{ if(bad.has(p.id)) return;
+    pageOpts.push(`<option value="page:${p.id}" ${cur==='page:'+p.id?'selected':''}>${'  '.repeat(d)}${esc(p.title||'Untitled')}</option>`); walk(cupNoteKidsOf(p.id),d+1); });
+  walk(cupNotes().filter(p=>!cupNoteParent(p)).sort((a,b)=>(a.title||'').localeCompare(b.title||'')),0);
+  const sel=document.getElementById('cupNoteMove');
+  sel.innerHTML = `<option value="" ${cur===''?'selected':''}>Move to… Pages (not filed)</option>`
+    + cupFolderOptions(cur).replace('<option value="">None</option>','')
+    + (pageOpts.length?`<optgroup label="Inside a page">${pageOpts.join('')}</optgroup>`:'');
+}
+function cupNoteRenderKids(){
+  const n=cupNoteById(cupNoteId), host=document.getElementById('cupNoteKids'); if(!n||!host) return;
+  const kids=cupNoteKidsOf(n.id);
+  host.innerHTML = `<div class="cup-kids-h"><span>${kids.length?`Pages inside · ${kids.length}`:'Pages inside'}</span><button onclick="cupNoteAddKid()">${cupIc('plus')} Add a page</button></div>`
+    + kids.map(k=>`<button class="cup-kid-row" onclick="cupOpenNote('${k.id}')">${cupIc('page')}<span>${esc(k.title||'Untitled')}</span><em>${cupNoteKidsOf(k.id).length||''}</em></button>`).join('');
+}
+function cupNoteAddKid(){ cupNoteSave(); cupNewNote('page:'+cupNoteId); }
+// page links in the text show the page's current title
+function cupNoteRefreshLinks(){
+  document.querySelectorAll('#cupNoteBody a[data-page]').forEach(a=>{ const p=cupNoteById(a.dataset.page); a.textContent = p ? (p.title||'Untitled') : 'Deleted page'; a.classList.add('plink'); a.contentEditable='false'; });
+  document.querySelectorAll('#cupNoteBody li[data-task]').forEach(li=>{ const t=S.tasks.find(x=>x.id===li.dataset.task); if(t) li.classList.toggle('done', cupDone(t)); });
 }
 function cupNoteChanged(){
   document.getElementById('cupNoteSaved').textContent='Saving…';
   clearTimeout(cupNoteTimer); cupNoteTimer=setTimeout(cupNoteSave, 600);
+  cupNotePh(); cupSlashCheck(); cupOrgBtnSync();
 }
 function cupNoteSave(){
-  const n=cupNotes().find(x=>x.id===cupNoteId); if(!n) return;
+  const n=cupNoteById(cupNoteId); if(!n) return;
   n.title=document.getElementById('cupNoteTitle').value.trim();
-  n.html=cupCleanHTML(document.getElementById('cupNoteBody').innerHTML);
+  const b=document.getElementById('cupNoteBody');
+  b.querySelectorAll('[data-ph]').forEach(x=>x.removeAttribute('data-ph'));
+  const html=cupCleanHTML(b.innerHTML);
+  n.html = /^(<p><br><\/p>|<br>)?$/.test(html) ? '' : html;
   n.updatedAt=Date.now();
-  save(); cupRenderSideTree(); cupRenderBankHead();
+  save(); cupRenderSideTree(); cupRenderBankHead(); cupNotePh();
   document.getElementById('cupNoteSaved').textContent='Saved';
 }
 function cupNoteClose(){
-  clearTimeout(cupNoteTimer); cupNoteSave();
-  const n=cupNotes().find(x=>x.id===cupNoteId);
-  if(n && !n.title && !cupNoteText(n)){ S.notes=cupNotes().filter(x=>x.id!==n.id); save(); }   // drop empty new pages
+  clearTimeout(cupNoteTimer); cupNoteSave(); cupSlashClose(); cupOrgClose();
+  const n=cupNoteById(cupNoteId);
+  if(n && !n.title && !cupNoteText(n) && !cupNoteKidsOf(n.id).length){ S.notes=cupNotes().filter(x=>x.id!==n.id); save(); }   // drop empty new pages
   cupNoteId=null; closeModal('mCupNote'); render();
 }
-function cupNoteMove(v){
-  const n=cupNotes().find(x=>x.id===cupNoteId); if(!n) return;
-  const [k,id]=v.split(':'); const c=k==='folder'?cupCommit(id):null;
-  n.commitId=c?c.id:''; n.area=c?c.area:(k==='area'?id:''); n.updatedAt=Date.now(); save();
-  cupOpenNote(n.id);
+// File a page (and everything inside it): '' | 'area:k' | 'folder:id' | 'page:id'
+function cupFileNote(id, target){
+  const n=cupNoteById(id); if(!n) return false;
+  const [k,v]=String(target||'').split(':');
+  if(k==='page'){
+    if(v===id || cupNoteDesc(id).some(x=>x.id===v)){ showToast('A page can’t go inside itself.'); return false; }
+    const p=cupNoteById(v); if(!p) return false;
+    n.parentId=p.id; n.commitId=p.commitId||''; n.area=p.area||'';
+  } else {
+    const c=k==='folder'?cupCommit(v):null;
+    n.parentId=''; n.commitId=c?c.id:''; n.area=c?c.area:(k==='area'?v:'');
+  }
+  cupNoteDesc(id).forEach(d=>{ d.commitId=n.commitId; d.area=n.area; });
+  n.updatedAt=Date.now(); save(); return true;
 }
+function cupNoteMove(v){ cupNoteSave(); if(cupFileNote(cupNoteId, v)) { cupOpenNote(cupNoteId); render(); showToast('Page moved.'); } }
 function cupNoteDelete(){
-  const n=cupNotes().find(x=>x.id===cupNoteId); if(!n) return;
-  S.notes=cupNotes().filter(x=>x.id!==n.id); cupNoteId=null; save(); closeModal('mCupNote'); render();
-  showToast(`Deleted “${n.title||'Untitled'}”.`,'Undo',()=>{ cupNotes().push(n); save(); render(); });
+  const n=cupNoteById(cupNoteId); if(!n) return;
+  const gone=[n, ...cupNoteDesc(n.id)], ids=new Set(gone.map(x=>x.id));
+  S.notes=cupNotes().filter(x=>!ids.has(x.id)); cupNoteId=null; save(); closeModal('mCupNote'); render();
+  showToast(`Deleted “${n.title||'Untitled'}”${gone.length>1?` and ${gone.length-1} page${gone.length>2?'s':''} inside`:''}.`,'Undo',()=>{ cupNotes().push(...gone); save(); render(); });
 }
-// toolbar + Notion-style shortcuts
+
+// ── formatting ──
 function cupNoteCmd(cmd){
   const b=document.getElementById('cupNoteBody'); b.focus();
   if(cmd==='h1') document.execCommand('formatBlock',false,'H2');
   else if(cmd==='h2') document.execCommand('formatBlock',false,'H3');
-  else if(cmd==='p') document.execCommand('formatBlock',false,'P');
+  else if(cmd==='p'||cmd==='text') document.execCommand('formatBlock',false,'P');
   else if(cmd==='ul') document.execCommand('insertUnorderedList');
   else if(cmd==='ol') document.execCommand('insertOrderedList');
-  else if(cmd==='todo'){ document.execCommand('insertUnorderedList'); const li=cupCaretBlock('LI'); if(li){ li.parentElement.classList.add('todo'); } }
+  else if(cmd==='todo'){ const li0=cupCaretBlock('LI'); if(!li0||li0.parentElement.tagName!=='UL') document.execCommand('insertUnorderedList'); const li=cupCaretBlock('LI'); if(li) li.parentElement.classList.add('todo'); }
   else if(cmd==='quote') document.execCommand('formatBlock',false,'BLOCKQUOTE');
-  else if(cmd==='hr') document.execCommand('insertHorizontalRule');
-  else if(cmd==='link'){ const u=window.getSelection().toString(); const href=/^https?:/.test(u)?u:''; if(href) document.execCommand('createLink',false,href); else showToast('Select a web address (https://…) to make it a link.'); }
+  else if(cmd==='callout'){ document.execCommand('formatBlock',false,'BLOCKQUOTE'); const q=cupCaretBlock('BLOCKQUOTE'); if(q) q.classList.add('callout'); }
+  else if(cmd==='code') document.execCommand('formatBlock',false,'PRE');
+  else if(cmd==='hr'){ document.execCommand('insertHorizontalRule'); document.execCommand('formatBlock',false,'P'); }
+  else if(cmd==='date') document.execCommand('insertText',false,new Date().toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'})+' ');
+  else if(cmd==='page') return cupNoteInsertSubpage();
+  else if(cmd==='task') return cupNoteLineTo('task');
+  else if(cmd==='event') return cupNoteLineTo('event');
+  else if(cmd==='organize') return cupOrgOpen();
+  else if(cmd==='link'){ const u=window.getSelection().toString(); const href=/^https?:/.test(u)?u:''; if(href) document.execCommand('createLink',false,href); else return cupSlashOpenPages(); }
   else document.execCommand(cmd);
   cupNoteChanged();
 }
 function cupCaretBlock(tag){ let n=window.getSelection().anchorNode; while(n && n.id!=='cupNoteBody'){ if(n.nodeType===1 && (!tag||n.tagName===tag)) return n; n=n.parentNode; } return null; }
+function cupCaretTop(){ let n=window.getSelection().anchorNode; const b=document.getElementById('cupNoteBody'); if(!n||!b.contains(n)) return null;
+  while(n && n.parentNode!==b){ if(n.nodeType===1 && /^(LI)$/.test(n.tagName)) return n; n=n.parentNode; } return n; }
+function cupInsertHTML(html){ document.execCommand('insertHTML',false,html); }
+// "/page": a page inside this one, linked where the cursor is
+function cupNoteInsertSubpage(title){
+  const parent=cupNoteById(cupNoteId); if(!parent) return;
+  const kid=cupNewNote('page:'+parent.id, title||'', false);
+  cupInsertHTML(`<a class="plink" data-page="${kid.id}" contenteditable="false">${esc(kid.title||'Untitled')}</a>&nbsp;`);
+  cupNoteSave(); cupOpenNote(kid.id, true);
+}
+function cupNoteInsertLink(pid){
+  const p=cupNoteById(pid); if(!p) return;
+  cupSlashRestore();
+  cupInsertHTML(`<a class="plink" data-page="${p.id}" contenteditable="false">${esc(p.title||'Untitled')}</a>&nbsp;`);
+  cupNoteChanged();
+}
+// "/task" and "/event": the current line becomes a real task or calendar event
+function cupNoteLineTo(kind){
+  const blk=cupCaretTop(); const text=(blk?.textContent||'').trim();
+  if(!text){ showToast(`Type the ${kind} on this line first, then use /${kind}.`); return; }
+  const n=cupNoteById(cupNoteId), c=cupCommit(n?.commitId), nlp=parseNLP(text), title=cupCleanTitle(text)||text;
+  if(kind==='task'){
+    const t=cupMakeTask({ title, due:nlp.due||'', dueTime:nlp.due?nlp.scheduledTime:'', scheduledTime:nlp.due?'':nlp.scheduledTime, priority:nlp.priority,
+      type:nlp.type==='exam'?'task':nlp.type, area:c?c.area:(n?.area||''), commitId:c?c.id:'', subject:c?c.name:(nlp.subject||''), notes:n?.title?`From page “${n.title}”`:'' });
+    S.tasks.push(t);
+    const li=document.createElement('li'); li.dataset.task=t.id; li.textContent=title;
+    const ul=document.createElement('ul'); ul.className='todo'; ul.appendChild(li);
+    if(blk.tagName==='LI'){ blk.dataset.task=t.id; if(blk.parentElement.tagName==='UL') blk.parentElement.classList.add('todo'); } else blk.replaceWith(ul);
+    showToast(`Task added${t.due?` · due ${cupFmt(t.due)}${t.dueTime?' '+cupT12(t.dueTime):''}`:''}.`,'Open',()=>editTask(t.id));
+  } else {
+    const date=nlp.due||todayStr(), st=nlp.scheduledTime;
+    const end = st ? String((+st.slice(0,2)+1)%24).padStart(2,'0')+st.slice(2) : '';
+    S.events.push({ id:uid(), icsUid:'', createdAt:Date.now(), title, date, endDate:date, noEndDate:false, time:st||'', endTime:end, allDay:!st,
+      recurrence:'none', recurrenceDays:[], subject:c?c.name:'', location:'', notes:n?.title?`From page “${n.title}”`:'', reminder:'none', type:'event',
+      color:(typeof eventColorForType==='function'?eventColorForType('event'):'') });
+    showToast(`Added to calendar · ${cupFmt(date)}${st?' '+cupT12(st):''}.`);
+  }
+  save(); cupNoteChanged();
+}
+
+// ── keyboard: markdown shortcuts + "/" menu ──
 function cupNoteKey(e){
+  if(cupSlash.open && cupSlashKey(e)) return;
   if(e.key!==' ' && e.key!=='Enter') return;
   const sel=window.getSelection(); if(!sel.rangeCount) return;
   const node=sel.anchorNode; if(!node || node.nodeType!==3) return;
   const before=node.textContent.slice(0, sel.anchorOffset);
-  const map={ '#':'h1', '##':'h2', '-':'ul', '*':'ul', '1.':'ol', '[]':'todo', '>':'quote' };
+  const map={ '#':'h1', '##':'h2', '-':'ul', '*':'ul', '1.':'ol', '[]':'todo', '[ ]':'todo', '>':'quote', '!':'callout' };
   if(e.key===' ' && map[before] && (node.parentNode.id==='cupNoteBody' || /^(P|DIV)$/.test(node.parentNode.tagName))){
     e.preventDefault(); node.textContent=node.textContent.slice(before.length); cupNoteCmd(map[before]);
   } else if(e.key==='Enter' && before==='---'){ e.preventDefault(); node.textContent=''; cupNoteCmd('hr'); }
+  else if(e.key==='Enter' && before==='```'){ e.preventDefault(); node.textContent=''; cupNoteCmd('code'); }
 }
 function cupNoteClick(e){
-  const li=e.target.closest('ul.todo > li'); if(!li) return;
-  if(e.clientX - li.getBoundingClientRect().left < 24){ e.preventDefault(); li.classList.toggle('done'); cupNoteChanged(); }
+  const a=e.target.closest('a[data-page]'); if(a){ e.preventDefault(); cupNoteSave(); cupOpenNote(a.dataset.page); return; }
+  const ans=e.target.closest('.ans'); if(ans){ ans.classList.toggle('show'); return; }
+  const li=e.target.closest('ul.todo > li');
+  if(li && e.clientX - li.getBoundingClientRect().left < 24){
+    e.preventDefault(); li.classList.toggle('done');
+    const t=li.dataset.task && S.tasks.find(x=>x.id===li.dataset.task);
+    if(t && cupDone(t)!==li.classList.contains('done')){ if(li.classList.contains('done')){ t.completed=true; t.archived=true; t.completedAt=Date.now(); } else { t.completed=false; t.archived=false; t.completedAt=null; } save(); }
+    cupNoteChanged();
+  }
+  cupNotePh();
 }
+// Hint on the line you're on whenever it's empty (like Notion)
+function cupNotePh(){
+  const b=document.getElementById('cupNoteBody'); if(!b) return;
+  b.querySelectorAll('[data-ph]').forEach(x=>x.removeAttribute('data-ph'));
+  if(document.activeElement!==b) return;
+  let blk=cupCaretBlock(); if(!blk) return;
+  if(blk.tagName==='UL'||blk.tagName==='OL') return;
+  if(!/^(P|DIV|H2|H3|LI|BLOCKQUOTE|PRE)$/.test(blk.tagName)) blk=blk.closest('p,div,h2,h3,li,blockquote,pre'); if(!blk||!b.contains(blk)) return;
+  if((blk.textContent||'').replace(/​/g,'').trim()!=='' || blk.querySelector('a,hr')) return;
+  const ph = blk.tagName==='H2'?'Heading 1' : blk.tagName==='H3'?'Heading 2' : blk.tagName==='PRE'?'Code'
+    : blk.tagName==='BLOCKQUOTE'?(blk.classList.contains('callout')?'Callout':'Quote')
+    : blk.tagName==='LI'?(blk.parentElement.classList.contains('todo')?'To-do':'List')
+    : 'Type / for commands';
+  blk.setAttribute('data-ph', ph);
+}
+document.addEventListener('selectionchange', ()=>{ if(cupNoteId) cupNotePh(); });
+
+// ── "/" command menu ──
+const CUP_SLASH = [
+  // id, name, hint, icon, extra words, group
+  ['text','Text','Plain writing','text','paragraph p','Basic'],
+  ['h1','Heading 1','Big section title · #','h1','title heading','Basic'],
+  ['h2','Heading 2','Smaller heading · ##','h2','subheading heading','Basic'],
+  ['ul','Bulleted list','- then space','ul','bullet list','Basic'],
+  ['ol','Numbered list','1. then space','ol','number list','Basic'],
+  ['todo','To-do list','[] then space','check','checkbox check todo','Basic'],
+  ['quote','Quote','> then space','quote','quote','Basic'],
+  ['callout','Callout','Highlighted box · ! then space','callout','note tip box highlight','Basic'],
+  ['code','Code','``` then Enter','code','code mono','Basic'],
+  ['hr','Divider','--- then Enter','hr','line divider separator','Basic'],
+  ['page','Page inside','A new page inside this one','page','subpage new page nest','Pages'],
+  ['link','Link to page','Mention another page','link','mention link page','Pages'],
+  ['task','Make it a task','This line becomes a real task','check','task todo assignment due','Planner'],
+  ['event','Add to calendar','This line becomes an event','cal','event calendar meeting','Planner'],
+  ['date','Today’s date','Insert the date','date','date today now','Planner'],
+  ['organize','Organize with AI','Summary, action items, quiz, conclusion','spark','ai summary summarize quiz organize claude','AI'],
+];
+const cupSlash={ open:false, i:0, items:[], mode:'cmd', node:null, start:0, range:null };
+function cupSlashCheck(){
+  if(cupSlash.mode==='pages' && cupSlash.open) return;
+  const sel=window.getSelection(); if(!sel.rangeCount){ cupSlashClose(); return; }
+  const node=sel.anchorNode; if(!node || node.nodeType!==3 || !document.getElementById('cupNoteBody').contains(node)){ cupSlashClose(); return; }
+  const before=node.textContent.slice(0, sel.anchorOffset), m=before.match(/(^|\s)\/([^\s/]{0,20})$/);
+  if(!m){ cupSlashClose(); return; }
+  cupSlash.node=node; cupSlash.start=sel.anchorOffset-m[2].length-1;
+  const q=m[2].toLowerCase();
+  cupSlash.items=CUP_SLASH.filter(c=>!q || (c[1]+' '+c[4]).toLowerCase().includes(q));
+  if(!cupSlash.items.length){ cupSlashClose(); return; }
+  cupSlash.mode='cmd'; cupSlash.i=Math.min(cupSlash.i, cupSlash.items.length-1); if(!cupSlash.open) cupSlash.i=0;
+  cupSlashRender();
+}
+function cupSlashRender(){
+  const el=document.getElementById('cupSlash'); if(!el) return;
+  let html='', g='';
+  if(cupSlash.mode==='pages'){
+    html=`<input id="cupSlashQ" class="cup-slash-q" placeholder="Search pages" oninput="cupSlashPagesFilter()" onkeydown="cupSlashKey(event)" autocomplete="off">`;
+    html+=cupSlash.items.map((p,i)=>`<button class="cup-slash-it ${i===cupSlash.i?'on':''}" onmousedown="event.preventDefault();cupSlashPick(${i})">${cupIc('page')}<span><b>${esc(p.title||'Untitled')}</b><em>${esc(cupNoteWhere(p))}</em></span></button>`).join('') || '<div class="cup-slash-empty">No pages yet.</div>';
+  } else {
+    cupSlash.items.forEach((c,i)=>{ if(c[5]!==g){ g=c[5]; html+=`<div class="cup-slash-g">${g}</div>`; }
+      html+=`<button class="cup-slash-it ${i===cupSlash.i?'on':''}" onmousedown="event.preventDefault();cupSlashPick(${i})">${cupIc(c[3])}<span><b>${c[1]}</b><em>${c[2]}</em></span></button>`; });
+  }
+  el.innerHTML=html; el.classList.add('show'); cupSlash.open=true;
+  // place it under the cursor
+  const modal=document.querySelector('#mCupNote .cup-note-modal').getBoundingClientRect();
+  let r; try{ const s=window.getSelection(); r=(cupSlash.range||s.getRangeAt(0)).getBoundingClientRect(); }catch(_){}
+  if(!r || (!r.top&&!r.left)) r=document.getElementById('cupNoteBody').getBoundingClientRect();
+  const h=Math.min(340, el.scrollHeight);
+  let top=r.bottom-modal.top+6; if(top+h>modal.height-10) top=Math.max(10, r.top-modal.top-h-6);
+  el.style.top=top+'px'; el.style.left=Math.max(10, Math.min(r.left-modal.left, modal.width-300))+'px';
+  el.querySelector('.on')?.scrollIntoView({block:'nearest'});
+}
+function cupSlashClose(){ const el=document.getElementById('cupSlash'); if(el){ el.classList.remove('show'); el.innerHTML=''; } cupSlash.open=false; cupSlash.mode='cmd'; cupSlash.range=null; }
+function cupSlashKey(e){
+  if(!cupSlash.open) return false;
+  const n=cupSlash.items.length;
+  if(e.key==='ArrowDown'){ e.preventDefault(); cupSlash.i=(cupSlash.i+1)%Math.max(n,1); cupSlashRender(); if(cupSlash.mode==='pages') cupSlashFocusQ(); return true; }
+  if(e.key==='ArrowUp'){ e.preventDefault(); cupSlash.i=(cupSlash.i-1+n)%Math.max(n,1); cupSlashRender(); if(cupSlash.mode==='pages') cupSlashFocusQ(); return true; }
+  if(e.key==='Enter'||e.key==='Tab'){ e.preventDefault(); if(n) cupSlashPick(cupSlash.i); return true; }
+  if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); const back=cupSlash.mode==='pages'; cupSlashClose(); if(back) cupSlashRestore(); return true; }
+  return false;
+}
+function cupSlashFocusQ(){ const q=document.getElementById('cupSlashQ'); if(q && document.activeElement!==q){ const v=q.value; q.focus(); q.value=v; } }
+function cupSlashPick(i){
+  if(cupSlash.mode==='pages'){ const p=cupSlash.items[i]; cupSlashClose(); if(p) cupNoteInsertLink(p.id); return; }
+  const c=cupSlash.items[i]; if(!c) return;
+  // remove the "/query" text
+  const node=cupSlash.node, sel=window.getSelection();
+  if(node && node.isConnected){ const end=sel.anchorNode===node?sel.anchorOffset:node.textContent.length; node.textContent=node.textContent.slice(0,cupSlash.start)+node.textContent.slice(end);
+    const r=document.createRange(); r.setStart(node, Math.min(cupSlash.start, node.textContent.length)); r.collapse(true); sel.removeAllRanges(); sel.addRange(r);
+    if(!node.textContent){ const br=document.createElement('br'); node.parentNode.insertBefore(br,node); node.remove(); const r2=document.createRange(); r2.setStartBefore(br); r2.collapse(true); sel.removeAllRanges(); sel.addRange(r2); } }
+  cupSlashClose();
+  cupNoteCmd(c[0]);
+}
+function cupSlashOpenPages(){
+  const s=window.getSelection(); cupSlash.range=s.rangeCount?s.getRangeAt(0).cloneRange():null;
+  cupSlash.mode='pages'; cupSlash.i=0; cupSlashPagesFilter(true);
+}
+function cupSlashPagesFilter(first){
+  const q=(document.getElementById('cupSlashQ')?.value||'').toLowerCase();
+  cupSlash.items=cupNotes().filter(p=>p.id!==cupNoteId && (!q||(p.title||'untitled').toLowerCase().includes(q))).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,12);
+  cupSlash.i=0; cupSlashRender(); const el=document.getElementById('cupSlashQ'); if(el){ el.value=q; el.focus(); }
+}
+function cupSlashRestore(){ const b=document.getElementById('cupNoteBody'); b.focus(); if(cupSlash.range){ const s=window.getSelection(); s.removeAllRanges(); s.addRange(cupSlash.range); } }
+function cupNoteWhere(p){ const c=cupCommit(p.commitId); const par=cupNoteParent(p); return [c?c.name:(p.area&&CUP_AREA[p.area]?CUP_AREA[p.area].name:''), par?(par.title||'Untitled'):''].filter(Boolean).join(' / ') || 'Pages'; }
+
+// ── "?" — every command, always one tap away ──
+function cupNoteHelp(){
+  cupOrgShow(`<div class="cup-org-h"><b>Writing in pages</b><button class="modal-close" onclick="cupOrgClose()" aria-label="Close">✕</button></div>
+    <p class="cup-org-sub">Type <kbd>/</kbd> on any line for the menu, or use these shortcuts at the start of a line.</p>
+    <div class="cup-help-grid">
+      ${[['#','Heading 1'],['##','Heading 2'],['-','Bulleted list'],['1.','Numbered list'],['[]','To-do'],['>','Quote'],['!','Callout'],['---','Divider (Enter)'],['```','Code (Enter)'],
+        ['/page','Page inside this page'],['/link','Link to another page'],['/task','Line → real task (dates understood)'],['/event','Line → calendar event'],['/date','Today’s date'],['/organize','Summary, action items, quiz'],
+        ['⌘B / ⌘I','Bold / italic'],['⌘K','The + bar, anywhere']].map(([k,v])=>`<div><kbd>${k}</kbd><span>${v}</span></div>`).join('')}
+    </div>
+    <p class="cup-org-sub">Organize pages: put a page inside another with <b>Move to…</b> at the top, <b>/page</b>, or drag it onto another page or folder in the sidebar.</p>`);
+}
+
+// ════════════════════════════════════════════════════════════
+//  ORGANIZE — summary, sections, action items, key terms, quiz, conclusion.
+//  With your own API key it runs right here. Without one: copy a prompt
+//  into Claude chat and paste the reply back, or use the offline outline.
+// ════════════════════════════════════════════════════════════
+let cupOrgResult=null;
+function cupOrgShow(html){ const el=document.getElementById('cupOrg'); if(!el) return; el.innerHTML=`<div class="cup-org-card">${html}</div>`; el.classList.add('show'); }
+function cupOrgClose(){ const el=document.getElementById('cupOrg'); if(el){ el.classList.remove('show'); el.innerHTML=''; } }
+function cupOrgBtnSync(){ const b=document.getElementById('cupNoteAiBtn'); if(b) b.innerHTML=`${cupIc('spark')} Organize`; }
+// page → markdown-ish text that keeps structure (headings, lists, to-dos)
+function cupNoteMarkdown(n, depth=0){
+  const doc=new DOMParser().parseFromString(`<div>${n.html||''}</div>`,'text/html'), out=[];
+  const walk=el=>[...el.childNodes].forEach(x=>{
+    if(x.nodeType===3){ const t=x.textContent.trim(); if(t) out.push(t); return; }
+    if(x.nodeType!==1) return;
+    const t=(x.textContent||'').replace(/\s+/g,' ').trim(), tag=x.tagName;
+    if(tag==='H1'||tag==='H2') out.push('\n# '+t); else if(tag==='H3') out.push('\n## '+t);
+    else if(tag==='UL'||tag==='OL'){ [...x.children].forEach((li,i)=>{ const lt=(li.textContent||'').replace(/\s+/g,' ').trim(); if(!lt) return;
+      out.push(x.classList.contains('todo')?`- [${li.classList.contains('done')?'x':' '}] ${lt}`:tag==='OL'?`${i+1}. ${lt}`:`- ${lt}`); }); }
+    else if(tag==='BLOCKQUOTE') out.push('> '+t); else if(tag==='HR') out.push('---');
+    else if(tag==='P'||tag==='DIV'||tag==='PRE'){ if(x.querySelector('ul,ol,h2,h3,blockquote')) walk(x); else if(t) out.push(t); }
+    else if(t) out.push(t);
+  });
+  walk(doc.body.firstChild);
+  let s=`${'#'.repeat(depth)}${depth?' ':''}${n.title?(depth?n.title:'Title: '+n.title):''}\n`+out.join('\n');
+  return s.trim();
+}
+function cupOrgSource(withKids){
+  const n=cupNoteById(cupNoteId); if(!n) return '';
+  let s=cupNoteMarkdown(n);
+  if(withKids) cupNoteDesc(n.id).forEach(k=>{ const m=cupNoteMarkdown(k,1); if(m) s+='\n\n--- Sub-page ---\n'+m; });
+  return s;
+}
+function cupOrgOpen(){
+  cupNoteSave(); cupSlashClose();
+  const n=cupNoteById(cupNoteId); if(!n) return;
+  const has=!!cupAiKey(), kids=cupNoteDesc(n.id).length, empty=!cupNoteText(n) && !kids;
+  cupOrgShow(`<div class="cup-org-h"><b>${cupIc('spark')} Organize this page</b><button class="modal-close" onclick="cupOrgClose()" aria-label="Close">✕</button></div>
+    <p class="cup-org-sub">Turns your notes into a clean study page: summary, every point grouped by topic, action items, key terms, a quiz and a conclusion. Your original page isn’t changed.</p>
+    ${empty?'<div class="cup-org-warn">This page is empty. Write or paste notes first.</div>':''}
+    <div class="cup-org-opts">
+      ${[['sum','Summary'],['sec','Key points by topic'],['act','Action items'],['terms','Key terms'],['quiz','Quiz'],['concl','Conclusion']].map(([k,l])=>`<label><input type="checkbox" id="cupOrg_${k}" checked> ${l}</label>`).join('')}
+      ${kids?`<label><input type="checkbox" id="cupOrg_kids" checked> Include ${kids} page${kids>1?'s':''} inside</label>`:''}
+    </div>
+    <div class="cup-org-ways">
+      <button class="cup-org-way main" onclick="${has?'cupOrgRunAI()':'cupOrgNeedKey()'}" ${empty?'disabled':''}>
+        <b>${cupIc('spark')} ${has?'Organize with Claude':'Organize with Claude (your API key)'}</b><span>${has?'Best result, ready in a few seconds. Uses your key.':'Add your own key in Settings → AI import. About $0.01–0.05 a page.'}</span></button>
+      <button class="cup-org-way" onclick="cupOrgCopy()" ${empty?'disabled':''}><b>Free: copy to Claude chat</b><span>Copies a prompt with this page. Paste it at claude.ai, then paste the reply below.</span></button>
+      <button class="cup-org-way" onclick="cupOrgOffline()" ${empty?'disabled':''}><b>Quick outline (offline)</b><span>No AI. Pulls out headings, to-dos and “term: meaning” lines.</span></button>
+    </div>
+    <div id="cupOrgPaste" class="cup-org-paste" style="display:none">
+      <textarea id="cupOrgReply" rows="4" placeholder="Paste Claude’s reply here"></textarea>
+      <button class="btn btn-primary" onclick="cupOrgUseReply()">Use reply</button>
+    </div>
+    <div id="cupOrgOut"></div>`);
+}
+function cupOrgNeedKey(){ cupNoteClose(); openModal('mSettings'); setTimeout(()=>document.getElementById('cupAiKey')?.focus(),120); showToast('Paste your Claude API key under AI import.'); }
+const cupOrgWant = () => Object.fromEntries(['sum','sec','act','terms','quiz','concl'].map(k=>[k, document.getElementById('cupOrg_'+k)?.checked!==false]));
+const cupOrgSchema = () => {
+  const s={type:'string'}, arr=it=>({type:'array',items:it}), obj=(p)=>({type:'object',additionalProperties:false,required:Object.keys(p),properties:p});
+  return obj({ title:s, summary:s, sections:arr(obj({heading:s, points:arr(s)})), actionItems:arr(obj({task:s, due:s})),
+    keyTerms:arr(obj({term:s, meaning:s})), quiz:arr(obj({question:s, answer:s})), conclusion:s });
+};
+function cupOrgPrompt(forChat){
+  const w=cupOrgWant(), today=todayStr();
+  const parts=[w.sum&&'"summary": 2–4 sentences on what the notes are about and why they matter',
+    w.sec&&'"sections": group EVERY detail into topics; each point is one short, complete line. Keep numbers, names, dates, formulas and examples. Don’t drop anything.',
+    w.act&&`"actionItems": every to-do, deadline or follow-up mentioned (unchecked to-dos count). "due" is YYYY-MM-DD if a date is stated or clearly implied (today is ${today}), else ""`,
+    w.terms&&'"keyTerms": important terms, people or formulas with a one-line meaning',
+    w.quiz&&'"quiz": 5–10 questions that test understanding (mix recall and “why/how”), each with a short answer',
+    w.concl&&'"conclusion": the main takeaway in 2–3 sentences'].filter(Boolean);
+  return `Organize my notes into a clear study page. Use only what's in the notes — don't invent facts. Write in the notes' language.
+Fields: "title": a short title.
+${parts.join('\n')}
+Leave out any field not listed (empty string or empty list).${forChat?`
+
+Reply with ONLY one JSON object, no other text, exactly this shape:
+{"title":"","summary":"","sections":[{"heading":"","points":[""]}],"actionItems":[{"task":"","due":""}],"keyTerms":[{"term":"","meaning":""}],"quiz":[{"question":"","answer":""}],"conclusion":""}`:''}`;
+}
+async function cupOrgRunAI(){
+  const out=document.getElementById('cupOrgOut'), src=cupOrgSource(document.getElementById('cupOrg_kids')?.checked);
+  out.innerHTML='<div class="cup-org-wait"><span class="cup-spin"></span> Claude is reading your page…</div>';
+  document.querySelectorAll('.cup-org-way').forEach(b=>b.disabled=true);
+  try{
+    const client=await cupAiClient(), model=cupAiModel();
+    const req={ model, max_tokens:16000,
+      output_config:{ effort:'medium', format:{ type:'json_schema', schema:cupOrgSchema() } },
+      messages:[{ role:'user', content:[{ type:'text', text:cupOrgPrompt(false) }, { type:'text', text:'<notes>\n'+src+'\n</notes>' }] }] };
+    if(model!=='claude-haiku-5-5'){ req.betas=['server-side-fallback-2026-07-01']; req.fallbacks='default'; }
+    const res = req.betas ? await client.beta.messages.create(req) : await client.messages.create(req);
+    if(res.stop_reason==='refusal') throw new Error('Claude declined this page. Try the quick outline instead.');
+    if(res.stop_reason==='max_tokens') throw new Error('This page is too long for one go. Split it into a few pages.');
+    const text=(res.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    cupOrgPreview(JSON.parse(text));
+  }catch(e){
+    out.innerHTML=`<div class="cup-org-warn">${esc(e.status===401?'Your API key was rejected. Update it in Settings.':e.status===429?'Rate limited or out of credit. Check your Anthropic account.':(e.message||String(e)))}</div>`;
+  }finally{ document.querySelectorAll('.cup-org-way').forEach(b=>b.disabled=false); }
+}
+async function cupOrgCopy(){
+  const text=cupOrgPrompt(true)+'\n\n<notes>\n'+cupOrgSource(document.getElementById('cupOrg_kids')?.checked)+'\n</notes>';
+  try{ await navigator.clipboard.writeText(text); showToast('Copied. Paste it into Claude, then paste the reply here.'); }
+  catch(_){ showToast('Couldn’t copy automatically. Select the text and copy it.'); }
+  document.getElementById('cupOrgPaste').style.display='flex';
+  document.getElementById('cupOrgReply').focus();
+}
+function cupOrgUseReply(){
+  const raw=document.getElementById('cupOrgReply').value.trim(), out=document.getElementById('cupOrgOut');
+  const m=raw.match(/\{[\s\S]*\}/);
+  try{ cupOrgPreview(JSON.parse(m?m[0]:raw)); }catch(_){ out.innerHTML='<div class="cup-org-warn">That reply isn’t the JSON the prompt asked for. Copy Claude’s whole reply and try again.</div>'; }
+}
+// No AI: structure that's already in the page
+function cupOrgOffline(){
+  const n=cupNoteById(cupNoteId); if(!n) return;
+  const pages=[n, ...(document.getElementById('cupOrg_kids')?.checked?cupNoteDesc(n.id):[])];
+  const r={ title:n.title||'Notes', summary:'', sections:[], actionItems:[], keyTerms:[], quiz:[], conclusion:'' };
+  let cur=null, paras=[];
+  pages.forEach(pg=>{
+    const doc=new DOMParser().parseFromString(`<div>${pg.html||''}</div>`,'text/html');
+    if(pg!==n){ cur={heading:pg.title||'Untitled', points:[]}; r.sections.push(cur); }
+    doc.body.firstChild.querySelectorAll('h2,h3,p,div,li,blockquote,pre').forEach(el=>{
+      if(el.querySelector('p,div,li,h2,h3')) return;
+      const t=(el.textContent||'').replace(/\s+/g,' ').trim(); if(!t) return;
+      if(/^H[23]$/.test(el.tagName)){ cur={heading:t, points:[]}; r.sections.push(cur); return; }
+      const isTodo=el.tagName==='LI' && el.parentElement?.classList.contains('todo');
+      if(isTodo && !el.classList.contains('done')) r.actionItems.push({task:t, due:(parseNLP(t).due||'')});
+      else if(/^(todo|to do|to-do|action|need to|must|remember to|don'?t forget|follow up)\b[:\s-]/i.test(t)) r.actionItems.push({task:t.replace(/^[^:]*:\s*/,''), due:(parseNLP(t).due||'')});
+      t.split(/(?<=[.!?])\s+/).forEach(sn=>{ const km=sn.match(/^([^:–—=.]{2,40})\s*[:–—=]\s+(.{3,})$/);
+        if(km && km[1].trim().split(/\s+/).length<=5){ const term=km[1].trim(), mean=km[2].trim().replace(/[.]$/,'');
+          r.keyTerms.push({term, meaning:mean}); r.quiz.push({question:`What is ${/^[A-Z]{2,}/.test(term)?term:term.charAt(0).toLowerCase()+term.slice(1)}?`, answer:mean}); } });
+      if(!cur){ cur={heading:'Notes', points:[]}; r.sections.push(cur); }
+      if(!isTodo) cur.points.push(t);
+      if(el.tagName==='P'||el.tagName==='DIV') paras.push(t);
+    });
+  });
+  r.sections=r.sections.filter(s=>s.points.length);
+  const sents=(paras.join(' ').match(/[^.!?。]+[.!?。]?/g)||[]).map(s=>s.trim()).filter(Boolean);
+  r.summary=sents.slice(0,2).join(' ') || (r.sections.length?`Covers ${r.sections.map(s=>s.heading).slice(0,5).join(', ')}.`:'');
+  r.conclusion=paras.length>2?paras[paras.length-1]:'';
+  r.quiz=r.quiz.slice(0,10);
+  cupOrgPreview(r, true);
+}
+function cupOrgHTML(r){
+  const w=cupOrgWant(), L=a=>Array.isArray(a)?a:[];
+  let h='';
+  if(w.sum && r.summary) h+=`<blockquote class="callout">${esc(r.summary)}</blockquote>`;
+  if(w.sec && L(r.sections).length) h+=`<h2>Key points</h2>`+L(r.sections).map(s=>`<h3>${esc(s.heading)}</h3><ul>${L(s.points).map(p=>`<li>${esc(p)}</li>`).join('')}</ul>`).join('');
+  if(w.act && L(r.actionItems).length) h+=`<h2>Action items</h2><ul class="todo">${L(r.actionItems).map(a=>`<li${a._task?` data-task="${a._task}"`:''}>${esc(a.task)}${a.due?` · ${esc(cupFmt(a.due))}`:''}</li>`).join('')}</ul>`;
+  if(w.terms && L(r.keyTerms).length) h+=`<h2>Key terms</h2><ul>${L(r.keyTerms).map(k=>`<li><b>${esc(k.term)}</b> — ${esc(k.meaning)}</li>`).join('')}</ul>`;
+  if(w.quiz && L(r.quiz).length) h+=`<h2>Quiz</h2><p><i>Tap an answer to reveal it.</i></p><ol>${L(r.quiz).map(q=>`<li><span class="quizq">${esc(q.question)}</span><br><span class="ans">${esc(q.answer)}</span></li>`).join('')}</ol>`;
+  if(w.concl && r.conclusion) h+=`<h2>Conclusion</h2><p>${esc(r.conclusion)}</p>`;
+  return h;
+}
+function cupOrgPreview(r, offline){
+  cupOrgResult=r;
+  const acts=(r.actionItems||[]).length, html=cupOrgHTML(r);
+  document.getElementById('cupOrgOut').innerHTML = html ? `<div class="cup-org-prev-h">${offline?'Quick outline':'Preview'} · ${esc(r.title||'')}</div>
+    <div class="cup-org-prev cup-note-body">${html}</div>
+    ${acts?`<label class="cup-org-tasks"><input type="checkbox" id="cupOrgMakeTasks" checked> Also add the ${acts} action item${acts>1?'s':''} to my tasks</label>`:''}
+    <div class="cup-org-save">
+      <button class="btn btn-primary" onclick="cupOrgSave('sub')">Save as a page inside</button>
+      <button class="btn" onclick="cupOrgSave('top')">Add to the top of this page</button>
+    </div>` : '<div class="cup-org-warn">Nothing to organize was found.</div>';
+  document.getElementById('cupOrgOut').scrollIntoView({block:'nearest'});
+}
+function cupOrgSave(where){
+  const r=cupOrgResult, n=cupNoteById(cupNoteId); if(!r||!n) return;
+  const c=cupCommit(n.commitId);
+  if(document.getElementById('cupOrgMakeTasks')?.checked) (r.actionItems||[]).forEach(a=>{
+    const t=cupMakeTask({ title:cupCleanTitle(a.task)||a.task, due:/^\d{4}-\d{2}-\d{2}$/.test(a.due||'')?a.due:'', area:c?c.area:(n.area||''), commitId:c?c.id:'', subject:c?c.name:'', notes:`From page “${n.title||'Untitled'}”` });
+    S.tasks.push(t); a._task=t.id;
+  });
+  const html=cupOrgHTML(r);
+  if(where==='sub'){
+    const kid=cupNewNote('page:'+n.id, (r.title||n.title||'Notes')+' · organized', false);
+    kid.html=cupCleanHTML(html); save(); cupOrgClose(); cupOpenNote(kid.id);
+  } else {
+    n.html=cupCleanHTML(html+'<hr>'+(n.html||'')); n.updatedAt=Date.now(); save(); cupOrgClose(); cupOpenNote(n.id);
+  }
+  render();
+  showToast('Organized page saved.');
+}
+
 // page list (used in folder/area view)
 function cupPagesHTML(sel, commitId, area){
   const list=cupNotesIn(commitId, area);
   return `<div class="cup-pile cup-pages"><div class="cup-pile-h"><span>Pages</span><button class="cup-pile-add" onclick="cupNewNote('${sel}')">+ Page</button></div>
-    ${list.length ? list.map(n=>{ const t=cupNoteText(n); return `<button class="cup-page" onclick="cupOpenNote('${n.id}')"><span class="cup-page-ic">📄</span>
-      <span class="cup-page-main"><b>${esc(n.title||'Untitled')}</b>${t?`<span>${esc(t.slice(0,80))}</span>`:''}</span><span class="cup-dim">${cupFmt(cupISO(new Date(n.updatedAt||n.createdAt)))}</span></button>`; }).join('')
+    ${list.length ? list.map(n=>{ const t=cupNoteText(n), k=cupNoteDesc(n.id).length; return `<button class="cup-page" onclick="cupOpenNote('${n.id}')"><span class="cup-page-ic">${cupIc('page')}</span>
+      <span class="cup-page-main"><b>${esc(n.title||'Untitled')}</b>${t?`<span>${esc(t.slice(0,80))}</span>`:''}</span>${k?`<span class="cup-dim">${k} inside</span>`:''}<span class="cup-dim">${cupFmt(cupISO(new Date(n.updatedAt||n.createdAt)))}</span></button>`; }).join('')
       : '<div class="cup-dim" style="padding:2px 0 4px">Notes, meeting minutes, plans — anything for this folder.</div>'}</div>`;
+}
+
+// ── sidebar: nested pages + drag a page onto a page or folder ──
+let cupDragPage=null;
+function cupSidePages(list, depth){
+  return list.map(n=>{ const kids=cupNoteKidsOf(n.id), ex=cupSideOpen.includes('p:'+n.id);
+    return `<div class="cup-trow cup-tpg ${cupNoteId===n.id?'active':''}" style="--d:${depth}" draggable="true" ondragstart="cupPgDrag(event,'${n.id}')" ondragend="cupPgEnd()" ondragover="cupPgOver(event)" ondragleave="cupPgLeave(event)" ondrop="cupPgDrop(event,'page:${n.id}')">
+      <button class="cup-chev ${ex?'open':''}" ${kids.length?'':'style="visibility:hidden"'} onclick="cupToggleSide('p:${n.id}')" aria-label="${ex?'Collapse':'Expand'} ${esc(n.title||'Untitled')}" aria-expanded="${ex}">›</button>
+      <button class="cup-tname" onclick="cupOpenNote('${n.id}')">${cupIc('page')}<span class="l">${esc(n.title||'Untitled')}</span></button>
+      <button class="cup-tadd" onclick="cupNewNote('page:${n.id}')" title="Add a page inside" aria-label="Add a page inside ${esc(n.title||'Untitled')}">${cupIc('plus')}</button></div>`
+      + (ex?cupSidePages(kids, depth+1):''); }).join('');
+}
+function cupPgDrag(e,id){ cupDragPage=id; e.dataTransfer.effectAllowed='move'; try{ e.dataTransfer.setData('text/plain','page:'+id); }catch(_){} document.body.classList.add('cup-dragging-page'); }
+function cupPgEnd(){ cupDragPage=null; document.body.classList.remove('cup-dragging-page'); document.querySelectorAll('.cup-drop-on').forEach(x=>x.classList.remove('cup-drop-on')); }
+function cupPgOver(e){ if(!cupDragPage) return; e.preventDefault(); e.currentTarget.classList.add('cup-drop-on'); }
+function cupPgLeave(e){ e.currentTarget.classList.remove('cup-drop-on'); }
+function cupPgDrop(e,target){
+  if(!cupDragPage) return; e.preventDefault(); e.stopPropagation();
+  const id=cupDragPage; cupPgEnd();
+  if(target==='page:'+id) return;
+  const n=cupNoteById(id), before={ parentId:n.parentId||'', commitId:n.commitId||'', area:n.area||'' };
+  if(cupFileNote(id, target)){
+    const [k,v]=target.split(':'); if(k==='page'&&!cupSideOpen.includes('p:'+v)){ cupSideOpen=[...cupSideOpen,'p:'+v]; cupPersist(); }
+    if(k==='area'&&!cupSideOpen.includes(v)){ cupSideOpen=[...cupSideOpen,v]; cupPersist(); }
+    render();
+    const where = k==='page' ? `inside “${cupNoteById(v)?.title||'Untitled'}”` : k==='folder' ? `to ${cupCommit(v)?.name}` : k==='area' ? `to ${CUP_AREA[v]?.name}` : 'to Pages';
+    showToast(`Moved “${n.title||'Untitled'}” ${where}.`,'Undo',()=>{ cupFileNote(id, before.parentId?'page:'+before.parentId:before.commitId?'folder:'+before.commitId:before.area?'area:'+before.area:''); render(); });
+  }
 }
 
 // ════════════════════════════════════════════════════════════
@@ -17804,7 +18505,7 @@ function cupWaitingHTML(){
 }
 function cupPagesBlockHTML(){
   const pages=cupNotes().slice().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,6);
-  return (pages.length?pages.map(n=>`<button class="cup-up" onclick="cupOpenNote('${n.id}')"><span>📄</span><span class="t">${esc(n.title||'Untitled')}</span><span class="cup-up-time">${cupFmt(cupISO(new Date(n.updatedAt||n.createdAt)))}</span></button>`).join(''):'<div class="cup-dim">No pages yet.</div>')
+  return (pages.length?pages.map(n=>`<button class="cup-up" onclick="cupOpenNote('${n.id}')">${cupIc('page')}<span class="t">${esc(n.title||'Untitled')}</span><span class="cup-up-time">${cupFmt(cupISO(new Date(n.updatedAt||n.createdAt)))}</span></button>`).join(''):'<div class="cup-dim">No pages yet.</div>')
     + `<button class="cup-more-btn" onclick="cupNewNote('')">+ New page</button>`;
 }
 function cupGardenBlockHTML(){
@@ -17814,17 +18515,17 @@ function cupGardenBlockHTML(){
     <button class="cup-more-btn" onclick="cupOpenGarden('friends')">👋 Friends & groups</button>`;
 }
 const CUP_BLOCKS = {
-  todo:      ['☐','To-do today', cupTodoHTML],
-  upcoming:  ['◔','Upcoming', ()=>cupUpcomingHTML(cupUpcoming(8))],
-  deadlines: ['⏰','Deadlines', cupDeadlinesHTML],
-  habits:    ['↻','Habits today', cupHabitsHTML],
-  week:      ['▦','This week', cupWeekBlockHTML, 'wide'],
-  goals:     ['◎','Goals', cupGoalsHTML],
-  principles:['!','Principles', cupPrinciplesHTML],
-  time:      ['◷','Time', cupTimeBars],
-  pages:     ['📄','Pages', cupPagesBlockHTML],
-  waiting:   ['⧗','Waiting on', cupWaitingHTML],
-  garden:    ['🌳','Garden', cupGardenBlockHTML],
+  todo:      [cupIc('check'),'To-do today', cupTodoHTML],
+  upcoming:  [cupIc('wait'),'Upcoming', ()=>cupUpcomingHTML(cupUpcoming(8))],
+  deadlines: [cupIc('cal'),'Deadlines', cupDeadlinesHTML],
+  habits:    [cupIc('habit'),'Habits today', cupHabitsHTML],
+  week:      [cupIc('week'),'This week', cupWeekBlockHTML, 'wide'],
+  goals:     [cupIc('goal'),'Goals', cupGoalsHTML],
+  principles:[cupIc('quote'),'Principles', cupPrinciplesHTML],
+  time:      [cupIc('wait'),'Time', cupTimeBars],
+  pages:     [cupIc('page'),'Pages', cupPagesBlockHTML],
+  waiting:   [cupIc('wait'),'Waiting on', cupWaitingHTML],
+  garden:    [cupIc('leaf'),'Garden', cupGardenBlockHTML],
 };
 const CUP_TEMPLATES = [
   ['focus','Just focus','Only your one task. Nothing else on the page.',[]],
@@ -17872,9 +18573,284 @@ function cupRenderSideExtras(){
   const pages=cupNotes().slice().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,5);
   const html=`<div class="cup-side-head"><span>Upcoming</span></div>
     ${up.length?up.map(x=>`<button class="cup-side-up" ${x.id?`onclick="editTask('${x.id}')"`:''}><i style="background:${x.color}"></i><span class="l">${esc(x.title)}</span><span class="cup-n">${x.ds!==todayStr()?'Tmrw ':''}${x.time?cupT12(x.time):''}</span></button>`).join(''):'<div class="cup-side-empty">Nothing timed today.</div>'}
-    ${pages.length?`<div class="cup-side-head" style="margin-top:10px"><span>Recent pages</span></div>${pages.map(n=>`<button class="cup-side-up" onclick="cupOpenNote('${n.id}')"><span class="l">📄 ${esc(n.title||'Untitled')}</span></button>`).join('')}`:''}`;
+    ${pages.length?`<div class="cup-side-head" style="margin-top:10px"><span>Recent pages</span></div>${pages.map(n=>`<button class="cup-side-up" onclick="cupOpenNote('${n.id}')">${cupIc('page')}<span class="l">${esc(n.title||'Untitled')}</span></button>`).join('')}`:''}`;
   if(host._last!==html){ host.innerHTML=html; host._last=html; }
 }
+
+// ════════════════════════════════════════════════════════════
+//  + BAR — one place to add anything. ⌘K / Ctrl+K or the + button.
+//  Type once, pick what it becomes. Dates and times are understood.
+// ════════════════════════════════════════════════════════════
+const CUP_PLUS = [
+  // id, label, icon, hint
+  ['task','Task','check','“INFO 380 reading due fri 3pm”'],
+  ['page','Page','page','A new page to write in'],
+  ['note','Quick note','note','Adds a line to a page'],
+  ['event','Event','cal','“Coffee chat oct 19 10am”'],
+  ['habit','Habit','habit','“Gym mon wed fri 7am”'],
+  ['waiting','Waiting on','wait','Something you sent and are waiting to hear back on'],
+  ['folder','Folder','folder','A class, club or project'],
+  ['import','Import many','import','Paste a whole list at once'],
+];
+let cupPlusType='task', cupPlusPicked=false;
+function cupPlusMount(){
+  if(document.getElementById('cupPlus')) return;
+  const fab=document.createElement('button');
+  fab.id='cupPlusFab'; fab.className='cup-plus-fab'; fab.setAttribute('aria-label','Add anything (⌘K)'); fab.title='Add anything · ⌘K';
+  fab.innerHTML=cupIc('plus'); fab.onclick=()=>cupPlusOpen();
+  document.body.appendChild(fab);
+  const el=document.createElement('div');
+  el.id='cupPlus'; el.className='cup-plus'; el.setAttribute('role','dialog'); el.setAttribute('aria-label','Add');
+  el.onclick=e=>{ if(e.target===el) cupPlusClose(); };
+  el.innerHTML=`<div class="cup-plus-box">
+    <div class="cup-plus-in"><span id="cupPlusIc"></span><input id="cupPlusInput" autocomplete="off" oninput="cupPlusInput()" onkeydown="cupPlusKey(event)" aria-label="What do you want to add?"></div>
+    <div class="cup-plus-types" id="cupPlusTypes" role="tablist"></div>
+    <div class="cup-plus-row"><span class="cup-plus-lbl">In</span><select id="cupPlusWhere" aria-label="Where it goes"></select><span class="cup-plus-prev" id="cupPlusPrev"></span></div>
+    <div class="cup-plus-foot"><span><kbd>Enter</kbd> add</span><span><kbd>Tab</kbd> change type</span><span><kbd>Esc</kbd> close</span><button class="btn btn-primary" onclick="cupPlusGo()">Add</button></div>
+  </div>`;
+  document.body.appendChild(el);
+  // ⌘K / Ctrl+K anywhere opens this (replaces the old brain-dump box)
+  window.addEventListener('keydown', e=>{
+    if((e.metaKey||e.ctrlKey) && (e.key==='k'||e.key==='K')){ e.preventDefault(); e.stopImmediatePropagation(); el.classList.contains('show')?cupPlusClose():cupPlusOpen(); }
+    else if(e.key==='Escape' && el.classList.contains('show')){ e.stopImmediatePropagation(); cupPlusClose(); }
+  }, true);
+}
+function cupPlusOpen(type, text){
+  cupPlusMount();
+  cupPlusType=type||'task'; cupPlusPicked=!!type;
+  const inp=document.getElementById('cupPlusInput'); inp.value=text||'';
+  cupPlusWhereOptions(); cupPlusSync();
+  document.getElementById('cupPlus').classList.add('show');
+  setTimeout(()=>inp.focus(),30);
+}
+function cupPlusClose(){ document.getElementById('cupPlus')?.classList.remove('show'); }
+function cupPlusWhereOptions(){
+  const sel=document.getElementById('cupPlusWhere');
+  // default: the folder you're looking at, or the open page
+  const def = cupNoteId ? 'page:'+cupNoteId : (cupBankSel.startsWith('folder:')||cupBankSel.startsWith('area:')) ? cupBankSel : '';
+  const isPage = cupPlusType==='page'||cupPlusType==='note';
+  const pages=[]; const walk=(list,d)=>list.forEach(p=>{ pages.push(`<option value="page:${p.id}">${'\u00a0\u00a0'.repeat(d)}${esc(p.title||'Untitled')}</option>`); walk(cupNoteKidsOf(p.id),d+1); });
+  walk(cupNotes().filter(p=>!cupNoteParent(p)).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)),0);
+  sel.innerHTML = cupPlusType==='note'
+    ? `<option value="">Inbox page</option>${pages.join('')}`
+    : `<option value="">${isPage?'Pages (not filed)':'No folder'}</option>` + cupFolderOptions('').replace('<option value="">None</option>','') + (isPage&&pages.length?`<optgroup label="Inside a page">${pages.join('')}</optgroup>`:'');
+  if(def && [...sel.options].some(o=>o.value===def)) sel.value=def;
+  else if(def.startsWith('page:') && cupPlusType!=='note' && !isPage){ const n=cupNoteById(def.slice(5)); const f=n&&n.commitId?'folder:'+n.commitId:n&&n.area?'area:'+n.area:''; if([...sel.options].some(o=>o.value===f)) sel.value=f; }
+  sel.parentElement.style.display = (cupPlusType==='import'||cupPlusType==='folder') ? 'none' : '';
+}
+function cupPlusSync(){
+  const t=CUP_PLUS.find(x=>x[0]===cupPlusType);
+  document.getElementById('cupPlusTypes').innerHTML=CUP_PLUS.map(([id,l,ic])=>`<button role="tab" aria-selected="${id===cupPlusType}" class="${id===cupPlusType?'on':''}" onmousedown="event.preventDefault()" onclick="cupPlusSet('${id}')">${cupIc(ic)}${l}</button>`).join('');
+  document.getElementById('cupPlusIc').innerHTML=cupIc(t[2]);
+  document.getElementById('cupPlusInput').placeholder = cupPlusType==='import' ? 'Paste or type many lines…' : t[3];
+  cupPlusPreview();
+}
+function cupPlusSet(id){ cupPlusType=id; cupPlusPicked=true; cupPlusWhereOptions(); cupPlusSync(); document.getElementById('cupPlusInput').focus(); }
+function cupPlusInput(){
+  const v=document.getElementById('cupPlusInput').value;
+  if(!cupPlusPicked){   // guess the type from the words, until you pick one yourself
+    const lo=v.toLowerCase(), was=cupPlusType;
+    cupPlusType = /\n/.test(v) ? 'import' : /\b(habit|daily|every ?day|weekdays|each (mon|tue|wed|thu|fri|sat|sun))/.test(lo) ? 'habit'
+      : /\b(meeting|coffee chat|appointment|interview|dinner|lunch with|event)\b/.test(lo) && /\d\s*(am|pm)|\d:\d\d/.test(lo) ? 'event'
+      : /\b(waiting on|heard back|applied to|submitted)\b/.test(lo) ? 'waiting' : 'task';
+    if(was!==cupPlusType){ cupPlusWhereOptions(); cupPlusSync(); return; }
+  }
+  cupPlusPreview();
+}
+function cupPlusPreview(){
+  const v=document.getElementById('cupPlusInput').value.trim(), el=document.getElementById('cupPlusPrev'); if(!el) return;
+  if(!v || !/^(task|event|habit|waiting)$/.test(cupPlusType)){ el.textContent=''; return; }
+  const n=parseNLP(v), bits=[];
+  if(cupPlusType==='habit'){ const d=n.scheduledDays&&n.scheduledDays.length?n.scheduledDays:[0,1,2,3,4,5,6]; bits.push(d.length===7?'Every day':d.map(i=>'SMTWTFS'[i]).join(' ')); }
+  else if(n.due) bits.push((cupPlusType==='event'?'':'Due ')+cupFmt(n.due));
+  else if(cupPlusType==='event') bits.push('Today');
+  if(n.scheduledTime) bits.push(cupT12(n.scheduledTime));
+  if(n.priority==='MUST'||n.priority==='high') bits.push(n.priority==='MUST'?'Must':'High');
+  el.textContent=bits.join(' · ');
+}
+function cupPlusKey(e){
+  if(e.key==='Tab'){ e.preventDefault(); const i=CUP_PLUS.findIndex(x=>x[0]===cupPlusType); cupPlusSet(CUP_PLUS[(i+(e.shiftKey?-1:1)+CUP_PLUS.length)%CUP_PLUS.length][0]); }
+  else if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); cupPlusGo(); }
+}
+function cupPlusGo(){
+  const inp=document.getElementById('cupPlusInput'), raw=inp.value.trim(), where=document.getElementById('cupPlusWhere').value;
+  const type=cupPlusType;
+  if(!raw && !/^(page|folder|import)$/.test(type)){ inp.focus(); return; }
+  const [wk,wv]=where.split(':'), c=wk==='folder'?cupCommit(wv):null, area=c?c.area:(wk==='area'?wv:'');
+  const base={ area, commitId:c?c.id:'', subject:c?c.name:'' };
+  const n=parseNLP(raw), title=cupCleanTitle(raw)||raw;
+  cupPlusClose(); inp.value='';
+  if(type==='page'){ cupNewNote(where, raw); return; }
+  if(type==='folder'){ cupOpenFolder(null); setTimeout(()=>{ const f=document.getElementById('cupCName'); if(f){ f.value=raw; f.focus(); } },60); return; }
+  if(type==='import'){ cupOpenImport(); const ta=document.getElementById('cupImportText'); if(ta&&raw){ ta.value=raw; cupRenderImportPreview(); } return; }
+  if(type==='note'){
+    let pg = wk==='page' ? cupNoteById(wv) : cupNotes().find(p=>p.inbox);
+    if(!pg){ pg=cupNewNote('', 'Inbox', false); pg.inbox=true; }
+    const stamp=new Date().toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+    pg.html=(pg.html||'')+`<p>${esc(raw)} <i>· ${esc(stamp)}</i></p>`; pg.updatedAt=Date.now(); save(); render();
+    if(cupNoteId===pg.id) cupOpenNote(pg.id);
+    showToast(`Added to “${pg.title||'Untitled'}”.`,'Open',()=>cupOpenNote(pg.id)); return;
+  }
+  if(type==='event'){
+    const date=n.due||todayStr(), st=n.scheduledTime, end=st?String((+st.slice(0,2)+1)%24).padStart(2,'0')+st.slice(2):'';
+    S.events.push({ id:uid(), icsUid:'', createdAt:Date.now(), title, date, endDate:date, noEndDate:false, time:st||'', endTime:end, allDay:!st,
+      recurrence:'none', recurrenceDays:[], subject:base.subject, location:'', notes:'', reminder:'none', type:/exam|midterm|final|quiz|test/i.test(title)?'test':'event',
+      color:(typeof eventColorForType==='function'?eventColorForType('event'):'') });
+    save(); render(); showToast(`Event added · ${cupFmt(date)}${st?' '+cupT12(st):''}.`); return;
+  }
+  let t;
+  if(type==='habit') t=cupMakeTask(Object.assign(base,{ title, isHabit:true, scheduledDays:n.scheduledDays&&n.scheduledDays.length?n.scheduledDays:[0,1,2,3,4,5,6], habitStart:todayStr(), scheduledTime:n.scheduledTime||'' }));
+  else t=cupMakeTask(Object.assign(base,{ title, due:n.due||'', dueTime:n.due?(n.scheduledTime||''):'', scheduledTime:n.due?'':(n.scheduledTime||''), priority:n.priority, type:n.type==='exam'?'task':n.type,
+    waiting:type==='waiting', submitted:type==='waiting'?todayStr():'' }));
+  if(!t.subject && n.subject) t.subject=n.subject;
+  S.tasks.push(t); save(); render();
+  showToast(`${type==='habit'?'Habit':type==='waiting'?'Waiting on':'Task'} added${t.due?` · due ${cupFmt(t.due)}${t.dueTime?' '+cupT12(t.dueTime):''}`:''}.`,'Open',()=>editTask(t.id));
+}
+
+if(document.readyState!=='loading') cupPlusMount(); else document.addEventListener('DOMContentLoaded', cupPlusMount);
+
+// ════════════════════════════════════════════════════════════
+//  CALENDAR — filters, readable chips, drag to a time.
+//  S.cup.calShow = { events, classes, due, assign, todo, habits, off:{<calendar id>:true} }
+// ════════════════════════════════════════════════════════════
+const CUP_CALF = [
+  // key, label, color var
+  ['events','Events','var(--accent)'],
+  ['classes','Classes','#e9c46a'],
+  ['assign','Assignments','#f59040'],
+  ['due','Deadlines','#f26060'],
+  ['todo','To-dos','#4dd49a'],
+  ['habits','Habits','#b07fff'],
+];
+let cupCalSrcMenu=false;
+function cupCalShow(){ cupEnsure(); const d=S.cup.calShow||(S.cup.calShow={}); CUP_CALF.forEach(([k])=>{ if(d[k]===undefined) d[k]=true; }); if(!d.off||typeof d.off!=='object') d.off={}; return d; }
+const CUP_ASSIGN_TYPES = new Set(['assignment','reading','project','exam','quiz','lab']);
+function cupTaskCalKind(t, ds){
+  if(t.isHabit) return 'habits';
+  if(CUP_ASSIGN_TYPES.has(t.type) || t.area==='academics') return 'assign';
+  if(t.due===ds && !(t.scheduledDates||[]).includes(ds)) return 'due';
+  return 'todo';
+}
+function cupEvCalKind(e){ return (e.cupFolder || e.type==='class') ? 'classes' : 'events'; }
+function cupCalTasksOn(ds){
+  const f=cupCalShow();
+  return S.tasks.filter(t=>!t.archived && (t.scheduledDates?.includes(ds) || (t.due===ds && !isDueSignalDone(t,ds)) || isHabitDueToday(t,ds)) && f[cupTaskCalKind(t,ds)]);
+}
+function cupCalEventsOn(ds){
+  const f=cupCalShow();
+  return S.events.filter(e=>eventOccursOn(e,ds) && f[cupEvCalKind(e)] && !(e.sourceId && f.off[e.sourceId]))
+    .sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+}
+// short time for chips: 9a, 2:30p
+function cupTShort(t){ if(!t) return ''; let [h,m]=t.split(':').map(Number); const ap=h>=12?'p':'a'; h=h%12||12; return `${h}${m?':'+String(m).padStart(2,'0'):''}${ap}`; }
+function cupMonthChips(evs, tasks, ds){
+  const ev=evs.map(e=>`<span class="cal-mini-chip cupc cupc-ev ${e.type==='test'?'exam':''}" style="--c:${esc(e.color||eventColorForType(e.type)||'var(--accent)')}" title="${esc(e.title)}${e.time?' · '+cupT12(e.time):''}${e.location?' · '+esc(e.location):''}"
+      ${e.recurrence==='none'&&!e.cupFolder?`draggable="true" ondragstart="cupEvDragStart(event,'${e.id}')"`:''} onclick="event.stopPropagation();editEvent('${e.id}')">${e.time&&!e.allDay?`<i>${cupTShort(e.time)}</i>`:''}${esc(e.title)}</span>`);
+  const tk=tasks.map(t=>{ const k=cupTaskCalKind(t,ds), done=t.isHabit?!!(t.completedDates&&t.completedDates[ds]):cupDone(t);
+    const isDue=t.due===ds, time=isDue?t.dueTime:t.scheduledTime;
+    return `<span class="cal-mini-chip cupc cupc-${k} ${isDue?'is-due':''} ${done?'done':''}" draggable="true" title="${esc(t.title)}${isDue?' · due'+(t.dueTime?' '+cupT12(t.dueTime):''):''}"
+      ondragstart="onDayTaskDragStart(event,'${t.id}','${ds}')" onclick="event.stopPropagation();editTask('${t.id}')">${time?`<i>${cupTShort(time)}</i>`:''}${esc(t.title)}</span>`; });
+  // deadlines first (they're what you can't miss), then the day in time order
+  const dueIdx=tasks.map((t,i)=>t.due===ds?i:-1).filter(i=>i>=0), rest=tasks.map((t,i)=>t.due!==ds?i:-1).filter(i=>i>=0);
+  return [...dueIdx.map(i=>tk[i]), ...ev, ...rest.map(i=>tk[i])];
+}
+function cupRenderCalFilters(){
+  const host=document.getElementById('cupCalFilters'); if(!host) return;
+  const f=cupCalShow(), srcs=(S.icalSources||[]);
+  const nOff=srcs.filter(s=>f.off[s.id]).length;
+  const chips = CUP_CALF.map(([k,l,c])=>`<button type="button" class="cup-calf-chip ${f[k]?'on':''}" style="--c:${c}" aria-pressed="${!!f[k]}" onclick="cupCalToggle('${k}')"><i></i>${l}</button>`).join('')
+    + (srcs.length?`<button type="button" class="cup-calf-chip cup-calf-more ${cupCalSrcMenu?'open':''}" onclick="cupCalSrcMenu=!cupCalSrcMenu;cupRenderCalFilters()" aria-expanded="${cupCalSrcMenu}">Calendars${nOff?` · ${srcs.length-nOff}/${srcs.length}`:''} ▾</button>`:'');
+  const menu = srcs.length&&cupCalSrcMenu ? `<div class="cup-calf-menu">${srcs.map(s=>`<label><input type="checkbox" ${f.off[s.id]?'':'checked'} onchange="cupCalSrc('${s.id}',this.checked)"><i style="background:${esc(s.color||'var(--accent)')}"></i>${esc(s.name||'Calendar')}</label>`).join('')}
+        <div class="cup-calf-menu-foot"><button onclick="cupCalAll(true)">Show all</button><button onclick="cupCalAll(false)">Only my items</button></div></div>` : '';
+  const html = `<div class="cup-calf-row">${chips}</div>${menu}`;
+  if(host._last!==html){ host.innerHTML=html; host._last=html; }
+}
+function cupCalRerender(){ save(); cupRenderCalFilters(); try{ renderCalendar(); }catch(_){} try{ if(calLayout!=='month') renderWeekView(); }catch(_){} try{ renderCalDayTasks(); }catch(_){} }
+function cupCalToggle(k){ const f=cupCalShow(); f[k]=!f[k]; cupCalRerender(); }
+function cupCalSrc(id,on){ const f=cupCalShow(); if(on) delete f.off[id]; else f.off[id]=true; cupCalRerender(); }
+function cupCalAll(on){ const f=cupCalShow(); f.off={}; if(!on) (S.icalSources||[]).forEach(s=>f.off[s.id]=true); cupCalRerender(); }
+document.addEventListener('click', e=>{ if(cupCalSrcMenu && !e.target.closest('#cupCalFilters')){ cupCalSrcMenu=false; cupRenderCalFilters(); } });
+
+// Week/day view: filtered items; tasks with a time become blocks in the hour grid
+function cupTaskTimeOn(t, ds){
+  if(t.due===ds && t.dueTime && !(t.scheduledDates||[]).includes(ds)) return { time:t.dueTime, due:true };
+  if(t.scheduledTime && ((t.scheduledDates||[]).includes(ds) || isHabitDueToday(t,ds))) return { time:t.scheduledTime, due:false };
+  return null;
+}
+collectAllDayItems = function(ds){
+  const out=[];
+  cupCalTasksOn(ds).forEach(t=>{ if(cupTaskTimeOn(t,ds)) return; out.push({ kind:'task', id:t.id, title:(t.due===ds?'Due · ':'')+t.title, sig:calendarSignalForTask(t,ds), accent:null }); });
+  cupCalEventsOn(ds).forEach(e=>{ if(timeStrToMinutes(e.time)!==null) return; out.push({ kind:'event', id:e.id, title:e.title, sig:e.type==='test'?'exam':(e.type||'event'), accent:e.color }); });
+  return out;
+};
+collectTimedItems = function(ds){
+  const out=[];
+  cupCalEventsOn(ds).forEach(e=>{
+    const start=timeStrToMinutes(e.time); if(start===null) return;
+    const end=timeStrToMinutes(e.endTime), isFocus=e.type==='focus_block';
+    out.push({ kind:'event', id:e.id, title:e.title, startMin:start, durationMin:(end!==null&&end>start)?end-start:60,
+      accent:e.color||eventColorForType(e.type)||'var(--accent)', sig:e.type==='test'?'exam':isFocus?'focus':(e.type||'event'),
+      isFocus, taskIds:Array.isArray(e.taskIds)?e.taskIds:[], onClick:`editEvent('${e.id}')` });
+  });
+  cupCalTasksOn(ds).forEach(t=>{
+    const tt=cupTaskTimeOn(t,ds); if(!tt) return; const start=timeStrToMinutes(tt.time); if(start===null) return;
+    out.push({ kind:'task', id:t.id, title:(tt.due?'Due · ':'')+t.title, startMin:start, durationMin:tt.due?30:Math.max(15, Number(t.estimate||t.duration)||60),
+      accent:(t.area&&typeof cupSphColor==='function'?cupSphColor(t.area):'var(--accent)'), sig:tt.due?'due':'task', isFocus:false, taskIds:[], onClick:`editTask('${t.id}')` });
+  });
+  return out.sort((a,b)=>a.startMin-b.startMin);
+};
+// Side-by-side layout for overlapping blocks + drag blocks to move them
+const _cupRenderWeekView = renderWeekView;
+renderWeekView = function(){
+  _cupRenderWeekView.apply(this, arguments);
+  document.querySelectorAll('#calWeekGrid .cwk-day-col').forEach(col=>{
+    const ds=col.dataset.date;
+    const bl=[...col.querySelectorAll('.cwk-block')].map(b=>({ b, top:parseFloat(b.style.top), bot:parseFloat(b.style.top)+parseFloat(b.style.height) })).sort((a,b)=>a.top-b.top);
+    let group=[], end=-1;
+    const flush=()=>{ const cols=[]; group.forEach(x=>{ let i=cols.findIndex(c=>c<=x.top+0.5); if(i<0){ i=cols.length; cols.push(0); } cols[i]=x.bot; x.col=i; });
+      group.forEach(x=>{ const n=cols.length; x.b.style.left=`calc(${x.col*100/n}% + 2px)`; x.b.style.width=`calc(${100/n}% - 4px)`; x.b.style.right='auto'; }); group=[]; };
+    bl.forEach(x=>{ if(x.top>=end-0.5 && group.length) flush(); group.push(x); end=Math.max(end,x.bot); }); if(group.length) flush();
+    col.querySelectorAll('.cwk-block').forEach(b=>{
+      const m=(b.getAttribute('onclick')||'').match(/^(editTask|editEvent)\('([^']+)'\)/); if(!m) return;
+      if(m[1]==='editTask'){ b.draggable=true; b.ondragstart=ev=>onDayTaskDragStart(ev,m[2],ds); b.classList.add('cwk-task'); }
+      else { const e=S.events.find(x=>x.id===m[2]); if(e && e.recurrence==='none' && !e.cupFolder){ b.draggable=true; b.ondragstart=ev=>cupEvDragStart(ev,m[2]); } }
+    });
+  });
+};
+let cupDragEvent=null;
+function cupEvDragStart(e,id){ e.stopPropagation(); cupDragEvent=id; draggedDayTask=null; draggedBankId=null; try{ e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain','event:'+id); }catch(_){} }
+function cupDropMinutes(e){
+  const col=e.currentTarget; if(!col || !col.classList || !col.classList.contains('cwk-day-col')) return null;
+  const r=col.getBoundingClientRect(), hrs=WEEK_END_HOUR-WEEK_START_HOUR;
+  const m=WEEK_START_HOUR*60 + Math.round(((e.clientY-r.top)/r.height*hrs*60)/15)*15;
+  return Math.max(WEEK_START_HOUR*60, Math.min(WEEK_END_HOUR*60-15, m));
+}
+const cupHHMM = m => String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+const _cupCalDrop = onCalDrop;
+onCalDrop = async function(e, ds){
+  const min=cupDropMinutes(e);
+  if(cupDragEvent){                                   // move a one-off event (keeps its length)
+    e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+    const ev=S.events.find(x=>x.id===cupDragEvent); cupDragEvent=null; if(!ev) return;
+    const before={ date:ev.date, endDate:ev.endDate, time:ev.time, endTime:ev.endTime, allDay:ev.allDay };
+    const s0=timeStrToMinutes(ev.time), e0=timeStrToMinutes(ev.endTime), len=(s0!==null&&e0!==null&&e0>s0)?e0-s0:60;
+    ev.date=ds; ev.endDate=ds;
+    if(min!==null){ ev.time=cupHHMM(min); ev.endTime=cupHHMM(Math.min(24*60-1,min+len)); ev.allDay=false; }
+    save(); render();
+    showToast(`Moved “${ev.title}” to ${cupFmt(ds)}${min!==null?' '+cupT12(ev.time):''}${ev.sourceId?' (a calendar sync may move it back)':''}.`,'Undo',()=>{ Object.assign(ev,before); save(); render(); });
+    return;
+  }
+  const id=(draggedDayTask&&draggedDayTask.id) || getDraggedTaskId(e);
+  const t0=id && S.tasks.find(x=>x.id===id), prevTime=t0?t0.scheduledTime:'';
+  await _cupCalDrop.call(this, e, ds);
+  if(min===null || !t0) return;
+  const t=S.tasks.find(x=>x.id===id);
+  if(t && ((t.scheduledDates||[]).includes(ds) || t.isHabit)){
+    t.scheduledTime=cupHHMM(min); save(); render();
+    showToast(`“${t.title}” at ${cupT12(t.scheduledTime)} on ${cupFmt(ds)}.`,'Undo',()=>{ t.scheduledTime=prevTime; save(); render(); });
+  }
+};
+document.addEventListener('dragend', ()=>{ cupDragEvent=null; });
 
 </script>
 </body>
