@@ -6191,6 +6191,30 @@ body:has(.cup-plus.show) .cup-plus-fab{ display:none; }
 .cup-calf-menu input[type=checkbox]{ width:auto; height:auto; flex:none; margin:0; padding:0; }
 .cup-calf-menu label i{ flex:none; }
 
+/* ════════ Select many ════════ */
+.cup-bank-top{ display:flex; gap:6px; align-items:center; }
+.cup-bank-top .cup-folder-select{ flex:1; min-width:0; }
+body.cup-selecting .cup-sel-btn{ background:var(--accent-dim); color:var(--accent); border-color:var(--accent); }
+body.cup-selecting .bank-task{ cursor:pointer; position:relative; padding-left:34px; }
+body.cup-selecting .bank-task::before{ content:''; position:absolute; left:10px; top:14px; width:16px; height:16px; border-radius:5px; border:1.5px solid var(--border2); background:var(--surface); z-index:2; }
+body.cup-selecting .bank-task.cup-picked{ background:var(--accent-dim); border-color:var(--accent); }
+body.cup-selecting .bank-task.cup-picked::before{ background:var(--accent); border-color:var(--accent); }
+body.cup-selecting .bank-task.cup-picked::after{ content:''; position:absolute; left:16px; top:16px; width:4px; height:8px; border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg); z-index:3; }
+body.cup-selecting .bank-task-x, body.cup-selecting .bank-task-cb{ pointer-events:none; opacity:.3; }
+.cup-selbar{ position:fixed; left:50%; bottom:20px; transform:translateX(-50%); z-index:1100; display:flex; align-items:center; gap:2px; flex-wrap:nowrap; max-width:calc(100vw - 24px); overflow-x:auto; scrollbar-width:none;
+  background:var(--text); color:var(--bg); border-radius:12px; padding:6px 8px; box-shadow:0 12px 36px rgba(0,0,0,.3); font-size:12.5px; }
+.cup-selbar button, .cup-selbar-pick{ display:inline-flex; align-items:center; gap:5px; padding:6px 9px; border-radius:8px; color:inherit; white-space:nowrap; font-size:12.5px; cursor:pointer; position:relative; }
+.cup-selbar button:hover:not(:disabled), .cup-selbar-pick:hover{ background:color-mix(in srgb, var(--bg) 18%, transparent); }
+.cup-selbar button:disabled, .cup-selbar-pick.off{ opacity:.4; cursor:default; }
+.cup-selbar .danger{ color:#ff8a8a; }
+.cup-selbar-n{ padding:0 8px; font-weight:600; white-space:nowrap; }
+.cup-selbar-sep{ width:1px; height:18px; background:color-mix(in srgb, var(--bg) 30%, transparent); margin:0 4px; }
+.cup-selbar-pick input, .cup-selbar-pick select{ position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; }
+.cup-selbar-x{ margin-left:4px; }
+body.cup-selecting .cup-plus-fab{ display:none; }
+@media (max-width:760px){ .cup-selbar{ bottom:calc(80px + env(safe-area-inset-bottom)); } }
+.cup-selbar-pick, .cup-selbar button{ text-transform:none; letter-spacing:0; font-weight:500; }
+
 </style>
 <script>
 /* Immediately apply saved theme + density to avoid flash */
@@ -8093,6 +8117,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <tr><td><code>@ Fair  Oct 22 11am-3pm</code></td><td>Calendar event</td></tr>
             <tr><td><code>… // note</code></td><td>Anything after <code>//</code> becomes the description</td></tr>
             <tr><td><code>[Gym] Buy shoes</code></td><td>Put one line in a folder without a heading</td></tr>
+            <tr><td><code>+ Lecture 6 notes</code></td><td>A page in this folder. Lines starting with <code>&gt;</code> under it are its text (<code>&gt; # Heading</code>, <code>&gt; - bullet</code>, <code>&gt; [ ] to-do</code> work too).</td></tr>
+            <tr><td><code>++ Formulas</code></td><td>A page inside the page above it</td></tr>
+            <tr><td><code>HW 3 due Fri</code></td><td>Words like <i>hw</i>, <i>reading</i>, <i>exam</i>, <i>project</i> set the type, so it shows under that calendar filter</td></tr>
           </table>
         </details>
       </div>
@@ -16268,7 +16295,7 @@ function cupRenderBankHead(){
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button class="mini-btn" onclick="cupAddTaskTo('apps')">+ Application</button>
       <button class="mini-btn" onclick="cupCopyTargets(this)">Copy ${n} “to apply” as CSV</button></div></div>`;
   }
-  const html = `<select class="mini-select cup-folder-select" aria-label="Show folder" onchange="cupSetBankSel(this.value)">${opts}</select>${head}`;
+  const html = `<div class="cup-bank-top"><select class="mini-select cup-folder-select" aria-label="Show folder" onchange="cupSetBankSel(this.value)">${opts}</select><button class="mini-btn cup-sel-btn" onclick="cupSelToggle()" title="Pick several tasks (or Shift-click a task)">Select</button></div>${head}`;
   if(host._last!==html){ host.innerHTML=html; host._last=html; }
 }
 async function cupCopyTargets(btn){
@@ -16684,6 +16711,7 @@ function cupDeleteFolder(){
 // ── called from Focus Hub's render() ──
 function renderCup(){
   cupPlusMount();
+  if(cupSel) setTimeout(cupSelPaint,0);
   cupRenderCalFilters();
   cupEnsure();
   if(typeof currentUser!=='undefined' && currentUser && CUP_SEED && cupSeedVersion() < (CUP_SEED.version||1)) cupImportSeed();
@@ -16776,6 +16804,9 @@ const CUP_IMPORT_EXAMPLE = `# INFO 380
 Group Project 2 draft  Oct 15 3pm  !must
 Read Ch 6 by Tue 8:30am
 ~ Peer review wk 3  sent Oct 13
++ Lecture 6 notes
+> Process improvement: measure, then change
+> [ ] Ask about the case study
 
 # Clubs › Synaptech
 Borrow Cyton board  next Mon
@@ -16841,13 +16872,24 @@ function cupTimeTo24(s){ return s ? cupParseTime(s.replace(/\s+/g,'')) : ''; }
 // ── quick lines ──
 function cupParseLines(text){
   const out=[], errors=[];
-  let folder=null, folderName='';
+  let folder=null, folderName='', lastPage=null, lastTop=null;
   text.split('\n').forEach((raw,ix)=>{
     let line=raw.replace(/^\s*(?:[-–•]|\d+[.)]|\[\s?\])\s+/,'').trim();
     if(!line || /^```/.test(line)) return;
+    // "> text" adds a line to the page above it
+    const rawT=raw.trim();
+    if(/^>\s?/.test(rawT) && lastPage){ lastPage.notes=(lastPage.notes?lastPage.notes+'\n':'')+rawT.replace(/^>\s?/,''); return; }
     // heading: "# Folder" or "Folder:"
     const h=line.match(/^#+\s*(.+)$/) || (line.length<40 && !/\d/.test(line.replace(/\b[A-Z]{2,6}\s*\d{3}\b/,'')) && line.match(/^(.+):$/));
-    if(h){ folderName=h[1].trim(); folder=cupResolveFolder(folderName); return; }
+    if(h){ folderName=h[1].trim(); folder=cupResolveFolder(folderName); lastPage=null; return; }
+    // "+ Page title" makes a page; "++ Sub-page" goes inside the page above
+    const pg=line.match(/^(\+\+?)\s*(.+)$/);
+    if(pg){
+      let t=pg[2].trim(), body=''; const sp=t.split(/\s\/\/\s?/); if(sp.length>1){ t=sp[0].trim(); body=sp.slice(1).join(' // ').trim(); }
+      let pf=folder; const il=t.match(/^\[([^\]]+)\]\s*/); if(il){ pf=cupResolveFolder(il[1]); t=t.slice(il[0].length); }
+      const item={ kind:'page', title:t, folder:pf, notes:body, parentRef: pg[1]==='++' && lastTop ? lastTop : null };
+      out.push(item); lastPage=item; if(pg[1]==='+') lastTop=item; return;
+    }
     let kind='task';
     const pre=line.match(/^([~*@])\s*/);
     if(pre){ kind={'~':'waiting','*':'habit','@':'event'}[pre[1]]; line=line.slice(pre[0].length); }
@@ -16885,6 +16927,24 @@ function cupParseLines(text){
   });
   return { items:out, errors };
 }
+// page text (# heading, - bullet, 1. numbered, [ ] to-do, > quote) → page HTML
+function cupMdToHTML(md){
+  const out=[]; let list=null;
+  const close=()=>{ if(list){ out.push(`</${list.tag}>`); list=null; } };
+  const open=(tag,cls)=>{ if(!list||list.tag!==tag||list.cls!==cls){ close(); out.push(`<${tag}${cls?` class="${cls}"`:''}>`); list={tag,cls}; } };
+  String(md||'').split('\n').forEach(l=>{ const t=l.trim(); let m;
+    if(!t){ close(); return; }
+    if((m=t.match(/^#{3,}\s+(.+)/))||(m=t.match(/^##\s+(.+)/))){ close(); out.push(`<h3>${esc(m[1])}</h3>`); }
+    else if((m=t.match(/^#\s+(.+)/))){ close(); out.push(`<h2>${esc(m[1])}</h2>`); }
+    else if((m=t.match(/^[-*]?\s*\[( |x|X)?\]\s+(.+)/))){ open('ul','todo'); out.push(`<li${m[1]&&m[1].trim()?' class="done"':''}>${esc(m[2])}</li>`); }
+    else if((m=t.match(/^[-*•]\s+(.+)/))){ open('ul',''); out.push(`<li>${esc(m[1])}</li>`); }
+    else if((m=t.match(/^\d+[.)]\s+(.+)/))){ open('ol',''); out.push(`<li>${esc(m[1])}</li>`); }
+    else if((m=t.match(/^>\s*(.+)/))){ close(); out.push(`<blockquote>${esc(m[1])}</blockquote>`); }
+    else if(/^-{3,}$/.test(t)){ close(); out.push('<hr>'); }
+    else { close(); out.push(`<p>${esc(t)}</p>`); }
+  });
+  close(); return out.join('');
+}
 function cupParseLooseDate(s){
   s=String(s||'').trim().toLowerCase();
   const t=new Date(); t.setHours(0,0,0,0);
@@ -16908,7 +16968,8 @@ function cupParseJSON(text){
     const f = x.folder ? cupResolveFolder(x.folder) : null;
     const pri={must:'MUST',high:'high',medium:'medium',med:'medium',low:'low'}[String(x.priority||'').toLowerCase()]||'medium';
     switch(x.do){
-      case 'add_task': items.push({ kind:x.status==='waiting'?'waiting':'task', title:x.title, folder:f, due:x.due||'', time:x.dueTime||'', priority:pri, notes:x.notes||'', link:x.link||'', submitted:x.submitted||'', decisionBy:x.decisionBy||'', appStage:x.applicationStage||'' }); break;
+      case 'add_task': items.push({ kind:x.status==='waiting'?'waiting':'task', title:x.title, folder:f, due:x.due||'', time:x.dueTime||'', priority:pri, notes:x.notes||'', link:x.link||'', submitted:x.submitted||'', decisionBy:x.decisionBy||'', appStage:x.applicationStage||'', type:x.type||'task' }); break;
+      case 'add_page': items.push({ kind:'page', title:x.title, folder:f, notes:x.content||x.notes||'', parentTitle:x.parent||'' }); break;
       case 'add_habit': items.push({ kind:'habit', title:x.title, folder:f, time:x.time||'', days:(x.days&&x.days.length?x.days:['sun','mon','tue','wed','thu','fri','sat']).map(d=>DAYS[String(d).slice(0,3).toLowerCase()]).filter(n=>n!==undefined), weeklyGoal:+x.timesPerWeek||0, notes:x.notes||'', priority:'medium' }); break;
       case 'add_event': items.push({ kind:'event', title:x.title, folder:f, due:x.date||'', start:x.start||'', end:x.end||'', location:x.location||'', notes:x.notes||'' }); break;
       case 'add_folder': items.push({ kind:'folder', title:x.name, area:cupMatchArea(x.area)||x.area||'personal', role:x.role||'', hours:+x.hoursPerWeek||0, slots:x.weeklyTimes||'', notes:x.notes||'' }); break;
@@ -16930,11 +16991,11 @@ function cupImportParse(text){
   const isJSON=/"actions"\s*:/.test(bare) || /^[\[{]/.test(bare);
   return Object.assign({ mode:isJSON?'claude':'lines' }, isJSON?cupParseJSON(text):cupParseLines(text));
 }
-const CUP_KIND = { task:['○','Task'], waiting:['⧗','Waiting'], habit:['↻','Habit'], event:['◷','Event'], folder:['▤','New folder'], update:['✎','Change'] };
+const CUP_KIND = { page:['▢','Page'], task:['○','Task'], waiting:['⧗','Waiting'], habit:['↻','Habit'], event:['◷','Event'], folder:['▤','New folder'], update:['✎','Change'] };
 function cupRenderImportPreview(){
   const ta=document.getElementById('cupImportText'); if(!ta) return;
   const r=cupImportParse(ta.value);
-  cupImportItems=r.items.map(x=>Object.assign({on:true},x));
+  cupImportItems=r.items.map(x=>Object.assign({on:true,_src:x},x));
   const box=document.getElementById('cupImportPreview'), btn=document.getElementById('cupImportApply'), det=document.getElementById('cupImportDetected');
   det.textContent = !r.mode ? '' : r.mode==='claude' ? `Reading Claude’s reply · ${r.items.length} change${r.items.length===1?'':'s'}` : `Reading quick lines · ${r.items.length} item${r.items.length===1?'':'s'}`;
   cupImpStart(r.errors, r.mode?'':'<div class="cup-imp-empty">Your items will show up here, one at a time, before anything is added.</div>');
@@ -16956,6 +17017,8 @@ function cupImpChips(it){
   else if(it.due) bits.push(`⏰ ${cupParse(it.due).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}${it.time?' · '+cupT12(it.time):''}`);
   if(it.kind==='habit') bits.push('↻ '+(it.weeklyGoal?`${it.weeklyGoal}× a week`:(it.days&&it.days.length&&it.days.length<7?it.days.map(d=>['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d]).join(' '):'daily')));
   if(it.kind==='folder') bits.push(`${CUP_AREA[it.area]?.name||it.area}${it.hours?' · '+it.hours+'h/wk':''}`);
+  if(it.kind==='page'){ const par=it.parentRef?it.parentRef.title:it.parentTitle; if(par) bits.push('inside “'+esc(par)+'”'); const n=(it.notes||'').split('\n').filter(Boolean).length; bits.push(n?`${n} line${n>1?'s':''} of text`:'empty page'); }
+  if(it.type && CUP_ASSIGN_TYPES.has(it.type) && (it.kind==='task')) bits.push(it.type);
   if(it.priority&&it.priority!=='medium') bits.push(it.priority==='MUST'?'<b class="cup-late">MUST</b>':it.priority);
   if(it.kind==='waiting') bits.push('⧗ sent '+cupFmt(it.submitted||todayStr()));
   return f + bits.map(b=>`<span>${b}</span>`).join('');
@@ -17008,16 +17071,16 @@ function cupImpEditForm(it){
   const curF = it.folder ? (it.folder.newName?'new:'+it.folder.newName : it.folder.areaOnly?'area:'+it.folder.area : 'folder:'+it.folder.id) : '';
   const opts = `<option value="">No folder</option>` + (it.folder&&it.folder.newName?`<option value="new:${esc(it.folder.newName)}" selected>+ new folder: ${esc(it.folder.newName)}</option>`:'')
     + cupFolderOptions(curF).replace('<option value="">None</option>','');
-  const isEv=it.kind==='event', isH=it.kind==='habit', isF=it.kind==='folder';
+  const isEv=it.kind==='event', isH=it.kind==='habit', isF=it.kind==='folder', isP=it.kind==='page';
   return `<div class="cup-c1 cup-c1-edit"><div class="cup-c1-top"><span class="cup-c1-kind">✎ Edit</span><span class="cup-dim">${cupImpIdx+1} of ${cupImportItems.length}</span></div>
     <div class="cup-form">
       <div class="form-row full"><label>Title</label><input id="cupImpT" value="${esc(it.title)}"></div>
       ${isF?'':`<div class="form-row full"><label>Folder</label><select id="cupImpF">${opts}</select></div>`}
-      ${isH||isF?'':`<div class="form-row"><label>${isEv?'Date':'Due date'}</label><input type="date" id="cupImpD" value="${esc(it.due||'')}"></div>
+      ${isH||isF||isP?'':`<div class="form-row"><label>${isEv?'Date':'Due date'}</label><input type="date" id="cupImpD" value="${esc(it.due||'')}"></div>
       <div class="form-row"><label>${isEv?'Start':'Due time'}</label><input type="time" id="cupImpTm" value="${esc((isEv?it.start:it.time)||'')}"></div>`}
       ${isEv?`<div class="form-row"><label>End</label><input type="time" id="cupImpE" value="${esc(it.end||'')}"></div>`:''}
-      ${isEv||isF?'':`<div class="form-row"><label>Priority</label><select id="cupImpP">${['MUST','high','medium','low'].map(p=>`<option value="${p}" ${it.priority===p?'selected':''}>${p==='MUST'?'MUST':p[0].toUpperCase()+p.slice(1)}</option>`).join('')}</select></div>`}
-      <div class="form-row full"><label>Description</label><textarea id="cupImpN" rows="3">${esc(it.notes||'')}</textarea></div>
+      ${isEv||isF||isP?'':`<div class="form-row"><label>Priority</label><select id="cupImpP">${['MUST','high','medium','low'].map(p=>`<option value="${p}" ${it.priority===p?'selected':''}>${p==='MUST'?'MUST':p[0].toUpperCase()+p.slice(1)}</option>`).join('')}</select></div>`}
+      <div class="form-row full"><label>${isP?'Page text':'Description'}</label><textarea id="cupImpN" rows="${isP?8:3}">${esc(it.notes||'')}</textarea></div>
     </div>
     <div class="cup-c1-actions"><span style="flex:1"></span>
       <button type="button" class="btn btn-ghost" onclick="cupImpEditing=false;cupImpCard()">Cancel</button>
@@ -17087,7 +17150,19 @@ function cupApplyImport(){
     S.commitments.push(c); made[cupNorm(it.title)]=c; cupSyncSlotEvents(c); added++;
   });
   const today=todayStr();
-  on.filter(x=>x.kind!=='folder').forEach(it=>{
+  // pages (and pages inside pages)
+  on.filter(x=>x.kind==='page').forEach(it=>{
+    const c=folderFor(it.folder);
+    const pref = it.parentRef ? cupImportItems.find(x=>x._src===it.parentRef||x===it.parentRef) : null;
+    let parent = pref && pref.on && pref._note ? pref._note : null;
+    if(!parent && it.parentTitle) parent=cupNotes().find(n=>cupNorm(n.title)===cupNorm(it.parentTitle)) || null;
+    const same=cupNotes().find(n=>cupNorm(n.title)===cupNorm(it.title) && (n.parentId||'')===(parent?parent.id:'') && (n.commitId||'')===(c?c.id:(parent?parent.commitId||'':'')));
+    const html=cupMdToHTML(it.notes||'');
+    if(same){ same.html=(same.html||'')+html; same.updatedAt=Date.now(); it._note=same; changed++; return; }
+    const sel = parent ? 'page:'+parent.id : c ? 'folder:'+c.id : (it.folder&&it.folder.areaOnly) ? 'area:'+it.folder.area : '';
+    const n=cupNewNote(sel, it.title, false); n.html=html; it._note=n; added++;
+  });
+  on.filter(x=>x.kind!=='folder'&&x.kind!=='page').forEach(it=>{
     const c=folderFor(it.folder);
     const base={ area:c?c.area:(it.folder&&it.folder.area)||'', commitId:c?c.id:'', subject:c?c.name:'' };
     if(it.kind==='update'){
@@ -17117,7 +17192,7 @@ function cupApplyImport(){
       added++; return;
     }
     S.tasks.push(cupMakeTask(Object.assign(base,{ title:it.title, due:it.due||'', dueTime:it.due?(it.time||''):'', scheduledTime:it.due?'':(it.time||''),
-      priority:it.priority||'medium', notes:it.notes||'', link:it.link||'', type:it.type==='reading'?'reading':it.type==='assignment'?'assignment':'task',
+      priority:it.priority||'medium', notes:it.notes||'', link:it.link||'', type:CUP_ASSIGN_TYPES.has(it.type)?it.type:'task',
       waiting:it.kind==='waiting', submitted:it.kind==='waiting'?(it.submitted||today):'', decisionBy:it.decisionBy||'', appStage:it.appStage||'' })));
     added++;
   });
@@ -17138,9 +17213,10 @@ Reply with ONLY one JSON object, no other text:
 {"actions":[ ... ]}
 
 Action types (use exact field names; dates YYYY-MM-DD, times 24h HH:MM):
-{"do":"add_task","title":"short title","folder":"<folder name>","due":"2026-10-20","dueTime":"15:00","priority":"must|high|medium|low","notes":"details, steps, links","link":"https://...","status":"waiting","submitted":"2026-10-12"}
+{"do":"add_task","title":"short title","folder":"<folder name>","type":"task|assignment|reading|project|exam","due":"2026-10-20","dueTime":"15:00","priority":"must|high|medium|low","notes":"details, steps, links","link":"https://...","status":"waiting","submitted":"2026-10-12"}
 {"do":"add_habit","title":"...","folder":"...","days":["mon","wed","fri"],"timesPerWeek":4,"time":"07:00","notes":"..."}
 {"do":"add_event","title":"...","folder":"...","date":"2026-10-22","start":"11:00","end":"15:00","location":"...","notes":"..."}
+{"do":"add_page","title":"Lecture 5 notes","folder":"...","parent":"<title of a page to put it inside, optional>","content":"the notes as markdown: # heading, - bullet, [ ] to-do"}
 {"do":"add_folder","name":"...","area":"Classes|Courses & self-study|Work|Internships & research|Competitions & opportunities|Clubs|Church|Habits|Personal life","role":"...","hoursPerWeek":3,"weeklyTimes":"TTh 18:30-19:30 Meeting","notes":"..."}
 {"do":"update_task","id":"<id from my task list>","due":"...","dueTime":"...","status":"done|waiting|open","priority":"...","title":"new title","notes":"text to add"}
 
@@ -17149,6 +17225,7 @@ Rules:
 - Use my existing folder names below whenever they fit; only add_folder for something genuinely new.
 - If something I mention already exists in my task list, use update_task with its id instead of adding a duplicate.
 - Leave out fields you don't know. Don't invent dates.
+- Notes, lecture notes, meeting minutes or anything to read later → add_page (keep all the details in content). Things to do → add_task. Use type "assignment" for homework and "exam" for tests.
 - Korean is fine — keep my wording.
 
 My folders:
@@ -17174,8 +17251,11 @@ Task title  Oct 15 3pm  !must
 ~ Something I already submitted  sent Oct 12
 * A habit  daily
 @ An event  Oct 22 11am-3pm  // details go after two slashes
++ A page for notes
+> each line of the page starts with >
+++ A page inside the page above
 
-Rules: short titles (2–6 words), details after //. Priorities: !must !high !low. Dates like "Oct 15", times like "3pm". Leave out anything you don't know. Korean is fine.
+Rules: short titles (2–6 words), details after //. Notes and things to read go in pages (+ and > lines); things to do are tasks. Priorities: !must !high !low. Dates like "Oct 15", times like "3pm". Leave out anything you don't know. Korean is fine.
 Use my folders when they fit: ${folders || 'none yet'}.
 
 My notes:
@@ -17254,8 +17334,9 @@ const cupImportSchema = ()=>{
   const S_=t=>({type:t}), obj=(req,props)=>({type:'object',additionalProperties:false,required:req,properties:props});
   const pri={enum:['must','high','medium','low']};
   return obj(['actions'],{ actions:{ type:'array', items:{ anyOf:[
-    obj(['do','title'],{ do:{const:'add_task'}, title:S_('string'), folder:S_('string'), due:{type:'string',format:'date'}, dueTime:S_('string'), priority:pri, notes:S_('string'), link:S_('string'), status:{enum:['open','waiting']}, submitted:{type:'string',format:'date'} }),
+    obj(['do','title'],{ do:{const:'add_task'}, title:S_('string'), folder:S_('string'), type:{enum:['task','assignment','reading','project','exam']}, due:{type:'string',format:'date'}, dueTime:S_('string'), priority:pri, notes:S_('string'), link:S_('string'), status:{enum:['open','waiting']}, submitted:{type:'string',format:'date'} }),
     obj(['do','title'],{ do:{const:'add_habit'}, title:S_('string'), folder:S_('string'), days:{type:'array',items:{enum:['sun','mon','tue','wed','thu','fri','sat']}}, timesPerWeek:S_('integer'), time:S_('string'), notes:S_('string') }),
+    obj(['do','title'],{ do:{const:'add_page'}, title:S_('string'), folder:S_('string'), parent:S_('string'), content:S_('string') }),
     obj(['do','title','date'],{ do:{const:'add_event'}, title:S_('string'), folder:S_('string'), date:{type:'string',format:'date'}, start:S_('string'), end:S_('string'), location:S_('string'), notes:S_('string') }),
     obj(['do','name','area'],{ do:{const:'add_folder'}, name:S_('string'), area:{enum:CUP_AREAS.map(a=>a[1])}, role:S_('string'), hoursPerWeek:S_('number'), weeklyTimes:S_('string'), notes:S_('string') }),
     obj(['do','id'],{ do:{const:'update_task'}, id:S_('string'), title:S_('string'), due:{type:'string',format:'date'}, dueTime:S_('string'), status:{enum:['open','waiting','done']}, priority:pri, notes:S_('string'), folder:S_('string') }),
@@ -17284,7 +17365,7 @@ async function cupAiSort(){
     if(res.stop_reason==='max_tokens') throw new Error('That was too much for one go — split it into two imports.');
     const text=(res.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
     const r=cupParseJSON(text);
-    cupImportItems=r.items.map(x=>Object.assign({on:true},x));
+    cupImportItems=r.items.map(x=>Object.assign({on:true,_src:x},x));
     cupImpStart(r.errors, '<div class="cup-imp-empty">Claude didn’t find anything to add.</div>');
     det.textContent=`Sorted by Claude · ${cupImportItems.length} change${cupImportItems.length===1?'':'s'} — check them, then Apply`;
     cupImportCount();
@@ -18851,6 +18932,72 @@ onCalDrop = async function(e, ds){
   }
 };
 document.addEventListener('dragend', ()=>{ cupDragEvent=null; });
+
+
+// ════════════════════════════════════════════════════════════
+//  SELECT MANY — tap "Select" (or Shift/⌘-click a task) to pick several
+//  tasks, then act on all of them at once.
+// ════════════════════════════════════════════════════════════
+let cupSel=null;
+const cupRowId = el => ((el.getAttribute('onclick')||'').match(/editTask\('([^']+)'\)/)||[])[1];
+function cupSelToggle(on){ cupSel = (on===undefined ? !cupSel : on) ? (cupSel||new Set()) : null; cupSelPaint(); }
+function cupSelPaint(){
+  document.body.classList.toggle('cup-selecting', !!cupSel);
+  document.querySelectorAll('.bank-task').forEach(r=>{ const id=cupRowId(r); r.classList.toggle('cup-picked', !!(cupSel&&id&&cupSel.has(id))); });
+  let bar=document.getElementById('cupSelBar');
+  if(!cupSel){ bar?.remove(); return; }
+  if(!bar){ bar=document.createElement('div'); bar.id='cupSelBar'; bar.className='cup-selbar'; document.body.appendChild(bar); }
+  const n=cupSel.size;
+  bar.innerHTML=`<span class="cup-selbar-n">${n?`${n} selected`:'Tap tasks to select'}</span>
+    <button onclick="cupSelAll()">All</button>
+    <span class="cup-selbar-sep"></span>
+    <button ${n?'':'disabled'} onclick="cupSelDo('done')">${cupIc('check')} Done</button>
+    <button ${n?'':'disabled'} onclick="cupSelDo('today')">${cupIc('date')} Today</button>
+    <label class="cup-selbar-pick ${n?'':'off'}">${cupIc('cal')} Due<input type="date" ${n?'':'disabled'} onclick="try{this.showPicker()}catch(_){}" onchange="cupSelDo('due',this.value)"></label>
+    <label class="cup-selbar-pick ${n?'':'off'}">${cupIc('folder')} Move<select ${n?'':'disabled'} onchange="cupSelDo('move',this.value)"><option value="">Move to…</option><option value="none">No folder</option>${cupFolderOptions('').replace('<option value="">None</option>','')}</select></label>
+    <button ${n?'':'disabled'} onclick="cupSelDo('wait')">${cupIc('wait')} Waiting</button>
+    <button ${n?'':'disabled'} onclick="cupSelDo('page')">${cupIc('page')} Make a page</button>
+    <button ${n?'':'disabled'} class="danger" onclick="cupSelDo('delete')">Delete</button>
+    <button class="cup-selbar-x" onclick="cupSelToggle(false)" aria-label="Stop selecting">✕</button>`;
+}
+function cupSelAll(){ if(!cupSel) cupSel=new Set(); const rows=[...document.querySelectorAll('.bank-task')].map(cupRowId).filter(Boolean); const all=rows.every(id=>cupSel.has(id)); rows.forEach(id=>all?cupSel.delete(id):cupSel.add(id)); cupSelPaint(); }
+document.addEventListener('click', e=>{
+  const row=e.target.closest && e.target.closest('.bank-task'); if(!row) return;
+  if(!cupSel && !(e.shiftKey||e.metaKey||e.ctrlKey)) return;
+  if(e.target.closest('.bank-task-x,.bank-task-cb') && !cupSel) return;
+  const id=cupRowId(row); if(!id) return;
+  e.preventDefault(); e.stopPropagation();
+  if(!cupSel) cupSel=new Set();
+  cupSel.has(id)?cupSel.delete(id):cupSel.add(id); cupSelPaint();
+}, true);
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && cupSel){ cupSelToggle(false); } });
+function cupSelDo(act, val){
+  const ts=S.tasks.filter(t=>cupSel&&cupSel.has(t.id)); if(!ts.length) return;
+  const snap=ts.map(t=>JSON.parse(JSON.stringify(t)));
+  const undo=()=>{ snap.forEach(o=>{ const t=S.tasks.find(x=>x.id===o.id); if(t){ Object.keys(t).forEach(k=>delete t[k]); Object.assign(t,o); } }); save(); render(); };
+  let msg='';
+  if(act==='done'){ ts.forEach(t=>{ if(t.isHabit) return; t.completed=true; t.archived=true; t.completedAt=Date.now(); }); msg=`Finished ${ts.length}`; }
+  else if(act==='today'){ const d=todayStr(); ts.forEach(t=>{ t.scheduledDates=[...new Set([...(t.scheduledDates||[]), d])]; }); msg=`${ts.length} planned for today`; }
+  else if(act==='due'){ if(!val) return; ts.forEach(t=>{ t.due=val; }); msg=`${ts.length} due ${cupFmt(val)}`; }
+  else if(act==='move'){ if(!val) return; const [k,v]=val.split(':'), c=k==='folder'?cupCommit(v):null;
+    ts.forEach(t=>{ t.commitId=c?c.id:''; t.area=c?c.area:(k==='area'?v:''); t.subject=c?c.name:t.subject; }); msg=`Moved ${ts.length} to ${c?c.name:k==='area'?CUP_AREA[v]?.name:'no folder'}`; }
+  else if(act==='wait'){ const d=todayStr(); ts.forEach(t=>{ t.waiting=true; if(!t.submitted) t.submitted=d; }); msg=`${ts.length} marked waiting`; }
+  else if(act==='page'){
+    const c=cupCommit(ts[0].commitId), same=ts.every(t=>t.commitId===ts[0].commitId);
+    const n=cupNewNote(same&&c?'folder:'+c.id:'', `${ts.length} tasks · ${new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'})}`, false);
+    n.html=`<ul class="todo">${ts.map(t=>`<li data-task="${t.id}" class="${cupDone(t)?'done':''}">${esc(t.title)}${t.due?` · ${esc(cupFmt(t.due))}`:''}</li>`).join('')}</ul><p><br></p>`;
+    save(); cupSelToggle(false); render(); cupOpenNote(n.id); showToast('Page made. Checking a box there finishes the task.'); return;
+  }
+  else if(act==='delete'){
+    const entries=ts.map(t=>({ id:uid(), type:'task', deletedAt:Date.now(), item:t }));
+    const ids=new Set(ts.map(t=>t.id)); S.tasks=S.tasks.filter(t=>!ids.has(t.id)); S.deleted=[...entries, ...(S.deleted||[])];
+    cupSel=new Set(); save(); render(); cupSelPaint();
+    showToast(`Deleted ${ts.length} task${ts.length>1?'s':''}. They’re in Settings › Deleted items.`,'Undo',()=>{ entries.forEach(en=>restoreDeleted(en.id)); });
+    return;
+  }
+  save(); render(); cupSelPaint();
+  showToast(msg+'.','Undo',undo);
+}
 
 </script>
 </body>
