@@ -6215,6 +6215,41 @@ body.cup-selecting .cup-plus-fab{ display:none; }
 @media (max-width:760px){ .cup-selbar{ bottom:calc(80px + env(safe-area-inset-bottom)); } }
 .cup-selbar-pick, .cup-selbar button{ text-transform:none; letter-spacing:0; font-weight:500; }
 
+/* ════════ Next up: pace + folded today ════════ */
+.cup-next-pace{ margin-top:14px; display:grid; gap:10px; }
+.cup-pacerow{ border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
+.cup-pacerow-top{ display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:8px; }
+.cup-pacerow-name{ font-weight:600; color:var(--text); text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+.cup-pacerow-name:hover{ text-decoration:underline; }
+.cup-pace-behind{ color:var(--must); font-weight:650; white-space:nowrap; }
+.cup-pace-ahead, .cup-pace-even{ color:var(--green, #4dd49a); font-weight:650; white-space:nowrap; }
+.cup-pace-tick{ margin-left:auto; font-size:12px; padding:3px 9px; border-radius:999px; border:1px solid var(--border); color:var(--text2); white-space:nowrap; }
+.cup-pace-tick:hover{ border-color:var(--accent); color:var(--accent); }
+.cup-pace-cog{ width:24px; height:24px; border-radius:6px; color:var(--text3); }
+.cup-pace-cog:hover{ background:var(--bg2); color:var(--text); }
+.cup-pacerow .cup-pace-txt{ display:flex; justify-content:space-between; gap:8px; font-size:11.5px; color:var(--text3); margin-top:6px; }
+.cup-pacerow .cup-pace-txt span:nth-child(2){ text-align:center; color:var(--text2); }
+.cup-pacerow.big{ padding:12px 14px; margin-bottom:8px; }
+.cup-next-fold{ margin-top:12px; border-top:1px solid var(--border); padding-top:8px; }
+.cup-fold-btn{ display:flex; align-items:center; gap:8px; width:100%; padding:6px 2px; font-size:13px; font-weight:600; color:var(--text2); text-align:left; }
+.cup-fold-btn .cup-dim{ font-weight:400; }
+.cup-fold-btn:hover{ color:var(--text); }
+.cup-fold-chev{ display:inline-block; transition:transform .15s; color:var(--text3); }
+.cup-fold-chev.open{ transform:rotate(90deg); }
+.cup-next-today{ padding:2px 0 4px 18px; }
+.cup-next-links{ display:flex; flex-wrap:wrap; gap:4px 12px; margin-top:6px; }
+/* Goals page */
+.cup-compass{ display:grid; grid-template-columns:1fr 1fr; gap:14px; max-width:1100px; }
+.cup-compass .cup-block.wide{ grid-column:1/-1; }
+@media (max-width:760px){ .cup-compass{ grid-template-columns:1fr; } }
+/* Track a class */
+.cup-pace-modal{ width:min(560px,96vw) !important; }
+.cup-pace-days{ display:flex; flex-wrap:wrap; gap:6px; }
+.cup-pace-days label{ display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border:1px solid var(--border); border-radius:999px; font-size:12.5px; cursor:pointer; }
+.cup-pace-days input{ width:auto; margin:0; }
+.cup-pace-prev{ grid-column:1/-1; margin-top:6px; padding:10px 12px; border-radius:8px; background:var(--bg2); font-size:13px; line-height:1.55; }
+.cup-dl-f{ margin-left:8px; font-size:11px; color:var(--text3); font-family:inherit; }
+
 </style>
 <script>
 /* Immediately apply saved theme + density to avoid flash */
@@ -6493,6 +6528,9 @@ document.addEventListener('DOMContentLoaded', () => {
       </button>
       <button class="nav-item" data-page="focus" onclick="showPage('focus',this)">
         <span>◎</span> Focus
+      </button>
+      <button class="nav-item" data-page="compass" onclick="showPage('compass',this)">
+        <span>◇</span> Goals
       </button>
     </nav>
     <div class="cup-side-extras" id="cupSideExtras" aria-label="Upcoming and recent pages"></div>
@@ -7086,6 +7124,11 @@ document.addEventListener('DOMContentLoaded', () => {
     <!-- ═══════════════════════════════════════
          PAGE: FOCUS
     ═══════════════════════════════════════ -->
+    <section class="page" id="page-compass">
+      <div class="view-header"><div><div class="view-title">Goals</div>
+        <div class="view-sub">Deadlines, goals, principles and how far behind each class you are. Home stays calm.</div></div></div>
+      <div id="cupCompass"></div>
+    </section>
     <section class="page" id="page-focus">
       <div class="view-header">
         <div>
@@ -16276,7 +16319,7 @@ function cupRenderBankHead(){
         ${c.archived?`<button class="mini-btn" onclick="cupArchiveFolder('${c.id}',false)">↺ Restore</button>`:`<button class="mini-btn" onclick="cupOpenFolder('${c.id}')">Edit</button>`}</div>
       ${c.archived?`<div class="cup-fh-meta">Archived — not counted in your weekly load.</div>`:''}
       ${slots||c.when?`<div class="cup-fh-meta">◷ ${slots||esc(c.when)}</div>`:''}
-      ${c.paceOf?cupPaceBar(c.paceOf):''}
+      ${(()=>{ const p=cupPacePlans().find(x=>x.folder&&x.folder.id===c.id); return p?cupPaceRow(p,true):(c.area==='academics'&&!c.archived?`<button class="cup-more-btn" onclick="cupPaceOpen()">+ Track lectures (how far behind am I?)</button>`:''); })()}
       ${c.notes?`<div class="cup-fh-notes">${esc(c.notes)}</div>`:''}</div>
       ${cupPagesHTML(cupBankSel, c.id, c.area)}
       ${cupHabitPile(S.tasks.filter(t=>t.isHabit&&!t.archived&&t.commitId===c.id), cupBankSel)}
@@ -16414,7 +16457,7 @@ function cupPaceBar(name){
 function cupPlanDots(t){
   const p=t.plan; if(!p||!p.of) return '';
   if(p.of>12){
-    const pace=cupPaceBar(p.name); if(pace) return pace;
+    if(cupPace(p.name)) return '';
     const done=S.tasks.filter(x=>x.plan&&x.plan.name===p.name&&cupDone(x)).length;
     return `<span class="cup-plan"><span class="cup-plan-name">${esc(p.name)}</span><span class="cup-minibar"><i style="width:${done/p.of*100}%"></i></span><span class="cup-dim">${p.step}/${p.of}</span></span>`;
   }
@@ -16462,6 +16505,7 @@ function cupGoDay(ds){
   showPage('todo');
 }
 let cupNextOpen=false;
+let cupTodayOpen=false; try{ cupTodayOpen=localStorage.getItem('cup_today_open')==='1'; }catch(_){}
 function cupRenderHome(){
   const next=document.getElementById('cupNextUp'); if(!next) return;
   const q=cupNextQueue(), first=q[0], rest=q.slice(1,3);
@@ -16493,6 +16537,14 @@ function cupRenderHome(){
 `;
   }
   const over=L.ratio>1;
+  // class pace (auto-updates as the class moves) + today's to-dos folded
+  const paces=cupPacePlans();
+  const today=todayStr(), todayN=S.tasks.filter(t=>!t.isHabit&&!t.waiting&&!cupDone(t)&&(t.due===today||(t.scheduledDates||[]).includes(today)||(t.due&&t.due<today))).length;
+  html += `${paces.length?`<div class="cup-next-pace">${paces.map(p=>cupPaceRow(p)).join('')}</div>`:''}
+    <div class="cup-next-fold"><button class="cup-fold-btn" onclick="cupTodayOpen=!cupTodayOpen;try{localStorage.setItem('cup_today_open',cupTodayOpen?'1':'0')}catch(_){};cupRenderHome()" aria-expanded="${cupTodayOpen}">
+      <span class="cup-fold-chev ${cupTodayOpen?'open':''}">›</span>To-do today<span class="cup-dim">${todayN}</span></button>
+      ${cupTodayOpen?`<div class="cup-next-today">${cupTodoHTML()}</div>`:''}</div>
+    <div class="cup-next-links"><button class="cup-more-btn" onclick="showPage('compass')">Deadlines, goals & principles →</button><button class="cup-more-btn" onclick="cupPaceOpen()">+ Track a class</button></div>`;
   // one task only — the rest is a quiet link
   html += `<div class="cup-next-foot">${q.length>1?`<button class="cup-more-btn" onclick="cupSetHomeFull(${!cupHomeFull})">${cupHomeFull?'Hide the full list':`${q.length-1} more coming up · see all`}</button>`:''}</div>${cupDaySel?cupDayPanel(cupDaySel):''}`;
   if(next._last!==html){ next.innerHTML=html; next._last=html; }
@@ -16711,6 +16763,8 @@ function cupDeleteFolder(){
 // ── called from Focus Hub's render() ──
 function renderCup(){
   cupPlusMount();
+  try{ cupPaceReflow(); }catch(_){}
+  if(typeof currentPage!=='undefined' && currentPage==='compass') cupRenderCompass();
   if(cupSel) setTimeout(cupSelPaint,0);
   cupRenderCalFilters();
   cupEnsure();
@@ -18524,7 +18578,7 @@ function cupDeadlinesHTML(){
   const list=S.tasks.filter(t=>!cupDone(t)&&!t.isHabit&&!t.waiting&&t.due&&t.due<=lim).sort((a,b)=>(a.due+(a.dueTime||'99')).localeCompare(b.due+(b.dueTime||'99'))).slice(0,8);
   return `<div class="cup-dl-head"><span>Task</span><span>Date</span></div>`
     + (list.length?list.map(t=>{ const d=cupDays(t.due), late=cupPastDue(t);
-      return `<div class="cup-dl"><button class="cup-check2" onclick="toggleTask('${t.id}')" aria-label="Done"></button><button class="t" onclick="editTask('${t.id}')">${esc(t.title)}</button>
+      return `<div class="cup-dl"><button class="cup-check2" onclick="toggleTask('${t.id}')" aria-label="Done"></button><button class="t" onclick="editTask('${t.id}')">${esc(t.title)}${cupCommit(t.commitId)?`<span class="cup-dl-f">${esc(cupCommit(t.commitId).name.split(' · ')[0])}</span>`:''}</button>
         <span class="cup-dl-date ${late?'cup-late':d<=1?'soon':''}">${d===0?'Today':d===1?'Tomorrow':d<0?`${-d}d late`:cupParse(t.due).toLocaleDateString(undefined,{month:'short',day:'numeric'})}${t.dueTime?' · '+cupT12(t.dueTime):''}</span></div>`; }).join('')
       : '<div class="cup-dim" style="padding:6px 0">No deadlines in the next two weeks.</div>')
     + `<button class="cup-more-btn" onclick="cupOpenTaskSheet(null,{due:'${cupTSDate(1)}'})">+ Add a deadline</button>`;
@@ -18610,17 +18664,19 @@ const CUP_BLOCKS = {
 };
 const CUP_TEMPLATES = [
   ['focus','Just focus','Only your one task. Nothing else on the page.',[]],
-  ['daily','Daily driver','What’s due, what’s next, and your habits.',['todo','upcoming','habits']],
-  ['notion','Notion home','Your Notion layout: time, to-do, deadlines, principles, goals.',['time','todo','deadlines','principles','goals']],
-  ['student','Student week','Deadlines and classes ahead, plus your notes.',['deadlines','upcoming','week','pages']],
+  ['daily','Daily driver','What’s next today and your habits.',['upcoming','habits']],
+  ['notion','Notion home','Time left and what’s coming up.',['time','upcoming']],
+  ['student','Student week','Classes ahead, the week, and your notes.',['upcoming','week','pages']],
   ['together','Grow together','Garden, friends, habits and what you’re waiting on.',['garden','habits','waiting']],
 ];
-function cupHome(){ cupEnsure(); if(!S.cup.home||typeof S.cup.home!=='object') S.cup.home={ blocks:[] }; if(!Array.isArray(S.cup.home.blocks)) S.cup.home.blocks=S.cup.home.blocks?Object.values(S.cup.home.blocks):[]; return S.cup.home; }
+const CUP_OFF_HOME = new Set(['todo','deadlines','goals','principles']);   // these live in Next up / the Goals page now
+function cupHome(){ cupEnsure(); if(!S.cup.home||typeof S.cup.home!=='object') S.cup.home={ blocks:[] }; if(!Array.isArray(S.cup.home.blocks)) S.cup.home.blocks=S.cup.home.blocks?Object.values(S.cup.home.blocks):[];
+  const h=S.cup.home; if(!h.v2){ h.blocks=h.blocks.filter(b=>!CUP_OFF_HOME.has(b)); h.v2=true; } return h; }
 let cupBlockMenu='', cupDragBlock=null;
 function cupRenderDash(){
   const host=document.getElementById('cupDash'); if(!host) return;
-  const h=cupHome(), blocks=h.blocks.filter(b=>CUP_BLOCKS[b]);
-  const avail=Object.keys(CUP_BLOCKS).filter(k=>!blocks.includes(k));
+  const h=cupHome(), blocks=h.blocks.filter(b=>CUP_BLOCKS[b]&&!CUP_OFF_HOME.has(b));
+  const avail=Object.keys(CUP_BLOCKS).filter(k=>!blocks.includes(k)&&!CUP_OFF_HOME.has(k));
   const html = `${blocks.length?`<div class="cup-blocks">${blocks.map(k=>{ const [ic,label,fn,wide]=CUP_BLOCKS[k];
       return `<section class="cup-block ${wide?'wide':''}" data-b="${k}" ondragover="cupBlockOver(event,'${k}')" ondrop="cupBlockDrop(event,'${k}')">
         <h5><span class="cup-bhandle" draggable="true" ondragstart="cupDragBlock='${k}';event.dataTransfer.effectAllowed='move'" title="Drag to move">⋮⋮</span><span class="cup-bic">${ic}</span>${label}
@@ -18637,6 +18693,7 @@ function cupRenderDash(){
         <b>${name}</b><span>${desc}</span><span class="cup-tpl-prev">${bl.length?bl.map(k=>`<i>${CUP_BLOCKS[k][0]} ${CUP_BLOCKS[k][1]}</i>`).join(''):'<i>◎ One task</i>'}</span></button>`).join('')}</div>`:''}`;
   if(host.contains(document.activeElement) && document.activeElement.tagName==='INPUT') return;   // don't re-render under typing
   if(host._last!==html){ host.innerHTML=html; host._last=html; }
+  cupRenderCompass();
 }
 function cupBlockAdd(k){ const h=cupHome(); if(!h.blocks.includes(k)) h.blocks.push(k); h.template=''; cupBlockMenu=''; save(); cupRenderDash(); }
 function cupBlockRemove(k){ const h=cupHome(), i=h.blocks.indexOf(k); h.blocks=h.blocks.filter(x=>x!==k); h.template=''; save(); cupRenderDash();
@@ -18997,6 +19054,185 @@ function cupSelDo(act, val){
   }
   save(); render(); cupSelPaint();
   showToast(msg+'.','Undo',undo);
+}
+
+// ════════════════════════════════════════════════════════════
+//  CLASS PACE — "You L0 · 8 behind · Class L8". Lectures are tasks with a
+//  classDate and plan:{name, step, of}. The class count moves by itself as
+//  dates pass; overdue lectures roll forward each day so the plan stays real.
+// ════════════════════════════════════════════════════════════
+function cupPacePlans(){
+  const names=new Set(); S.tasks.forEach(t=>{ if(t.plan&&t.plan.name&&t.classDate) names.add(t.plan.name); });
+  return [...names].map(name=>{
+    const steps=S.tasks.filter(t=>t.plan&&t.plan.name===name).sort((a,b)=>(a.plan.step||0)-(b.plan.step||0));
+    const first=steps[0], today=todayStr(), c=cupCommit(first.commitId);
+    const of=Math.max(first.plan.of||0, steps.length), cls=steps.filter(x=>x.classDate&&x.classDate<=today).length;
+    const you=steps.filter(cupDone).length, behind=Math.max(0, cls-you);
+    const perDay=+first.plan.perDay||2, mins=+first.plan.minutes||cupPaceMinutes(first)||75;
+    const nextStep=steps.find(x=>!cupDone(x));
+    // when you'd be caught up at perDay (the class keeps moving meanwhile)
+    let caught=null;
+    if(behind>0){ for(let d=0; d<120; d++){ const ds=cupTSDate(d), clsD=steps.filter(x=>x.classDate&&x.classDate<=ds).length; if(you+perDay*(d+1)>=clsD){ caught=ds; break; } } }
+    const prefix=(first.title.match(/^([A-Za-z]+)\d/)||[])[1]||'L';
+    return { name, steps, folder:c, of, cls, you, behind, ahead:Math.max(0,you-cls), perDay, mins, caught, nextStep, prefix, done:you>=of };
+  }).filter(p=>!p.done).sort((a,b)=>b.behind-a.behind);
+}
+// minutes from notes like "(≈ 35 min)" lines
+function cupPaceMinutes(t){ const m=[...String(t.notes||'').matchAll(/≈\s*(\d+)\s*min/g)].reduce((s,x)=>s+(+x[1]),0); return m||0; }
+const cupHrs = m => m>=60 ? `${Math.round(m/60*10)/10}h` : `${m}m`;
+function cupPaceRow(p, big){
+  const pc=x=>Math.min(100, x/p.of*100);
+  const status = p.behind ? `<b class="cup-pace-behind">${p.behind} behind</b>` : p.ahead ? `<b class="cup-pace-ahead">${p.ahead} ahead</b>` : `<b class="cup-pace-even">Caught up</b>`;
+  const left = p.behind ? `${cupHrs(p.behind*p.mins)} to catch up${p.caught?` · even by ${cupParse(p.caught).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})} at ${p.perDay}/day`:''}` : `${p.of-p.you} left in the course`;
+  return `<div class="cup-pacerow ${big?'big':''}">
+    <div class="cup-pacerow-top"><button class="cup-pacerow-name" onclick="${p.folder?`cupSetBankSel('folder:${p.folder.id}')`:''}">${esc(p.folder?p.folder.name:p.name)}</button>${status}
+      ${p.nextStep?`<button class="cup-pace-tick" onclick="toggleTask('${p.nextStep.id}')" title="Mark ${esc(p.nextStep.title)} done">✓ ${esc(p.prefix)}${p.nextStep.plan.step} done</button>`:''}
+      <button class="cup-pace-cog" onclick="cupPaceOpen('${esc(p.name)}')" title="Pace settings" aria-label="Pace settings">⋯</button></div>
+    <div class="cup-pace-bar"><i class="you" style="width:${pc(p.you)}%"></i><span class="cls" style="left:${pc(p.cls)}%"></span></div>
+    <div class="cup-pace-txt"><span><b>You</b> ${esc(p.prefix)}${p.you}</span><span>${left}</span><span><b>Class</b> ${esc(p.prefix)}${p.cls}</span></div></div>`;
+}
+// Overdue lectures roll forward once a day: perDay per day starting today (future plan untouched)
+function cupPaceReflow(){
+  cupEnsure(); const today=todayStr();
+  if(S.cup.paceFlowed===today) return;
+  let moved=0;
+  cupPacePlans().forEach(p=>{
+    const late=p.steps.filter(t=>!cupDone(t) && t.due && t.due<today);
+    if(!late.length) return;
+    // count what's already planned per day so we don't overload a day
+    const load={}; p.steps.forEach(t=>{ if(!cupDone(t)&&t.due>=today) load[t.due]=(load[t.due]||0)+1; });
+    let d=0;
+    late.forEach(t=>{
+      while((load[cupTSDate(d)]||0)>=p.perDay) d++;
+      const nd=cupTSDate(d); load[nd]=(load[nd]||0)+1;
+      t.scheduledDates=[...(t.scheduledDates||[]).filter(x=>x>=today&&x!==t.due), nd];
+      t.due=nd; moved++;
+    });
+  });
+  S.cup.paceFlowed=today;
+  if(moved) save();
+}
+
+// ── "Track a class": make lecture tasks from the class schedule ──
+let cupPaceEdit=null;
+function cupPaceOpen(name){
+  cupPaceMount();
+  const p = name ? cupPacePlans().find(x=>x.name===name) || null : null;
+  cupPaceEdit=p?p.name:null;
+  const sel=document.getElementById('cupPaceFolder');
+  sel.innerHTML=cupFolderOptions(cupBankSel.startsWith('folder:')?cupBankSel:'').replace('<option value="">None</option>','');
+  if(!sel.value || !sel.value.startsWith('folder:')){ const ac=cupActive().find(c=>c.area==='academics'); if(ac) sel.value='folder:'+ac.id; }
+  document.getElementById('cupPaceNew').style.display=p?'none':'';
+  document.getElementById('cupPaceExisting').style.display=p?'':'none';
+  document.getElementById('cupPaceTitle').textContent=p?`${p.folder?p.folder.name:p.name} pace`:'Track a class';
+  document.getElementById('cupPacePerDay').value=p?p.perDay:2;
+  document.getElementById('cupPaceMins').value=p?p.mins:75;
+  if(!p) cupPaceFolderChanged();
+  cupPacePreview();
+  openModal('mCupPace');
+}
+function cupPaceMount(){
+  if(document.getElementById('mCupPace')) return;
+  const el=document.createElement('div'); el.className='overlay'; el.id='mCupPace';
+  const dn=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  el.innerHTML=`<div class="modal cup-pace-modal"><div class="modal-header"><span class="modal-title" id="cupPaceTitle">Track a class</span><button class="modal-close" onclick="closeModal('mCupPace')" aria-label="Close">✕</button></div>
+    <div class="modal-body cup-form">
+      <p class="cup-org-sub">Shows how many lectures you're behind the class, and how long catching up takes. It updates by itself every day.</p>
+      <div id="cupPaceNew">
+        <div class="form-row full"><label>Class folder</label><select id="cupPaceFolder" onchange="cupPaceFolderChanged()"></select></div>
+        <div class="form-row"><label>First lecture</label><input type="date" id="cupPaceStart" oninput="cupPacePreview()"></div>
+        <div class="form-row"><label>Lectures in total</label><input type="number" min="1" max="80" id="cupPaceCount" value="28" oninput="cupPacePreview()"></div>
+        <div class="form-row full"><label>Class meets on</label><div class="cup-pace-days" id="cupPaceDays">${dn.map((d,i)=>`<label><input type="checkbox" value="${i}" onchange="cupPacePreview()">${d}</label>`).join('')}</div></div>
+        <div class="form-row full"><label>No class on (holidays)</label><input id="cupPaceSkip" placeholder="Nov 11, Nov 27" oninput="cupPacePreview()"></div>
+        <div class="form-row full"><label>Lecture titles (optional, one per line)</label><textarea id="cupPaceTitles" rows="4" placeholder="Intro & charge&#10;Charge model&#10;Coulomb's law" oninput="cupPacePreview()"></textarea></div>
+        <div class="form-row"><label>Prefix</label><input id="cupPacePrefix" value="L" maxlength="4" oninput="cupPacePreview()"></div>
+      </div>
+      <div id="cupPaceExisting"></div>
+      <div class="form-row"><label>Catch up per day</label><input type="number" min="1" max="6" id="cupPacePerDay" value="2" oninput="cupPacePreview()"></div>
+      <div class="form-row"><label>Minutes per lecture</label><input type="number" min="10" max="240" step="5" id="cupPaceMins" value="75" oninput="cupPacePreview()"></div>
+      <div id="cupPacePrev" class="cup-pace-prev"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" id="cupPaceDel" onclick="cupPaceDelete()">Stop tracking</button><span style="flex:1"></span><button class="btn btn-ghost" onclick="closeModal('mCupPace')">Cancel</button><button class="btn btn-primary" onclick="cupPaceSave()">Save</button></div></div>`;
+  document.body.appendChild(el);
+}
+function cupPaceFolderChanged(){
+  const v=document.getElementById('cupPaceFolder').value, c=v.startsWith('folder:')?cupCommit(v.slice(7)):null;
+  const days=new Set(); (c?.slots||[]).forEach(s=>(s.days||[]).forEach(d=>days.add(d)));
+  document.querySelectorAll('#cupPaceDays input').forEach(i=>i.checked=days.has(+i.value));
+  if(!document.getElementById('cupPaceStart').value){ const d=new Date(); d.setDate(d.getDate()-14); document.getElementById('cupPaceStart').value=cupISO(d); }
+  cupPacePreview();
+}
+function cupPaceDates(){
+  const start=document.getElementById('cupPaceStart').value, n=Math.max(1,Math.min(80,+document.getElementById('cupPaceCount').value||0));
+  const titles=document.getElementById('cupPaceTitles').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const count=titles.length||n;
+  const days=new Set([...document.querySelectorAll('#cupPaceDays input:checked')].map(i=>(+i.value+1)%7));   // Mon=0 → JS day
+  const skip=new Set(document.getElementById('cupPaceSkip').value.split(/[,;]/).map(s=>cupParseLooseDate(s.trim())).filter(Boolean));
+  if(!start||!days.size) return { list:[], titles, count };
+  const out=[]; const d=cupParse(start);
+  for(let g=0; out.length<count && g<400; g++){ const ds=cupISO(d); if(days.has(d.getDay()) && !skip.has(ds)) out.push(ds); d.setDate(d.getDate()+1); }
+  return { list:out, titles, count };
+}
+function cupPacePreview(){
+  const box=document.getElementById('cupPacePrev'); if(!box) return;
+  const perDay=+document.getElementById('cupPacePerDay').value||2, mins=+document.getElementById('cupPaceMins').value||75;
+  if(cupPaceEdit){
+    const p=cupPacePlans().find(x=>x.name===cupPaceEdit);
+    document.getElementById('cupPaceExisting').innerHTML = p ? cupPaceRow(Object.assign({},p,{perDay,mins}), true) : '';
+    box.textContent=''; return;
+  }
+  const {list,count}=cupPaceDates(), today=todayStr(), pre=document.getElementById('cupPacePrefix').value||'L';
+  if(!list.length){ box.innerHTML='<span class="cup-dim">Pick the first lecture date and the days the class meets.</span>'; return; }
+  const cls=list.filter(d=>d<=today).length;
+  let caught=null; if(cls){ for(let d=0;d<120;d++){ const ds=cupTSDate(d), c=list.filter(x=>x<=ds).length; if(perDay*(d+1)>=c){ caught=ds; break; } } }
+  box.innerHTML=`<b>${count} lectures</b>, ${cupFmt(list[0])} → ${cupFmt(list[list.length-1])}. The class is at <b>${pre}${cls}</b> today${cls?`, so you start <b>${cls} behind</b> (${cupHrs(cls*mins)}). At ${perDay} a day you're caught up by <b>${caught?cupParse(caught).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}):'—'}</b>`:''}.`;
+}
+function cupPaceSave(){
+  const perDay=Math.max(1,+document.getElementById('cupPacePerDay').value||2), mins=Math.max(10,+document.getElementById('cupPaceMins').value||75);
+  if(cupPaceEdit){
+    S.tasks.filter(t=>t.plan&&t.plan.name===cupPaceEdit).forEach(t=>{ t.plan.perDay=perDay; t.plan.minutes=mins; });
+    cupEnsure(); S.cup.paceFlowed=''; cupPaceReflow(); save(); closeModal('mCupPace'); render(); showToast('Pace updated.'); return;
+  }
+  const v=document.getElementById('cupPaceFolder').value, c=v.startsWith('folder:')?cupCommit(v.slice(7)):null;
+  if(!c){ showToast('Pick the class folder first.'); return; }
+  const {list,titles}=cupPaceDates(); if(!list.length){ showToast('Pick the first lecture date and the class days.'); return; }
+  const pre=(document.getElementById('cupPacePrefix').value||'L').trim(), name=`${c.name} pace`, today=todayStr();
+  if(S.tasks.some(t=>t.plan&&t.plan.name===name)){ showToast(`${c.name} is already tracked. Use ⋯ on its pace bar to change it.`); return; }
+  let d=0, load=0;
+  list.forEach((cd,i)=>{
+    let due;
+    if(cd<today){ if(load>=perDay){ d++; load=0; } due=cupTSDate(d); load++; }    // past lectures: spread from today
+    else { const x=cupParse(cd); x.setDate(x.getDate()+1); due=cupISO(x); }       // future: review the day after class
+    S.tasks.push(cupMakeTask({ title:`${pre}${i+1}${titles[i]?' · '+titles[i]:''}`, type:'reading', priority:'high', area:c.area, commitId:c.id, subject:c.name,
+      due, scheduledDates:[due], classDate:cd, plan:{ name, step:i+1, of:list.length, perDay, minutes:mins },
+      notes:`Class covered this on ${cupParse(cd).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}.` }));
+  });
+  c.paceOf=name; save(); closeModal('mCupPace'); render();
+  showToast(`Tracking ${c.name}: ${list.length} lectures added.`);
+}
+function cupPaceDelete(){
+  if(!cupPaceEdit){ closeModal('mCupPace'); return; }
+  const name=cupPaceEdit, gone=S.tasks.filter(t=>t.plan&&t.plan.name===name&&!cupDone(t));
+  const kept=S.tasks.filter(t=>t.plan&&t.plan.name===name&&cupDone(t));
+  S.tasks=S.tasks.filter(t=>!gone.includes(t)); kept.forEach(t=>{ if(t.plan) t.plan.of=kept.length; });
+  save(); closeModal('mCupPace'); render();
+  showToast(`Stopped tracking. Removed ${gone.length} unfinished lectures.`,'Undo',()=>{ S.tasks.push(...gone); save(); render(); });
+}
+
+// ════════════════════════════════════════════════════════════
+//  GOALS PAGE — deadlines, goals and principles live here, off Home.
+// ════════════════════════════════════════════════════════════
+function cupRenderCompass(){
+  const host=document.getElementById('cupCompass'); if(!host) return;
+  if(host.contains(document.activeElement) && document.activeElement.tagName==='INPUT') return;
+  const paces=cupPacePlans();
+  const html=`<div class="cup-compass">
+    <section class="cup-block wide"><h5><span class="cup-bic">${cupIc('cal')}</span>Deadlines · next 2 weeks</h5>${cupDeadlinesHTML()}</section>
+    <section class="cup-block"><h5><span class="cup-bic">${cupIc('goal')}</span>Goals</h5>${cupGoalsHTML()}</section>
+    <section class="cup-block"><h5><span class="cup-bic">${cupIc('quote')}</span>Principles</h5>${cupPrinciplesHTML()}</section>
+    <section class="cup-block wide"><h5><span class="cup-bic">${cupIc('week')}</span>Class pace</h5>${paces.map(p=>cupPaceRow(p,true)).join('')||'<div class="cup-dim">No classes tracked yet.</div>'}<button class="cup-more-btn" onclick="cupPaceOpen()">+ Track a class</button></section>
+  </div>`;
+  if(host._last!==html){ host.innerHTML=html; host._last=html; }
 }
 
 </script>
