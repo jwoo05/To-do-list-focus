@@ -19229,7 +19229,9 @@ function cupPacePlans(){
     let caught=null;
     if(behind>0){ for(let d=0; d<120; d++){ const ds=cupTSDate(d), clsD=steps.filter(x=>x.classDate&&x.classDate<=ds).length; if(you+perDay*(d+1)>=clsD){ caught=ds; break; } } }
     const prefix=(first.title.match(/^([A-Za-z]+)\d/)||[])[1]||'L';
-    return { name, steps, folder:c, of, cls, you, behind, ahead:Math.max(0,you-cls), perDay, mins, caught, nextStep, prefix, done:you>=of };
+    // time to catch up = each covered-but-unfinished lecture's own length
+    const owe=steps.filter(x=>x.classDate&&x.classDate<=today&&!cupDone(x)).reduce((m,x)=>m+(+x.plan.minutes||cupPaceMinutes(x)||mins),0);
+    return { name, steps, folder:c, of, cls, you, behind, ahead:Math.max(0,you-cls), perDay, mins, owe, caught, nextStep, prefix, done:you>=of };
   }).filter(p=>!p.done).sort((a,b)=>b.behind-a.behind);
 }
 // minutes from notes like "(≈ 35 min)" lines
@@ -19238,7 +19240,7 @@ const cupHrs = m => m>=60 ? `${Math.round(m/60*10)/10}h` : `${m}m`;
 function cupPaceRow(p, big){
   const pc=x=>Math.min(100, x/p.of*100);
   if(big==='mini'){
-    const tip = p.behind ? `You ${p.prefix}${p.you} · Class ${p.prefix}${p.cls} · ${cupHrs(p.behind*p.mins)} to catch up${p.caught?' · even by '+cupFmt(p.caught):''}` : `You ${p.prefix}${p.you} · Class ${p.prefix}${p.cls}`;
+    const tip = p.behind ? `You ${p.prefix}${p.you} · Class ${p.prefix}${p.cls} · ${cupHrs(p.owe||p.behind*p.mins)} to catch up${p.caught?' · even by '+cupFmt(p.caught):''}` : `You ${p.prefix}${p.you} · Class ${p.prefix}${p.cls}`;
     const last=[...p.steps].reverse().find(cupDone);
     return `<div class="cup-pacemini" title="${esc(tip)}"><button class="cup-pacemini-n" onclick="${p.nextStep?`cupPin('${p.nextStep.id}')`:`showPage('compass')`}" title="Make ${p.nextStep?esc(p.nextStep.title):''} Next up">${esc((p.folder?p.folder.name:p.name).split(' · ')[0])}</button>
       <span class="cup-pace-bar"><i class="you" style="width:${pc(p.you)}%"></i><span class="cls" style="left:${pc(p.cls)}%"></span></span>
@@ -19247,7 +19249,7 @@ function cupPaceRow(p, big){
       ${p.nextStep?`<button class="cup-pace-tick" onclick="toggleTask('${p.nextStep.id}')" title="Mark ${esc(p.nextStep.title)} done">✓ ${esc(p.prefix)}${p.nextStep.plan.step}</button>`:''}</div>`;
   }
   const status = p.behind ? `<b class="cup-pace-behind">${p.behind} behind</b>` : p.ahead ? `<b class="cup-pace-ahead">${p.ahead} ahead</b>` : `<b class="cup-pace-even">Caught up</b>`;
-  const left = p.behind ? `${cupHrs(p.behind*p.mins)} to catch up${p.caught?` · even by ${cupParse(p.caught).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})} at ${p.perDay}/day`:''}` : `${p.of-p.you} left in the course`;
+  const left = p.behind ? `${cupHrs(p.owe||p.behind*p.mins)} to catch up${p.caught?` · even by ${cupParse(p.caught).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})} at ${p.perDay}/day`:''}` : `${p.of-p.you} left in the course`;
   return `<div class="cup-pacerow ${big?'big':''}">
     <div class="cup-pacerow-top"><button class="cup-pacerow-name" onclick="${p.folder?`cupSetBankSel('folder:${p.folder.id}')`:''}">${esc(p.folder?p.folder.name:p.name)}</button>${status}
       ${p.nextStep?`<button class="cup-pace-tick" onclick="toggleTask('${p.nextStep.id}')" title="Mark ${esc(p.nextStep.title)} done">✓ ${esc(p.prefix)}${p.nextStep.plan.step} done</button>`:''}
