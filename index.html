@@ -6376,6 +6376,14 @@ body.cup-side-min .sidebar-bottom{ display:none; }
 .cup-goal-item.done .t{ text-decoration:line-through; color:var(--text3); }
 .cup-goal-x{ position:absolute; top:6px; right:0; }
 .cup-goal-tasks .cup-goalmini{ padding-right:26px; }
+/* clear words instead of icons */
+.cup-act{ flex:none; font-size:11.5px; padding:2px 8px; border-radius:999px; color:var(--text3); border:1px solid transparent; white-space:nowrap; }
+.cup-act:hover{ color:var(--text); border-color:var(--border); }
+.cup-pin-btn{ width:auto; padding:2px 8px; font-size:11.5px; border-radius:999px; opacity:.55; white-space:nowrap; }
+.cup-goalmini .cup-pace-tick{ max-width:140px; overflow:hidden; text-overflow:ellipsis; }
+.cup-side-hid{ display:block; width:100%; text-align:left; padding:4px 10px; font-size:11.5px; color:var(--text3); }
+.cup-side-hid:hover{ color:var(--text); }
+.cup-tpg .cup-tadd + .cup-tadd{ margin-left:-2px; }
 
 </style>
 <script>
@@ -16509,7 +16517,8 @@ function cupRenderSideTree(){
   const catLink = `<button class="cup-side-cats" onclick="cupOpenCats()">✎ Edit categories</button>`;
   const loose=cupNotesLoose();
   const pagesSec = `<div class="cup-side-head cup-pages-head" ondragover="cupPgOver(event)" ondragleave="cupPgLeave(event)" ondrop="cupPgDrop(event,'')"><span>Pages</span><span><button onclick="cupNewNote('')" title="New page" aria-label="New page">+</button></span></div>
-    ${loose.length?cupSidePages(loose,0):'<div class="cup-side-empty">Pages you don’t file yet live here. Drag one onto a folder or another page.</div>'}`;
+    ${loose.length?cupSidePages(loose,0):'<div class="cup-side-empty">Pages you don’t file yet live here. Drag one onto a folder or another page.</div>'}
+    ${(n=>n?`<button class="cup-side-hid" onclick="cupToggleSide('__hid')">${cupSideOpen.includes('__hid')?'Hide':'Show'} ${n} hidden page${n>1?'s':''}</button>`:'')(cupNotes().filter(x=>x.hidden).length)}`;
   const html = `<button class="cup-side-new" onclick="cupPlusOpen()">${cupIc('plus')}<span>New</span><kbd>⌘K</kbd></button>${pagesSec}<div class="cup-side-head" style="margin-top:10px"><span>Folders</span><span><button onclick="cupOpenImport()" title="Import many at once" aria-label="Import">⇪</button><button onclick="cupOpenFolder(null)" title="New folder" aria-label="New folder">+</button></span></div>${rows||'<div class="cup-side-empty">Add a folder for each class, club or project.</div>'}${pile}${catLink}`;
   if(host._last!==html){ host.innerHTML=html; host._last=html; }
 }
@@ -16659,7 +16668,7 @@ function cupRenderHome(){
     const notes=(t.notes||'').trim();
     const subs=t.subtasks||[], subDone=subs.filter(s=>s.done).length;
     const hasMore=!!(notes||t.link||subs.length);
-    html=`<div class="cup-next-top"><span class="cup-next-label">Next up</span>${first.pinned?`<button class="cup-pinbadge" onclick="cupPin('')" title="Unpin — go back to the most urgent task">Pinned ✕</button>`:cupBadge(first)}</div>
+    html=`<div class="cup-next-top"><span class="cup-next-label">Next up</span>${first.pinned?`<button class="cup-pinbadge" onclick="cupPin('')" title="Go back to showing the most urgent task">Your pick · ✕</button>`:cupBadge(first)}</div>
       <div class="cup-next-folder">${folder?`<span class="cup-sw" style="background:${cupSphColor(t.area)}"></span>${esc(folder)}`:''}${t.appStage?` · ${CUP_STAGES[t.appStage]}`:''}</div>
       <div class="cup-next-title">${esc(t.title)}</div>
       ${cupPlanDots(t)}
@@ -16686,7 +16695,7 @@ function cupRenderHome(){
       ${cupTodayOpen?`<div class="cup-next-today">${cupTodoHTML()}</div>`:''}</div>
     ${prog.length?`<div class="cup-next-fold"><button class="cup-fold-btn" onclick="cupProgOpen=!cupProgOpen;try{localStorage.setItem('cup_prog_open',cupProgOpen?'1':'0')}catch(_){};cupRenderHome()" aria-expanded="${cupProgOpen}">
       <span class="cup-fold-chev ${cupProgOpen?'open':''}">›</span>Progress<span class="cup-dim">${prog.filter(x=>x.behind).length?`${prog.filter(x=>x.behind).length} behind`:prog.length}</span></button>
-      ${cupProgOpen?`<div class="cup-next-today cup-prog">${prog.map(x=>x.html).join('')}<div class="cup-prog-hint">Tap a name to make its next step your Next up · ✓ forward · ↶ back</div></div>`:''}</div>`:''}
+      ${cupProgOpen?`<div class="cup-next-today cup-prog">${prog.map(x=>x.html).join('')}<div class="cup-prog-hint"><b>Do next</b> puts it at the top of Home · <b>✓</b> checks it off · <b>Undo</b> un-checks the last one</div></div>`:''}</div>`:''}
     <div class="cup-next-links">
       <button onclick="cupJOpen(todayStr())">${cupIc('note')}${cupJHas(cupJEntry(today))?'Today’s journal':'Reflect on today'}${cupJStreak()?` · ${cupJStreak()}d`:''}</button>
       <button onclick="showPage('compass')">${cupIc('goal')}Goals & deadlines</button>
@@ -17871,6 +17880,8 @@ const CUP_IC = {
   week:'<rect x="2.5" y="3" width="11" height="10" rx="2"/><path d="M2.5 7h11M6.2 7v6M9.8 7v6"/>',
   goal:'<circle cx="8" cy="8" r="5.5"/><circle cx="8" cy="8" r="2.5"/>',
   leaf:'<path d="M3 13c0-6 4-9.5 10-10-.5 6-4 10-10 10z"/><path d="M3 13l5-5"/>',
+  eye:'<path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/>',
+  eyeoff:'<path d="M2 2l12 12M6.6 3.7A6.8 6.8 0 0 1 8 3.5c4 0 6.5 4.5 6.5 4.5a11 11 0 0 1-2 2.5M10 10.9A4 4 0 0 1 8 12.5C4 12.5 1.5 8 1.5 8a11 11 0 0 1 2.6-3"/>',
   help:'<circle cx="8" cy="8" r="5.5"/><path d="M6.3 6.4a1.8 1.8 0 1 1 2.5 1.6c-.5.2-.8.6-.8 1.1v.4M8 11.3v.2"/>',
 };
 const cupIc = (k, cls='') => `<svg class="cup-ic ${cls}" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${CUP_IC[k]||''}</svg>`;
@@ -17930,7 +17941,7 @@ function cupOpenNote(id, isNew){
   cupNoteMoveOptions(n);
   cupNoteRenderKids();
   document.getElementById('cupNoteSaved').textContent = n.updatedAt ? 'Saved' : '';
-  cupOrgBtnSync();
+  cupOrgBtnSync(); cupNoteHideBtn(n);
   if(!document.getElementById('mCupNote').classList.contains('show')) openModal('mCupNote');
   document.querySelector('#mCupNote .cup-note-scroll').scrollTop=0;
   setTimeout(()=>{ if(isNew) document.getElementById('cupNoteTitle').focus(); else { body.focus(); cupNotePh(); } }, 60);
@@ -17968,6 +17979,7 @@ function cupNoteChanged(){
 function cupNoteSave(){
   const n=cupNoteById(cupNoteId); if(!n) return;
   n.title=document.getElementById('cupNoteTitle').value.trim();
+  if(!n.autoHid && CUP_MEETING_RE.test(n.title)){ n.autoHid=true; n.hidden=true; cupNoteHideBtn(n); }
   const b=document.getElementById('cupNoteBody');
   b.querySelectorAll('[data-ph]').forEach(x=>x.removeAttribute('data-ph'));
   const html=cupCleanHTML(b.innerHTML);
@@ -18404,10 +18416,11 @@ function cupPagesHTML(sel, commitId, area){
 // ── sidebar: nested pages + drag a page onto a page or folder ──
 let cupDragPage=null;
 function cupSidePages(list, depth){
-  return list.map(n=>{ const kids=cupNoteKidsOf(n.id), ex=cupSideOpen.includes('p:'+n.id);
+  return list.filter(n=>!n.hidden || cupSideOpen.includes('__hid')).map(n=>{ const kids=cupNoteKidsOf(n.id), ex=cupSideOpen.includes('p:'+n.id);
     return `<div class="cup-trow cup-tpg ${cupNoteId===n.id?'active':''}" style="--d:${depth}" draggable="true" ondragstart="cupPgDrag(event,'${n.id}')" ondragend="cupPgEnd()" ondragover="cupPgOver(event)" ondragleave="cupPgLeave(event)" ondrop="cupPgDrop(event,'page:${n.id}')">
       <button class="cup-chev ${ex?'open':''}" ${kids.length?'':'style="visibility:hidden"'} onclick="cupToggleSide('p:${n.id}')" aria-label="${ex?'Collapse':'Expand'} ${esc(n.title||'Untitled')}" aria-expanded="${ex}">›</button>
       <button class="cup-tname" onclick="cupOpenNote('${n.id}')">${cupIc('page')}<span class="l">${esc(n.title||'Untitled')}</span></button>
+      <button class="cup-tadd" onclick="cupNoteHide('${n.id}')" title="${n.hidden?'Show in sidebar':'Hide from sidebar'}" aria-label="${n.hidden?'Show':'Hide'} ${esc(n.title||'Untitled')} in sidebar">${cupIc(n.hidden?'eye':'eyeoff')}</button>
       <button class="cup-tadd" onclick="cupNewNote('page:${n.id}')" title="Add a page inside" aria-label="Add a page inside ${esc(n.title||'Untitled')}">${cupIc('plus')}</button></div>`
       + (ex?cupSidePages(kids, depth+1):''); }).join('');
 }
@@ -18737,7 +18750,7 @@ function cupGoalsHTML(){
   const gs=cupGoals();
   return gs.map((g,i)=>{ const gp=g.id&&cupGoalProgress(g);
     if(gp) return `<div class="cup-goal cup-goal-tasks">${cupGoalBar(g,gp)}<div class="cup-goal-list">${gp.tasks.map(t=>{ const s=t.subtasks||[], dn=s.filter(x=>x.done).length;
-      return `<div class="cup-goal-item ${cupDone(t)?'done':''}"><button class="t" onclick="editTask('${t.id}')">${esc(t.title)}</button><span class="cup-dim">${cupDone(t)?'done':s.length?`${dn}/${s.length}`:''}</span>${cupDone(t)?'':`<button class="cup-pin-btn" onclick="cupPin('${t.id}')" title="Make this Next up">↑</button>`}</div>`; }).join('')}</div>
+      return `<div class="cup-goal-item ${cupDone(t)?'done':''}"><button class="t" onclick="editTask('${t.id}')">${esc(t.title)}</button><span class="cup-dim">${cupDone(t)?'done':s.length?`${dn}/${s.length}`:''}</span>${cupDone(t)?'':`<button class="cup-pin-btn" onclick="cupPin('${t.id}')" title="Put this at the top of Home">Do next</button>`}</div>`; }).join('')}</div>
       <button class="cup-ts-x cup-goal-x" onclick="cupGoalDel(${i})" aria-label="Remove goal">✕</button></div>`;
     const cur=cupNum(g.current), tgt=cupNum(g.target)||1, pct=Math.min(100,cur/tgt*100), done=g.done||cur>=tgt&&tgt>0;
     return `<div class="cup-goal ${done?'done':''}">
@@ -18777,7 +18790,7 @@ function cupTodoHTML(){
   const list=S.tasks.filter(t=>!t.isHabit&&!t.waiting&&(t.due===today||(t.scheduledDates||[]).includes(today)||(!cupDone(t)&&t.due&&t.due<today)))
     .sort((a,b)=>cupDone(a)-cupDone(b)||(a.dueTime||a.scheduledTime||'99').localeCompare(b.dueTime||b.scheduledTime||'99')).slice(0,10);
   return list.map(t=>{ const d=cupDone(t); return `<div class="cup-todo ${d?'done':''}"><button class="cup-check2 ${d?'d':''}" onclick="toggleTask('${t.id}')" aria-label="Done"></button>
-      <button class="t" onclick="editTask('${t.id}')">${esc(t.title)}</button>${t.dueTime?`<span class="cup-up-time">${cupT12(t.dueTime)}</span>`:''}${d?'':`<button class="cup-pin-btn" onclick="cupPin('${t.id}')" title="Make this Next up" aria-label="Make ${esc(t.title)} Next up">↑</button>`}</div>`; }).join('')
+      <button class="t" onclick="editTask('${t.id}')">${esc(t.title)}</button>${t.dueTime?`<span class="cup-up-time">${cupT12(t.dueTime)}</span>`:''}${d?'':`<button class="cup-pin-btn" onclick="cupPin('${t.id}')" title="Put this at the top of Home">Do next</button>`}</div>`; }).join('')
     + `<div class="cup-fnew"><input placeholder="+ To-do for today — Enter" onkeydown="if(event.key==='Enter'&&this.value.trim()){S.tasks.push(cupMakeTask({title:this.value.trim(),scheduledDates:[todayStr()]}));this.value='';save();render()}"></div>`;
 }
 function cupWeekBlockHTML(){
@@ -18860,7 +18873,7 @@ function cupUseTemplate(id){ const t=CUP_TEMPLATES.find(x=>x[0]===id); if(!t) re
 function cupRenderSideExtras(){
   const host=document.getElementById('cupSideExtras'); if(!host) return;
   const up=cupUpcoming(7);
-  const pages=cupNotes().slice().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,5);
+  const pages=cupNotes().filter(n=>!n.hidden).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,5);
   const upOpen=cupSideOpen.includes('__up'), rpOpen=cupSideOpen.includes('__recent');
   const html=`<button class="cup-side-head cup-side-fold" onclick="cupToggleSide('__up');cupRenderSideExtras()" aria-expanded="${upOpen}"><span><i class="cup-fold-chev ${upOpen?'open':''}">›</i> Upcoming</span><span class="cup-n">${up.length||''}</span></button>
     ${!upOpen?'':up.length?up.map(x=>`<button class="cup-side-up" ${x.id?`onclick="editTask('${x.id}')"`:''}><i style="background:${x.color}"></i><span class="l">${esc(x.title)}</span><span class="cup-n">${x.ds!==todayStr()?'Tmrw ':''}${x.time?cupT12(x.time):''}</span></button>`).join(''):'<div class="cup-side-empty">Nothing timed today.</div>'}
@@ -19242,11 +19255,12 @@ function cupPaceRow(p, big){
   if(big==='mini'){
     const tip = p.behind ? `You ${p.prefix}${p.you} · Class ${p.prefix}${p.cls} · ${cupHrs(p.owe||p.behind*p.mins)} to catch up${p.caught?' · even by '+cupFmt(p.caught):''}` : `You ${p.prefix}${p.you} · Class ${p.prefix}${p.cls}`;
     const last=[...p.steps].reverse().find(cupDone);
-    return `<div class="cup-pacemini" title="${esc(tip)}"><button class="cup-pacemini-n" onclick="${p.nextStep?`cupPin('${p.nextStep.id}')`:`showPage('compass')`}" title="Make ${p.nextStep?esc(p.nextStep.title):''} Next up">${esc((p.folder?p.folder.name:p.name).split(' · ')[0])}</button>
+    return `<div class="cup-pacemini" title="${esc(tip)}"><button class="cup-pacemini-n" onclick="showPage('compass')" title="Open the Goals page">${esc((p.folder?p.folder.name:p.name).split(' · ')[0])}</button>
       <span class="cup-pace-bar"><i class="you" style="width:${pc(p.you)}%"></i><span class="cls" style="left:${pc(p.cls)}%"></span></span>
       <span class="${p.behind?'cup-pace-behind':'cup-pace-even'}">${p.behind?`${p.behind} behind`:p.ahead?`${p.ahead} ahead`:'even'}</span>
-      ${last?`<button class="cup-pace-back" onclick="cupUndoStep('${last.id}')" title="Undo ${esc(last.title)}" aria-label="Undo ${esc(last.title)}">↶</button>`:''}
-      ${p.nextStep?`<button class="cup-pace-tick" onclick="toggleTask('${p.nextStep.id}')" title="Mark ${esc(p.nextStep.title)} done">✓ ${esc(p.prefix)}${p.nextStep.plan.step}</button>`:''}</div>`;
+      ${p.nextStep?`<button class="cup-act" onclick="cupPin('${p.nextStep.id}')" title="Put ${esc(p.nextStep.title)} at the top of Home">Do next</button>`:''}
+      ${p.nextStep?`<button class="cup-pace-tick" onclick="toggleTask('${p.nextStep.id}')" title="Mark ${esc(p.nextStep.title)} finished">✓ ${esc(p.prefix)}${p.nextStep.plan.step}</button>`:''}
+      ${last?`<button class="cup-act" onclick="cupUndoStep('${last.id}')" title="Un-check ${esc(last.title)} (if you marked it by mistake)">Undo</button>`:''}</div>`;
   }
   const status = p.behind ? `<b class="cup-pace-behind">${p.behind} behind</b>` : p.ahead ? `<b class="cup-pace-ahead">${p.ahead} ahead</b>` : `<b class="cup-pace-even">Caught up</b>`;
   const left = p.behind ? `${cupHrs(p.owe||p.behind*p.mins)} to catch up${p.caught?` · even by ${cupParse(p.caught).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})} at ${p.perDay}/day`:''}` : `${p.of-p.you} left in the course`;
@@ -19669,8 +19683,8 @@ if(document.readyState!=='loading') cupSideMount(); else document.addEventListen
 //  Pin any task to Next up; step forward (✓) or back (↶).
 // ════════════════════════════════════════════════════════════
 function cupPinned(){ const id=S.cup&&S.cup.pinNext; if(!id) return null; const t=S.tasks.find(x=>x.id===id); if(!t||cupDone(t)){ return null; } return t; }
-function cupPin(id){ cupEnsure(); S.cup.pinNext=id||''; cupSkipped.delete(id); save(); if(typeof currentPage!=='undefined'&&currentPage!=='dashboard') showPage('dashboard'); render(); if(id){ const t=S.tasks.find(x=>x.id===id); showToast(`“${t?.title||''}” is your Next up.`,'Undo',()=>cupPin('')); } }
-function cupUndoStep(id){ const t=S.tasks.find(x=>x.id===id); if(!t) return; t.completed=false; t.archived=false; t.completedAt=null; save(); render(); showToast(`“${t.title}” is back on your list.`); }
+function cupPin(id){ cupEnsure(); S.cup.pinNext=id||''; cupSkipped.delete(id); save(); if(typeof currentPage!=='undefined'&&currentPage!=='dashboard') showPage('dashboard'); render(); if(id){ const t=S.tasks.find(x=>x.id===id); showToast(`“${t?.title||''}” is now at the top of Home.`,'Undo',()=>cupPin('')); } }
+function cupUndoStep(id){ const t=S.tasks.find(x=>x.id===id); if(!t) return; t.completed=false; t.archived=false; t.completedAt=null; save(); render(); showToast(`Un-checked “${t.title}”. It’s back on your list.`,'Redo',()=>{ t.completed=true; t.archived=true; t.completedAt=Date.now(); save(); render(); }); }
 // re-date a class plan so the class is at L<n> today (keeps the class days)
 function cupPaceReanchor(name, n){
   const steps=S.tasks.filter(t=>t.plan&&t.plan.name===name).sort((a,b)=>a.plan.step-b.plan.step);
@@ -19691,11 +19705,12 @@ function cupGoalProgress(g){
 function cupGoalBar(g, gp){
   const pct=Math.min(100, gp.sum/gp.of*100);
   const nextSub=gp.next&&(gp.next.subtasks||[]).findIndex(x=>!x.done);
-  return `<div class="cup-pacemini cup-goalmini"><button class="cup-pacemini-n" onclick="${gp.next?`cupPin('${gp.next.id}')`:''}" title="${gp.next?`Make ${esc(gp.next.title)} Next up`:''}">${esc(g.title)}</button>
+  return `<div class="cup-pacemini cup-goalmini"><button class="cup-pacemini-n" onclick="showPage('compass')" title="Open the Goals page">${esc(g.title)}</button>
     <span class="cup-pace-bar"><i class="you goal" style="width:${pct}%"></i></span>
     <span class="cup-pace-even">${gp.sum}/${gp.of}</span>
-    ${gp.last||(gp.next&&(gp.next.subtasks||[]).some(x=>x.done))?`<button class="cup-pace-back" onclick="cupGoalBack('${g.id}')" title="One step back">↶</button>`:''}
-    ${gp.next?`<button class="cup-pace-tick" onclick="cupGoalStep('${g.id}')" title="${nextSub>=0?esc(gp.next.subtasks[nextSub].text):'Finish '+esc(gp.next.title)}">✓ step</button>`:''}</div>`;
+    ${gp.next?`<button class="cup-act" onclick="cupPin('${gp.next.id}')" title="Put ${esc(gp.next.title)} at the top of Home">Do next</button>`:''}
+    ${gp.next?`<button class="cup-pace-tick" onclick="cupGoalStep('${g.id}')" title="Check off: ${nextSub>=0?esc(gp.next.subtasks[nextSub].text):esc(gp.next.title)}">✓ ${nextSub>=0?esc(gp.next.subtasks[nextSub].text):'Finish'}</button>`:''}
+    ${gp.last||(gp.next&&(gp.next.subtasks||[]).some(x=>x.done))?`<button class="cup-act" onclick="cupGoalBack('${g.id}')" title="Un-check the last step you checked">Undo</button>`:''}</div>`;
 }
 function cupGoalStep(gid){
   const g=cupGoals().find(x=>x.id===gid), gp=g&&cupGoalProgress(g); if(!gp||!gp.next) return;
@@ -19709,7 +19724,7 @@ function cupGoalBack(gid){
   const cur=gp.next&&(gp.next.subtasks||[]).some(x=>x.done)?gp.next:gp.last; if(!cur) return;
   if(cupDone(cur)){ cur.completed=false; cur.archived=false; cur.completedAt=null; const s=cur.subtasks||[]; if(s.length) s[s.length-1].done=false; }
   else { const s=cur.subtasks||[]; const j=s.map(x=>x.done).lastIndexOf(true); if(j>=0) s[j].done=false; }
-  save(); render(); showToast('One step back.');
+  save(); render(); showToast(`Un-checked a step in “${cur.title}”.`);
 }
 function cupProgressItems(){
   const out=cupPacePlans().map(p=>({ behind:p.behind, html:cupPaceRow(p,'mini') }));
@@ -19757,6 +19772,23 @@ function cupGoalPlanSave(){
       subtasks:steps.map(text=>({ text, done:false, doneDates:{} })), notes:`Part of “${title}”.` }));
   }
   save(); closeModal('mCupGoalPlan'); render(); showToast(`“${title}”: ${n} to-dos with ${steps.length} steps each.`);
+}
+
+
+// Pages you don't need in the sidebar (e.g. meeting notes) can be hidden there.
+// They stay in their folder, in search and on the Journal/Goals pages.
+const CUP_MEETING_RE=/(meeting|minutes|\bmtg\b|1:1|미팅|회의|회의록)/i;
+function cupNoteHide(id, on){
+  const n=cupNoteById(id); if(!n) return;
+  n.hidden = on===undefined ? !n.hidden : !!on; n.autoHid=true; save(); render(); cupNoteHideBtn(n);
+  showToast(n.hidden?`“${n.title||'Untitled'}” is hidden from the sidebar. It’s still in its folder.`:`“${n.title||'Untitled'}” shows in the sidebar again.`,'Undo',()=>cupNoteHide(id,!n.hidden));
+}
+function cupNoteHideBtn(n){
+  const top=document.querySelector('#mCupNote .cup-note-top'); if(!top||!n) return;
+  let b=document.getElementById('cupNoteHideBtn');
+  if(!b){ b=document.createElement('button'); b.id='cupNoteHideBtn'; b.className='cup-note-icbtn'; top.insertBefore(b, document.getElementById('cupNoteMove')); }
+  b.innerHTML=cupIc(n.hidden?'eyeoff':'eye'); b.title=n.hidden?'Hidden from the sidebar · click to show':'Shown in the sidebar · click to hide'; b.setAttribute('aria-label',b.title);
+  b.onclick=()=>cupNoteHide(n.id);
 }
 
 </script>
