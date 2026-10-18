@@ -6492,6 +6492,11 @@ body.cup-side-min .cup-side-newrow{ display:none; }
 .cup-todayev button{ display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:999px; border:1px solid var(--border); color:var(--text2); }
 .cup-todayev button:hover{ color:var(--text); border-color:var(--text3); }
 .cup-todayev i{ width:7px; height:7px; border-radius:50%; flex:none; }
+.cup-files{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.cup-file{ display:inline-flex; align-items:center; border:1px solid var(--border); border-radius:8px; overflow:hidden; font-size:calc(12.5px * var(--cup-fs,1)); }
+.cup-file button{ display:inline-flex; align-items:center; gap:6px; padding:5px 9px; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cup-file button:hover{ background:var(--bg2); }
+.cup-file .x{ padding:5px 8px; color:var(--text3); border-left:1px solid var(--border); }
 
 </style>
 <script>
@@ -17753,7 +17758,7 @@ function cupOpenTaskSheet(id, preset){
     weeklyGoal:src.weeklyGoal||0, time:src.scheduledTime||'',
     subtasks:(src.subtasks||[]).map(s=>({text:s.text,done:!!s.done})),
     repeat:src.repeat?(src.repeat.unit+':'+(src.repeat.every||1)):'', remind:(src.remind===undefined||src.remind===null)?'':String(src.remind), effort:src.effort||'', person:src.person||'', amount:src.amount||'', labels:(src.labels||[]).join(' '),
-    appStage:src.appStage||'', photos:[...(src.photos||[])],
+    appStage:src.appStage||'', photos:[...(src.photos||[])], files:(src.files||[]).map(f=>Object.assign({},f)),
     more: !!(src.firstStep||src.link||(src.subtasks||[]).length),
   };
   cupTSRender();
@@ -19992,6 +19997,8 @@ function cupPrefsRender(){
       <select onchange="cupSetPref('nudgeDays',+this.value)">${[7,14,21,30].map(d=>`<option value="${d}" ${(+cupPref('nudgeDays',14)||14)===d?'selected':''}>${d} days</option>`).join('')}</select></div>
     <div class="cup-pref"><span><b>Deadlines list looks ahead</b><em>On the Goals page.</em></span>
       <select onchange="cupSetPref('deadlineDays',+this.value)">${[14,30,60,90,365].map(d=>`<option value="${d}" ${(+cupPref('deadlineDays',30)||30)===d?'selected':''}>${d===365?'a year':d+' days'}</option>`).join('')}</select></div>
+    <div class="cup-pref"><span><b>Language</b><em>Menus and buttons. Your own notes and tasks are never translated.</em></span>
+      <select onchange="cupSetLang(this.value)" aria-label="Language">${[['','English'],['ko','한국어']].map(([v,l])=>`<option value="${v}" ${(cupPref('lang','')||'')===v?'selected':''}>${l}</option>`).join('')}</select></div>
     <div class="cup-pref-h">Reminders</div>
     <div class="cup-pref"><span><b>Alerts</b><em>${notif==='granted'?'On. Alerts show while Focus Hub is open in a tab or installed as an app. They can’t reach a closed phone yet.':notif==='denied'?'Blocked in your browser settings.':notif==='unsupported'?'This browser can’t show alerts.':'Off. Alerts show while Focus Hub is open in a tab or installed as an app. They can’t reach a closed phone yet.'}</em></span>
       ${notif==='default'?`<button type="button" class="btn btn-accent" onclick="cupAskNotify()">Turn on</button>`:''}</div>
@@ -20515,14 +20522,20 @@ function cupTSRowsExtra(s){
     ${stages?row('stg','▸','Application stage', s.appStage?(CUP_STAGES[s.appStage]||s.appStage):'<span class="cup-row-none">Not an application</span>', `
       <div class="cup-ts-chips">${chip(!s.appStage,'None',"cupTS.appStage='';cupTSRender()")}${Object.entries(CUP_STAGES).map(([k,l])=>chip(s.appStage===k,l,`cupTS.appStage='${k}';cupTSRender()`)).join('')}</div>
       <div class="cup-ts-hint">“Applied” puts it in Waiting on. “Interviewing” keeps it in Next up so you can prepare.</div>`):''}
-    ${row('pho','▣','Photos & papers', photoN?`${photoN} photo${photoN>1?'s':''}`:'<span class="cup-row-none">None</span>', `
+    ${row('pho','▣','Photos & files', (photoN||(s.files||[]).length)?[photoN?`${photoN} photo${photoN>1?'s':''}`:'',(s.files||[]).length?`${s.files.length} file${s.files.length>1?'s':''}`:''].filter(Boolean).join(' · '):'<span class="cup-row-none">None</span>', `
       <div class="cup-j-photos">${(s.photos||[]).map(id=>`<div class="cup-ph"><img data-photo="${id}" alt="" onclick="cupJView(this)"><button type="button" onclick="cupTS.photos=cupTS.photos.filter(x=>x!=='${id}');cupTSRender()" aria-label="Remove photo">✕</button></div>`).join('')}
-        <label class="cup-ph-add">${cupIc('plus')}<span>Add</span><input type="file" accept="image/*" capture="environment" multiple onchange="cupTSPhotoAdd(this.files);this.value=''"></label></div>
-      <div class="cup-ts-hint">Snap a form, receipt or whiteboard. Photos only (no PDFs yet).</div>`)}`;
+        <label class="cup-ph-add">${cupIc('plus')}<span>Add</span><input type="file" accept="image/*,application/pdf" multiple onchange="cupTSPhotoAdd(this.files);this.value=''"></label></div>
+      ${(s.files||[]).length?`<div class="cup-files">${s.files.map(f=>`<span class="cup-file"><button type="button" onclick="cupFileOpen('${f.id}','${esc(f.name).replace(/'/g,'')}')">${cupIc('page')}${esc(f.name)}</button><button type="button" class="x" onclick="cupTS.files=cupTS.files.filter(x=>x.id!=='${f.id}');cupTSRender()" aria-label="Remove file">✕</button></span>`).join('')}</div>`:''}
+      <div class="cup-ts-hint">Snap a form, receipt or whiteboard, or add a PDF (up to about 700 KB each).</div>`)}`;
 }
+const cupReadFile = f => new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result)); r.onerror=()=>rej(new Error('Couldn’t read that file.')); r.readAsDataURL(f); });
 async function cupTSPhotoAdd(files){
-  files=[...(files||[])].filter(f=>/^image\//.test(f.type)); if(!files.length||!cupTS) return;
-  for(const f of files){ try{ const d=await cupCompress(f), id=uid(); await cupPhotoPut(id,d); cupTS.photos.push(id); }catch(e){ showToast(e.message||'Couldn’t add that photo.'); } }
+  files=[...(files||[])].filter(f=>/^image\//.test(f.type)||f.type==='application/pdf'); if(!files.length||!cupTS) return;
+  for(const f of files){ try{
+    if(f.type==='application/pdf'){ if(f.size>700*1024){ showToast(`“${f.name}” is over 700 KB. Try a smaller or compressed PDF.`); continue; }
+      const d=await cupReadFile(f), id=uid(); await cupPhotoPut(id,d); (cupTS.files=cupTS.files||[]).push({ id, name:f.name.slice(0,60), size:f.size }); }
+    else { const d=await cupCompress(f), id=uid(); await cupPhotoPut(id,d); cupTS.photos.push(id); }
+  }catch(e){ showToast(e.message||'Couldn’t add that file.'); } }
   cupTSRender(); setTimeout(()=>cupPhotoFill(document.getElementById('cupTSBody')),30);
 }
 function cupTSApplyExtra(t, s){
@@ -20531,7 +20544,7 @@ function cupTSApplyExtra(t, s){
   t.remind = s.remind==='' ? '' : +s.remind;
   t.effort=s.effort||''; t.person=(s.person||'').trim(); t.amount=(s.amount||'').trim();
   t.labels=(s.labels||'').split(/[\s,]+/).map(x=>x.replace(/^#/,'').toLowerCase()).filter(Boolean);
-  t.photos=[...(s.photos||[])];
+  t.photos=[...(s.photos||[])]; t.files=(s.files||[]).map(f=>({ id:f.id, name:f.name, size:f.size||0 }));
   if(typeof s.appStage==='string' && (s.appStage!==undefined)){ const prev=t.appStage||''; t.appStage=s.appStage;
     if(s.appStage==='applied'){ t.waiting=true; s.waiting=true; if(!t.submitted) t.submitted=todayStr(); if(!s.submitted) s.submitted=t.submitted; }
     else if(s.appStage==='interview' && prev!=='interview'){ t.waiting=false; s.waiting=false; }   // interviewing means prep work, not waiting
@@ -20974,6 +20987,279 @@ function cupShareBoot(){
   if(confirm('Join this shared list?')) cupShareJoin(m[1]);
 }
 setInterval(()=>{ try{ cupShareBoot(); }catch(_){} }, 2500);
+
+// ════════════════════════════════════════════════════════════
+//  FILES & SHARING A SINGLE TASK
+// ════════════════════════════════════════════════════════════
+async function cupFileOpen(id, name){
+  const d=await cupPhotoGet(id); if(!d){ showToast('That file isn’t on this device yet. Check your connection.'); return; }
+  try{ const [h,b]=d.split(','), mime=(h.match(/:(.*?);/)||[])[1]||'application/pdf', bin=atob(b), u8=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
+    const url=URL.createObjectURL(new Blob([u8],{type:mime})); const w=window.open(url,'_blank'); if(!w){ const a=document.createElement('a'); a.href=url; a.download=name||'file.pdf'; a.click(); } setTimeout(()=>URL.revokeObjectURL(url),60000); }
+  catch(_){ showToast('Couldn’t open that file.'); }
+}
+// "Share with a list": a copy of this task lands on a shared checklist (your private task stays private)
+const _cupRowsExtra = cupTSRowsExtra;
+cupTSRowsExtra = function(s){
+  const base=_cupRowsExtra(s), lists=cupShareLists();
+  if(!lists.length || s.kind==='habit') return base;
+  return base + cupTSRow('shr','↗','Share with a list','<span class="cup-row-none">Not shared</span>',
+    `<div class="cup-ts-hint">Sends a copy to the checklist. Your own task, notes and files stay private.</div>
+     <div class="cup-ts-chips">${lists.map(l=>`<button type="button" class="cup-ts-chip" onclick="cupShareTask('${l.id}')">${esc((cupShared.data[l.id]&&cupShared.data[l.id].name)||l.name)}</button>`).join('')}</div>`);
+};
+async function cupShareTask(listId){
+  const db=cupDb(), uid=cupMyUid(); if(!db||!uid||!cupTS){ showToast('Sign in first.'); return; }
+  const title=(document.getElementById('cupTSTitle')?.value||cupTS.title).trim(); if(!title){ showToast('Give it a name first.'); return; }
+  const item={ t:title, done:false, by:uid, byName:cupMyName(), created:Date.now() }; if(cupTS.due){ item.due=cupTS.due; if(cupTS.dueTime) item.time=cupTS.dueTime; }
+  try{ await db.ref(`shared/${listId}/items/${uid.slice(0,4)}${Date.now().toString(36)}${Math.random().toString(36).slice(2,5)}`).set(item); showToast(`Sent to “${(cupShared.data[listId]&&cupShared.data[listId].name)||'the list'}”.`); }
+  catch(e){ showToast(cupShareErr(e)); }
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  INTERFACE LANGUAGE — menus and buttons can be shown in Korean.
+//  Only exact interface strings are swapped (see cup-ko.js). Your own tasks,
+//  notes, journal and page text are never touched.
+// ════════════════════════════════════════════════════════════════════
+const CUP_KO = {};           // "English text" → "한국어"  (filled in cup-ko.js)
+const CUP_KO_PAT = [];       // [regex, (…groups)=>text] for strings with numbers, dates or names
+const cupLang = () => { try{ return (S&&S.cup&&S.cup.prefs&&S.cup.prefs.lang)||localStorage.getItem('cup_lang')||''; }catch(_){ return ''; } };
+function cupSetLang(v){
+  cupEnsure(); S.cup.prefs=Object.assign({}, S.cup.prefs||{}, { lang:v }); try{ localStorage.setItem('cup_lang', v); }catch(_){}
+  save(); try{ if(typeof flushPendingSave==='function') flushPendingSave(); }catch(_){}
+  setTimeout(()=>location.reload(), 500);
+}
+const cupTrCache=new Map();
+function cupTr(str){
+  if(cupTrCache.has(str)) return cupTrCache.get(str);
+  let out=CUP_KO[str];
+  if(out===undefined){ for(const [re,fn] of CUP_KO_PAT){ const m=str.match(re); if(m){ out=fn(...m); break; } } }
+  if(out===undefined && str.length>20){                                  // several sentences in one text: translate each known sentence
+    const parts=str.split(/(?<=[.!?])\s+/);
+    if(parts.length>1){ const tr=parts.map(p=>cupTr(p)); if(tr.some(x=>x!==null&&x!==undefined)) out=parts.map((p,i)=>tr[i]??p).join(' '); }
+  }
+  if(cupTrCache.size>6000) cupTrCache.clear();
+  cupTrCache.set(str, out===undefined?null:out); return out;
+}
+const CUP_KO_SKIP='script,style,textarea,[contenteditable="true"],#cupNoteBody,.cup-note-body,.cup-j-text,[data-keep]';
+function cupKoText(node){
+  const par=node.parentElement; if(!par || par.closest(CUP_KO_SKIP)) return;
+  const raw=node.nodeValue, t=raw.trim(); if(!t || /^[\d\s.,:;/%+\-–—·•|()×$€₩]+$/.test(t)) return;
+  const tr=cupTr(t); if(tr!==null && tr!==undefined && tr!==t) node.nodeValue=raw.replace(t,tr);
+}
+const CUP_KO_ATTRS=['placeholder','title','aria-label','data-placeholder','data-ph'];
+function cupKoAttrs(el){
+  if(!el.getAttribute) return;
+  const skip=!!(el.closest && el.closest(CUP_KO_SKIP));
+  for(const a of CUP_KO_ATTRS){ if(skip && a!=='data-ph' && a!=='data-placeholder') continue; const v=el.getAttribute(a); if(!v) continue; const tr=cupTr(v.trim()); if(tr && tr!==v) el.setAttribute(a,tr); }
+}
+function cupKoWalk(root){
+  if(!root) return;
+  if(root.nodeType===3){ cupKoText(root); return; }
+  if(root.nodeType!==1) return;
+  const w=document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n; while((n=w.nextNode())) cupKoText(n);
+  cupKoAttrs(root); root.querySelectorAll('[placeholder],[title],[aria-label],[data-placeholder],[data-ph]').forEach(cupKoAttrs);
+}
+let cupKoObs=null;
+function cupKoStart(){
+  if(cupLang()!=='ko' || cupKoObs) return;
+  document.documentElement.lang='ko'; document.body.classList.add('cup-ko');
+  cupKoWalk(document.body);
+  cupKoObs=new MutationObserver(muts=>{
+    for(const m of muts){
+      if(m.type==='childList') m.addedNodes.forEach(cupKoWalk);
+      else if(m.type==='characterData') cupKoText(m.target);
+      else if(m.type==='attributes') cupKoAttrs(m.target);
+    }
+  });
+  cupKoObs.observe(document.body,{ childList:true, subtree:true, characterData:true, attributes:true, attributeFilter:CUP_KO_ATTRS });
+}
+if(document.readyState!=='loading') cupKoStart(); else document.addEventListener('DOMContentLoaded', cupKoStart);
+setTimeout(cupKoStart, 1500);   // once saved settings have loaded
+
+// developer helper: lists every interface string currently on screen that has no translation yet
+function cupKoDump(){
+  const out=new Set(), seenAttr=new Set();
+  const w=document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n;
+  while((n=w.nextNode())){ const par=n.parentElement; if(!par||par.closest(CUP_KO_SKIP)) continue; const t=n.nodeValue.trim(); if(!t||/^[\d\s.,:;/%+\-–—·•|()×$€₩]+$/.test(t)) continue; if(!/[A-Za-z]/.test(t)) continue; if(cupTr(t)===null) out.add(t); }
+  document.querySelectorAll('[placeholder],[title],[aria-label]').forEach(el=>{ if(el.closest(CUP_KO_SKIP)) return; CUP_KO_ATTRS.forEach(a=>{ const v=(el.getAttribute(a)||'').trim(); if(v&&/[A-Za-z]/.test(v)&&cupTr(v)===null) out.add(v); }); });
+  return [...out];
+}
+
+
+// Korean interface strings. Keys are the exact English text shown on screen.
+Object.assign(CUP_KO, {
+  // ── navigation & shell ──
+  "Home":"홈","◈ Home":"홈","Tasks & Calendar":"할 일 & 캘린더","≡ Tasks & Calendar":"할 일 & 캘린더","Todo List":"할 일 목록","Focus":"집중","◎ Focus":"◎ 집중","Goals":"목표","◇ Goals":"◇ 목표","Journal":"일기","✎ Journal":"✎ 일기",
+  "Dashboard":"대시보드","Calendar":"캘린더","Upcoming":"다가오는 일정","Pages":"페이지","Folders":"폴더","New":"새로 만들기","Settings":"설정","Light":"라이트","Dark":"다크","Log out":"로그아웃","⏻  Log out":"⏻ 로그아웃",
+  "Productivity planner":"생산성 플래너","Main navigation":"메인 메뉴","Collapse sidebar":"사이드바 접기","Open sidebar":"사이드바 열기","Collapse sidebar (⌘\\)":"사이드바 접기 (⌘\\)","Open sidebar (⌘\\)":"사이드바 열기 (⌘\\)",
+  "Edit categories":"카테고리 편집","✎ Edit categories":"✎ 카테고리 편집","Add a folder for each class, club or project.":"수업, 동아리, 프로젝트마다 폴더를 만들어 보세요.",
+  "Pages you don’t file yet live here. Drag one onto a folder or another page.":"아직 정리하지 않은 페이지가 여기에 있어요. 폴더나 다른 페이지로 끌어다 놓으세요.",
+  "Share a checklist with family, a team or a club.":"가족, 팀, 동아리와 체크리스트를 공유해 보세요.","Shared":"공유","Shared lists":"공유 목록",
+  "Show hidden pages":"숨긴 페이지 보기","Add anything (⌘K)":"무엇이든 추가 (⌘K)","Add anything · ⌘K":"무엇이든 추가 · ⌘K","Search everything (⌘/)":"전체 검색 (⌘/)","Search":"검색",
+  "Synced across all your devices":"모든 기기에서 동기화돼요","Tasks · Calendar · Focus · Folders":"할 일 · 캘린더 · 집중 · 폴더",
+  // ── Home ──
+  "Next up":"다음 할 일","NEXT UP":"다음 할 일","Later":"나중에","Later ▾":"나중에 ▾","Do next":"지금 하기","Your pick · ✕":"내가 고른 것 · ✕","To-do today":"오늘 할 일","Progress":"진행 상황",
+  "Start timer":"타이머 시작","Start a focus timer on…":"집중 타이머를 시작할 일…","Start a focus timer on… (type what you’ll work on)":"집중 타이머를 시작할 일… (할 일을 입력하세요)","Start a focus timer on":"집중 타이머를 시작할 일","☕ Prep":"☕ 준비","Prep":"준비",
+  "Nothing waiting for you ✓":"기다리는 일이 없어요 ✓","Reflect on today":"오늘 돌아보기","Today’s journal":"오늘의 일기","Goals & deadlines":"목표 & 마감","Track a course":"수업 진도 추적","+ Track a course":"+ 수업 진도 추적",
+  "Gentle day":"느긋한 날","Gentle day on":"느긋한 날 켜짐","Showing everything":"모두 보기","Waiting on":"답변 대기","Fresh start":"새 출발","Pause":"일시정지","Open":"열기","Details":"자세히","▸ Details":"▸ 자세히","▾ Hide details":"▾ 자세히 숨기기",
+  "Hide until tomorrow":"내일까지 숨기기","Stays on your list and calendar":"목록과 캘린더에는 그대로 있어요","Hide for a week":"일주일 숨기기","Move its due date to…":"마감일 옮기기…","Move its due date to…":"마감일 옮기기…","Edit it":"수정하기","Change date, folder or step":"날짜, 폴더, 단계 변경","Change date, folder or steps":"날짜, 폴더, 단계 변경","Not now. What should happen?":"지금은 아니에요. 어떻게 할까요?",
+  "Today":"오늘","Tomorrow":"내일","Yesterday":"어제","Due today":"오늘 마감","Due tomorrow":"내일 마감","Planned for today":"오늘 하기로 함","Overdue":"기한 지남","No date":"날짜 없음","Pinned":"고정됨",
+  "Spread them over the next 7 days":"앞으로 7일에 나눠서 배치","At most 3 a day, oldest first, so tomorrow isn’t a pile.":"하루 최대 3개, 오래된 것부터. 내일이 산더미가 되지 않게요.","Move them all to today":"모두 오늘로 옮기기","If they really are today’s work.":"정말 오늘 할 일이라면요.","Let go of the dates":"날짜 내려놓기",
+  "They stay on your list, with no due date, so they stop nagging.":"목록에는 남아 있지만 마감일이 없어져서 더 이상 재촉하지 않아요.","That’s normal. Pick how to reset them. Nothing is deleted.":"자연스러운 일이에요. 어떻게 정리할지 고르세요. 삭제되는 건 없어요.",
+  "Not now":"지금은 아니에요",
+  // ── calendar ──
+  "Events":"일정","Classes":"수업","Assignments":"과제","Deadlines":"마감","To-dos":"할 일","Habits":"습관","Calendars ▾":"캘린더 ▾","Show on calendar":"캘린더에 표시","Show all":"모두 보기","Only my items":"내 항목만",
+  "Month":"월","Week":"주","Day":"일","Year":"연","+ Add task":"+ 할 일 추가","+ Add event":"+ 일정 추가","+ Focus block":"+ 집중 시간","Import":"가져오기","⇪ Import":"⇪ 가져오기","Add task":"할 일 추가","Add Task":"할 일 추가","Add Event":"일정 추가","Save Task":"할 일 저장","Save Event":"일정 저장",
+  "One view at a time — or pick All to see them side by side.":"한 번에 하나씩 보거나, 전체를 골라 나란히 볼 수 있어요.","ALL":"전체","All":"전체","DAY":"일","CALENDAR":"캘린더","FOLDERS":"폴더","Choose month and year":"월과 연도 선택","Choose Month":"월 선택","Pick month + year":"월 + 연도 선택","Previous":"이전","Previous day":"이전 날","Previous week":"이전 주","Next day":"다음 날","Next week":"다음 주","all day":"하루 종일","All-day event":"종일 일정",
+  "Write about this day":"이 날에 대해 쓰기","Journal ·":"일기 ·","Selected Date":"선택한 날짜","No tasks or tests":"할 일이나 시험이 없어요","Drag to resize the calendar":"끌어서 캘린더 크기 조절","Drag to resize the all-day strip":"끌어서 종일 영역 크기 조절",
+  // ── + bar ──
+  "Task":"할 일","Page":"페이지","Quick note":"빠른 메모","Event":"일정","Habit":"습관","Folder":"폴더","Import many":"여러 개 가져오기","From template":"템플릿으로","Application":"지원서","Template":"템플릿",
+  "“INFO 380 reading due fri 3pm”":"“INFO 380 읽기 금요일 3pm까지”","A new page to write in":"글을 쓸 새 페이지","Adds a line to a page":"페이지에 한 줄 추가","Today’s journal — a thought, a win, a feeling":"오늘의 일기 — 생각, 성취, 감정","“Coffee chat oct 19 10am”":"“커피챗 10월 19일 오전 10시”","“Gym mon wed fri 7am”":"“운동 월수금 오전 7시”",
+  "Something you sent and are waiting to hear back on":"보내고 답을 기다리는 일","A class, club or project":"수업, 동아리, 프로젝트","Paste a whole list at once":"목록을 한 번에 붙여넣기","A checklist: shoot, video, interview prep…":"체크리스트: 촬영, 영상, 면접 준비…","Everything: tasks, pages, journal, events":"전체: 할 일, 페이지, 일기, 일정",
+  "What do you want to add?":"무엇을 추가할까요?","Search tasks, pages, journal, events…":"할 일, 페이지, 일기, 일정 검색…","Paste or type many lines…":"여러 줄을 붙여넣거나 입력하세요…","In":"위치","Add":"추가","add":"추가","change type":"유형 변경","close":"닫기","Enter":"Enter","Tab":"Tab","Esc":"Esc","Voice typing":"음성 입력",
+  "Type two or more letters.":"두 글자 이상 입력하세요.","Nothing found.":"찾은 게 없어요.","No folder":"폴더 없음","Pages (not filed)":"페이지 (정리 안 됨)","Inbox page":"받은 메모 페이지","Inside a page":"페이지 안에",
+});
+
+Object.assign(CUP_KO, {
+  // ── task sheet & editor ──
+  "Due":"마감","Due date":"마감일","Due Date":"마감일","Due time":"마감 시간","Repeats":"반복","Priority":"우선순위","Work on":"작업할 날","Sent":"보냄","After it’s done":"완료 후 반복","Remind me":"알림","Effort":"난이도","Person, amount, labels":"사람, 금액, 라벨","Application stage":"지원 단계","Photos & files":"사진 & 파일","Steps & link":"단계 & 링크",
+  "Notes":"메모","Notes (optional)":"메모 (선택)","Edit":"수정","Save":"저장","Cancel":"취소","Delete":"삭제","Advanced":"고급","The original detailed editor":"기존 상세 편집기","What do you need to do?":"무엇을 해야 하나요?",
+  "No date":"날짜 없음","In a week":"일주일 뒤","📅 Other date":"📅 다른 날짜","🕒 Other":"🕒 다른 시간","None":"없음","Time":"시간","9 am":"오전 9시","Noon":"정오","5 pm":"오후 5시","11:59 pm":"오후 11:59","Not planned":"계획 안 됨","Not yet":"아직 아님","Not filed":"정리 안 됨","Doesn’t repeat":"반복 안 함","Does not repeat":"반복 안 함",
+  "Every day":"매일","or on these days":"또는 이 요일에","Time of day":"시간대","Any":"상관없음","Morning":"아침","Midday":"낮","Evening":"저녁","Night":"밤","3× a week":"주 3회","4× a week":"주 4회","5× a week":"주 5회",
+  "Never":"안 함","Every week":"매주","Every 2 weeks":"2주마다","Every month":"매달","Every 3 months":"3개월마다","Every year":"매년","Every":"반복 간격","Unit":"단위","days":"일","weeks":"주","months":"개월",
+  "When you finish it, the next one is created with a new due date. Habits (above) are for things you tick daily.":"완료하면 새 마감일로 다음 할 일이 만들어져요. 매일 체크하는 일은 위의 습관을 쓰세요.",
+  "Off":"끔","At the time":"정해진 시간에","10 min before":"10분 전","1 hour before":"1시간 전","1 day before":"하루 전",
+  "Alerts show while Focus Hub is open. Turn them on in Settings › Reminders.":"Focus Hub가 열려 있을 때 알림이 떠요. 설정 › 알림에서 켜세요.","Alerts show while Focus Hub is open.":"Focus Hub가 열려 있을 때 알림이 떠요.","Without a time, tasks remind at 9:00.":"시간이 없으면 오전 9시에 알려드려요.",
+  "Easy":"쉬움","Hard":"어려움","On a “Gentle day”, Hard tasks are hidden from Next up and Easy ones go first.":"“느긋한 날”에는 어려운 일이 숨겨지고 쉬운 일이 먼저 나와요.",
+  "Person or client":"사람 또는 고객","Amount":"금액","Labels (separate with spaces)":"라벨 (띄어쓰기로 구분)","Not an application":"지원서 아님","To apply":"지원 예정","Applied":"지원함","Interviewing":"면접 중","Offer":"합격","Rejected / closed":"불합격 / 종료",
+  "“Applied” puts it in Waiting on. “Interviewing” keeps it in Next up so you can prepare.":"“지원함”은 답변 대기에 들어가요. “면접 중”은 준비할 수 있게 다음 할 일에 남아요.",
+  "Add":"추가","Remove photo":"사진 삭제","Remove file":"파일 삭제","Snap a form, receipt or whiteboard, or add a PDF (up to about 700 KB each).":"서류, 영수증, 화이트보드를 찍거나 PDF(각 700KB 정도까지)를 추가하세요.",
+  "Share with a list":"목록에 공유","Not shared":"공유 안 함","Sends a copy to the checklist. Your own task, notes and files stay private.":"체크리스트에 사본을 보내요. 내 할 일, 메모, 파일은 비공개로 유지돼요.",
+  "First small step":"작은 첫걸음","Link":"링크","Steps":"단계","+ Add a step":"+ 단계 추가","Toggle step":"단계 체크","Remove step":"단계 삭제","e.g. open the doc":"예: 문서 열기","https://":"https://",
+  "Save these steps as a template":"이 단계들을 템플릿으로 저장","Doesn’t repeat":"반복 안 함","Sent — waiting to hear back":"보냄 — 답변 기다리는 중","Sent on":"보낸 날","Answer by":"답변 기한","Don’t file it":"정리하지 않기","No areas in this group yet.":"이 그룹에는 아직 영역이 없어요.","no folders":"폴더 없음",
+  "✎ Categories":"✎ 카테고리","Puts it on that day’s list and in Next up.":"그날의 목록과 다음 할 일에 올려요.","📅 Pick a day":"📅 날짜 고르기",
+  "Must":"꼭 해야 함","Normal":"보통","Low":"낮음","High":"높음","Medium":"중간","MUST":"필수",
+  // ── folders, import, pace, goals ──
+  "New folder":"새 폴더","Edit folder":"폴더 편집","Delete folder":"폴더 삭제","Archive":"보관","Name":"이름","Area":"영역","Your role":"내 역할","Hours per week":"주당 시간","When (summary)":"일정 요약","Weekly times — added to your calendar":"주간 시간 — 캘린더에 추가돼요","Ends on (optional — quarter, rotation, season)":"종료일 (선택 — 학기, 순환근무, 시즌)",
+  "Busy weeks — extra hours (exams, deadlines)":"바쁜 주 — 추가 시간 (시험, 마감)","Class, club, role, project…":"수업, 동아리, 역할, 프로젝트…","Member, President…":"회원, 회장…","Meetings TBD":"모임 시간 미정",
+  "Import":"가져오기","Import many at once":"한꺼번에 가져오기","Paste many tasks, folders and events at once":"할 일, 폴더, 일정을 한꺼번에 붙여넣기","Type it yourself":"직접 입력","One item per line. See the format below.":"한 줄에 하나씩. 아래 형식을 보세요.","Or let Claude sort it":"또는 Claude가 정리하게 하기","✨ Sort with Claude":"✨ Claude로 정리","Copy prompt for Claude":"Claude용 프롬프트 복사","Use your own API key →":"내 API 키 사용 →",
+  "Coming from another app?":"다른 앱에서 오셨나요?","Choose a file…":"파일 선택…","Choose a CSV (Todoist, Notion, Sheets) or a markdown/text file (Obsidian tasks). Finished items are left out.":"CSV(Todoist, Notion, 스프레드시트)나 마크다운/텍스트 파일(Obsidian 할 일)을 고르세요. 완료된 항목은 빠져요.","Insert example":"예시 넣기","Format for typing it yourself":"직접 입력하는 형식","Preview":"미리보기",
+  "Folder — the lines under it go there. New name = new folder.":"폴더 — 아래 줄이 그 폴더로 들어가요. 새 이름이면 새 폴더가 돼요.","Priority":"우선순위","Submitted, waiting to hear back":"제출함, 답변 대기","Calendar event":"캘린더 일정","Put one line in a folder without a heading":"제목 없이 한 줄만 폴더에 넣기","A page inside the page above it":"위 페이지 안의 하위 페이지","Your items will show up here, one at a time, before anything is added.":"추가하기 전에 항목이 여기에 하나씩 보여요.",
+  "✓ Add":"✓ 추가","Skip":"건너뛰기","✎ Edit":"✎ 수정","Apply adds everything except what you skipped.":"건너뛴 것만 빼고 모두 추가돼요.","Item 1":"항목 1","Item 2":"항목 2","Item 3":"항목 3","Item 4":"항목 4","Item 5":"항목 5","Item 6":"항목 6","Item 7":"항목 7","Reading quick lines":"빠른 입력 읽는 중","Page text":"페이지 내용","Description":"설명",
+  "Track a course":"수업 진도 추적","Class folder":"수업 폴더","Which meeting is a lecture?":"어느 모임이 강의인가요?","Lectures so far (incl. today)":"지금까지 강의 수 (오늘 포함)","…or first lecture date":"…또는 첫 강의 날짜","Lectures in total":"전체 강의 수","Class meets on":"수업 요일","No class on (holidays)":"수업 없는 날 (휴일)","Lecture titles (optional, one per line)":"강의 제목 (선택, 한 줄에 하나)","Prefix":"접두어","Catch up per day":"하루에 따라잡을 개수","Minutes per lecture":"강의당 시간(분)","Stop tracking":"추적 중단",
+  "Shows how many lectures you're behind the class, and how long catching up takes. It updates by itself every day.":"수업보다 몇 강 뒤처졌는지, 따라잡는 데 얼마나 걸리는지 보여줘요. 매일 자동으로 바뀌어요.","Course pace":"수업 진도","No courses tracked yet.":"추적 중인 수업이 없어요.","Mark goal done":"목표 완료 표시","Remove goal":"목표 삭제","Pace settings":"진도 설정",
+  "Goal made of to-dos":"할 일로 이루어진 목표","+ Goal made of to-dos (e.g. 5 internship applications)":"+ 할 일로 이루어진 목표 (예: 인턴십 지원 5건)","Goal":"목표","How many":"몇 개","Each one is called":"각 항목 이름","Steps for each (one per line)":"각 항목의 단계 (한 줄에 하나)","Finish all by":"모두 끝낼 기한","Create":"만들기",
+  "+ Add a deadline":"+ 마감 추가","+ Add a block":"+ 블록 추가","▦ Templates":"▦ 템플릿","+ Task":"+ 할 일","Principles":"원칙","Add one — e.g. Finish all things in priority":"하나 추가 — 예: 우선순위대로 끝내기","Deadlines · next 2 weeks":"마감 · 앞으로 2주","Hours by folder":"폴더별 시간","This week":"이번 주","Export hours CSV":"시간 CSV 내보내기","No focus sessions yet. Start a timer from Home.":"집중 기록이 아직 없어요. 홈에서 타이머를 시작하세요.","Deadlines, goals, principles and how far behind each class you are. Home stays calm.":"마감, 목표, 원칙, 그리고 수업별 진도 현황. 홈은 차분하게 유지돼요.",
+  "Weekly load":"주간 부하","Hours I can give a week":"한 주에 쓸 수 있는 시간","Hours by category":"카테고리별 시간","Keep":"유지","Reduce":"줄이기","Drop":"그만두기","Not sorted":"미분류","Plan weekend":"주말 계획",
+});
+
+Object.assign(CUP_KO, {
+  // ── settings ──
+  "Look & feel":"화면","Text size":"글자 크기","Applies to everything, including small labels.":"작은 라벨까지 모두에 적용돼요.","Easy-read text":"읽기 쉬운 글자","Roomier spacing and a more open typeface.":"더 넓은 간격과 읽기 편한 글꼴.","Minimal mode":"미니멀 모드","Home shows just your one task. Hides side lists, Goals and Journal links.":"홈에 할 일 하나만 보여요. 옆 목록, 목표, 일기 링크는 숨겨요.",
+  "Gentle late tasks":"부드러운 지연 표시","Late tasks show “from Oct 12” in a soft color instead of a red alarm.":"밀린 일을 빨간 경고 대신 부드러운 색의 “10월 12일부터”로 보여줘요.","Garden, gems and streaks":"정원, 보석, 연속 기록","Turn off to remove all streak and tree pressure. Rest days keep a streak safe.":"끄면 연속 기록과 나무에 대한 부담이 사라져요. 쉬는 날은 연속 기록을 지켜줘요.",
+  "My day ends at":"내 하루가 끝나는 시간","For night shifts: “late” and Later reset at this hour, not midnight.":"야간 근무용: “지연”과 ‘나중에’가 자정이 아니라 이 시간에 초기화돼요.","Midnight":"자정","Voice typing language":"음성 입력 언어","For the mic buttons in the + bar, pages and Journal.":"+ 바, 페이지, 일기의 마이크 버튼에 쓰여요.","Automatic":"자동","English":"English","Language":"언어","Menus and buttons. Your own notes and tasks are never translated.":"메뉴와 버튼만 바뀌어요. 내 메모와 할 일은 번역되지 않아요.",
+  "Nudge after":"재촉 알림 기준","When a “waiting on” item gets a “nudge?” flag.":"“답변 대기” 항목에 “재촉할까요?” 표시가 붙는 때예요.","7 days":"7일","14 days":"14일","21 days":"21일","30 days":"30일","60 days":"60일","90 days":"90일","a year":"1년","Deadlines list looks ahead":"마감 목록 미리보기 기간","On the Goals page.":"목표 페이지에서요.",
+  "Reminders":"알림","Alerts":"알림","On. Alerts show while Focus Hub is open in a tab or installed as an app. They can’t reach a closed phone yet.":"켜짐. Focus Hub가 탭에 열려 있거나 앱으로 설치돼 있을 때 알림이 떠요. 꺼진 휴대폰에는 아직 못 보내요.","Off. Alerts show while Focus Hub is open in a tab or installed as an app. They can’t reach a closed phone yet.":"꺼짐. Focus Hub가 탭에 열려 있거나 앱으로 설치돼 있을 때 알림이 떠요. 꺼진 휴대폰에는 아직 못 보내요.","Blocked in your browser settings.":"브라우저 설정에서 차단돼 있어요.","This browser can’t show alerts.":"이 브라우저는 알림을 지원하지 않아요.","Turn on":"켜기",
+  "Privacy":"개인정보","Passcode lock":"잠금 비밀번호","Off. Hides the app behind a passcode on this device.":"꺼짐. 이 기기에서 앱을 비밀번호로 가려요.","On. Locks this device after you step away.":"켜짐. 자리를 비우면 이 기기가 잠겨요.","Set passcode":"비밀번호 설정","Lock now":"지금 잠그기","Remove":"제거","Passcode":"비밀번호","Unlock":"잠금 해제","Focus Hub is locked":"Focus Hub가 잠겨 있어요","Enter your passcode to continue.":"계속하려면 비밀번호를 입력하세요.","Enter your passcode":"비밀번호를 입력하세요","To confirm it’s you.":"본인 확인을 위해서예요.","Set a passcode":"비밀번호 설정","Again":"한 번 더","Lock after":"잠금 시간",
+  "Your planner is stored in your own account and can only be read by you. It isn’t shared or used for ads. AI features only send what you choose, with your own key, straight to Anthropic. The passcode hides the screen on this device; it isn’t encryption.":"플래너는 내 계정에 저장되며 나만 읽을 수 있어요. 공유되거나 광고에 쓰이지 않아요. AI 기능은 내가 고른 내용만 내 키로 Anthropic에 직접 보내요. 비밀번호는 이 기기에서 화면을 가릴 뿐 암호화는 아니에요.",
+  "Set up & export":"설정 & 내보내기","What I use it for":"사용 목적","Changes default folders and wording (school, work, family…).":"기본 폴더와 문구를 바꿔요 (학교, 업무, 가족…).","Change":"변경","Export":"내보내기","Tasks and waiting items as a spreadsheet, the calendar as .ics, or print this week.":"할 일과 답변 대기 항목은 스프레드시트로, 캘린더는 .ics로, 이번 주는 인쇄로 내보내요.","Tasks CSV":"할 일 CSV","Waiting CSV":"대기 CSV","Calendar .ics":"캘린더 .ics","Print week":"이번 주 인쇄",
+  "Week starts on":"한 주의 시작","Sunday":"일요일","Monday":"월요일","AI import — your own Claude API key":"AI 가져오기 — 내 Claude API 키","Remember on this device":"이 기기에 저장","Remove key":"키 삭제","Save & test":"저장 & 테스트","Model":"모델","No key yet — Import still works with “Copy prompt for Claude”.":"아직 키가 없어요. “Claude용 프롬프트 복사”로도 가져올 수 있어요.",
+  "What will you use Focus Hub for?":"Focus Hub를 어디에 쓰실 건가요?","This sets your starting folders and wording. You can change it anytime in Settings.":"시작 폴더와 문구가 정해져요. 설정에서 언제든 바꿀 수 있어요.","The short tour":"간단 투어","Welcome to Focus Hub":"Focus Hub에 오신 것을 환영해요",
+  "School":"학교","Classes, assignments, exams, clubs":"수업, 과제, 시험, 동아리","Work":"업무","Projects, meetings, deadlines":"프로젝트, 회의, 마감","Family & home":"가족 & 집","Kids, appointments, bills, household":"아이, 진료 예약, 공과금, 집안일","Creative & freelance":"창작 & 프리랜서","Clients, projects, invoices, content":"고객, 프로젝트, 청구서, 콘텐츠","Church, clubs & community":"교회, 동아리 & 커뮤니티","Events, volunteers, budgets, follow-ups":"행사, 봉사자, 예산, 후속 연락","Healthcare & shifts":"의료 & 교대 근무","Shifts, licences, CE, paperwork":"근무, 면허, 보수교육, 서류","Job search & startup":"구직 & 창업","Applications, interviews, building, fundraising":"지원, 면접, 제품 개발, 투자 유치","Just a to-do list":"그냥 할 일 목록","Simple. Home, work, personal":"단순하게. 집, 업무, 개인",
+  // ── categories (defaults) ──
+  "Work & career":"업무 & 커리어","Community":"커뮤니티","Self":"나","Courses & self-study":"강좌 & 자기계발","Internships & research":"인턴십 & 연구","Competitions & opportunities":"대회 & 기회","Clubs":"동아리","Church":"교회","Personal life":"개인 생활","Personal":"개인","Clients":"고객","Invoices & money":"청구서 & 돈","Projects":"프로젝트","Content & shoots":"콘텐츠 & 촬영","Craft & learning":"기술 & 학습","Meetings & 1:1s":"회의 & 1:1","Admin & finance":"행정 & 재무","Learning":"학습","Home & errands":"집 & 심부름","People & family":"사람 & 가족","Kids":"아이","Health & appointments":"건강 & 진료","School & activities":"학교 & 활동","Household & bills":"집안일 & 공과금","Meals & errands":"식사 & 심부름","Events":"행사","People & follow-ups":"사람 & 후속 연락","Teams & groups":"팀 & 그룹","Budget & funding":"예산 & 후원","Admin & reports":"행정 & 보고서","Shifts & schedule":"근무 & 일정","Licences & CE":"면허 & 보수교육","Exam study":"시험 공부","Paperwork & admin":"서류 & 행정","Habits & rest":"습관 & 휴식","Applications":"지원서","Network & follow-ups":"인맥 & 후속 연락","Interview prep":"면접 준비","Projects & building":"프로젝트 & 개발","Customers & funding":"고객 & 투자","Errands":"심부름","Family":"가족","Clients & business":"고객 & 사업","Creative work":"창작 활동","Life":"생활","Work & shifts":"근무","Money & admin":"돈 & 행정","Career":"커리어","Building":"개발","Home":"홈",
+  // ── templates ──
+  "Study for an exam":"시험 공부","Paper or essay":"논문 또는 에세이","Lab report":"실험 보고서","Meeting prep":"회의 준비","Weekly review":"주간 리뷰","Project kickoff":"프로젝트 킥오프","Appointment prep":"진료 예약 준비","Back to school":"개학 준비","Weekly family plan":"주간 가족 계획","Client onboarding":"고객 온보딩","Video pipeline":"영상 제작 과정","Shoot checklist":"촬영 체크리스트","Invoice follow-up":"청구서 후속 조치","Event planning":"행사 기획","Grant report":"지원금 보고서","Weekly group prep":"주간 소그룹 준비","Licence renewal":"면허 갱신","Job application":"입사 지원","(mine)":"(내 것)",
+});
+
+Object.assign(CUP_KO, {
+  // ── journal ──
+  "Rough":"힘듦","Meh":"그저 그래요","Okay":"괜찮아요","Good":"좋아요","Great":"최고예요","Mood":"기분","Reflection":"돌아보기","Writing":"글쓰기","Photos":"사진","Today in one line…":"오늘을 한 줄로…","What went well?":"잘된 일은?","What was hard?":"힘들었던 일은?","What did I learn?":"배운 점은?","Grateful for":"감사한 일","Tomorrow I will…":"내일은…",
+  "All entries":"모든 기록","Saved":"저장됨","Saving…":"저장 중…","Add photos":"사진 추가","Anything on your mind. No rules.":"마음에 있는 건 뭐든 좋아요. 규칙은 없어요.","How was today?":"오늘은 어땠나요?","Today’s entry":"오늘의 기록","Write today":"오늘 쓰기","Keep writing":"계속 쓰기","Search your writing":"쓴 글 검색","Your entries will show up here. One line a day is enough.":"기록이 여기에 쌓여요. 하루 한 줄이면 충분해요.","Nothing matches.":"맞는 게 없어요.","Entry":"기록",
+  "Reflections, daily writing and photos. Each day also shows on your calendar.":"돌아보기, 매일의 글, 사진. 각 날은 캘린더에도 표시돼요.","Today":"오늘","Previous day":"이전 날","Next day":"다음 날","Photo not on this device":"이 기기에 없는 사진이에요","Voice typing":"음성 입력",
+  // ── pages ──
+  "Untitled":"제목 없음","Not filed":"정리 안 됨","Move to… Pages (not filed)":"이동… 페이지 (정리 안 됨)","Move page to":"페이지 이동","Delete page":"페이지 삭제","Hide from sidebar":"사이드바에서 숨기기","Shown in the sidebar · click to hide":"사이드바에 표시 중 · 눌러서 숨기기","Hidden from the sidebar · click to show":"사이드바에서 숨김 · 눌러서 표시","Commands and shortcuts":"명령과 단축키","Commands":"명령","Add a page":"페이지 추가","Add a page inside":"하위 페이지 추가","Pages inside":"하위 페이지","New page":"새 페이지","+ Page":"+ 페이지","Organize":"정리하기","Page inside":"하위 페이지","Link to page":"페이지 링크","Search pages":"페이지 검색","No pages yet.":"아직 페이지가 없어요.","Inbox":"받은 메모",
+  "Type / for commands, or just start writing":"/ 를 눌러 명령을 쓰거나 바로 쓰기 시작하세요","Type / for commands":"/ 로 명령 입력","Type":"유형","Heading 1":"제목 1","Heading 2":"제목 2","Text":"텍스트","Bulleted list":"글머리 목록","Numbered list":"번호 목록","To-do list":"체크리스트","Quote":"인용","Callout":"콜아웃","Code":"코드","Divider":"구분선","Make it a task":"할 일로 만들기","Add to calendar":"캘린더에 추가","Today’s date":"오늘 날짜","Organize with AI":"AI로 정리","To-do":"할 일","List":"목록",
+  "Plain writing":"일반 글","Big section title · #":"큰 제목 · #","Smaller heading · ##":"작은 제목 · ##","- then space":"- 입력 후 스페이스","1. then space":"1. 입력 후 스페이스","[] then space":"[] 입력 후 스페이스","> then space":"> 입력 후 스페이스","Highlighted box · ! then space":"강조 상자 · ! 입력 후 스페이스","``` then Enter":"``` 입력 후 Enter","--- then Enter":"--- 입력 후 Enter","A new page inside this one":"이 페이지 안의 새 페이지","Mention another page":"다른 페이지 언급","This line becomes a real task":"이 줄이 실제 할 일이 돼요","This line becomes an event":"이 줄이 일정이 돼요","Insert the date":"날짜 넣기","Summary, action items, quiz":"요약, 실행 항목, 퀴즈",
+  "Basic":"기본","Planner":"플래너","AI":"AI","Heading · # then space":"제목 · # 입력 후 스페이스","Subheading · ## then space":"소제목 · ## 입력 후 스페이스","Bold":"굵게","Bold · ⌘B":"굵게 · ⌘B","Italic":"기울임","Italic · ⌘I":"기울임 · ⌘I","Bullets · - then space":"글머리 · - 입력 후 스페이스","Numbered · 1. then space":"번호 · 1. 입력 후 스페이스","To-do · [] then space":"체크 · [] 입력 후 스페이스","Quote · > then space":"인용 · > 입력 후 스페이스","Divider · --- then Enter":"구분선 · --- 입력 후 Enter","Link a web address or another page":"웹 주소 또는 다른 페이지 링크","Page inside this page · /page":"이 페이지 안의 페이지 · /page","Make this line a task · /task":"이 줄을 할 일로 · /task","Formatting":"서식",
+  "Organize this page":"이 페이지 정리하기","Summary":"요약","Key points by topic":"주제별 핵심","Action items":"실행 항목","Key terms":"핵심 용어","Quiz":"퀴즈","Conclusion":"결론","Review questions":"복습 질문","Quick outline (offline)":"빠른 개요 (오프라인)","No AI. Pulls out headings, to-dos and “term: meaning” lines.":"AI 없이 제목, 할 일, “용어: 뜻” 줄을 뽑아내요.","Free: copy to Claude chat":"무료: Claude 채팅에 복사","Copies a prompt with this page. Paste it at claude.ai, then paste the reply below.":"이 페이지가 담긴 프롬프트를 복사해요. claude.ai에 붙여넣고, 답을 아래에 붙여넣으세요.","Use reply":"답변 사용","Organize with Claude (your API key)":"Claude로 정리하기 (내 API 키)","Add your own key in Settings → AI import. About $0.01–0.05 a page.":"설정 → AI 가져오기에 내 키를 추가하세요. 한 페이지에 약 $0.01–0.05예요.","Save as a page inside":"하위 페이지로 저장","Add to the top of this page":"이 페이지 맨 위에 추가","Also add the action items to my tasks":"실행 항목을 내 할 일에도 추가",
+  "Writing in pages":"페이지에 쓰기","Type / on any line for the menu, or use these shortcuts at the start of a line.":"어느 줄에서든 / 를 입력하면 메뉴가 나와요. 줄 맨 앞에서 아래 단축키도 쓸 수 있어요.","Linked from":"연결된 곳","Organize pages: put a page inside another with Move to…, /page, or drag it onto another page or folder in the sidebar.":"페이지 정리: ‘이동…’이나 /page로 다른 페이지 안에 넣거나, 사이드바에서 다른 페이지·폴더로 끌어다 놓으세요.",
+  // ── garden, friends ──
+  "🌳 Garden":"🌳 정원","👋 Friends":"👋 친구","👥 Groups":"👥 그룹","Garden":"정원","Your garden":"내 정원","Rest day":"쉬는 날","Resting today ✓":"오늘은 쉬는 날 ✓","Friends & groups":"친구 & 그룹","Sign in to add friends and groups.":"친구와 그룹을 추가하려면 로그인하세요.",
+  // ── shared lists ──
+  "Create or join a shared list":"공유 목록 만들기 또는 참여","A shared list is a checklist everyone you invite can see and tick off. Only your tasks stay private.":"공유 목록은 초대한 사람 모두가 보고 체크할 수 있는 체크리스트예요. 내 할 일은 비공개로 유지돼요.","Create a list":"목록 만들기","Join with a link or code":"링크나 코드로 참여","Paste the invite link":"초대 링크 붙여넣기","Join":"참여","Invite link":"초대 링크","Copy":"복사","Leave this list":"이 목록에서 나가기","Nothing yet. Add the first item.":"아직 없어요. 첫 항목을 추가해 보세요.","Anyone with this link who signs in can join, so only send it to people you trust.":"이 링크를 가진 사람은 로그인하면 참여할 수 있어요. 믿는 사람에게만 보내세요.","e.g. Family, Gala team, Practice":"예: 가족, 행사팀, 연습","Add an item… “pick up Mia fri 4pm @Dana”":"항목 추가… “금요일 4시 미아 데리러 @다나”","Delete item":"항목 삭제","Loading…":"불러오는 중…",
+  // ── select bar & misc ──
+  "Select":"선택","Tap tasks to select":"할 일을 눌러 선택하세요","Done":"완료","Due":"마감","Move":"이동","Waiting":"대기","Make a page":"페이지 만들기","Move to…":"이동…","Stop selecting":"선택 종료","Undo":"되돌리기","Redo":"다시 실행","Pick several tasks (or Shift-click a task)":"여러 할 일 선택 (또는 Shift+클릭)",
+  "Got it":"확인","Dismiss":"닫기","Close":"닫기","Back":"뒤로","Next":"다음","Edit categories":"카테고리 편집","Categories":"카테고리","Reset":"초기화","Show less":"접기","Show 10 more":"10개 더 보기","Clear":"지우기","Open Focus":"집중 열기","Open Tasks & Calendar →":"할 일 & 캘린더 열기 →","Change color":"색 바꾸기","Archived":"보관됨","Restore all":"모두 복원","Deleted items":"삭제한 항목","Deleted Items":"삭제한 항목","No deleted items":"삭제한 항목이 없어요","View deleted items":"삭제한 항목 보기",
+});
+
+Object.assign(CUP_KO, {
+  // ── sign in ──
+  "Log In":"로그인","Sign Up":"회원가입","Email":"이메일","Email Address":"이메일 주소","Password":"비밀번호","At least 6 characters":"6자 이상","Continue with Google":"Google로 계속하기","Forgot password?":"비밀번호를 잊으셨나요?","Forgot Password":"비밀번호 찾기","Stay signed in":"로그인 유지","Send Reset Link":"재설정 링크 보내기","← Back to login":"← 로그인으로 돌아가기","Your Name":"이름","We'll email you a reset link":"재설정 링크를 이메일로 보내드려요","A password reset link will be emailed to your account address.":"계정 이메일로 비밀번호 재설정 링크가 전송돼요.","Check spam folder if email doesn't arrive":"메일이 안 오면 스팸함을 확인하세요","OR":"또는","or":"또는",
+  // ── focus page & timer ──
+  "Pomodoro timer — pick a task, start the clock, let the room stay quiet.":"포모도로 타이머 — 할 일을 고르고, 시계를 시작하고, 조용히 집중하세요.","Focus Session":"집중 세션","Focus Time":"집중 시간","Break":"휴식","Break Time":"휴식 시간","Break now":"지금 쉬기","No task selected":"선택된 할 일 없음","Choose Focus Task":"집중할 할 일 선택","Choose task":"할 일 선택","Session Complete":"세션 완료","Focus Reports":"집중 리포트","Distractions":"방해 요소","Log a distraction":"방해 기록","⚡ Got distracted":"⚡ 딴짓했어요","◼ End Session":"◼ 세션 종료","Reset timer":"타이머 초기화","⟳ Reset":"⟳ 초기화","Skip phase":"단계 건너뛰기","Next phase":"다음 단계","Play / Pause":"재생 / 일시정지","Open Focus":"집중 열기","Classic":"클래식","Auto":"자동","Personalized":"맞춤형","Timer mode":"타이머 모드","Cycle 1 / 4":"사이클 1 / 4","Cycles":"사이클","⤢ Expand":"⤢ 확대","Today's stats":"오늘 통계","Today's Tasks":"오늘 할 일","Today's habits":"오늘 습관","Tasks finished":"끝낸 할 일","Focus minutes":"집중 시간(분)","Summary of study session":"공부 세션 요약","Tasks completed this session":"이번 세션에 완료한 할 일","Tasks to focus on":"집중할 할 일","Session Tasks":"세션 할 일","Your rhythm":"나의 리듬","Trend charts":"추세 차트","Completion trend":"완료 추세","Success rate":"성공률","Habit keep rate":"습관 유지율",
+  "Pomodoro Focus (min)":"포모도로 집중(분)","Short Break (min)":"짧은 휴식(분)","Long Break (min)":"긴 휴식(분)","Cycles Before Long Break":"긴 휴식 전 사이클 수","Alarm Sound":"알람 소리","Chime":"차임","Bell":"벨","Soft pulse":"부드러운 알림음","Accent Color":"강조 색","Density":"밀도","Compact":"촘촘하게","Spacious":"넉넉하게","Dark Mode":"다크 모드","Account":"계정","Backup Data":"데이터 백업","Export backup":"백업 내보내기","Import backup":"백업 가져오기","App Name (shown in sidebar & browser tab)":"앱 이름 (사이드바와 브라우저 탭에 표시)","App Subtitle (small text under name)":"앱 부제 (이름 아래 작은 글씨)","Cognitive scaffolds":"집중 보조 기능","Turn things off":"기능 끄기","Quick Capture":"빠른 메모","Quick Tour":"빠른 투어","Show feature tour":"기능 투어 보기","Shortcuts & Tips":"단축키 & 팁","Shortcuts":"단축키","Shortcuts and tips":"단축키와 팁","Keyboard":"키보드","Mouse & drag":"마우스 & 드래그","Install Focus Hub":"Focus Hub 설치","Install app":"앱 설치","Install":"설치","Learn more →":"더 알아보기 →","Add to Home Screen":"홈 화면에 추가","Already installed?":"이미 설치했나요?",
+  // ── add task / event modals ──
+  "New Task":"새 할 일","Task Title":"할 일 제목","Subject / Course":"과목 / 강의","Course / Context":"강의 / 맥락","Task Kind":"유형","Description / Notes":"설명 / 메모","Work Days":"작업일","Subtasks":"하위 작업","Add a small step…":"작은 단계 추가…","Add subsection":"+ 하위 구역 추가","+ Add subsection":"+ 하위 구역 추가","Event Title":"일정 제목","Event Type":"일정 유형","Start Date":"시작일","End Date":"종료일","Start Time":"시작 시간","End Time":"종료 시간","Location":"장소","Room, building, Zoom link…":"강의실, 건물, Zoom 링크…","Repeat":"반복","Repeat on":"반복 요일","Repeat On":"반복 요일","Reminder":"알림","No reminder":"알림 없음","5 minutes before":"5분 전","15 minutes before":"15분 전","30 minutes before":"30분 전","Daily":"매일","Weekly (same day)":"매주 (같은 요일)","Monthly":"매월","Weekdays (Mon–Fri)":"평일 (월–금)","Custom days…":"요일 직접 지정…","Class":"수업","Class / Lecture":"수업 / 강의","Test / Exam":"시험","Office Hours":"오피스 아워","General Event":"일반 일정","Meeting":"회의","Deadline":"마감","Reading":"읽기","Study":"공부","Project":"프로젝트","Habit / Recurring":"습관 / 반복","Assignment":"과제",
+  "Sun":"일","Mon":"월","Tue":"화","Wed":"수","Thu":"목","Fri":"금","Sat":"토","Su":"일","Mo":"월","Tu":"화","We":"수","Th":"목","Fr":"금","Sa":"토","SU":"일","MO":"월","TU":"화","WE":"수","TH":"목","FR":"금","SA":"토","Sunday":"일요일","Monday":"월요일","Tuesday":"화요일","Wednesday":"수요일","Thursday":"목요일","Friday":"금요일","Saturday":"토요일",
+  "Search tasks…":"할 일 검색…","Search by title or subject…":"제목이나 과목으로 검색…","Sort by":"정렬","Sort: Due":"정렬: 마감","Sort: Priority":"정렬: 우선순위","Sort: Title":"정렬: 제목","Sort: Section":"정렬: 구역","Sort: Custom":"정렬: 사용자 지정","Newest":"최신순","To-Do Bank":"할 일 보관함","Task bank":"할 일 보관함","All tasks":"모든 할 일","Active":"진행 중","Must-Do":"필수","Completed work — out of your way but still recoverable.":"완료한 일 — 방해되지 않지만 언제든 복구할 수 있어요.","Missed work — carry over?":"놓친 일 — 이월할까요?","Carry here":"여기로 이월","Completed":"완료됨","Delete":"삭제","Hours I can give a week":"한 주에 쓸 수 있는 시간",
+});
+
+// ── strings with numbers, names or dates ──
+CUP_KO_PAT.push(
+  [/^Good (morning|afternoon|evening|night),?\s*(.*)$/, (m,t,n)=>`${({morning:'좋은 아침이에요',afternoon:'좋은 오후예요',evening:'좋은 저녁이에요',night:'편안한 밤이에요'})[t]}${n?', '+n+'님':''}`],
+  [/^(\d+) more coming up · see all$/, (m,n)=>`${n}개 더 · 모두 보기`],
+  [/^Hide the full list$/, ()=>'전체 목록 숨기기'],
+  [/^(\d+)d late$/, (m,n)=>`${n}일 지연`], [/^From ((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d+)$/, (m,d)=>`${d}부터`], [/^Was due(.*)$/, (m,t)=>`마감이었음${t}`], [/^(\d+) days? late$/, (m,n)=>`${n}일 지연`],
+  [/^(\d+) behind$/, (m,n)=>`${n}강 뒤처짐`], [/^(\d+) ahead$/, (m,n)=>`${n}강 앞섬`], [/^Caught up$/, ()=>'따라잡음'], [/^even$/, ()=>'동일'],
+  [/^(\S+) to catch up · even by (.+?) at (\d+)\/day$/, (m,h,d,n)=>`따라잡기까지 ${h} · ${d}에 동률 (하루 ${n}개)`], [/^(\S+) to catch up$/, (m,h)=>`따라잡기까지 ${h}`], [/^(\d+) left in the course$/, (m,n)=>`수업 ${n}강 남음`],
+  [/^✓ (\S+) done$/, (m,l)=>`✓ ${l} 완료`], [/^Mark (.+) done$/, (m,l)=>`${l} 완료로 표시`], [/^You (\S+)$/, (m,l)=>`나 ${l}`], [/^Class (\S+)$/, (m,l)=>`수업 ${l}`],
+  [/^Fresh start · (\d+) carried over$/, (m,n)=>`새 출발 · ${n}개 이월`], [/^Waiting on · (\d+)(?: · (\d+) to nudge)?$/, (m,n,k)=>`답변 대기 · ${n}${k?` · 재촉 ${k}`:''}`],
+  [/^(\d+) selected$/, (m,n)=>`${n}개 선택됨`], [/^Pages inside · (\d+)$/, (m,n)=>`하위 페이지 · ${n}`], [/^Linked from · (\d+)$/, (m,n)=>`연결된 곳 · ${n}`], [/^Include (\d+) pages? inside$/, (m,n)=>`하위 페이지 ${n}개 포함`],
+  [/^Apply: add (\d+)$/, (m,n)=>`적용: ${n}개 추가`], [/^Add all (\d+) left$/, (m,n)=>`남은 ${n}개 모두 추가`], [/^(\d+) left$/, (m,n)=>`${n}개 남음`], [/^none left$/, ()=>'남은 것 없음'], [/^(\d+) of (\d+)$/, (m,a,b)=>`${a} / ${b}`],
+  [/^(\d+) members?: (.*)$/, (m,n,l)=>`멤버 ${n}명: ${l}`], [/^This week · (.+)$/, (m,h)=>`이번 주 · ${h}`], [/^Last 30 days · (.+)$/, (m,h)=>`최근 30일 · ${h}`], [/^Due · (.+)$/, (m,t)=>`마감 · ${t}`],
+  [/^(\d+) folders? · (\d+) open$/, (m,a,b)=>`폴더 ${a}개 · 열린 항목 ${b}개`], [/^(\d+) steps?$/, (m,n)=>`${n}단계`], [/^(\d+) photos?$/, (m,n)=>`사진 ${n}장`], [/^(\d+) files?$/, (m,n)=>`파일 ${n}개`], [/^Sent (.+)$/, (m,d)=>`${d}에 보냄`],
+  [/^Waiting on \((\d+)\)$/, (m,n)=>`답변 대기 (${n})`], [/^⧗ Waiting on \((\d+)\)$/, (m,n)=>`⧗ 답변 대기 (${n})`], [/^Applications \((\d+)\)$/, (m,n)=>`지원서 (${n})`], [/^All tasks \((\d+)\)$/, (m,n)=>`모든 할 일 (${n})`],
+  [/^(\d+) entr(?:y|ies)$/, (m,n)=>`기록 ${n}개`], [/^(\d+)-day writing streak(?: · )?(.*)$/, (m,n,r)=>`${n}일 연속 기록${r?' · '+(cupTr(r)||r):''}`], [/^(\d+)-day streak$/, (m,n)=>`${n}일 연속`],
+  [/^Saved\.$/, ()=>'저장했어요.'], [/^Added “(.*)”\.$/, (m,t)=>`“${t}”을(를) 추가했어요.`], [/^Deleted “(.*)”\.$/, (m,t)=>`“${t}”을(를) 삭제했어요.`], [/^Moved “(.*)” to (.*)\.$/, (m,t,d)=>`“${t}”을(를) ${d}(으)로 옮겼어요.`],
+  [/^Task added(.*)\.$/, (m,r)=>`할 일을 추가했어요${r}.`], [/^Event added(.*)\.$/, (m,r)=>`일정을 추가했어요${r}.`], [/^“(.*)” is now at the top of Home\.$/, (m,t)=>`“${t}”을(를) 홈 맨 위로 올렸어요.`], [/^“(.*)” is off Next up (.*)\.$/, (m,t,w)=>`“${t}”을(를) 다음 할 일에서 뺐어요 (${w}).`],
+  [/^Reset (\d+) tasks?\.$/, (m,n)=>`${n}개를 정리했어요.`], [/^Rest day\. Your streak is safe\.$/, ()=>'쉬는 날이에요. 연속 기록은 안전해요.'], [/^Listening \((.*)\)\. Tap the mic again to stop\.$/, (m,l)=>`듣는 중 (${l}). 마이크를 다시 누르면 멈춰요.`],
+  [/^Showing (.+)$/, (m,t)=>`${t} 보기`], [/^Show (\d+) hidden pages?$/, (m,n)=>`숨긴 페이지 ${n}개 보기`], [/^Hide (\d+) hidden pages?$/, (m,n)=>`숨긴 페이지 ${n}개 접기`], [/^Reading (?:quick lines|Claude’s reply) · (\d+) (?:items?|changes?)$/, (m,n)=>`읽은 항목 · ${n}개`],
+  [/^Expand (.+)$/, (m,t)=>`${t} 펼치기`], [/^Collapse (.+)$/, (m,t)=>`${t} 접기`], [/^Hide (.+) in sidebar$/, (m,t)=>`${t}을(를) 사이드바에서 숨기기`], [/^Add a page inside (.+)$/, (m,t)=>`${t} 안에 페이지 추가`], [/^Mark (.+) finished$/, (m,t)=>`${t} 완료로 표시`], [/^Put (.+) at the top of Home$/, (m,t)=>`${t}을(를) 홈 맨 위에 두기`], [/^Make (.+) Next up$/, (m,t)=>`${t}을(를) 다음 할 일로`],
+  [/^Item (\d+)$/, (m,n)=>`항목 ${n}`], [/^(\d+) PM$/, (m,n)=>`오후 ${n}시`], [/^(\d+) AM$/, (m,n)=>`오전 ${n}시`], [/^(\d+) (?:am)$/, (m,n)=>`오전 ${n}시`], [/^(\d+) (?:pm)$/, (m,n)=>`오후 ${n}시`]
+);
+
+// ── the welcome tour in full sentences ──
+(function(){
+  const _wf=cupWelcomeFill;
+  cupWelcomeFill=function(){
+    _wf();
+    if(cupLang()!=='ko') return;
+    const tour=document.querySelector('#welcomeContent .cup-tour');
+    if(tour){ tour.setAttribute('data-keep','1'); tour.innerHTML=`
+      <li><b>홈</b>에는 지금 할 일 하나만 보여요. <i>나중에</i>는 숨기고, <i>지금 하기</i>는 다른 걸 고르게 해줘요.</li>
+      <li><b>+ (또는 ⌘K)</b>로 무엇이든 추가해요. “금요일 3시 샘에게 전화”라고 쓰고 할 일, 일정, 페이지, 습관, 답변 대기 중 하나를 고르세요.</li>
+      <li><b>할 일 &amp; 캘린더</b>는 한 페이지예요. 필터 칩으로 일정, 마감, 할 일을 켜고 끌 수 있어요.</li>
+      <li><b>페이지</b>는 메모예요. 아무 줄에서 <kbd>/</kbd>를 누르면 명령이 나오고, <i>정리하기</i>는 페이지를 요약해줘요.</li>
+      <li><b>일기</b>는 하루 한 줄, 기분, 사진을 기록해요. <b>목표</b>에는 마감과 진행 상황이 있어요.</li>`; }
+  };
+})();
+
+Object.assign(CUP_KO, {
+  "puts it at the top of Home ·":"→ 홈 맨 위로 올려요 ·","checks it off ·":"→ 완료 표시 ·","un-checks the last one":"→ 마지막 완료 취소",
+  "Nothing scheduled today":"오늘 예정된 일이 없어요","Nothing scheduled for today. Add tasks in Tasks & Calendar or use Quick Add above.":"오늘 예정된 일이 없어요. 할 일 & 캘린더에서 추가하거나 위의 빠른 추가를 쓰세요.","No tasks scheduled for today. Add tasks in Tasks & Calendar or use Quick Add on the Dashboard.":"오늘 예정된 일이 없어요. 할 일 & 캘린더에서 추가하거나 대시보드의 빠른 추가를 쓰세요.","No habits scheduled for today.":"오늘 예정된 습관이 없어요.","No habits for today. Drop a task here to make a habit.":"오늘 습관이 없어요. 여기에 할 일을 놓으면 습관이 돼요.","No must-do tasks today.":"오늘 필수 할 일이 없어요.","Archive is empty.":"보관된 항목이 없어요.","Must-do first, then daily tasks, then habits.":"필수 → 일일 할 일 → 습관 순서예요.","Complete all MUST tasks to unlock today's todos and habits.":"필수 할 일을 모두 끝내면 오늘의 할 일과 습관이 열려요.",
+  "Add Focus Hub to your home screen":"Focus Hub를 홈 화면에 추가하세요","Add Focus Hub to your home screen — works on every platform.":"Focus Hub를 홈 화면에 추가하세요 — 모든 플랫폼에서 돼요.","How?":"방법","Commitments & weekly load":"약속 & 주간 부하","Carry to today":"오늘로 이월","Task not assigned yet":"아직 배정되지 않은 할 일","🔥 High":"🔥 높음","✅ Med":"✅ 중간","Showing":"표시 중",
+  "All tasks. Drag onto calendar dates to schedule work.":"모든 할 일. 캘린더 날짜로 끌어 일정을 잡으세요.","Due dates, test dates, habits, and work sessions.":"마감일, 시험일, 습관, 작업 시간.","Import calendar":"캘린더 가져오기","Import Calendar":"캘린더 가져오기","Import Calendar (iCal)":"캘린더 가져오기 (iCal)","Drop one or more":"하나 이상 끌어다 놓기","files here":"파일을 여기에","Choose files…":"파일 선택…","iCal URL (Canvas, Google Calendar, Outlook…)":"iCal URL (Canvas, Google 캘린더, Outlook…)","From URL":"URL에서","Fetch & Import":"불러와서 가져오기","Paste ICS data below":"아래에 ICS 데이터 붙여넣기","Paste Data":"데이터 붙여넣기","From date":"시작 날짜","To date":"종료 날짜","From":"시작","To":"종료",
+  "Add Focus Block":"집중 시간 추가","No tasks selected":"선택한 할 일 없음","Expect decision by":"결정 예상일","⧗ Waiting":"⧗ 대기","Convert to Event":"일정으로 바꾸기","Convert to Task":"할 일로 바꾸기","Calendar Highlight":"캘린더 강조","Highlight as due date":"마감일로 강조","Highlight as test/exam":"시험으로 강조","Assigned work day only":"작업일에만 표시","Controls how this task appears on the calendar.":"이 할 일이 캘린더에 표시되는 방식이에요.","Blank means it starts right away.":"비워두면 바로 시작해요.","Blank means no end date.":"비워두면 종료일이 없어요.","Today's Subsection":"오늘의 구역","+ Add":"+ 추가",
+  "Start a focus session":"집중 세션 시작","Optional prep ritual":"선택 준비 의식","Upcoming and recent pages":"다가오는 일정과 최근 페이지","Open the Goals page":"목표 페이지 열기","Things you sent and are waiting on":"보내고 답을 기다리는 것들","Low energy? Hides tasks marked Hard for today":"기운이 없나요? 오늘은 ‘어려움’ 할 일을 숨겨요","Reset everything that slipped":"밀린 일 모두 정리","Not now: hide it for a while, or move it":"지금은 아니에요: 잠시 숨기거나 옮겨요","Search…  (spaces ignored)":"검색…  (공백 무시)","Sort task bank":"할 일 보관함 정렬","Sort daily tasks":"일일 할 일 정렬","Mark complete":"완료 표시","Drag to a calendar day":"캘린더 날짜로 끌어놓기","Reserve time and pick tasks to focus on":"시간을 확보하고 집중할 할 일 고르기","Show calendar":"캘린더 보기","Show all three side by side":"세 개를 나란히 보기","Change page icon":"페이지 아이콘 변경","Click to change the icon":"눌러서 아이콘 변경",
+  "Where it goes":"들어갈 위치","What needs to be done?":"무엇을 해야 하나요?","Add a work day":"작업일 추가","Deep work · study session · etc.":"몰입 작업 · 공부 세션 등","Your goal is to finish:":"끝낼 목표:","Classic 25/5 · Focus":"클래식 25/5 · 집중","52/17 rule":"52/17 규칙","25 minutes of focused work, then 5 off. Good for starting when resistance is high.":"25분 집중 후 5분 휴식. 시작하기 싫을 때 좋아요.","⊕ Calibrate personal timer":"⊕ 개인 타이머 맞추기","Change password (email link)":"비밀번호 변경 (이메일 링크)","0 distractions":"방해 0회","Natural-language Quick Add":"자연어 빠른 추가","Parse →":"분석 →","Type naturally — \"MUST submit essay by Friday\" or \"gym habit tuesday thursday saturday\"":"자연스럽게 입력하세요 — “금요일까지 에세이 제출 필수” 또는 “운동 습관 화목토”","Hidden details":"숨은 세부 정보","Nothing to add yet":"아직 추가할 게 없어요","Summarize this page and turn it into an organized note with action items, a quiz and a conclusion":"이 페이지를 요약해 실행 항목, 퀴즈, 결론이 있는 정리된 노트로 만들어요","What you can give: 40h":"쓸 수 있는 시간: 40시간","Start Stopwatch Calibration":"스톱워치 맞추기 시작","Use calibrated baseline":"맞춘 기준 사용","Stopwatch Calibration":"스톱워치 맞추기","Don't show on startup":"시작할 때 보지 않기","Pro tips:":"팁:","Quick Tour":"빠른 투어",
+});
+CUP_KO_PAT.push(
+  [/^Due (.+) - overdue$/, (m,d)=>`마감 ${d} - 기한 지남`], [/^Due (.+) - (\d+) days? left$/, (m,d,n)=>`마감 ${d} - ${n}일 남음`], [/^Missed (.+)\. Carry this one into the selected date\?$/, (m,d)=>`${d}에 놓친 일이에요. 선택한 날짜로 이월할까요?`], [/^Missed (.+)$/, (m,d)=>`${d} 놓침`],
+  [/^(.+)'s Tasks$/, (m,d)=>`${d} 할 일`], [/^Drop a task here to set its due date for (.+)$/, (m,d)=>`여기에 놓으면 마감일이 ${d}로 설정돼요`], [/^(Today’s journal|Reflect on today)( · .+)$/, (m,a,r)=>`${cupTr(a)||a}${r}`],
+  [/^What you can give: (.+)$/, (m,h)=>`쓸 수 있는 시간: ${h}`], [/^Journal · (.+)$/, (m,d)=>`일기 · ${d}`], [/^You (\S+) · Class (\S+)(?: · (.+))?$/, (m,a,b,r)=>`나 ${a} · 수업 ${b}${r?' · '+(cupTr(r)||r):''}`],
+  [/^(\d+) (?:day|days) left$/, (m,n)=>`${n}일 남음`]
+);
 
 </script>
 </body>
