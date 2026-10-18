@@ -62,6 +62,25 @@
         ".read": "auth != null && auth.uid === $uid",
         ".write": "auth != null && auth.uid === $uid"
       }
+    },
+    "shared": {
+      "$sid": {
+        ".read": "auth != null && data.child('members').child(auth.uid).exists()",
+        ".write": "auth != null && !data.exists() && newData.child('owner').val() === auth.uid",
+        "name": {
+          ".write": "auth != null && data.parent().child('owner').val() === auth.uid"
+        },
+        "members": {
+          "$m": {
+            ".write": "auth != null && (auth.uid === $m || data.parent().parent().child('owner').val() === auth.uid)"
+          }
+        },
+        "items": {
+          "$i": {
+            ".write": "auth != null && data.parent().parent().child('members').child(auth.uid).exists()"
+          }
+        }
+      }
     }
   }
 }
