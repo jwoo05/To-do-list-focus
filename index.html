@@ -6569,6 +6569,18 @@ input[type=date]:disabled, input[type=time]:disabled{ cursor:default; opacity:.5
 .cup-dp-row .cup-dp-type{ margin:0; flex:1; }
 .cup-dp-ok{ padding:8px 16px; }
 
+/* ── Round 4 Upgrades: Mobile 5-Tab Bar, Me Sheet & Calm Task Sheet ── */
+#mCupTask button[onclick*="cupTSAdvanced"] { display: none !important; }
+.cup-ts-more-toggle { width: 100%; text-align: left; padding: 8px 4px; margin-top: 4px; border-top: 1px dashed var(--border); }
+.cup-mt-plus .mt-tab-glyph { background: var(--accent); color: #fff; width: 32px; height: 26px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; }
+.cup-me-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 8px 14px; }
+.cup-mob-sheet .modal-body { padding-left: 14px; padding-right: 14px; }
+.cup-mob-sheet .cup-me-grid { padding-left: 0; padding-right: 0; }
+.cup-me-card { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg2); color: var(--text); text-align: left; cursor: pointer; font-family: inherit; }
+.cup-me-card span { font-size: 18px; }
+.cup-me-card b { font-size:calc(13px * var(--cup-fs,1)); font-weight: 600; }
+.cup-me-card em { font-size:calc(11px * var(--cup-fs,1)); font-style: normal; color: var(--text3); }
+
 </style>
 <script>
 /* Immediately apply saved theme + density to avoid flash */
@@ -8524,7 +8536,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="form-row"><label for="cupCRole">Your role</label><input id="cupCRole" placeholder="Member, President…"></div>
         <div class="form-row"><label for="cupCHours">Hours per week</label><input id="cupCHours" type="number" min="0" step="0.5"></div>
         <div class="form-row"><label for="cupCWhen">When (summary)</label><input id="cupCWhen" placeholder="Meetings TBD"></div>
-        <div class="form-row full"><label for="cupCSlots">Weekly times — added to your calendar</label><textarea id="cupCSlots" rows="3" placeholder="MW 11:30-12:50 Lecture @ MOR 220&#10;TTh 6:30pm-7:30pm Meeting&#10;MWF 7pm-7am Night shift" oninput="cupSlotPreview()"></textarea><div class="cup-slot-prev" id="cupSlotPrev"></div></div>
+        <div class="form-row full"><label for="cupCSlots">Weekly times — added to your calendar</label><div class="cup-ts-chips" style="margin-bottom:6px"><button type="button" class="cup-ts-chip" onclick="cupAddSlotLine('MWF 09:00-10:20 Lecture')">+ MWF</button><button type="button" class="cup-ts-chip" onclick="cupAddSlotLine('TTh 13:30-14:50 Lecture')">+ TTh</button><button type="button" class="cup-ts-chip" onclick="cupAddSlotLine('월수금 10:30-11:50 수업')">+ 월수금</button><button type="button" class="cup-ts-chip" onclick="cupAddSlotLine('화목 13:30-14:50 수업')">+ 화목</button><button type="button" class="cup-ts-chip" onclick="cupAddSlotLine('Fri 18:00-01:00 Closing shift')">+ Close (18–01)</button><button type="button" class="cup-ts-chip" onclick="cupAddSlotLine('MWF 19:00-07:00 Night shift')">+ Night (19–07)</button></div><textarea id="cupCSlots" rows="3" placeholder="MW 11:30-12:50 Lecture @ MOR 220&#10;TTh 6:30pm-7:30pm Meeting&#10;MWF 7pm-7am Night shift" oninput="cupSlotPreview()"></textarea><div class="cup-slot-prev" id="cupSlotPrev"></div></div>
         <div class="form-row"><label for="cupCUntil">Ends on (optional — quarter, rotation, season)</label><input type="date" id="cupCUntil"></div>
         <div class="form-row full"><label for="cupCBoosts">Busy weeks — extra hours (exams, deadlines)</label><textarea id="cupCBoosts" rows="2" placeholder="2026-10-13 to 2026-10-22 +10 Midterm 1 prep"></textarea><div class="cup-pref-note">One per line: start date, “to”, end date, then +hours and a label. Those weeks count extra toward this folder’s load.</div></div>
         <div class="form-row full"><label for="cupCNotes">Notes</label><textarea id="cupCNotes" rows="3"></textarea></div>
@@ -16337,8 +16349,19 @@ const cupParse = s => s ? new Date(s+'T00:00:00') : null;
 function cupDayEnd(){ try{ return +(S&&S.cup&&S.cup.prefs&&S.cup.prefs.dayEnd)||0; }catch(_){ return 0; } }
 function cupNow(){ const d=new Date(); const h=cupDayEnd(); if(h) d.setHours(d.getHours()-h); return d; }
 function cupDays(s){ if(!s) return null; const t=cupNow(); t.setHours(0,0,0,0); return Math.round((cupParse(s)-t)/864e5); }
-const cupFmt = s => s ? cupParse(s).toLocaleDateString(undefined,{month:'short',day:'numeric'}) : '';
-function cupT12(t){ if(!t) return ''; let [h,m]=t.split(':').map(Number); const ap=h>=12?'pm':'am'; h=h%12||12; return `${h}:${String(m).padStart(2,'0')}${ap}`; }
+const cupIsKo = () => typeof cupLang === 'function' && cupLang() === 'ko';
+const cupFmt = s => {
+  if(!s) return '';
+  const d = cupParse(s);
+  return cupIsKo() ? `${d.getMonth()+1}월 ${d.getDate()}일` : d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+};
+function cupT12(t){
+  if(!t) return '';
+  let [h,m] = t.split(':').map(Number);
+  if(isNaN(h)) return t;
+  const isPm = h >= 12, h12 = h % 12 || 12, mm = String(m||0).padStart(2,'0');
+  return cupIsKo() ? `${isPm?'오후':'오전'} ${h12}:${mm}` : `${h12}:${mm}${isPm?'pm':'am'}`;
+}
 const cupDone = t => !!(t.archived || (!t.isHabit && t.completed));
 const cupCommits = () => { cupEnsure(); return S.commitments; };
 const cupCommit = id => id ? cupCommits().find(c=>c.id===id) : null;
@@ -16450,20 +16473,44 @@ function cupImportSeed(){
 }
 
 // ── weekly times ⇄ recurring calendar events ──
-function cupParseTime(s){
-  const m=String(s).trim().toLowerCase().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/); if(!m) return null;
-  let h=+m[1]; const mi=+(m[2]||0);
-  if(m[3]==='pm'&&h<12) h+=12; if(m[3]==='am'&&h===12) h=0;
-  if(!m[3]&&h>=1&&h<=7) h+=12;
+function cupParseTime(s, is24Context=false){
+  const raw=String(s).trim().toLowerCase();
+  const m=raw.match(/^(?:(오전|오후|아침|저녁|밤)\s*)?(\d{1,2})(?::(\d{2})|시(?:\s*(\d{1,2})분?)?)?\s*(am|pm|a|p)?$/);
+  if(!m) return null;
+  let h=+m[2]; const mi=+(m[3]||m[4]||0);
+  if(h>23 || mi>59) return null;
+  const koAp = m[1], enAp = m[5] ? (m[5].startsWith('p')?'pm':'am') : (koAp==='오후'||koAp==='저녁'||koAp==='밤'?'pm':koAp==='오전'||koAp==='아침'?'am':'');
+  const hasLeadingZero = /^0\d/.test(m[2]);
+  if(enAp==='pm' && h<12) h+=12;
+  else if(enAp==='am' && h===12) h=0;
+  else if(!enAp && !hasLeadingZero && !is24Context && h>=1 && h<=7) h+=12;
   return `${String(h).padStart(2,'0')}:${String(mi).padStart(2,'0')}`;
 }
+function cupParseDaysToken(tok){
+  const s = String(tok||'').trim();
+  if(s==='평일' || /^weekdays?$/i.test(s)) return [0,1,2,3,4];
+  if(s==='주말' || /^weekends?$/i.test(s)) return [5,6];
+  if(s==='매일' || /^daily$/i.test(s)) return [0,1,2,3,4,5,6];
+  const out = [];
+  const koMap = {'월':0,'화':1,'수':2,'목':3,'금':4,'토':5,'일':6};
+  for(const ch of s){ if(koMap[ch]!==undefined && !out.includes(koMap[ch])) out.push(koMap[ch]); }
+  (s.match(/Th|Tu|We|Fr|Sa|Su|Mo|M|T|W|F/gi)||[]).forEach(x=>{
+    const k = x.length===2 ? x[0].toUpperCase()+x[1].toLowerCase() : x.toUpperCase();
+    const d = ({M:0,Mo:0,T:1,Tu:1,W:2,We:2,Th:3,F:4,Fr:4,Sa:5,Su:6})[k];
+    if(d!==undefined && !out.includes(d)) out.push(d);
+  });
+  return out;
+}
 function cupParseSlots(text){
-  return text.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
-    const m=l.match(/^([A-Za-z]+)\s+([\d:apmAPM\s]+?)\s*[-–]\s*([\d:apmAPM]+)\s*(.*)$/); if(!m) return null;
-    const days=(m[1].match(/Th|Sa|Su|M|T|W|F/g)||[]).map(x=>({M:0,T:1,W:2,Th:3,F:4,Sa:5,Su:6})[x]);
-    const start=cupParseTime(m[2]); let end=cupParseTime(m[3]); if(!start||!end||!days.length) return null;
-    if(end<start && +end.slice(0,2)<12 && !/am|pm/i.test(m[3])) end=String(+end.slice(0,2)+12).padStart(2,'0')+end.slice(2);   // “1–2” means pm; “7pm–7am” is overnight
-    const [label,where]=m[4].split('@').map(s=>s.trim());
+  return String(text||'').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
+    const m=l.match(/^([A-Za-z가-힣,·/]+)\s+([\d:apmAPM가-힣\s]+?)\s*[-–~]\s*([\d:apmAPM가-힣\s]+?)(?:\s+(?=[A-Za-z가-힣@])(.*))?$/);
+    if(!m) return null;
+    const days=cupParseDaysToken(m[1]);
+    const is24 = [m[2],m[3]].some(t=>/^\s*(?:0\d|1[3-9]|2[0-3])(?::\d{2})?\s*$/.test(t));   // “18:00”, “01:00” — hours only, never minutes
+    const start=cupParseTime(m[2], is24); let end=cupParseTime(m[3], is24);
+    if(!start||!end||!days.length) return null;
+    if(end<start && !is24 && +end.slice(0,2)<12 && !/am|pm|오전|오후|아침/i.test(m[3])) end=String(+end.slice(0,2)+12).padStart(2,'0')+end.slice(2);   // “1–2” means pm; “7pm–7am” is overnight
+    const [label,where]=(m[4]||'').split('@').map(s=>s.trim());
     return { days, start, end, label:label||'', where:where||'' };
   }).filter(Boolean);
 }
@@ -16857,14 +16904,14 @@ function cupRenderHome(){
   const L=cupLoad();
   let html;
   if(!first){
-    html=`<div class="cup-next-top"><span class="cup-next-label">Next up</span></div><div class="cup-next-title">Nothing waiting for you ✓</div>`;
+    html=`<div class="cup-next-top"><span class="cup-next-label">Next up</span>${cupPref('gardenOn')?cupGardenMini():''}</div><div class="cup-next-title">Nothing waiting for you ✓</div>`;
   } else {
     const t=first.t, c=cupCommit(t.commitId);
     const folder=c?c.name:(CUP_AREA[t.area]?.name||t.subject||'');
     const notes=(t.notes||'').trim();
     const subs=t.subtasks||[], subDone=subs.filter(s=>s.done).length;
     const hasMore=!!(notes||t.link||subs.length);
-    html=`<div class="cup-next-top"><span class="cup-next-label">Next up</span>${first.pinned?`<button class="cup-pinbadge" onclick="cupPin('')" title="Go back to showing the most urgent task">Your pick · ✕</button>`:cupBadge(first)}</div>
+    html=`<div class="cup-next-top"><span class="cup-next-label">Next up</span><span style="display:inline-flex;align-items:center;gap:8px;margin-left:auto">${cupPref('gardenOn')?cupGardenMini():''}${first.pinned?`<button class="cup-pinbadge" onclick="cupPin('')" title="Go back to showing the most urgent task">Your pick · ✕</button>`:cupBadge(first)}</span></div>
       <div class="cup-next-folder">${folder?`<span class="cup-sw" style="background:${cupSphColor(t.area)}"></span>${esc(folder)}`:''}${t.appStage?` · ${CUP_STAGES[t.appStage]}`:''}</div>
       <div class="cup-next-title">${esc(t.title)}</div>
       ${t.location?`<a class="cup-place" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(t.location)}" target="_blank" rel="noopener">${cupIc('pin')}${esc(t.location)}</a>`:''}
@@ -17897,36 +17944,48 @@ function cupTSRender(){
   host.innerHTML = `
     <input id="cupTSTitle" class="cup-ts-title" placeholder="What do you need to do?" value="${esc(s.title)}" oninput="cupTS.title=this.value" autocomplete="off">
     <div class="cup-rows">
-      ${s.kind!=='habit' ? cupTSRow('due','⏰','Due',dueV, `
-        <div class="cup-ts-chips">${[['', 'No date'],[today,'Today'],[tmw,'Tomorrow'],[fri,'Fri '+cupParse(fri).getDate()],[nwk,'In a week']].map(([v,l])=>chip(s.due===v,l,`cupTS.due='${v}';cupTSRender()`)).join('')}
+      ${cupTSRow('due','⏰','When', s.kind==='habit' ? repV : (s.repeat ? `${dueV} · ↻ ${typeof cupRepeatLabel==='function'?cupRepeatLabel(s.repeat):s.repeat}` : dueV), `
+        ${s.kind!=='habit' ? `<div class="cup-ts-chips">${[['', 'No date'],[today,'Today'],[tmw,'Tomorrow'],[fri,'Fri '+cupParse(fri).getDate()],[nwk,'In a week']].map(([v,l])=>chip(s.due===v,l,`cupTS.due='${v}';cupTSRender()`)).join('')}
           ${pick(s.due&&![today,tmw,fri,nwk].includes(s.due),'📅 Other date',s.due,'date','cupTS.due')}</div>
         ${s.due?`<div class="cup-ts-sub">Time</div><div class="cup-ts-chips">${[['','None'],['09:00','9 am'],['12:00','Noon'],['17:00','5 pm'],['23:59','11:59 pm']].map(([v,l])=>chip(s.dueTime===v,l,`cupTS.dueTime='${v}';cupTSRender()`)).join('')}
-          ${pick(s.dueTime&&!['09:00','12:00','17:00','23:59'].includes(s.dueTime),'🕒 Other',s.dueTime,'time','cupTS.dueTime')}</div>`:''}`) : ''}
-      ${cupTSRow('rep','↻','Repeats',repV, `
-        <div class="cup-ts-chips">${chip(s.kind!=='habit','Doesn’t repeat',"cupTS.kind='task';cupTSRender()")}${chip(s.kind==='habit'&&!s.weeklyGoal&&s.days.length===7,'Every day',"cupTS.kind='habit';cupTS.weeklyGoal=0;cupTS.days=[0,1,2,3,4,5,6];cupTSRender()")}${[3,4,5].map(n=>chip(s.kind==='habit'&&s.weeklyGoal===n,n+'× a week',`cupTS.kind='habit';cupTS.weeklyGoal=${n};cupTSRender()`)).join('')}</div>
-        <div class="cup-ts-sub">or on these days</div>
+          ${pick(s.dueTime&&!['09:00','12:00','17:00','23:59'].includes(s.dueTime),'🕒 Other',s.dueTime,'time','cupTS.dueTime')}</div>`:''}` : ''}
+        <div class="cup-ts-sub">Repeats</div>
+        <div class="cup-ts-chips">
+          ${chip(s.kind!=='habit'&&!s.repeat,'Doesn’t repeat',"cupTS.kind='task';cupTS.repeat='';cupTSRender()")}
+          ${chip(s.kind==='habit'&&!s.weeklyGoal&&s.days.length===7,'Every day (habit)',"cupTS.kind='habit';cupTS.repeat='';cupTS.weeklyGoal=0;cupTS.days=[0,1,2,3,4,5,6];cupTSRender()")}
+          ${[3,5].map(n=>chip(s.kind==='habit'&&s.weeklyGoal===n,n+'× a week',`cupTS.kind='habit';cupTS.repeat='';cupTS.weeklyGoal=${n};cupTSRender()`)).join('')}
+          ${[['week:1','Weekly'],['week:2','Every 2 wks'],['month:1','Monthly']].map(([v,l])=>chip(s.kind!=='habit'&&s.repeat===v,l,`cupTS.kind='task';cupTS.repeat='${v}';cupTSRender()`)).join('')}
+        </div>
+        <div class="cup-ts-sub">Or on specific days (habit)</div>
         <div class="cup-ts-days">${['S','M','T','W','T','F','S'].map((l,i)=>`<button type="button" class="cup-ts-day ${s.kind==='habit'&&!s.weeklyGoal&&s.days.includes(i)?'on':''}" onclick="cupTSDay(${i})" aria-label="${DN[i]}">${l}</button>`).join('')}</div>
-        ${s.kind==='habit'?`<div class="cup-ts-sub">Time of day</div><div class="cup-ts-chips">${[['','Any'],['07:00','Morning'],['12:00','Midday'],['18:00','Evening'],['22:30','Night']].map(([v,l])=>chip(s.time===v,l,`cupTS.time='${v}';cupTSRender()`)).join('')}</div>`:''}`)}
-      ${cupTSRow('pri','★','Priority',priV, `<div class="cup-ts-pri">${CUP_PRI.map(([v,l,hint,col])=>`<button type="button" class="cup-ts-pricard ${s.priority===v?'on':''}" style="--pc:${col}" onclick="cupTS.priority='${v}';cupTS.open='';cupTSRender()"><b>${l}</b><span>${hint}</span></button>`).join('')}</div>`)}
-      ${cupTSRow('fol','▤','Folder',folV, `
+        ${s.kind==='habit'?`<div class="cup-ts-sub">Time of day</div><div class="cup-ts-chips">${[['','Any'],['07:00','Morning'],['12:00','Midday'],['18:00','Evening'],['22:30','Night']].map(([v,l])=>chip(s.time===v,l,`cupTS.time='${v}';cupTSRender()`)).join('')}</div>`:''}
+      `)}
+      ${cupTSRow('fol','▤','Where & status', `${folV}${s.waiting?' · <span class="cup-wchip">⧗ Waiting</span>':''}`, `
+        <div class="cup-ts-sub">Status</div>
+        <div class="cup-ts-chips">${chip(!s.waiting,'Open',"cupTS.waiting=false;cupTSRender()")}${chip(s.waiting,'⧗ Waiting on reply',`cupTS.waiting=true;if(!cupTS.submitted)cupTS.submitted='${today}';cupTSRender()`)}</div>
+        ${s.waiting?`<div class="cup-ts-two" style="margin-bottom:8px"><label>Sent on<input type="date" value="${esc(s.submitted)}" onchange="cupTS.submitted=this.value;cupTSRender()"></label><label>Answer by<input type="date" value="${esc(s.decisionBy)}" onchange="cupTS.decisionBy=this.value;cupTSRender()"></label></div>`:''}
+        <div class="cup-ts-sub">Folder</div>
         <div class="cup-gtabs">${groupTabs}<button type="button" class="cup-gtab cup-gtab-edit" onclick="cupOpenCats()">✎ Categories</button></div>
         <div class="cup-flist">${areaList}</div>
         <button type="button" class="cup-more-btn" onclick="cupTS.folder='';cupTS.open='';cupTSRender()">Don’t file it</button>`)}
-      ${s.kind!=='habit' ? cupTSRow('work','◎','Work on',workV, `
-        <div class="cup-ts-chips">${[['','Not planned'],[today,'Today'],[tmw,'Tomorrow']].map(([v,l])=>chip(s.work===v,l,`cupTS.work='${v}';cupTSRender()`)).join('')}${pick(s.work&&![today,tmw].includes(s.work),'📅 Pick a day',s.work,'date','cupTS.work')}</div>
-        <div class="cup-ts-hint">Puts it on that day’s list and in Next up.</div>
-        <label class="cup-ts-check"><input type="checkbox" ${s.roll?'checked':''} onchange="cupTS.roll=this.checked"> Carry forward if I miss it</label>`) : ''}
-      ${s.kind!=='habit' ? cupTSRow('sent','⧗','Sent',sentV, `
-        <div class="cup-ts-chips">${chip(!s.waiting,'Not yet',"cupTS.waiting=false;cupTSRender()")}${chip(s.waiting,'Sent — waiting to hear back',`cupTS.waiting=true;if(!cupTS.submitted)cupTS.submitted='${today}';cupTSRender()`)}</div>
-        ${s.waiting?`<div class="cup-ts-two"><label>Sent on<input type="date" value="${esc(s.submitted)}" onchange="cupTS.submitted=this.value;cupTSRender()"></label><label>Answer by<input type="date" value="${esc(s.decisionBy)}" onchange="cupTS.decisionBy=this.value;cupTSRender()"></label></div>`:''}`) : ''}
-      ${cupTSRowsExtra(s)}
-      ${cupTSRow('more','☰','Steps & link', moreN.length?moreN.join(' · '):'<span class="cup-row-none">None</span>', `
-        <label class="cup-ts-field">First small step<input value="${esc(s.firstStep)}" placeholder="e.g. open the doc" oninput="cupTS.firstStep=this.value"></label>
-        <label class="cup-ts-field">Link<input type="url" value="${esc(s.link)}" placeholder="https://" oninput="cupTS.link=this.value"></label>
-        <div class="cup-ts-sub">Steps</div>
-        <div class="cup-ts-steps">${s.subtasks.map((st,i)=>`<div class="cup-ts-step"><button type="button" class="cup-check2 ${st.done?'d':''}" onclick="cupTS.subtasks[${i}].done=!cupTS.subtasks[${i}].done;cupTSRender()" aria-label="Toggle step"></button>
-          <input value="${esc(st.text)}" oninput="cupTS.subtasks[${i}].text=this.value"><button type="button" class="cup-ts-x" onclick="cupTS.subtasks.splice(${i},1);cupTSRender()" aria-label="Remove step">✕</button></div>`).join('')}
-          <button type="button" class="cup-more-btn" onclick="cupTS.subtasks.push({text:'',done:false});cupTSRender();setTimeout(()=>{const a=document.querySelectorAll('.cup-ts-step input');a[a.length-1]?.focus()},30)">+ Add a step</button></div>`)}
+      <button type="button" class="cup-more-btn cup-ts-more-toggle" onclick="cupTS.showMore=!cupTS.showMore;cupTSRender()" aria-expanded="${!!s.showMore}">
+        ${s.showMore ? '▾ Fewer options' : '▸ More options (priority, steps, work date, reminders, files…)'}
+      </button>
+      ${s.showMore ? `
+        ${cupTSRow('pri','★','Priority',priV, `<div class="cup-ts-pri">${CUP_PRI.map(([v,l,hint,col])=>`<button type="button" class="cup-ts-pricard ${s.priority===v?'on':''}" style="--pc:${col}" onclick="cupTS.priority='${v}';cupTS.open='';cupTSRender()"><b>${l}</b><span>${hint}</span></button>`).join('')}</div>`)}
+        ${s.kind!=='habit' ? cupTSRow('work','◎','Work on',workV, `
+          <div class="cup-ts-chips">${[['','Not planned'],[today,'Today'],[tmw,'Tomorrow']].map(([v,l])=>chip(s.work===v,l,`cupTS.work='${v}';cupTSRender()`)).join('')}${pick(s.work&&![today,tmw].includes(s.work),'📅 Pick a day',s.work,'date','cupTS.work')}</div>
+          <div class="cup-ts-hint">Puts it on that day’s list and in Next up.</div>
+          <label class="cup-ts-check"><input type="checkbox" ${s.roll?'checked':''} onchange="cupTS.roll=this.checked"> Carry forward if I miss it</label>`) : ''}
+        ${cupTSRow('more','☰','Steps & link', moreN.length?moreN.join(' · '):'<span class="cup-row-none">None</span>', `
+          <label class="cup-ts-field">First small step<input value="${esc(s.firstStep)}" placeholder="e.g. open the doc" oninput="cupTS.firstStep=this.value"></label>
+          <label class="cup-ts-field">Link<input type="url" value="${esc(s.link)}" placeholder="https://" oninput="cupTS.link=this.value"></label>
+          <div class="cup-ts-sub">Steps</div>
+          <div class="cup-ts-steps">${s.subtasks.map((st,i)=>`<div class="cup-ts-step"><button type="button" class="cup-check2 ${st.done?'d':''}" onclick="cupTS.subtasks[${i}].done=!cupTS.subtasks[${i}].done;cupTSRender()" aria-label="Toggle step"></button>
+            <input value="${esc(st.text)}" oninput="cupTS.subtasks[${i}].text=this.value"><button type="button" class="cup-ts-x" onclick="cupTS.subtasks.splice(${i},1);cupTSRender()" aria-label="Remove step">✕</button></div>`).join('')}
+            <button type="button" class="cup-more-btn" onclick="cupTS.subtasks.push({text:'',done:false});cupTSRender();setTimeout(()=>{const a=document.querySelectorAll('.cup-ts-step input');a[a.length-1]?.focus()},30)">+ Add a step</button></div>`)}
+        ${cupTSRowsExtra(s)}
+      ` : ''}
     </div>
     <textarea class="cup-ts-notes" rows="3" placeholder="Notes (optional)" oninput="cupTS.notes=this.value">${esc(s.notes)}</textarea>
     ${s.subtasks.some(x=>x.text.trim())?`<button type="button" class="cup-more-btn" onclick="cupSaveTemplate()">Save these steps as a template</button>`:''}`;
@@ -17971,7 +18030,10 @@ function cupTSSave(){
   } else {
     t.isHabit=false; t.due=s.due; t.dueTime=s.due?s.dueTime:'';
     t.waiting=s.waiting; t.submitted=s.waiting?(s.submitted||todayStr()):(t.submitted||''); t.decisionBy=s.waiting?s.decisionBy:(t.decisionBy||'');
-    t.scheduledDates = s.work ? [s.work] : (t.scheduledDates||[]).filter(d=>d<todayStr());
+    const origFirst = (t.scheduledDates||[])[0] || '';
+    const extraFuture = (t.scheduledDates||[]).slice(1).filter(d => d !== s.work && d >= todayStr());
+    const pastDates = (t.scheduledDates||[]).filter(d => d < todayStr() && d !== s.work);
+    t.scheduledDates = s.work ? [s.work, ...extraFuture] : (origFirst ? extraFuture : pastDates);
     if(t.weeklyGoal) delete t.weeklyGoal;
   }
   if(typeof taskProgress==='function') t.progress=taskProgress(t);
@@ -18348,23 +18410,23 @@ document.addEventListener('selectionchange', ()=>{ if(cupNoteId) cupNotePh(); })
 // ── "/" command menu ──
 const CUP_SLASH = [
   // id, name, hint, icon, extra words, group
-  ['text','Text','Plain writing','text','paragraph p','Basic'],
-  ['h1','Heading 1','Big section title · #','h1','title heading','Basic'],
-  ['h2','Heading 2','Smaller heading · ##','h2','subheading heading','Basic'],
-  ['ul','Bulleted list','- then space','ul','bullet list','Basic'],
-  ['ol','Numbered list','1. then space','ol','number list','Basic'],
-  ['todo','To-do list','[] then space','check','checkbox check todo','Basic'],
-  ['quote','Quote','> then space','quote','quote','Basic'],
-  ['callout','Callout','Highlighted box · ! then space','callout','note tip box highlight','Basic'],
-  ['code','Code','``` then Enter','code','code mono','Basic'],
-  ['hr','Divider','--- then Enter','hr','line divider separator','Basic'],
-  ['page','Page inside','A new page inside this one','page','subpage new page nest','Pages'],
-  ['link','Link to page','Mention another page','link','mention link page','Pages'],
-  ['task','Make it a task','This line becomes a real task','check','task todo assignment due','Planner'],
-  ['event','Add to calendar','This line becomes an event','cal','event calendar meeting','Planner'],
-  ['table','Table','A simple 3 × 3 grid','callout','table grid columns','Basic'],
-  ['date','Today’s date','Insert the date','date','date today now','Planner'],
-  ['organize','Organize with AI','Summary, action items, quiz, conclusion','spark','ai summary summarize quiz organize claude','AI'],
+  ['text','Text','Plain writing','text','paragraph p 텍스트 본문','Basic'],
+  ['h1','Heading 1','Big section title · #','h1','title heading 제목 큰제목','Basic'],
+  ['h2','Heading 2','Smaller heading · ##','h2','subheading heading 소제목 부제목','Basic'],
+  ['ul','Bulleted list','- then space','ul','bullet list 목록 글머리','Basic'],
+  ['ol','Numbered list','1. then space','ol','number list 번호 순서','Basic'],
+  ['todo','To-do list','[] then space','check','checkbox check todo 체크 할일','Basic'],
+  ['quote','Quote','> then space','quote','quote 인용','Basic'],
+  ['callout','Callout','Highlighted box · ! then space','callout','note tip box highlight 콜아웃 강조 박스','Basic'],
+  ['code','Code','``` then Enter','code','code mono 코드','Basic'],
+  ['hr','Divider','--- then Enter','hr','line divider separator 구분선 줄','Basic'],
+  ['page','Page inside','A new page inside this one','page','subpage new page nest 하위페이지 페이지','Pages'],
+  ['link','Link to page','Mention another page','link','mention link page 링크 연결','Pages'],
+  ['task','Make it a task','This line becomes a real task','check','task todo assignment due 할일 과제 작업','Planner'],
+  ['event','Add to calendar','This line becomes an event','cal','event calendar meeting 일정 캘린더 약속','Planner'],
+  ['table','Table','A simple 3 × 3 grid','callout','table grid columns 표 테이블','Basic'],
+  ['date','Today’s date','Insert the date','date','date today now 날짜 오늘','Planner'],
+  ['organize','Organize with AI','Summary, action items, quiz, conclusion','spark','ai summary summarize quiz organize claude 정리 요약 퀴즈','AI'],
 ];
 const cupSlash={ open:false, i:0, items:[], mode:'cmd', node:null, start:0, range:null };
 function cupSlashCheck(){
@@ -18853,11 +18915,10 @@ function cupPersonRow(r, i, extra=''){
   const me=r.id===cupMyUid(), p=r.p;
   if(!p) return `<div class="cup-person"><span class="cup-person-tree">·</span><b>${me?'You':'Someone'}</b><span class="cup-dim">hasn’t shared yet</span>${extra}</div>`;
   if(p.paused) return `<div class="cup-person"><span class="cup-person-tree">⏸</span><b>${esc(me?'You':p.name)}</b><span class="cup-dim">taking a break from sharing</span>${extra}</div>`;
-  const w=cupThisWeek(p), live=cupLiveMin(p);
-  const medal = i===0&&r.score>0?'🥇':i===1&&r.score>0?'🥈':i===2&&r.score>0?'🥉':'';
-  return `<div class="cup-person ${me?'me':''}"><span class="cup-rank">${medal||'<span class="cup-climb">↗</span>'}</span><span class="cup-person-tree">${p.tree||'🌱'}</span>
-    <b>${esc(me?'You':p.name)}</b>${live?`<span class="cup-live">● focusing ${live}m</span>`:''}${r.boost?'<span class="cup-boost-tag" title="Comeback boost: minutes count ×1.2 this week">⚡ boost</span>':''}
-    <span class="cup-person-stats"><span title="focus this week">⏱ ${cupHM(w.focus||0)}</span><span title="trees this week">🌳 ${w.trees||0}</span>${p.streak?`<span title="streak">🔥 ${p.streak}</span>`:''}</span>${extra}</div>`;
+  const w=cupThisWeek(p), live=cupLiveMin(p), studiedToday=!!(p.updatedAt && isSameDay(p.updatedAt, todayStr()) && ((w.focus||0)>0 || (w.done||0)>0));
+  return `<div class="cup-person ${me?'me':''}"><span class="cup-person-tree">${p.tree||'🌱'}</span>
+    <b>${esc(me?'You':p.name)}</b>${live?`<span class="cup-live">● focusing ${live}m</span>`:studiedToday?`<span class="cup-chip-s">✓ studied today</span>`:''}
+    <span class="cup-person-stats"><span title="focus this week">⏱ ${cupHM(w.focus||0)}</span><span title="trees this week">🌳 ${w.trees||0}</span>${p.streak?`<span title="streak">🔥 ${p.streak}d</span>`:''}</span>${extra}</div>`;
 }
 function cupStudyingNow(ids){
   const live=ids.filter(id=>id!==cupMyUid()).map(id=>[id,cupSocial.profiles[id]]).filter(([,p])=>cupLiveMin(p));
@@ -18912,8 +18973,7 @@ function cupSocialHTML(tab){
           <div class="cup-gfocus-bar"><i style="width:${pct}%"></i></div>${pct>=100?'<div class="cup-g-next">Goal reached together 🎉</div>':''}</div>
         ${cupStudyingNow(ids)}
         ${ranked.map((r,i)=>cupPersonRow(r,i)).join('')}
-        <div class="cup-stakes">🎯 <span>This week’s stakes <em>(optional)</em>:</span>
-          ${owner?`<input value="${esc(g.stakes||'')}" placeholder="e.g. Lowest minutes buys boba 🧋 — or donate to charity" onchange="cupGroupSet('${gid}','stakes',this.value)">`:`<b>${esc(g.stakes||'none set')}</b>`}</div>
+
       </div>`; }).join('')
       : '<p class="cup-dim-p">Make a group for your study friends, club or small group and share its code.</p>'}`;
 }
@@ -20475,7 +20535,8 @@ function cupParseRange(text){
   let a=fix(m[1]), b=fix(m[2]);
   if(!ap(a) && ap(b)){ const withB=a+(ap(b)==='p'?'pm':'am'); const sA=cupParseTime(withB), eB=cupParseTime(b);
     a = (sA&&eB&&sA>eB&&ap(b)==='p') ? a+'am' : withB; }
-  const start=cupParseTime(a), end=cupParseTime(b); if(!start||!end) return null;
+  const is24=/^0\d|\b(1[3-9]|2[0-3]):/.test(m[1]+' '+m[2]);
+  const start=cupParseTime(a, is24), end=cupParseTime(b, is24); if(!start||!end) return null;
   return { start, end, rest:String(text).replace(re,' ').replace(/\s{2,}/g,' ').trim(), overnight:end<start };
 }
 function cupSlotPreview(){
@@ -20631,9 +20692,8 @@ function cupTSRowsExtra(s){
   const stages=cupMode().app || s.appStage;
   const photoN=(s.photos||[]).length;
   return `
-    ${isTask?row('rpt','↻','After it’s done', s.repeat?cupRepeatLabel(s.repeat):'<span class="cup-row-none">Doesn’t repeat</span>', `
-      <div class="cup-ts-hint">When you finish it, the next one is created with a new due date. Habits (above) are for things you tick daily.</div>
-      <div class="cup-ts-chips">${CUP_REPEATS.map(([v,l])=>chip(s.repeat===v,l,`cupTS.repeat='${v}';cupTSRender()`)).join('')}</div>
+    ${isTask?row('rpt','↻','Custom repeat', s.repeat?cupRepeatLabel(s.repeat):'<span class="cup-row-none">Doesn’t repeat</span>', `
+      <div class="cup-ts-hint">Every N days, weeks or months. When you finish it, the next one is created with a new due date.</div>
       <div class="cup-ts-two"><label>Every<input type="number" min="1" max="365" value="${custom?rn:''}" placeholder="N" oninput="cupTS.repeat=this.value?(cupTS.repeatUnit||'day')+':'+this.value:'';"></label>
         <label>Unit<select onchange="cupTS.repeatUnit=this.value;if(cupTS.repeat&&cupTS.repeat.includes(':')){cupTS.repeat=this.value+':'+cupTS.repeat.split(':')[1]}"><option value="day">days</option><option value="week">weeks</option><option value="month">months</option></select></label></div>`):''}
     ${s.waiting?row('out','✓','How it ended', s.outcome||'<span class="cup-row-none">Still waiting</span>', `
@@ -20764,6 +20824,13 @@ function cupHabitsFold(){
   return `<div class="cup-next-fold"><button class="cup-fold-btn" onclick="cupHabitsOpen=!cupHabitsOpen;try{localStorage.setItem('cup_habits_open',cupHabitsOpen?'1':'0')}catch(_){};cupRenderHome()" aria-expanded="${cupHabitsOpen}">
     <span class="cup-fold-chev ${cupHabitsOpen?'open':''}">›</span>Habits today<span class="cup-dim">${done}/${hab.length}</span></button>
     ${cupHabitsOpen?`<div class="cup-next-today">${cupHabitsHTML()}</div>`:''}</div>`;
+}
+
+function cupAddSlotLine(ex){
+  const ta=document.getElementById('cupCSlots'); if(!ta) return;
+  ta.value = (ta.value.trim() ? ta.value.trim()+'\n' : '') + ex;
+  if(typeof cupSlotPreview==='function') cupSlotPreview();
+  ta.focus();
 }
 
 
@@ -21287,6 +21354,85 @@ renderCalDayTasks = function(){
 };
 
 
+// ════════════════════════════════════════════════════════════
+//  REAL PHONE LAYOUT — Today · Plan · + · Pages · Me
+// ════════════════════════════════════════════════════════════
+function cupUpgradeMobileNav(){
+  const nav = document.getElementById('mobileTabbar');
+  if(!nav || nav._cupUpgraded) return;
+  nav._cupUpgraded = true;
+  nav.innerHTML = `
+    <button class="mt-tab active" data-page="dashboard" onclick="cupMobNav('dashboard',this)">
+      <span class="mt-tab-glyph">◈</span>
+      <span class="mt-tab-label">Today</span>
+    </button>
+    <button class="mt-tab" data-page="todo" onclick="cupMobNav('todo',this)">
+      <span class="mt-tab-glyph">≡</span>
+      <span class="mt-tab-label">Plan</span>
+    </button>
+    <button class="mt-tab cup-mt-plus" onclick="cupPlusOpen()" aria-label="Add anything">
+      <span class="mt-tab-glyph">＋</span>
+      <span class="mt-tab-label">Add</span>
+    </button>
+    <button class="mt-tab" data-page="pages" onclick="cupOpenMobilePages(this)">
+      <span class="mt-tab-glyph">▤</span>
+      <span class="mt-tab-label">Pages</span>
+    </button>
+    <button class="mt-tab" data-page="me" onclick="cupOpenMobileMe(this)">
+      <span class="mt-tab-glyph">☺</span>
+      <span class="mt-tab-label">Me</span>
+    </button>`;
+  if(typeof cupKoWalk==='function' && typeof cupLang==='function' && cupLang()==='ko') cupKoWalk(nav);
+}
+function cupMobNav(page, btn){
+  try{ closeModal('mCupMobPages'); closeModal('mCupMobMe'); }catch(_){}
+  showPage(page, btn);
+}
+function cupOpenMobilePages(){
+  let el = document.getElementById('mCupMobPages');
+  if(!el){
+    el = document.createElement('div'); el.className = 'overlay'; el.id = 'mCupMobPages';
+    document.body.appendChild(el);
+  }
+  try{ cupRenderSideTree(); }catch(_){}
+  const tree = document.getElementById('cupSideTree')?.innerHTML || '';
+  const extras = document.getElementById('cupSideExtras')?.innerHTML || '';
+  el.innerHTML = `<div class="modal cup-mob-sheet">
+    <div class="modal-header"><span class="modal-title">Pages & Folders</span>
+      <button class="btn btn-accent" style="margin-left:auto;margin-right:8px" onclick="closeModal('mCupMobPages');cupNewNote('','',true)">+ New page</button>
+      <button class="modal-close" onclick="closeModal('mCupMobPages')" aria-label="Close">✕</button></div>
+    <div class="modal-body" onclick="if(event.target.closest('button'))setTimeout(()=>closeModal('mCupMobPages'),80)"><div class="cup-side-extras">${extras}</div><div class="cup-side">${tree}</div></div>
+  </div>`;
+  if(typeof cupKoWalk==='function' && typeof cupLang==='function' && cupLang()==='ko') cupKoWalk(el);
+  openModal('mCupMobPages');
+}
+function cupOpenMobileMe(){
+  let el = document.getElementById('mCupMobMe');
+  if(!el){
+    el = document.createElement('div'); el.className = 'overlay'; el.id = 'mCupMobMe';
+    document.body.appendChild(el);
+  }
+  const g = cupGarden();
+  el.innerHTML = `<div class="modal cup-mob-sheet">
+    <div class="modal-header"><span class="modal-title">Me</span><button class="modal-close" onclick="closeModal('mCupMobMe')" aria-label="Close">✕</button></div>
+    <div class="modal-body cup-me-grid">
+      <button class="cup-me-card" onclick="closeModal('mCupMobMe');cupJOpen(todayStr())"><span>✎</span><b>Journal</b><em>Daily reflection & mood</em></button>
+      <button class="cup-me-card" onclick="closeModal('mCupMobMe');showPage('compass')"><span>◇</span><b>Goals & Pace</b><em>Deadlines & class pace</em></button>
+      <button class="cup-me-card" onclick="closeModal('mCupMobMe');cupOpenGarden('garden')"><span>${cupTreeIcon(g.today.pts,g.species)}</span><b>Garden & Friends</b><em>${g.streak}d streak · 💎 ${g.gems}</em></button>
+      <button class="cup-me-card" onclick="closeModal('mCupMobMe');showPage('focus')"><span>◎</span><b>Focus Timer</b><em>Pomodoro session</em></button>
+      <button class="cup-me-card" onclick="closeModal('mCupMobMe');cupShareNewOpen()"><span>↗</span><b>Shared Lists</b><em>Family, club, team</em></button>
+      <button class="cup-me-card" onclick="closeModal('mCupMobMe');cupOpenLoad()"><span>☕</span><b>Weekly Load</b><em>Capacity planner</em></button>
+      <button class="cup-me-card" onclick="closeModal('mCupMobMe');cupOpenCats()"><span>▤</span><b>Categories</b><em>Edit groups & areas</em></button>
+      <button class="cup-me-card" onclick="closeModal('mCupMobMe');openModal('mSettings')"><span>⚙</span><b>Settings</b><em>Language, theme & sync</em></button>
+    </div>
+  </div>`;
+  if(typeof cupKoWalk==='function' && typeof cupLang==='function' && cupLang()==='ko') cupKoWalk(el);
+  openModal('mCupMobMe');
+}
+if(document.readyState!=='loading') cupUpgradeMobileNav();
+else document.addEventListener('DOMContentLoaded', cupUpgradeMobileNav);
+
+
 // ════════════════════════════════════════════════════════════════════
 //  INTERFACE LANGUAGE — menus and buttons can be shown in Korean.
 //  Only exact interface strings are swapped (see cup-ko.js). Your own tasks,
@@ -21491,6 +21637,30 @@ new MutationObserver(ms=>{ for(const m of ms) m.addedNodes.forEach(n=>{ if(n.nod
 
 // Korean interface strings. Keys are the exact English text shown on screen.
 Object.assign(CUP_KO, {
+  // ── Mobile bar, Me sheet & Co-op Social (Round 4) ──
+  "Plan":"플랜","Add":"추가","Me":"내 메뉴","Pages & Folders":"페이지 & 폴더","+ New page":"+ 새 페이지",
+  "Daily reflection & mood":"오늘의 기록과 기분","Goals & Pace":"목표 & 진도","Deadlines & class pace":"마감일과 수업 진도",
+  "Garden & Friends":"가든 & 친구","Focus Timer":"집중 타이머","Pomodoro session":"포모도로 세션",
+  "Family, club, team":"가족, 동아리, 팀","Capacity planner":"주간 여유량 플래너","Edit groups & areas":"그룹 및 영역 편집",
+  "Language, theme & sync":"언어, 테마 및 동기화",
+  "Your garden":"나의 가든","🌳 Garden":"🌳 가든","👋 Friends":"👋 친구","👥 Groups":"👥 그룹",
+  "day streak 🔥":"일 연속 🔥","Rest day":"쉬는 날","Resting today ✓":"오늘 쉬는 중 ✓","gems":"보석","trees this week":"이번 주 나무",
+  "Your forest · last 4 weeks":"나의 숲 · 최근 4주","Trees you can grow":"키울 수 있는 나무","Fully bloomed today. 🌸 Beautiful.":"오늘 활짝 피었어요. 🌸 멋져요.",
+  "Sign in to add friends and groups.":"친구와 그룹을 추가하려면 로그인하세요.",
+  "Study together, quietly":"조용히 함께 공부해요",
+  "Turn on friends":"친구 기능 켜기","Turn off friends":"친구 기능 끄기",
+  "Pause sharing":"공유 일시정지","Resume sharing":"공유 다시 시작",
+  "Your friend code":"내 친구 코드","Enter a friend’s code and press Enter":"친구 코드를 입력하고 Enter를 누르세요",
+  "Requests":"친구 요청","wants to be friends":"님이 친구가 되고 싶어 해요","Decline":"거절","Accept":"수락",
+  "Studying now":"지금 집중 중","✓ studied today":"✓ 오늘 공부함","hasn’t shared yet":"아직 공유 전","taking a break from sharing":"공유 쉬는 중",
+  "New group name (e.g. Study squad) — Enter":"새 그룹 이름 (예: 스터디) — Enter",
+  "Join with a group code — Enter":"그룹 코드로 참여 — Enter",
+  "Group focus":"그룹 집중 시간","Goal reached together 🎉":"함께 목표를 달성했어요 🎉","Leave":"나가기",
+  "When":"언제","Where & status":"폴더 & 상태","⧗ Waiting on reply":"⧗ 답변 대기 중","Every day (habit)":"매일 (습관)",
+  "Or on specific days (habit)":"또는 특정 요일마다 (습관)",
+  "Shared Lists":"공유 목록","Weekly Load":"주간 로드","Custom repeat":"직접 반복 설정","Every N days, weeks or months. When you finish it, the next one is created with a new due date.":"N일·N주·N개월마다 반복해요. 완료하면 새 마감일로 다음 항목이 만들어져요.",
+  "▸ More options (priority, steps, work date, reminders, files…)":"▸ 추가 옵션 (우선순위, 단계, 작업일, 알림, 파일…)",
+  "▾ Fewer options":"▾ 옵션 접기",
   // ── navigation & shell ──
   "Home":"홈","◈ Home":"홈","Tasks & Calendar":"할 일 & 캘린더","≡ Tasks & Calendar":"할 일 & 캘린더","Todo List":"할 일 목록","Focus":"집중","◎ Focus":"◎ 집중","Goals":"목표","◇ Goals":"◇ 목표","Journal":"일기","✎ Journal":"✎ 일기",
   "Dashboard":"대시보드","Calendar":"캘린더","Upcoming":"다가오는 일정","Pages":"페이지","Folders":"폴더","New":"새로 만들기","Settings":"설정","Light":"라이트","Dark":"다크","Log out":"로그아웃","⏻  Log out":"⏻ 로그아웃",
@@ -21685,6 +21855,8 @@ CUP_KO_PAT.push(
 );
 Object.assign(CUP_KO, { "Before you lock in:":"시작하기 전에:","💧 Water":"💧 물","🎧 Music":"🎧 음악","🧹 Clear desk":"🧹 책상 정리","📵 Phone away":"📵 폰 치우기","Drop a task here":"여기에 할 일을 놓으세요","Manual Progress":"직접 진행률","Fix & Teach":"고치고 가르치기","Missed work":"놓친 일","Missed work — carry over?":"놓친 일 — 이월할까요?","Thursday Night Review":"목요일 밤 점검","It's Thursday — plan your weekend before the chaos begins.":"목요일이에요 — 정신없어지기 전에 주말을 계획하세요." });
 CUP_KO_PAT.push([/^(\d+) of (\d+) (?:complete|done)$/, (m,a,b)=>`${a} / ${b} 완료`]);
+
+CUP_KO_PAT.push([/^(\d+)d streak · 💎 (\d+)$/, (m,a,b)=>`${a}일 연속 · 💎 ${b}`]);
 
 </script>
 </body>

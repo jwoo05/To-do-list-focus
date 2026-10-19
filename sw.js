@@ -20,7 +20,7 @@
  * the static shell (HTML/CSS/JS/fonts/icons).
  */
 
-const SHELL_CACHE = 'focus-hub-shell-v16';
+const SHELL_CACHE = 'focus-hub-shell-v17';
 
 // Files that make up the static "app shell". Bump the cache version
 // constant above whenever any of these change to force a re-fetch.
