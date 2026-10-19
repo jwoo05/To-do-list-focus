@@ -23140,12 +23140,43 @@ function cupGc(){
   return g;
 }
 const cupGcArr = x => Array.isArray(x) ? x : Object.values(x||{});
-const cupGcClientId = () => (CUP_GC_CLIENT_ID || cupGc().clientId || '').trim();
+const cupGcClientId = () => (CUP_GC_CLIENT_ID || (cupGcSrv && cupGcSrv.clientId) || cupGc().clientId || '').trim();
 const cupGcTz = () => { try{ return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'; }catch(_){ return 'UTC'; } };
 const cupGcHex = s => { let h=''; for(const ch of String(s)) h+=ch.codePointAt(0).toString(16).padStart(2,'0'); return h; };
 const cupGcId = key => 'fhub'+cupGcHex(key);   // Google allows a–v and 0–9 in ids; hex fits
 function cupGcHash(o){ const s=JSON.stringify(o); let h=5381; for(let i=0;i<s.length;i++) h=((h<<5)+h+s.charCodeAt(i))|0; return (h>>>0).toString(36); }
 const cupGcCalKey = () => { const g=cupGc(); return g.cal==='primary' ? 'primary' : (g.calId||''); };
+
+// ── staying signed in: /api/gcal keeps the long-lived Google key on the server ──
+// With it, access tokens are renewed quietly, no pop-up. Without it (not set up,
+// or signed out of Focus Hub) Google’s one-hour sign-in is used, with a Resume button.
+let cupGcSrv=null, cupGcSrvP=null;
+function cupGcSrvLoad(){
+  if(cupGcSrvP) return cupGcSrvP;
+  cupGcSrvP=fetch('/api/gcal', { cache:'no-store' }).then(r=>r.ok?r.json():null).catch(()=>null)
+    .then(j=>{ cupGcSrv={ enabled:!!(j&&j.enabled&&j.clientId), clientId:(j&&j.clientId)||'' }; return cupGcSrv; });
+  return cupGcSrvP;
+}
+async function cupGcIdToken(){ try{ const u=typeof firebase!=='undefined' && firebase.auth && firebase.auth().currentUser; return u ? await u.getIdToken() : ''; }catch(_){ return ''; } }
+const cupGcSrvOn = () => !!(cupGcSrv && cupGcSrv.enabled);
+async function cupGcSrvCall(action, extra){
+  const id=await cupGcIdToken(); if(!id){ const e=new Error('signed-out'); e.status=401; throw e; }
+  const r=await fetch('/api/gcal', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer '+id }, body:JSON.stringify(Object.assign({ action }, extra||{})) });
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok){ const e=new Error(j.error||('HTTP '+r.status)); e.status=r.status; e.reason=j.error||''; throw e; }
+  return j;
+}
+const cupGcTokFrom = (j, cid) => ({ t:j.access_token, exp:Date.now()+((+j.expires_in||3600)-60)*1000, cid });
+// a fresh access token without any pop-up, when the server keeps us signed in
+let cupGcRenewAt=0;
+async function cupGcEnsureTok(){
+  if(cupGcHasTok()) return true;
+  await cupGcSrvLoad();
+  if(!cupGcSrvOn() || Date.now()-cupGcRenewAt<20000) return false;
+  cupGcRenewAt=Date.now();
+  try{ cupGcSetTok(cupGcTokFrom(await cupGcSrvCall('token'), cupGcClientId())); return true; }
+  catch(e){ if(!e.status) throw e; return false; }   // offline → let the caller say so
+}
 
 // ── sign-in token (memory + this tab only; it lasts an hour) ──
 let cupGcTok={ t:'', exp:0, cid:'' };
@@ -23169,6 +23200,16 @@ function cupGcAuth(prompt){
     if(!cid) return no(new Error('no-client'));
     if(!oa){ cupGcLoadGis().catch(()=>{}); return no(new Error('loading')); }
     const scopes=cupGcScopes();
+    if(cupGcSrvOn()){   // lasting sign-in: Google gives a one-time code, the server swaps it and keeps the key
+      const cc=oa.initCodeClient({ client_id:cid, scope:scopes.join(' '), ux_mode:'popup',
+        callback:r=>{
+          if(!r || r.error || !r.code) return no(new Error((r&&r.error)||'denied'));
+          if(oa.hasGrantedAllScopes && r.scope && !oa.hasGrantedAllScopes(r, ...scopes)) return no(new Error('scope'));
+          cupGcSrvCall('exchange', { code:r.code }).then(j=>{ cupGcSetTok(cupGcTokFrom(j, cid)); ok(); }).catch(no);
+        },
+        error_callback:e=>no(new Error((e&&e.type)||'popup')) });
+      cc.requestCode(); return;
+    }
     const tc=oa.initTokenClient({ client_id:cid, scope:scopes.join(' '),
       callback:r=>{
         if(!r || r.error) return no(new Error((r&&r.error)||'denied'));
@@ -23300,6 +23341,7 @@ function cupGcSoon(ms){ clearTimeout(cupGcTimer); cupGcTimer=setTimeout(()=>{ cu
 async function cupGcRun(){
   const g=cupGc(); if(!g.on || cupGcBusy) return;
   if(Date.now()<cupGcWait){ cupGcSoon(cupGcWait-Date.now()); return; }
+  if(!cupGcHasTok()){ try{ await cupGcEnsureTok(); }catch(_){ cupGcInfo.state='offline'; cupGcInfo.pending=cupGcPlan(cupGcCalKey()).length; cupGcRender(); return; } }
   if(!cupGcHasTok()){ cupGcInfo.state='auth'; cupGcInfo.pending=cupGcPlan(cupGcCalKey()).length; cupGcPaused(); cupGcRender(); return; }
   if(navigator.onLine===false){ cupGcInfo.state='offline'; cupGcInfo.pending=cupGcPlan(cupGcCalKey()).length; cupGcRender(); return; }
   cupGcBusy=true; let changed=false, more=false;
@@ -23320,7 +23362,9 @@ async function cupGcRun(){
         changed=true;
       }catch(e){
         if(!e.status){ cupGcInfo.state='offline'; more=false; break; }
-        if(e.status===401 || (e.status===403 && /insufficient|auth/i.test(e.reason))){ cupGcSetTok({ t:'', exp:0, cid:'' }); cupGcInfo.state='auth'; more=false; cupGcPaused(); break; }
+        if(e.status===401 || (e.status===403 && /insufficient|auth/i.test(e.reason))){ cupGcSetTok({ t:'', exp:0, cid:'' });
+          if(e.status===401 && cupGcSrvOn() && Date.now()-cupGcRenewAt>20000){ more=true; break; }   // token ran out mid-pass: renew quietly and carry on
+          cupGcInfo.state='auth'; more=false; cupGcPaused(); break; }
         if(e.status===429 || (e.status===403 && /rate|quota|limit/i.test(e.reason))){ cupGcWait=Date.now()+60000; more=true; break; }
         if(e.status>=500){ cupGcInfo.state='error'; cupGcInfo.err=e.message; cupGcWait=Date.now()+30000; more=true; break; }
         cupGcSkip.add(o.id); cupGcInfo.err=e.message; console.warn('[gcal] skipped', o.id, e);
@@ -23376,7 +23420,9 @@ async function cupGcConnect(){
     showToast('Getting Google ready… tap Connect again in a moment.');
     cupGcLoadGis().catch(()=>showToast('Couldn’t reach Google. Check your connection.')); return; }
   try{ await cupGcAuth(''); }
-  catch(e){ showToast(/scope/.test(e.message)?'Google Calendar needs the calendar permission — tick it and try again.':'Google sign-in was cancelled.'); return; }
+  catch(e){ showToast(/scope/.test(e.message)?'Google Calendar needs the calendar permission — tick it and try again.'
+    :/no-refresh/.test(e.message)?'Google didn’t give lasting access. Remove Focus Hub at myaccount.google.com/permissions, then connect again.'
+    :/signed-out/.test(e.message)?'Sign in to Focus Hub first.':'Google sign-in was cancelled.'); return; }
   const g=cupGc(); g.on=true; if(!g.since) g.since=todayStr(); cupGcToasted=false; cupGcInfo.state='';
   save(); cupGcRender(); showToast('Google Calendar connected.');
   cupGcRun().catch(e=>console.warn('[gcal]', e));
@@ -23399,6 +23445,7 @@ function cupGcOff(){
   const g=cupGc(), tok=cupGcTok.t; g.on=false; g.what={ tasks:true, focus:true, blocks:true }; cupGcAsk='';
   cupGcSetTok({ t:'', exp:0, cid:'' }); Object.assign(cupGcInfo, { state:'', err:'', pending:0, hold:0 });
   try{ if(tok && window.google && google.accounts && google.accounts.oauth2 && google.accounts.oauth2.revoke) google.accounts.oauth2.revoke(tok, ()=>{}); }catch(_){}
+  if(cupGcSrvOn()) cupGcSrvCall('revoke').catch(e=>console.warn('[gcal] revoke', e));
   save(); cupGcRender();
 }
 function cupGcSetWhat(k){ const g=cupGc(); g.what[k]=!g.what[k]; save(); cupGcRender(); }
@@ -23428,7 +23475,7 @@ function cupGcRender(){
     box.innerHTML=`
       <div class="cup-pref"><span><b>Connect your Google Calendar</b><em>Put timed tasks, habits, focus sessions and study blocks on your Google Calendar. Changes and deletes here update it too.</em></span>
         <button type="button" class="btn btn-accent" onclick="cupGcConnect()" ${cid?'':'disabled'}>Connect</button></div>
-      ${CUP_GC_CLIENT_ID?'':`<div class="cup-pref"><span><b>OAuth client ID</b><em>One-time setup from Google Cloud → Credentials.</em></span>
+      ${(CUP_GC_CLIENT_ID || cupGcSrvOn())?'':`<div class="cup-pref"><span><b>OAuth client ID</b><em>One-time setup from Google Cloud → Credentials.</em></span>
         <input id="cupGcClient" type="text" spellcheck="false" autocomplete="off" placeholder="…apps.googleusercontent.com" value="${esc(g.clientId||'')}" onchange="cupGcSetClient(this.value)" aria-label="OAuth client ID" style="max-width:220px"></div>`}`;
     return;
   }
@@ -23458,7 +23505,7 @@ cupPrefsRender = function(){
       const before=[...box.querySelectorAll('.cup-pref-h')].find(x=>x.textContent.trim()==='Reminders') || box.querySelector('.cup-pref-sep');
       if(before){ box.insertBefore(h, before); box.insertBefore(el, before); } else { box.appendChild(h); box.appendChild(el); }
     }
-    if(cupGc().on || cupGcClientId()) cupGcLoadGis().catch(()=>{});   // ready before you tap, so the sign-in window isn’t blocked
+    cupGcSrvLoad().then(()=>{ if(cupGc().on || cupGcClientId()) cupGcLoadGis().catch(()=>{}); cupGcRender(); });   // ready before you tap, so the sign-in window isn’t blocked
     cupGcInfo.pending=cupGc().on ? cupGcPlan(cupGcCalKey()).length - cupGcInfo.hold : 0;
     cupGcRender();
   }catch(e){ console.warn('[gcal] settings', e); }
@@ -23728,7 +23775,7 @@ Object.assign(CUP_KO, {
   "Getting Google ready… tap Connect again in a moment.":"구글 준비 중… 잠시 후 연결을 다시 누르세요.",
   "Couldn’t reach Google. Check your connection.":"구글에 연결할 수 없어요. 인터넷 연결을 확인하세요.",
   "Google Calendar needs the calendar permission — tick it and try again.":"구글 캘린더 권한이 필요해요 — 체크하고 다시 시도하세요.",
-  "Google sign-in was cancelled.":"구글 로그인이 취소됐어요.","Google Calendar connected.":"구글 캘린더가 연결됐어요.",
+  "Google sign-in was cancelled.":"구글 로그인이 취소됐어요.","Sign in to Focus Hub first.":"먼저 Focus Hub에 로그인하세요.","Google didn’t give lasting access. Remove Focus Hub at myaccount.google.com/permissions, then connect again.":"구글이 계속 쓸 수 있는 권한을 주지 않았어요. myaccount.google.com/permissions에서 Focus Hub를 삭제한 뒤 다시 연결하세요.","Google Calendar connected.":"구글 캘린더가 연결됐어요.",
   "Google Calendar is paused — sign in again to send your changes.":"구글 캘린더가 일시정지됐어요 — 다시 로그인하면 변경 사항을 보내요.",
   "Sign in again first, then remove.":"먼저 다시 로그인한 뒤 지우세요.",
   "Some events couldn’t be removed yet — try again when online.":"아직 지우지 못한 일정이 있어요 — 온라인일 때 다시 시도하세요.",
