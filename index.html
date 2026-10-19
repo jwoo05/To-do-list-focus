@@ -21680,7 +21680,8 @@ function cupCalfBtn(){
   b.classList.toggle('on', !!off); b.textContent = off?`Filter · ${off} hidden`:'Filter';
 }
 const cupFitSoon=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{ try{ cupCalfBtn(); cupFitMonth(); }catch(_){} }));
-{ const _rc=renderCalendar; renderCalendar=function(){ const r=_rc.apply(this,arguments); cupFitSoon(); return r; }; }
+// fit right away, before the browser paints — waiting a frame flashed every day's full list on each click
+{ const _rc=renderCalendar; renderCalendar=function(){ const r=_rc.apply(this,arguments); try{ cupCalfBtn(); cupFitMonth(); }catch(_){} cupFitSoon(); return r; }; }
 { const _ac=applyCalSplit; }
 { let ro=null; const watch=()=>{ const p=document.getElementById('calPanel'); if(p && !p._cupRO && typeof ResizeObserver!=='undefined'){ p._cupRO=new ResizeObserver(()=>cupFitSoon()); p._cupRO.observe(p); } };
   if(document.readyState!=='loading') watch(); else document.addEventListener('DOMContentLoaded', watch); setTimeout(watch,1500); }
@@ -22192,22 +22193,85 @@ cupPlusGo = function(){
     const n=cupNewNote(where, raw||`${tpl} · ${cupFmt(todayStr())}`, false); n.html=cupCleanHTML(CUP_PAGE_TPL[tpl]()); save(); cupPlusClose(); inp.value=''; render(); cupOpenNote(n.id); return; } }
   return _cupPlusGo3.apply(this, arguments);
 };
-// a notes page for any event, from the day panel
-function cupEventNotes(id){
-  const e=S.events.find(x=>x.id===id); if(!e) return;
-  const title=`${e.title} · ${cupFmt(e.date)}`; let n=cupNotes().find(p=>p.title===title);
-  if(!n){ const c=e.subject?cupCommits().find(x=>cupNorm(x.name)===cupNorm(e.subject)||cupNorm(x.name).includes(cupNorm(e.subject))):null;
-    n=cupNewNote(c?'folder:'+c.id:'', title, false);
-    n.html=cupCleanHTML(`<p><b>When:</b> ${esc(cupFmt(e.date))}${e.time?' '+esc(cupT12(e.time))+(e.endTime?'–'+esc(cupT12(e.endTime)):''):''}${e.location?` · <b>Where:</b> ${esc(e.location)}`:''}</p>`+CUP_PAGE_TPL['Meeting notes']().replace(/^<p><b>Date:<\/b>[^]*?<\/p>/,'')); save(); render(); }
-  cupOpenNote(n.id);
+// ── a notes page for any event, filed into the right folder by itself ──
+// Class events go to their folder (folder class times, the subject, or a folder
+// name like "CSE 143" inside the title). A repeating event keeps one parent page
+// per series with a page per date under it. No folder fits → a new one is made.
+const CUP_EV_CLASS = /lecture|\blec\b|section|\blab\b|seminar|tutorial|discussion|강의|수업/i;
+const cupEvRepeats = e => { const r=String(e.recurrence||'').toLowerCase(); return !!r && r!=='none'; };
+function cupEvOccDate(e, ds){
+  const on=d=>!!d && (typeof eventOccursOn==='function' ? eventOccursOn(e,d) : e.date===d);
+  if(on(ds)) return ds;
+  if(typeof calSelectedDate!=='undefined' && on(calSelectedDate)) return calSelectedDate;
+  if(on(todayStr())) return todayStr();
+  return e.date;
 }
+function cupEvFolder(e){
+  const live=cupCommits().filter(c=>c && c.name && !c.archived);
+  if(e.cupFolder){ const c=cupCommit(e.cupFolder); if(c) return c; }
+  if(e.subject){ const s=cupNorm(e.subject); const c=live.find(x=>cupNorm(x.name)===s) || live.find(x=>s.length>=3 && cupNorm(x.name).includes(s)); if(c) return c; }
+  const text=cupNorm([e.title, e.location, e.notes].join(' '));   // "CSE 143 A Lecture" → cse143alecture ⊃ cse143
+  return live.filter(c=>{ const n=cupNorm(c.name); return n.length>=3 && text.includes(n); })
+    .sort((a,b)=>cupNorm(b.name).length-cupNorm(a.name).length)[0] || null;
+}
+function cupEvArea(e){
+  const has=k=>!!(CUP_AREA && CUP_AREA[k]);
+  if((e.type==='class' || CUP_EV_CLASS.test(e.title||'')) && has('academics')) return 'academics';
+  if(has('personal')) return 'personal';
+  return ((CUP_AREAS||[])[0]||[])[0] || '';
+}
+function cupEvMakeFolder(name, area){
+  const live=cupCommits().find(c=>c && !c.archived && cupNorm(c.name)===cupNorm(name)); if(live) return { c:live, made:false };
+  const c={ id:uid(), name, area, role:'', hours:0, when:'', slots:[], notes:'', verdict:'', boosts:[] };
+  cupCommits().push(c); return { c, made:true };
+}
+function cupEventNotes(id, ds){
+  const e=S.events.find(x=>x.id===id); if(!e) return;
+  ds=cupEvOccDate(e, ds);
+  const key=(e.icsUid||e.id)+'|'+ds, notes=cupNotes();
+  const oldTitle=`${e.title} · ${cupFmt(e.date)}`;   // pages made before this kept only a title
+  let n=notes.find(p=>p.evKey===key) || (ds===e.date ? notes.find(p=>!p.evKey && p.title===oldTitle) : null);
+  if(n){ if(!n.evKey){ n.evKey=key; save(); } cupOpenNote(n.id); return; }
+  const rep=cupEvRepeats(e), series=e.icsUid||e.id;
+  // where it goes: the series page if there is one (you may have moved it — it stays where you put it), else a folder
+  let parent=rep ? notes.find(p=>p.evSeries===series) : null, made=false;
+  if(!parent){
+    let c=cupEvFolder(e);
+    if(!c){ const f=rep ? cupEvMakeFolder(String(e.title||'Event').trim().slice(0,40), cupEvArea(e)) : cupEvMakeFolder(cupPref('lang','')==='ko'?'회의 & 일정':'Meetings & events', cupEvArea({})); c=f.c; made=f.made; }
+    if(rep){ parent=cupNewNote('folder:'+c.id, `${e.title} notes`, false); parent.evSeries=series;
+      parent.html=cupCleanHTML(cupPref('lang','')==='ko'?`<p>“${esc(e.title)}”마다 페이지가 하나씩 생겨요. 일정의 노트를 열면 새로 시작해요.</p>`:`<p>One page for each “${esc(e.title)}”. Open the event’s Notes to start a new one.</p>`); }
+    else n=cupNewNote('folder:'+c.id, `${e.title} · ${cupFmt(ds)}`, false);
+  }
+  if(rep) n=cupNewNote('page:'+parent.id, `${e.title} · ${cupFmt(ds)}`, false);
+  n.evKey=key;
+  const lecture=e.type==='class' || CUP_EV_CLASS.test(e.title||''), folder=cupCommit(n.commitId);
+  const when=`<p><b>When:</b> ${esc(cupFmt(ds))}${e.time?' '+esc(cupT12(e.time))+(e.endTime?'–'+esc(cupT12(e.endTime)):''):''}${e.location?` · <b>Where:</b> ${esc(e.location)}`:''}${lecture&&folder?` · <b>Class:</b> ${esc(folder.name)}`:''}</p>`;
+  n.html=cupCleanHTML(when + CUP_PAGE_TPL[lecture?'Lecture notes':'Meeting notes']().replace(/^<p>[^]*?<\/p>/,''));
+  // same “keep meeting notes out of the sidebar” rule as other pages, without its extra toast — this one is already filed
+  [n, parent].forEach(x=>{ if(x && !x.autoHid){ x.autoHid=true; if(cupPref('hideMeetings',true) && CUP_MEETING_RE.test(x.title)) x.hidden=true; } });
+  save(); render(); cupOpenNote(n.id);
+  if(folder) showToast(made ? `Filed in new folder “${folder.name}”` : `Filed in “${folder.name}”`);
+}
+// Notes in the event editor, for events that already exist
+function cupEvNotesBtnSync(){ try{
+    const del=document.getElementById('deleteEventBtn'); if(!del) return;
+    let b=document.getElementById('cupEvNotesBtn');
+    if(!b){ b=document.createElement('button'); b.type='button'; b.id='cupEvNotesBtn'; b.className='btn btn-outline'; b.textContent='Notes'; b.title='Open or start a notes page for this event';
+      b.onclick=()=>{ const eid=document.getElementById('editEventId')?.value; if(!eid) return; closeModal('mAddTest'); cupEventNotes(eid); };
+      del.parentElement.insertBefore(b, del); }
+    b.style.display = (document.getElementById('editEventId')?.value && del.style.display!=='none') ? '' : 'none';
+  }catch(_){} }
+const _cupEvOpen3 = openModal;   // a new event: no Notes yet
+openModal = function(id){ const r=_cupEvOpen3.apply(this, arguments); if(id==='mAddTest') setTimeout(cupEvNotesBtnSync, 0); return r; };
+const _cupEvEdit3 = editEvent;   // editEvent shows the sheet itself, without openModal
+editEvent = function(){ const r=_cupEvEdit3.apply(this, arguments); setTimeout(cupEvNotesBtnSync, 0); return r; };
 const _cupDayTasks3 = renderCalDayTasks;
 renderCalDayTasks = function(){
   _cupDayTasks3.apply(this, arguments);
   document.querySelectorAll('#calDayTasks .cal-task-item[onclick^="editEvent("]').forEach(el=>{
     if(el.querySelector('.cup-ev-notes')) return; const id=(el.getAttribute('onclick').match(/editEvent\('([^']+)'\)/)||[])[1]; if(!id) return;
     const b=document.createElement('button'); b.type='button'; b.className='cup-ev-notes'; b.textContent='Notes'; b.title='Open or start a notes page for this event';
-    b.onclick=ev=>{ ev.stopPropagation(); cupEventNotes(id); }; el.appendChild(b); });
+    b.onclick=ev=>{ ev.stopPropagation(); cupEventNotes(id, typeof calSelectedDate!=='undefined'?calSelectedDate:''); }; el.appendChild(b); });
 };
 
 
@@ -23787,6 +23851,13 @@ CUP_KO_PAT.unshift(
   [/^(\d+) changes? waiting — sign in again to send them\.$/, (m,n)=>`변경 ${n}개 대기 중 — 다시 로그인하면 보내요.`],
   [/^(\d+) changes? waiting — sent when you’re back online\.$/, (m,n)=>`변경 ${n}개 대기 중 — 다시 온라인이 되면 보내요.`],
   [/^Remove (\d+) events from Google\?$/, (m,n)=>`구글에서 일정 ${n}개를 지울까요?`]
+);
+
+// ── Event notes ──
+Object.assign(CUP_KO, { "Open or start a notes page for this event":"이 일정의 노트 페이지를 열거나 시작해요" });
+CUP_KO_PAT.unshift(
+  [/^Filed in new folder “(.+)”$/, (m,a)=>`새 폴더 “${a}”에 넣었어요`],
+  [/^Filed in “(.+)”$/, (m,a)=>`“${a}”에 넣었어요`],
 );
 
 </script>
