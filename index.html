@@ -6644,6 +6644,56 @@ body.cup-lean .cup-wtools .cup-more-btn{ opacity:.6; } body.cup-lean .cup-wtools
 .cup-today-card{ gap:12px; }
 .cup-tsec > .cup-more-btn{ align-self:flex-start; }
 
+/* ── Study session + Focus check ── */
+.cup-sess{ max-width:520px; }
+.cup-sess-task{ display:flex; flex-direction:column; gap:2px; margin-bottom:12px; } .cup-sess-task b{ font-family:'Source Serif 4',Georgia,serif; font-size:20px; font-weight:500; }
+.cup-sess-task input{ font-size:calc(16px * var(--cup-fs,1)); }
+.cup-sess-l{ display:block; text-transform:none; letter-spacing:0; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text2); margin:0 0 4px; }
+.cup-sess-goal{ width:100%; }
+.cup-sess-fc{ margin-top:14px; padding:12px; border:1px solid var(--border); border-radius:14px; background:var(--bg2); }
+.cup-sess-fc.off{ background:none; }
+.cup-sess-fch{ display:flex; align-items:center; justify-content:space-between; gap:12px; } .cup-sess-fch b{ display:block; font-size:calc(14px * var(--cup-fs,1)); } .cup-sess-fch em{ font-style:normal; font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); }
+.cup-sess-sws{ display:flex; gap:6px; margin:12px 0 10px; }
+.cup-sess-sw{ flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:8px; border:1px solid var(--border); border-radius:10px; font-size:calc(13px * var(--cup-fs,1)); color:var(--text3); background:var(--bg); }
+.cup-sess-sw.on{ border-color:var(--accent); color:var(--text); background:color-mix(in srgb, var(--accent) 10%, var(--bg)); }
+.cup-sess-sw:disabled{ opacity:.4; }
+.cup-sess-mode{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.cup-sess-mode button{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; text-align:left; padding:9px 10px; border:1px solid var(--border); border-radius:10px; background:var(--bg); color:var(--text); font-family:inherit; }
+.cup-sess-mode button.on{ border-color:var(--accent); } .cup-sess-mode button:disabled{ opacity:.5; } .cup-sess-mode b{ font-size:calc(13px * var(--cup-fs,1)); } .cup-sess-mode em{ font-style:normal; font-size:calc(11.5px * var(--cup-fs,1)); color:var(--text3); }
+.cup-sess-priv{ font-size:calc(11.5px * var(--cup-fs,1)); color:var(--text3); margin:10px 0 0; line-height:1.5; }
+.cup-fc-live{ position:fixed; left:16px; bottom:16px; z-index:950; display:flex; align-items:center; gap:10px; padding:8px 10px 8px 8px; max-width:380px;
+  background:var(--surface,var(--bg2)); border:1px solid var(--border); border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.35); }
+.cup-fc-cam{ width:64px; height:48px; flex:none; border-radius:10px; overflow:hidden; background:var(--bg3); display:grid; place-items:center; font-size:20px; }
+.cup-fc-cam video{ width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }
+.cup-fc-info{ min-width:0; flex:1; }
+.cup-fc-rec{ display:flex; align-items:center; gap:6px; font-size:calc(10.5px * var(--cup-fs,1)); color:var(--text3); text-transform:uppercase; letter-spacing:.06em; }
+.cup-fc-rec i{ width:7px; height:7px; border-radius:50%; background:var(--text3); } .cup-fc-rec i.on{ background:#f26060; animation:cupRec 1.6s ease-in-out infinite; }
+@keyframes cupRec{ 50%{ opacity:.35 } }
+.cup-fc-now{ display:flex; align-items:baseline; gap:8px; } .cup-fc-now b{ font-size:22px; font-weight:800; font-variant-numeric:tabular-nums; } .cup-fc-now span{ font-size:calc(12.5px * var(--cup-fs,1)); }
+.cup-fc-note{ font-size:calc(11.5px * var(--cup-fs,1)); color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cup-fc-btns{ display:flex; flex-direction:column; gap:4px; } .cup-fc-btns button{ font-size:calc(11.5px * var(--cup-fs,1)); padding:3px 10px; border:1px solid var(--border); border-radius:8px; color:var(--text2); }
+@media (max-width:760px){ .cup-fc-live{ left:8px; right:8px; bottom:calc(84px + env(safe-area-inset-bottom)); max-width:none; } }
+.cup-fcr{ max-width:560px; }
+.cup-fcr-top{ display:flex; gap:16px; align-items:center; }
+.cup-fcr-ring{ width:92px; height:92px; background:radial-gradient(closest-side, var(--surface,var(--bg2)) 78%, transparent 80% 100%), conic-gradient(var(--rc) calc(var(--p)*1%), var(--bg3) 0); }
+.cup-fcr-ring b{ font-size:26px; font-weight:800; }
+.cup-fcr-title{ font-family:'Source Serif 4',Georgia,serif; font-size:19px; }
+.cup-fcr-goal{ font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text2); margin-top:4px; } .cup-fcr-head{ font-size:calc(13.5px * var(--cup-fs,1)); margin-top:6px; }
+.cup-fcr-tl{ display:flex; align-items:flex-end; gap:2px; height:70px; margin:16px 0 8px; padding:6px; border-radius:10px; background:var(--bg2); }
+.cup-fcr-tl i{ flex:1; border-radius:3px 3px 1px 1px; min-width:3px; opacity:.9; }
+.cup-fcr-mix{ display:flex; flex-wrap:wrap; gap:6px 14px; font-size:calc(12px * var(--cup-fs,1)); color:var(--text2); } .cup-fcr-mix i{ display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:5px; }
+.cup-fcr-adv{ margin:4px 0 0 18px; padding:0; font-size:calc(13.5px * var(--cup-fs,1)); line-height:1.55; } .cup-fcr-adv li{ margin-bottom:6px; }
+.cup-fcr-log{ display:grid; grid-template-columns:34px 30px 1fr; gap:6px; font-size:calc(12px * var(--cup-fs,1)); padding:3px 0; color:var(--text2); }
+.cup-fcr-past{ display:flex; gap:6px; flex-wrap:wrap; } .cup-fcr-past button{ display:flex; flex-direction:column; align-items:center; padding:6px 10px; border:1px solid var(--border); border-radius:10px; font-size:calc(11px * var(--cup-fs,1)); color:var(--text3); } .cup-fcr-past b{ font-size:calc(16px * var(--cup-fs,1)); }
+.cup-fc-chip{ display:inline-flex; align-items:center; font-size:calc(11px * var(--cup-fs,1)); font-weight:700; padding:1px 7px; border-radius:99px; margin-left:6px; vertical-align:middle;
+  color:var(--fc); background:color-mix(in srgb, var(--fc) 14%, transparent); border:1px solid color-mix(in srgb, var(--fc) 35%, transparent); font-variant-numeric:tabular-nums; }
+.cup-todo{ grid-template-columns:16px minmax(0,1fr) auto auto auto; }
+.cup-today-list .cup-todo{ grid-template-columns:16px minmax(0,1fr) auto auto auto; }
+.cup-w-fs{ display:flex; gap:14px; align-items:flex-start; } .cup-w-fsl{ flex:1; min-width:0; display:flex; flex-direction:column; gap:5px; }
+.cup-w-fsl button{ display:grid; grid-template-columns:minmax(0,1fr) 70px 26px; gap:8px; align-items:center; font-size:calc(12.5px * var(--cup-fs,1)); text-align:left; font-family:inherit; color:var(--text); }
+.cup-w-fsl .n{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .cup-w-fsl .bar{ height:5px; border-radius:99px; background:var(--bg3); overflow:hidden; } .cup-w-fsl .bar i{ display:block; height:100%; }
+.cup-w-fsl b{ font-variant-numeric:tabular-nums; text-align:right; }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -22308,6 +22358,284 @@ window.addEventListener('resize', ()=>{ if(cupDP.el&&cupDP.el.classList.contains
 if(document.readyState!=='loading') cupDPSweep(); else document.addEventListener('DOMContentLoaded', ()=>cupDPSweep());
 new MutationObserver(ms=>{ for(const m of ms) m.addedNodes.forEach(n=>{ if(n.nodeType===1){ if(n.matches&&n.matches('input[type=date],input[type=time]')) cupDPTake(n); else if(n.querySelector) cupDPSweep(n); } }); }).observe(document.documentElement,{childList:true,subtree:true});
 
+// ════════════════════════════════════════════════════════════════════
+//  PART 6 — Study sessions with an optional Focus check.
+//  Start a session → (optional) camera, screen and mic watch how focused
+//  you are. Claude (your own key) or this device scores it every minute.
+//  Only scores and one-line notes are kept — never images or audio.
+// ════════════════════════════════════════════════════════════════════
+
+const CUP_FC_ACT = {
+  working:  ['On task',        '#4dd49a'],
+  reading:  ['Reading / thinking','#5bbfd6'],
+  phone:    ['On phone',       '#f26060'],
+  off_task: ['Off-task screen','#f26060'],
+  talking:  ['Talking',        '#f59040'],
+  moving:   ['Moving around',  '#f5b942'],
+  zoning:   ['Zoning out',     '#b07fff'],
+  away:     ['Away',           '#8a8a8a'],
+};
+const cupFCAct = k => CUP_FC_ACT[k] || CUP_FC_ACT.working;
+function cupFC(){ cupEnsure(); if(!Array.isArray(S.cup.fchecks)) S.cup.fchecks=[]; return S.cup.fchecks; }
+function cupFCPrefs(){ cupEnsure(); const d={ on:true, cam:true, screen:true, mic:true, ai:true, every:60 }; return Object.assign(d, (S.cup.prefs&&S.cup.prefs.fc)||{}); }
+function cupFCSetPref(k,v){ cupEnsure(); S.cup.prefs=Object.assign({},S.cup.prefs||{}); S.cup.prefs.fc=Object.assign(cupFCPrefs(),{[k]:v}); save(); cupSessionRender(); }
+const cupCanScreen = () => !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
+const cupCanCam = () => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+
+// ── Start a session sheet ──
+let cupSessTask=null;
+function cupSessionOpen(id){
+  const t=id?S.tasks.find(x=>x.id===id):null; cupSessTask=t?t.id:null;
+  let el=document.getElementById('mCupSess');
+  if(!el){ el=document.createElement('div'); el.className='overlay'; el.id='mCupSess'; document.body.appendChild(el); }
+  cupSessionRender(); openModal('mCupSess');
+  setTimeout(()=>document.getElementById('cupSessGoal')?.focus(),60);
+}
+function cupSessionRender(){
+  const el=document.getElementById('mCupSess'); if(!el) return;
+  const t=cupSessTask?S.tasks.find(x=>x.id===cupSessTask):null, p=cupFCPrefs(), hasKey=!!cupAiKey();
+  const goalNow=document.getElementById('cupSessGoal')?.value;
+  const goal = goalNow!==undefined ? goalNow : (t&&(t.fcGoal||t.firstStep)||'');
+  const sw=(k,ic,label,ok=true)=>`<button type="button" class="cup-sess-sw ${p[k]&&ok?'on':''}" ${ok?'':'disabled title="Not available in this browser"'} onclick="cupFCSetPref('${k}',${!p[k]})" aria-pressed="${!!(p[k]&&ok)}"><span>${ic}</span>${label}</button>`;
+  el.innerHTML=`<div class="modal cup-sess">
+    <div class="modal-header"><span class="modal-title">Start a session</span><button class="modal-close" onclick="closeModal('mCupSess')" aria-label="Close">✕</button></div>
+    <div class="modal-body">
+      <div class="cup-sess-task">${t?`<span class="cup-dim">Working on</span><b>${esc(t.title)}</b>`:`<input id="cupSessFree" placeholder="What are you working on?" value="">`}</div>
+      <label class="cup-sess-l" for="cupSessGoal">What does done look like?</label>
+      <input id="cupSessGoal" class="cup-sess-goal" placeholder="e.g. Finish Q1–Q3 of the problem set" value="${esc(goal)}" onkeydown="if(event.key==='Enter')cupSessionStart()">
+      <div class="cup-sess-fc ${p.on?'':'off'}">
+        <div class="cup-sess-fch"><span><b>Focus check</b><em>Scores how focused you are and gives advice afterwards</em></span>
+          <input type="checkbox" ${p.on?'checked':''} onchange="cupFCSetPref('on',this.checked)" aria-label="Focus check"></div>
+        ${p.on?`<div class="cup-sess-sws">${sw('cam','📷','Camera',cupCanCam())}${sw('screen','🖥','Screen',cupCanScreen())}${sw('mic','🎙','Mic',cupCanCam())}</div>
+        <div class="cup-sess-mode">
+          <button type="button" class="${p.ai&&hasKey?'on':''}" ${hasKey?'':'disabled'} onclick="cupFCSetPref('ai',true)"><b>Claude</b><em>${hasKey?'Understands what you’re doing · ≈ 2¢ per 25 min':'Add your key in Settings → Sort with Claude'}</em></button>
+          <button type="button" class="${!(p.ai&&hasKey)?'on':''}" onclick="cupFCSetPref('ai',false)"><b>On this device</b><em>Movement, sound and face only · free · nothing leaves your computer</em></button></div>
+        <p class="cup-sess-priv">🔒 Nothing is recorded. ${p.ai&&hasKey?'A small camera and screen snapshot goes to Claude once a minute with your own key, then is thrown away.':'Everything is analysed here and thrown away.'} Only the score and short notes are saved.</p>`:''}
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('mCupSess')">Cancel</button><button class="btn btn-accent" onclick="cupSessionStart()">◎ Start session</button></div>
+  </div>`;
+}
+async function cupSessionStart(){
+  const p=cupFCPrefs(), goal=(document.getElementById('cupSessGoal')?.value||'').trim();
+  let t=cupSessTask?S.tasks.find(x=>x.id===cupSessTask):null;
+  if(!t){ const title=(document.getElementById('cupSessFree')?.value||'').trim()||'Focus session'; t=cupMakeTask({ title, scheduledDates:[todayStr()] }); if(!S.tasks.includes(t)) S.tasks.push(t); }
+  if(goal) t.fcGoal=goal;
+  closeModal('mCupSess'); save();
+  if(p.on && (p.cam||p.screen||p.mic)) await cupFCStart({ taskId:t.id, title:t.title, goal, p });   // ask for screen first, while the click still counts
+  startPomoTask(t.id);
+}
+
+// ── Live monitor ──
+let cupFCSess=null;
+function cupVid(stream){ const v=document.createElement('video'); v.muted=true; v.playsInline=true; v.srcObject=stream; v.play().catch(()=>{}); return v; }
+function cupGrab(v, maxW, q){
+  if(!v||!v.videoWidth) return null;
+  const s=Math.min(1, maxW/v.videoWidth), c=document.createElement('canvas'); c.width=Math.round(v.videoWidth*s); c.height=Math.round(v.videoHeight*s);
+  c.getContext('2d').drawImage(v,0,0,c.width,c.height); return q ? c.toDataURL('image/jpeg', q).split(',')[1] : c;
+}
+function cupLuma(v, w, h){ if(!v||!v.videoWidth) return null; const c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(v,0,0,w,h);
+  const d=x.getImageData(0,0,w,h).data, out=new Uint8Array(w*h); for(let i=0;i<w*h;i++) out[i]=(d[i*4]*3+d[i*4+1]*6+d[i*4+2])/10; return out; }
+const cupDiff=(a,b)=>{ if(!a||!b) return 0; let s=0; for(let i=0;i<a.length;i++) s+=Math.abs(a[i]-b[i]); return s/a.length; };
+
+async function cupFCStart(o){
+  if(cupFCSess) cupFCEnd(false);
+  const p=o.p, s={ id:uid(), taskId:o.taskId, title:o.title, goal:o.goal, start:Date.now(), samples:[], ticks:[], streams:[], ai:!!(p.ai&&cupAiKey()), every:Math.max(30,+p.every||60),
+    cam:null, scr:null, an:null, talk:0, loud:0, lastCam:null, lastScr:null, scrStill:0, fails:0, paused:false, timers:[], busy:false };
+  try{ if(p.screen && cupCanScreen()){ const ds=await navigator.mediaDevices.getDisplayMedia({ video:{ frameRate:1 }, audio:false }); s.streams.push(ds); s.scr=cupVid(ds);
+      ds.getVideoTracks()[0].addEventListener('ended',()=>{ s.scr=null; cupFCPanel(); }); } }
+  catch(_){ showToast('Screen not shared — the check will use camera and sound only.'); }
+  try{ if((p.cam||p.mic) && cupCanCam()){ const st=await navigator.mediaDevices.getUserMedia({ video:p.cam?{ width:320, height:240 }:false, audio:!!p.mic }); s.streams.push(st);
+      if(p.cam) s.cam=cupVid(st);
+      if(p.mic && st.getAudioTracks().length){ const ac=new (window.AudioContext||window.webkitAudioContext)(), src=ac.createMediaStreamSource(st), an=ac.createAnalyser(); an.fftSize=1024; src.connect(an); s.ac=ac; s.an=an; s.buf=new Float32Array(an.fftSize); } } }
+  catch(_){ showToast('Camera or mic not allowed — the check will use what it can.'); }
+  if(!s.streams.length){ showToast('Focus check needs at least one of camera, screen or mic. Starting the timer only.'); return; }
+  s.face = ('FaceDetector' in window) ? new window.FaceDetector({ fastMode:true, maxDetectedFaces:2 }) : null;
+  cupFCSess=s;
+  s.timers.push(setInterval(()=>cupFCAudio(s),200));
+  s.timers.push(setInterval(()=>cupFCTick(s),5000));
+  s.timers.push(setInterval(()=>cupFCSample(s), s.every*1000));
+  setTimeout(()=>cupFCSample(s), 20000);   // first look after 20 s
+  cupFCPanel();
+}
+function cupFCAudio(s){ if(!s.an||s.paused) return; s.an.getFloatTimeDomainData(s.buf); let r=0; for(const x of s.buf) r+=x*x; r=Math.sqrt(r/s.buf.length);
+  s.audTicks=(s.audTicks||0)+1; if(r>0.035) s.loud++; if(r>0.02) s.talk++; }
+async function cupFCTick(s){
+  if(cupFCSess!==s) return;
+  // the session ends with the focus block
+  if(typeof pomoState!=='undefined' && pomoState.phase && pomoState.phase!=='focus' && Date.now()-s.start>60000){ cupFCEnd(true); return; }
+  if(s.paused) return;
+  const cam=cupLuma(s.cam,32,24), scr=cupLuma(s.scr,64,40);
+  const motion=cupDiff(cam,s.lastCam), scrChange=cupDiff(scr,s.lastScr); s.lastCam=cam; s.lastScr=scr;
+  s.scrStill = scr ? (scrChange<0.6 ? s.scrStill+5 : 0) : 0;
+  let faces=null; if(s.face && s.cam && s.cam.videoWidth){ try{ faces=(await s.face.detect(s.cam)).length; }catch(_){ faces=null; } }
+  const talk = s.audTicks ? s.talk/s.audTicks : 0; s.talk=0; s.loud=0; s.audTicks=0;
+  s.ticks.push({ motion, scrChange, faces, talk, still:s.scrStill });
+  if(s.ticks.length>24) s.ticks.shift();
+  if(!s.ai && s.samples.length===0 && Date.now()-s.start>20000 && !s.firstLocal){ s.firstLocal=true; cupFCSample(s); }
+  cupFCPanel();
+}
+function cupFCLocal(s){
+  const tk=s.ticks.slice(-12); if(!tk.length) return null;
+  const avg=k=>tk.reduce((a,x)=>a+(x[k]||0),0)/tk.length;
+  const away=s.cam && tk.filter(x=>x.faces===0).length>tk.length*0.6;
+  const talk=avg('talk'), motion=avg('motion'), still=tk[tk.length-1].still;
+  let act='working', score=88, note='Steady';
+  if(away){ act='away'; score=20; note='No one at the desk'; }
+  else if(talk>0.35){ act='talking'; score=45; note='A lot of talking'; }
+  else if(motion>22){ act='moving'; score=55; note='Lots of movement'; }
+  else if(s.scr && still>=180 && motion<4){ act='zoning'; score=50; note='Screen hasn’t changed in a while'; }
+  else if(talk>0.15){ score=72; note='Some talking'; }
+  return { score, act, note, src:'local' };
+}
+async function cupFCSample(s){
+  if(cupFCSess!==s || s.paused || s.busy) return;
+  let r=null;
+  if(s.ai){
+    s.busy=true;
+    try{ r=await cupFCAsk(s); s.fails=0; }
+    catch(e){ s.fails++; if(s.fails>=3){ s.ai=false; showToast('Claude check paused for this session — scoring on this device instead.'); } }
+    s.busy=false;
+  }
+  if(!r) r=cupFCLocal(s);
+  if(!r) return;
+  s.samples.push(Object.assign({ t:Math.round((Date.now()-s.start)/1000) }, r));
+  cupFCPanel();
+}
+const CUP_FC_SCHEMA = { type:'object', additionalProperties:false, required:['score','activity','observation'], properties:{
+  score:{ type:'integer', description:'0–100 focus on the stated task right now' },
+  activity:{ type:'string', enum:Object.keys(CUP_FC_ACT) },
+  observation:{ type:'string', description:'One short sentence: what the person is doing, plainly, in the second person' } } };
+async function cupFCAsk(s){
+  const client=await cupAiClient(), content=[];
+  const scr=cupGrab(s.scr, 1024, 0.6), cam=cupGrab(s.cam, 320, 0.6);
+  if(scr) content.push({ type:'text', text:'Screen right now:' }, { type:'image', source:{ type:'base64', media_type:'image/jpeg', data:scr } });
+  if(cam) content.push({ type:'text', text:'Webcam right now (the student):' }, { type:'image', source:{ type:'base64', media_type:'image/jpeg', data:cam } });
+  const tk=s.ticks.slice(-12), avg=k=>tk.length?tk.reduce((a,x)=>a+(x[k]||0),0)/tk.length:0;
+  content.push({ type:'text', text:
+`You check in on a student's study session once a minute and judge how focused they are on THEIR task.
+Task: ${s.title}
+What done looks like: ${s.goal||'(not given)'}
+Signals from the last minute: talking ${Math.round(avg('talk')*100)}% of the time, body movement ${avg('motion').toFixed(1)} (0 still – 30 a lot), screen unchanged for ${tk.length?tk[tk.length-1].still:0}s${s.cam?'':', no camera'}${s.scr?'':', no screen'}.
+Judge only from what you can see and these signals. Related work (notes, docs, a problem set, a lecture video, an AI chat about the task) counts as on task. Social media, games, unrelated video, or a phone in hand is not. Be fair and specific; don't guess about things you can't see.` });
+  const res=await client.messages.create({ model:'claude-haiku-5-5', max_tokens:300,
+    output_config:{ format:{ type:'json_schema', schema:CUP_FC_SCHEMA } }, messages:[{ role:'user', content }] });
+  if(res.stop_reason==='refusal') throw new Error('refused');
+  const j=cupParseJSON((res.content||[]).filter(b=>b.type==='text').map(b=>b.text).join(''));
+  return { score:Math.max(0,Math.min(100,Math.round(+j.score||0))), act:CUP_FC_ACT[j.activity]?j.activity:'working', note:String(j.observation||'').slice(0,140), src:'ai' };
+}
+function cupFCPause(){ const s=cupFCSess; if(!s) return; s.paused=!s.paused; cupFCPanel(); }
+
+function cupFCPanel(){
+  let el=document.getElementById('cupFCLive'); const s=cupFCSess;
+  if(!s){ if(el) el.remove(); return; }
+  if(!el){ el=document.createElement('div'); el.id='cupFCLive'; el.className='cup-fc-live'; document.body.appendChild(el); }
+  const last=s.samples[s.samples.length-1], A=last?cupFCAct(last.act):null;
+  const avg=s.samples.length?Math.round(s.samples.reduce((a,x)=>a+x.score,0)/s.samples.length):null;
+  const mins=Math.floor((Date.now()-s.start)/60000);
+  if(!el.querySelector('.cup-fc-cam')){
+    el.innerHTML=`<div class="cup-fc-cam"></div><div class="cup-fc-info"></div><div class="cup-fc-btns"><button onclick="cupFCPause()" class="cup-fc-pause"></button><button onclick="cupFCEnd(true)">End</button></div>`;
+    if(s.cam){ const v=cupVid(s.cam.srcObject); el.querySelector('.cup-fc-cam').appendChild(v); } else el.querySelector('.cup-fc-cam').textContent=s.scr?'🖥':'🎙';
+  }
+  el.querySelector('.cup-fc-pause').textContent = s.paused?'Resume':'Pause';
+  el.querySelector('.cup-fc-info').innerHTML=`<div class="cup-fc-rec"><i class="${s.paused?'':'on'}"></i>${s.paused?'Paused':'Focus check'} · ${[s.cam&&'cam',s.scr&&'screen',s.an&&'mic'].filter(Boolean).join(' · ')} · ${mins}m</div>
+    <div class="cup-fc-now">${avg!==null?`<b style="color:${A.color||A[1]}">${last.score}</b><span style="color:${A[1]}">${A[0]}</span>`:'<span class="cup-dim">First check in a moment…</span>'}</div>
+    ${last&&last.note?`<div class="cup-fc-note">${esc(last.note)}</div>`:''}`;
+}
+
+// ── End, score, advice ──
+async function cupFCEnd(save_){
+  const s=cupFCSess; if(!s) return; cupFCSess=null;
+  s.timers.forEach(clearInterval); s.streams.forEach(st=>st.getTracks().forEach(tr=>tr.stop())); try{ s.ac&&s.ac.close(); }catch(_){}
+  cupFCPanel();
+  if(!save_) return;
+  if(!s.samples.length){ const r=cupFCLocal(s); if(r && Date.now()-s.start>90000) s.samples.push(Object.assign({ t:Math.round((Date.now()-s.start)/1000) }, r)); }
+  if(!s.samples.length){ showToast('Session too short to score.'); return; }
+  const n=s.samples.length, score=Math.round(s.samples.reduce((a,x)=>a+x.score,0)/n);
+  const mix={}; s.samples.forEach(x=>{ mix[x.act]=(mix[x.act]||0)+1; });
+  const rec={ id:s.id, taskId:s.taskId, title:s.title, goal:s.goal, start:s.start, end:Date.now(), score, mix,
+    samples:s.samples.slice(-120).map(x=>({ t:x.t, s:x.score, a:x.act, n:x.note||'' })), src:s.samples.some(x=>x.src==='ai')?'ai':'local', advice:cupFCAdviceLocal(score,mix,n,s) };
+  const list=cupFC(); list.unshift(rec); if(list.length>200) list.length=200;
+  const t=S.tasks.find(x=>x.id===s.taskId); if(t){ t.fcLast={ id:rec.id, score }; t.fcCount=(t.fcCount||0)+1; }
+  save(); render(); cupFCReport(rec.id);
+  if(rec.src==='ai' && cupAiKey()){ try{ const a=await cupFCAdviceAI(rec); if(a){ rec.headline=a.headline; rec.advice=a.advice; save(); if(document.getElementById('mCupFCR')?.classList.contains('show')) cupFCReport(rec.id); } }catch(_){} }
+}
+function cupFCAdviceLocal(score, mix, n, s){
+  const pct=k=>Math.round((mix[k]||0)/n*100), out=[];
+  if(pct('phone')>=15) out.push(`Your phone took ${pct('phone')}% of the session. Next time put it face down in another room before you start.`);
+  if(pct('off_task')>=15) out.push(`Off-task tabs showed up ${pct('off_task')}% of the time. Close everything except what this task needs before you press start.`);
+  if(pct('talking')>=20) out.push(`You were talking ${pct('talking')}% of the time. Try headphones or a quieter spot, and save chats for the break.`);
+  if(pct('away')>=20) out.push(`You stepped away ${pct('away')}% of the time. Get water and snacks before starting so the block stays unbroken.`);
+  if(pct('zoning')>=20) out.push(`You drifted ${pct('zoning')}% of the time. Start with a tiny first step${s.goal?` toward “${s.goal}”`:''}, and write one line of what’s next when you stall.`);
+  if(pct('moving')>=25) out.push('Lots of moving around. Set up your desk so everything is within reach.');
+  if(score>=80) out.push('Strong session. Keep this setup and time of day for hard work.');
+  else if(!out.length) out.push('Decent focus. A shorter block (25 min) with a clear goal usually lifts the score.');
+  return out.slice(0,3);
+}
+async function cupFCAdviceAI(rec){
+  const client=await cupAiClient();
+  const lines=rec.samples.map(x=>`${Math.round(x.t/60)}m: ${x.s} ${x.a}${x.n?' — '+x.n:''}`).join('\n');
+  const res=await client.messages.create({ model:'claude-haiku-5-5', max_tokens:600,
+    output_config:{ format:{ type:'json_schema', schema:{ type:'object', additionalProperties:false, required:['headline','advice'], properties:{
+      headline:{ type:'string' }, advice:{ type:'array', items:{ type:'string' } } } } } },
+    messages:[{ role:'user', content:`A student just finished a study session. Write a one-sentence headline about how it went and 2–3 short, specific, kind pieces of advice for next time, based only on this minute-by-minute log.\nTask: ${rec.title}\nGoal: ${rec.goal||'(none)'}\nAverage focus: ${rec.score}/100\n${lines}` }] });
+  const j=cupParseJSON((res.content||[]).filter(b=>b.type==='text').map(b=>b.text).join(''));
+  return j && Array.isArray(j.advice) ? { headline:String(j.headline||'').slice(0,200), advice:j.advice.slice(0,3).map(x=>String(x).slice(0,240)) } : null;
+}
+const cupFCColor = sc => sc>=80?'#4dd49a':sc>=60?'#f5b942':'#f26060';
+function cupFCReport(id){
+  const r=cupFC().find(x=>x.id===id); if(!r) return;
+  let el=document.getElementById('mCupFCR');
+  if(!el){ el=document.createElement('div'); el.className='overlay'; el.id='mCupFCR'; document.body.appendChild(el); }
+  const mins=Math.max(1,Math.round((r.end-r.start)/60000)), n=r.samples.length;
+  const mix=Object.entries(r.mix||{}).sort((a,b)=>b[1]-a[1]);
+  const past=cupFC().filter(x=>x.taskId===r.taskId&&x.id!==r.id).slice(0,4);
+  el.innerHTML=`<div class="modal cup-fcr">
+    <div class="modal-header"><span class="modal-title">Session report</span><button class="modal-close" onclick="closeModal('mCupFCR')" aria-label="Close">✕</button></div>
+    <div class="modal-body">
+      <div class="cup-fcr-top"><div class="cup-w-ring cup-fcr-ring" style="--p:${r.score};--rc:${cupFCColor(r.score)}"><b>${r.score}</b><span>focus</span></div>
+        <div><div class="cup-fcr-title">${esc(r.title)}</div><div class="cup-dim">${cupFmt(cupISO(new Date(r.start)))} · ${cupT12(`${pad(new Date(r.start).getHours())}:${pad(new Date(r.start).getMinutes())}`)} · ${mins} min · ${r.src==='ai'?'checked by Claude':'checked on this device'}</div>
+          ${r.goal?`<div class="cup-fcr-goal">Goal: ${esc(r.goal)}</div>`:''}${r.headline?`<div class="cup-fcr-head">${esc(r.headline)}</div>`:''}</div></div>
+      <div class="cup-fcr-tl" aria-label="Focus over time">${r.samples.map(x=>`<i style="height:${Math.max(6,x.s)}%;background:${cupFCAct(x.a)[1]}" title="${Math.round(x.t/60)}m · ${x.s} · ${esc(cupFCAct(x.a)[0])}${x.n?' — '+esc(x.n):''}"></i>`).join('')}</div>
+      <div class="cup-fcr-mix">${mix.map(([k,c])=>`<span><i style="background:${cupFCAct(k)[1]}"></i>${cupFCAct(k)[0]} <b>${Math.round(c/n*100)}%</b></span>`).join('')}</div>
+      <div class="cup-g-h">Advice for next time</div>
+      <ul class="cup-fcr-adv">${(r.advice||[]).map(a=>`<li>${esc(a)}</li>`).join('')}</ul>
+      ${r.samples.some(x=>x.n)?`<details class="cup-share-set"><summary>Minute by minute</summary>${r.samples.filter(x=>x.n).map(x=>`<div class="cup-fcr-log"><span>${Math.round(x.t/60)}m</span><b style="color:${cupFCColor(x.s)}">${x.s}</b><span>${esc(x.n)}</span></div>`).join('')}</details>`:''}
+      ${past.length?`<div class="cup-g-h">Earlier sessions on this task</div><div class="cup-fcr-past">${past.map(x=>`<button onclick="cupFCReport('${x.id}')"><b style="color:${cupFCColor(x.score)}">${x.score}</b><span>${cupFmt(cupISO(new Date(x.start)))}</span></button>`).join('')}</div>`:''}
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="cupFCDelete('${r.id}')">Delete</button><button class="btn btn-accent" onclick="closeModal('mCupFCR')">Done</button></div></div>`;
+  openModal('mCupFCR');
+}
+function cupFCDelete(id){ const l=cupFC(), i=l.findIndex(x=>x.id===id); if(i<0) return; const r=l.splice(i,1)[0];
+  const t=S.tasks.find(x=>x.id===r.taskId); if(t&&t.fcLast&&t.fcLast.id===id){ const prev=l.find(x=>x.taskId===t.id); t.fcLast=prev?{ id:prev.id, score:prev.score }:null; }
+  save(); closeModal('mCupFCR'); render(); showToast('Session deleted.'); }
+
+// ── Scores in the to-do lists ──
+const cupFCChip = t => t&&t.fcLast ? `<button type="button" class="cup-fc-chip" style="--fc:${cupFCColor(t.fcLast.score)}" onclick="event.stopPropagation();cupFCReport('${t.fcLast.id}')" title="Last focus score — tap for the report">◎ ${t.fcLast.score}</button>` : '';
+function cupFCChips(){
+  S.tasks.forEach(t=>{ if(!t.fcLast) return; const row=document.getElementById('ti-'+t.id); const title=row&&row.querySelector('.task-title'); if(!title) return;
+    const have=title.querySelector('.cup-fc-chip'); const html=cupFCChip(t);
+    if(have){ if(have.outerHTML!==html) have.outerHTML=html; } else title.insertAdjacentHTML('beforeend', ' '+html); });
+}
+{ const _rc=renderCup; renderCup=function(){ const r=_rc.apply(this,arguments); try{ cupFCChips(); }catch(_){} return r; }; }
+{ const _todo=cupTodoHTML; cupTodoHTML=function(){ let h=_todo.apply(this,arguments);
+    S.tasks.forEach(t=>{ if(!t.fcLast) return; h=h.replace(`onclick="editTask('${t.id}')">${esc(t.title)}</button>`, `onclick="editTask('${t.id}')">${esc(t.title)}</button>${cupFCChip(t)}`); }); return h; }; }
+// Next up “Focus” opens the session sheet
+{ const _home=cupRenderHome; cupRenderHome=function(){ const r=_home.apply(this,arguments);
+    document.querySelectorAll('#cupNextUp .cup-next-actions .btn-accent[onclick^="startPomoTask("]').forEach(b=>{ const id=(b.getAttribute('onclick').match(/'([^']+)'/)||[])[1]; if(id){ b.setAttribute('onclick',`cupSessionOpen('${id}')`); b.title='Start a session'; } });
+    return r; }; }
+
+// Home widget: recent focus scores
+function cupWFocusScores(){
+  const l=cupFC().slice(0,6);
+  if(!l.length) return `<button class="cup-w-cta" onclick="cupSessionOpen(cupNextQueue()[0]?.t?.id||'')"><span>◎</span><span><b>Start a checked session</b><em>Get a focus score and advice after each study block</em></span></button>`;
+  const avg=Math.round(l.reduce((a,x)=>a+x.score,0)/l.length);
+  return `<div class="cup-w-fs"><div class="cup-w-big"><b style="color:${cupFCColor(avg)}">${avg}</b><span>avg</span></div>
+    <div class="cup-w-fsl">${l.map(x=>`<button onclick="cupFCReport('${x.id}')"><span class="n">${esc(x.title)}</span><span class="bar"><i style="width:${x.score}%;background:${cupFCColor(x.score)}"></i></span><b>${x.score}</b></button>`).join('')}</div></div>`;
+}
+if(typeof CUP_WIDGETS==='object') CUP_WIDGETS.fscores=['◎','Focus scores','Your last study sessions, scored','Focus',0,cupWFocusScores];
+window.addEventListener('beforeunload',()=>{ if(cupFCSess) cupFCEnd(false); });
+
 
 // Korean interface strings. Keys are the exact English text shown on screen.
 Object.assign(CUP_KO, {
@@ -22332,7 +22660,7 @@ Object.assign(CUP_KO, {
   "Group focus":"그룹 집중 시간","Goal reached together 🎉":"함께 목표를 달성했어요 🎉","Leave":"나가기",
   "When":"언제","Where & status":"폴더 & 상태","⧗ Waiting on reply":"⧗ 답변 대기 중","Every day (habit)":"매일 (습관)",
   "Or on specific days (habit)":"또는 특정 요일마다 (습관)",
-  "Shared Lists":"공유 목록","Weekly Load":"주간 로드","Friends":"친구","👥 Friends":"👥 친구","Friends & groups →":"친구 & 그룹 →","Garden":"가든","Study together, quietly. Friends and groups see only your name, trees, streak and focus minutes.":"조용히 함께 공부해요. 친구와 그룹에는 이름, 나무, 연속 일수, 집중 시간만 보여요.","Extra tools":"추가 도구","Shows the S/M/L and shortcut buttons, the Focus page, Upcoming in the sidebar, Home blocks, Prep, Gentle day and the Home filter.":"S/M/L·단축키 버튼, 집중 페이지, 사이드바의 다가오는 일정, 홈 블록, 준비, 가벼운 날, 홈 필터를 보여줘요.","Your meadow":"나의 정원","Invite a friend":"친구 초대","Your code":"내 코드","Copy":"복사","Friend’s code — Enter":"친구 코드 — Enter","Cheers for you":"받은 응원","Manage friends":"친구 관리","Remove":"삭제","What friends see":"친구에게 보이는 것","Share these habits as check-ins":"이 습관을 체크인으로 공유","Friends see only ✓ or nothing for each day.":"친구에게는 날마다 ✓ 표시만 보여요.","Pause sharing":"공유 일시정지","Turn off friends":"친구 기능 끄기","Grow your trees side by side":"나무를 나란히 키워요","A shared meadow":"함께하는 정원","See everyone’s tree for today":"모두의 오늘 나무를 봐요","QT check-ins":"큐티 체크인","Your small group ticks quiet time together":"소그룹이 함께 큐티를 체크해요","Cheers":"응원","One tap to cheer a friend on":"한 번 눌러 친구를 응원해요","Focus together":"함께 집중","Join when a friend starts studying":"친구가 공부를 시작하면 함께해요","No rankings. Only what you choose is shared, never your tasks or notes.":"순위는 없어요. 고른 것만 공유되고, 할 일이나 노트는 절대 공유되지 않아요.","Turn on friends":"친구 기능 켜기","Small group":"소그룹","Gym buddies":"운동 메이트","Study squad":"스터디","Club or team":"동아리 · 팀","QT check-ins — everyone ticks their quiet time":"큐티 체크인 — 모두 큐티를 체크해요","Workout check-ins together":"함께 운동 체크인","Focus hours toward one weekly goal":"주간 목표를 향한 집중 시간","Focus hours and tasks done together":"함께한 집중 시간과 완료한 일","Start a group":"그룹 만들기","Start another group":"그룹 하나 더 만들기","Or join with a code — Enter":"또는 코드로 참여 — Enter","resting":"쉬는 중","Gym buddy":"운동 메이트","Friend":"친구","This week’s league":"이번 주 리그","ends in":"종료까지","Change":"변경","Save":"저장","Cancel":"취소","Pick a username so friends can add you":"친구가 추가할 수 있도록 사용자 이름을 정하세요","New username":"새 사용자 이름","Available ✓":"사용 가능 ✓","Taken — try another":"이미 사용 중 — 다른 이름을 써 보세요","Checking…":"확인 중…","That’s you":"지금 내 이름이에요","3–20 letters, numbers, _ or .":"영문 소문자·숫자·_·. 3–20자","Add a friend — @username":"친구 추가 — @사용자이름","Copy mine":"내 것 복사","Your league starts with one friend":"친구 한 명이면 리그가 시작돼요","1 pt per focus minute · 20 per task done · 10 per check-in · resets every week":"집중 1분 1점 · 완료한 일 20점 · 체크인 10점 · 매주 초기화","Join":"함께하기","+ Add widget":"+ 위젯 추가","Edit widgets":"위젯 편집","Done":"완료","Add a widget":"위젯 추가","Study":"공부","Plan":"계획","Together":"함께","Life":"생활","Course pace":"수업 진도","Exam countdown":"시험 카운트다운","Deadlines":"마감","Focus today":"오늘 집중","Time left":"남은 시간","This week":"이번 주","Waiting on":"답변 대기","Goals":"목표","Friends league":"친구 리그","Garden":"가든","Journal":"일기","Habits":"습관","Recent pages":"최근 페이지","Principles":"원칙","How many lectures behind each class is":"수업별로 몇 강 밀렸는지","Days until the next midterm, final or big deadline":"다음 중간·기말고사나 큰 마감까지 남은 날","Everything due soon":"곧 마감되는 모든 것","Minutes focused today toward your goal":"오늘 목표 대비 집중 시간","Day, week and term remaining":"오늘·이번 주·학기 남은 시간","Your next events and classes":"다음 일정과 수업","The week at a glance and your load":"한눈에 보는 이번 주와 부담","Things you sent and are waiting to hear back on":"보내고 답을 기다리는 것","Your goals and how far along they are":"목표와 진행 상황","Your rank this week and who’s close":"이번 주 내 순위와 가까운 친구","Today’s tree, streak and gems":"오늘의 나무, 연속 기록, 보석","Today’s reflection and your streak":"오늘의 기록과 연속 일수","Tick today’s habits":"오늘 습관 체크","Notes you edited lately":"최근 수정한 노트","The rules you want to live by":"지키고 싶은 원칙","+ Add":"+ 추가","Start a weekly league":"주간 리그 시작","Race friends on focus minutes and tasks.":"집중 시간과 완료한 일로 친구와 겨뤄요.","Add a friend to start":"친구를 추가해 시작하세요","How was today?":"오늘 어땠나요?","A line or two is enough":"한두 줄이면 충분해요","◎ Start a session":"◎ 세션 시작","Track a class to see how many lectures behind you are.":"수업을 추적하면 몇 강 밀렸는지 볼 수 있어요.","Every widget is already on Home.":"모든 위젯이 이미 홈에 있어요.","Schedule":"일정","To do today":"오늘 할 일","Show less":"접기","All day":"종일","now":"지금","Custom repeat":"직접 반복 설정","Every N days, weeks or months. When you finish it, the next one is created with a new due date.":"N일·N주·N개월마다 반복해요. 완료하면 새 마감일로 다음 항목이 만들어져요.",
+  "Shared Lists":"공유 목록","Weekly Load":"주간 로드","Friends":"친구","👥 Friends":"👥 친구","Friends & groups →":"친구 & 그룹 →","Garden":"가든","Study together, quietly. Friends and groups see only your name, trees, streak and focus minutes.":"조용히 함께 공부해요. 친구와 그룹에는 이름, 나무, 연속 일수, 집중 시간만 보여요.","Extra tools":"추가 도구","Shows the S/M/L and shortcut buttons, the Focus page, Upcoming in the sidebar, Home blocks, Prep, Gentle day and the Home filter.":"S/M/L·단축키 버튼, 집중 페이지, 사이드바의 다가오는 일정, 홈 블록, 준비, 가벼운 날, 홈 필터를 보여줘요.","Your meadow":"나의 정원","Invite a friend":"친구 초대","Your code":"내 코드","Copy":"복사","Friend’s code — Enter":"친구 코드 — Enter","Cheers for you":"받은 응원","Manage friends":"친구 관리","Remove":"삭제","What friends see":"친구에게 보이는 것","Share these habits as check-ins":"이 습관을 체크인으로 공유","Friends see only ✓ or nothing for each day.":"친구에게는 날마다 ✓ 표시만 보여요.","Pause sharing":"공유 일시정지","Turn off friends":"친구 기능 끄기","Grow your trees side by side":"나무를 나란히 키워요","A shared meadow":"함께하는 정원","See everyone’s tree for today":"모두의 오늘 나무를 봐요","QT check-ins":"큐티 체크인","Your small group ticks quiet time together":"소그룹이 함께 큐티를 체크해요","Cheers":"응원","One tap to cheer a friend on":"한 번 눌러 친구를 응원해요","Focus together":"함께 집중","Join when a friend starts studying":"친구가 공부를 시작하면 함께해요","No rankings. Only what you choose is shared, never your tasks or notes.":"순위는 없어요. 고른 것만 공유되고, 할 일이나 노트는 절대 공유되지 않아요.","Turn on friends":"친구 기능 켜기","Small group":"소그룹","Gym buddies":"운동 메이트","Study squad":"스터디","Club or team":"동아리 · 팀","QT check-ins — everyone ticks their quiet time":"큐티 체크인 — 모두 큐티를 체크해요","Workout check-ins together":"함께 운동 체크인","Focus hours toward one weekly goal":"주간 목표를 향한 집중 시간","Focus hours and tasks done together":"함께한 집중 시간과 완료한 일","Start a group":"그룹 만들기","Start another group":"그룹 하나 더 만들기","Or join with a code — Enter":"또는 코드로 참여 — Enter","resting":"쉬는 중","Gym buddy":"운동 메이트","Friend":"친구","This week’s league":"이번 주 리그","ends in":"종료까지","Change":"변경","Save":"저장","Cancel":"취소","Pick a username so friends can add you":"친구가 추가할 수 있도록 사용자 이름을 정하세요","New username":"새 사용자 이름","Available ✓":"사용 가능 ✓","Taken — try another":"이미 사용 중 — 다른 이름을 써 보세요","Checking…":"확인 중…","That’s you":"지금 내 이름이에요","3–20 letters, numbers, _ or .":"영문 소문자·숫자·_·. 3–20자","Add a friend — @username":"친구 추가 — @사용자이름","Copy mine":"내 것 복사","Your league starts with one friend":"친구 한 명이면 리그가 시작돼요","1 pt per focus minute · 20 per task done · 10 per check-in · resets every week":"집중 1분 1점 · 완료한 일 20점 · 체크인 10점 · 매주 초기화","Join":"함께하기","+ Add widget":"+ 위젯 추가","Edit widgets":"위젯 편집","Done":"완료","Add a widget":"위젯 추가","Study":"공부","Plan":"계획","Together":"함께","Life":"생활","Course pace":"수업 진도","Exam countdown":"시험 카운트다운","Deadlines":"마감","Focus today":"오늘 집중","Time left":"남은 시간","This week":"이번 주","Waiting on":"답변 대기","Goals":"목표","Friends league":"친구 리그","Garden":"가든","Journal":"일기","Habits":"습관","Recent pages":"최근 페이지","Principles":"원칙","How many lectures behind each class is":"수업별로 몇 강 밀렸는지","Days until the next midterm, final or big deadline":"다음 중간·기말고사나 큰 마감까지 남은 날","Everything due soon":"곧 마감되는 모든 것","Minutes focused today toward your goal":"오늘 목표 대비 집중 시간","Day, week and term remaining":"오늘·이번 주·학기 남은 시간","Your next events and classes":"다음 일정과 수업","The week at a glance and your load":"한눈에 보는 이번 주와 부담","Things you sent and are waiting to hear back on":"보내고 답을 기다리는 것","Your goals and how far along they are":"목표와 진행 상황","Your rank this week and who’s close":"이번 주 내 순위와 가까운 친구","Today’s tree, streak and gems":"오늘의 나무, 연속 기록, 보석","Today’s reflection and your streak":"오늘의 기록과 연속 일수","Tick today’s habits":"오늘 습관 체크","Notes you edited lately":"최근 수정한 노트","The rules you want to live by":"지키고 싶은 원칙","+ Add":"+ 추가","Start a weekly league":"주간 리그 시작","Race friends on focus minutes and tasks.":"집중 시간과 완료한 일로 친구와 겨뤄요.","Add a friend to start":"친구를 추가해 시작하세요","How was today?":"오늘 어땠나요?","A line or two is enough":"한두 줄이면 충분해요","◎ Start a session":"◎ 세션 시작","Track a class to see how many lectures behind you are.":"수업을 추적하면 몇 강 밀렸는지 볼 수 있어요.","Every widget is already on Home.":"모든 위젯이 이미 홈에 있어요.","Schedule":"일정","To do today":"오늘 할 일","Show less":"접기","All day":"종일","now":"지금","Start a session":"세션 시작","Working on":"작업 중","What does done look like?":"어떻게 되면 끝인가요?","Focus check":"집중 체크","Scores how focused you are and gives advice afterwards":"얼마나 집중했는지 점수를 매기고 끝나면 조언해요","Camera":"카메라","Screen":"화면","Mic":"마이크","On this device":"이 기기에서만","◎ Start session":"◎ 세션 시작","Session report":"세션 리포트","Advice for next time":"다음을 위한 조언","Minute by minute":"분 단위 기록","Earlier sessions on this task":"이 할 일의 이전 세션","Pause":"일시정지","Resume":"다시 시작","End":"끝내기","Delete":"삭제","On task":"집중 중","On phone":"휴대폰 사용","Off-task screen":"관련 없는 화면","Talking":"대화 중","Moving around":"움직이는 중","Zoning out":"멍때림","Away":"자리 비움","Reading / thinking":"읽기 / 생각","Focus scores":"집중 점수","Your last study sessions, scored":"최근 공부 세션 점수","Start a checked session":"집중 체크 세션 시작","Get a focus score and advice after each study block":"공부가 끝날 때마다 점수와 조언을 받아요","First check in a moment…":"곧 첫 체크를 해요…","What are you working on?":"무엇을 하나요?","Custom repeat":"직접 반복 설정","Every N days, weeks or months. When you finish it, the next one is created with a new due date.":"N일·N주·N개월마다 반복해요. 완료하면 새 마감일로 다음 항목이 만들어져요.",
   "▸ More options (priority, steps, work date, reminders, files…)":"▸ 추가 옵션 (우선순위, 단계, 작업일, 알림, 파일…)",
   "▾ Fewer options":"▾ 옵션 접기",
   // ── navigation & shell ──
