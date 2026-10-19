@@ -23109,6 +23109,328 @@ function cupWSheet(){
 }
 function cupWToggle(k){ const h=cupHome(); if(h.blocks.includes(k)) h.blocks=h.blocks.filter(x=>x!==k); else h.blocks.push(k); h.template=''; save(); cupRenderDash(); cupWSheet(); }
 
+// ════════════════════════════════════════════════════════════════════
+//  PART 7 — Google Calendar, two-way.
+//  Focus Hub → Google: timed tasks, focus sessions and study blocks are
+//  written to a "Focus Hub" calendar (or your main one) with the Calendar
+//  API, straight from the browser (Google Identity Services, no server).
+//  Google → Focus Hub stays the read-only calendar links (parseICS); our
+//  own events are skipped there so nothing shows twice.
+//
+//  How it stays in step: after every save we compare what *should* be on
+//  Google (cupGcWant) with what we last sent (S.cup.gcal.ev) and send only
+//  the difference. That difference is the queue — offline, closed tab or
+//  expired sign-in, it is simply sent next time. Event ids are fixed per
+//  item ("fhub" + hex), so two devices or a retry never make a duplicate.
+// ════════════════════════════════════════════════════════════════════
+
+const CUP_GC_CLIENT_ID = '';   // Web OAuth client ID from Google Cloud (or paste it in Settings → Google Calendar)
+const CUP_GC_API = 'https://www.googleapis.com/calendar/v3';
+const CUP_GC_SCOPE_APP = 'https://www.googleapis.com/auth/calendar.app.created';   // make + manage the Focus Hub calendar only
+const CUP_GC_SCOPE_EV  = 'https://www.googleapis.com/auth/calendar.events';        // only when you pick your main calendar
+const CUP_GC_BATCH = 40;   // requests per pass; the rest follow a moment later
+
+function cupGc(){
+  cupEnsure();
+  if(!S.cup.gcal || typeof S.cup.gcal!=='object') S.cup.gcal={};
+  const g=S.cup.gcal;
+  if(!g.ev || typeof g.ev!=='object') g.ev={};
+  g.what=Object.assign({ tasks:true, focus:true, blocks:true }, g.what||{});
+  if(g.cal!=='primary') g.cal='fh';
+  return g;
+}
+const cupGcArr = x => Array.isArray(x) ? x : Object.values(x||{});
+const cupGcClientId = () => (CUP_GC_CLIENT_ID || cupGc().clientId || '').trim();
+const cupGcTz = () => { try{ return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'; }catch(_){ return 'UTC'; } };
+const cupGcHex = s => { let h=''; for(const ch of String(s)) h+=ch.codePointAt(0).toString(16).padStart(2,'0'); return h; };
+const cupGcId = key => 'fhub'+cupGcHex(key);   // Google allows a–v and 0–9 in ids; hex fits
+function cupGcHash(o){ const s=JSON.stringify(o); let h=5381; for(let i=0;i<s.length;i++) h=((h<<5)+h+s.charCodeAt(i))|0; return (h>>>0).toString(36); }
+const cupGcCalKey = () => { const g=cupGc(); return g.cal==='primary' ? 'primary' : (g.calId||''); };
+
+// ── sign-in token (memory + this tab only; it lasts an hour) ──
+let cupGcTok={ t:'', exp:0, cid:'' };
+try{ const s=JSON.parse(sessionStorage.getItem('cup_gc_tok')||'null'); if(s&&s.t) cupGcTok=s; }catch(_){}
+const cupGcHasTok = () => !!cupGcTok.t && cupGcTok.exp>Date.now() && cupGcTok.cid===cupGcClientId();
+function cupGcSetTok(t){ cupGcTok=t; try{ t.t?sessionStorage.setItem('cup_gc_tok',JSON.stringify(t)):sessionStorage.removeItem('cup_gc_tok'); }catch(_){} }
+
+let cupGcGisP=null;
+function cupGcLoadGis(){
+  if(window.google && google.accounts && google.accounts.oauth2) return Promise.resolve();
+  if(cupGcGisP) return cupGcGisP;
+  cupGcGisP=new Promise((ok,no)=>{ const s=document.createElement('script'); s.src='https://accounts.google.com/gsi/client'; s.async=true;
+    s.onload=()=>ok(); s.onerror=()=>{ cupGcGisP=null; no(new Error('Couldn’t reach Google')); }; document.head.appendChild(s); });
+  return cupGcGisP;
+}
+const cupGcScopes = () => cupGc().cal==='primary' ? [CUP_GC_SCOPE_APP, CUP_GC_SCOPE_EV] : [CUP_GC_SCOPE_APP];
+// Must start inside a tap: Google opens a small window (it closes by itself once you’ve agreed before).
+function cupGcAuth(prompt){
+  return new Promise((ok,no)=>{
+    const cid=cupGcClientId(), oa=window.google&&google.accounts&&google.accounts.oauth2;
+    if(!cid) return no(new Error('no-client'));
+    if(!oa){ cupGcLoadGis().catch(()=>{}); return no(new Error('loading')); }
+    const scopes=cupGcScopes();
+    const tc=oa.initTokenClient({ client_id:cid, scope:scopes.join(' '),
+      callback:r=>{
+        if(!r || r.error) return no(new Error((r&&r.error)||'denied'));
+        if(oa.hasGrantedAllScopes && !oa.hasGrantedAllScopes(r, ...scopes)) return no(new Error('scope'));
+        cupGcSetTok({ t:r.access_token, exp:Date.now()+((+r.expires_in||3600)-60)*1000, cid }); ok();
+      },
+      error_callback:e=>no(new Error((e&&e.type)||'popup')) });
+    tc.requestAccessToken({ prompt:prompt||'' });
+  });
+}
+
+// ── Calendar API ──
+async function cupGcApi(method, path, body){
+  if(!cupGcHasTok()){ const e=new Error('signed out'); e.status=401; throw e; }
+  const r=await fetch(CUP_GC_API+path, { method, headers:Object.assign({ Authorization:'Bearer '+cupGcTok.t }, body?{ 'Content-Type':'application/json' }:{}), body:body?JSON.stringify(body):undefined });
+  if(r.status===204) return null;
+  const j=await r.json().catch(()=>null);
+  if(!r.ok){ const e=new Error((j&&j.error&&j.error.message)||('HTTP '+r.status)); e.status=r.status; e.reason=(j&&j.error&&j.error.errors&&j.error.errors[0]&&j.error.errors[0].reason)||''; throw e; }
+  return j;
+}
+const cupGcEvPath = (cal, id) => '/calendars/'+encodeURIComponent(cal)+'/events'+(id?'/'+id:'');
+async function cupGcPut(cal, id, body, isNew){
+  const upd=()=>cupGcApi('PUT', cupGcEvPath(cal,id), Object.assign({ status:'confirmed' }, body));   // also brings back one deleted on Google
+  const ins=()=>cupGcApi('POST', cupGcEvPath(cal), Object.assign({ id }, body));
+  if(isNew){ try{ return await ins(); }catch(e){ if(e.status===409) return upd(); throw e; } }
+  try{ return await upd(); }catch(e){ if(e.status!==404 && e.status!==410) throw e; }
+  try{ return await ins(); }catch(e){ if(e.status===409) return upd(); throw e; }
+}
+async function cupGcDel(cal, id){ try{ await cupGcApi('DELETE', cupGcEvPath(cal,id)); }catch(e){ if(e.status!==404 && e.status!==410) throw e; } }
+
+let cupGcCalOk='';
+async function cupGcCal(){
+  const g=cupGc(); if(g.cal==='primary') return 'primary';
+  if(g.calId && cupGcCalOk===g.calId) return g.calId;
+  if(g.calId){
+    try{ await cupGcApi('GET', '/calendars/'+encodeURIComponent(g.calId)); cupGcCalOk=g.calId; return g.calId; }
+    catch(e){ if(e.status!==404 && e.status!==410) throw e;
+      Object.keys(g.ev).forEach(id=>{ if(g.ev[id].c===g.calId) delete g.ev[id]; });   // the calendar was removed on Google, with its events
+      g.calId=''; }
+  }
+  const c=await cupGcApi('POST', '/calendars', { summary:'Focus Hub', description:'Tasks, focus sessions and study blocks from Focus Hub.', timeZone:cupGcTz() });
+  g.calId=c.id; cupGcCalOk=c.id; return c.id;
+}
+
+// ── what should be on Google right now ──
+function cupGcDT(ds, min){ const [y,m,d]=ds.split('-').map(Number); return { dateTime:new Date(y,m-1,d,0,min).toISOString(), timeZone:cupGcTz() }; }
+const cupGcMs = ms => ({ dateTime:new Date(ms).toISOString(), timeZone:cupGcTz() });
+function cupGcWant(){
+  const g=cupGc(), w=g.what, since=g.since||todayStr(), out={};
+  const add=(key, kind, ref, body)=>{ out[cupGcId(key)]={ k:kind, r:ref, body:Object.assign(body, { description:'From Focus Hub', extendedProperties:{ private:{ focusHub:kind } } }) }; };
+  const tasks=cupGcArr(S.tasks), byId={}; tasks.forEach(t=>{ if(t&&t.id) byId[t.id]=t; });
+  if(w.tasks) tasks.forEach(t=>{
+    if(!t || !t.id || t.isHabit || t.icsUid || t.sourceId || (t.archived && !t.completed)) return;   // calendar-link imports already live in a calendar
+    const title=(t.completed?'✓ ':'')+(t.title||'Task');
+    const dates=new Set(cupGcArr(t.scheduledDates).filter(Boolean));
+    const s=timeStrToMinutes(t.scheduledTime);
+    if(s!==null) dates.forEach(ds=>{ if(ds<since) return; const dur=Math.max(15, Number(t.estimate||t.duration)||60);
+      add('t:'+t.id+':'+ds, 'task', t.id, { summary:title, start:cupGcDT(ds,s), end:cupGcDT(ds,s+dur) }); });
+    const dm=t.due && !dates.has(t.due) && t.due>=since ? timeStrToMinutes(t.dueTime) : null;
+    if(dm!==null){ const st=Math.max(0,dm-30); add('d:'+t.id, 'task', t.id, { summary:'Due · '+title, start:cupGcDT(t.due,st), end:cupGcDT(t.due,Math.max(dm,st+15)) }); }
+  });
+  if(w.focus) cupGcArr(S.sessions).forEach(x=>{
+    if(!x || x.type!=='focus' || !x.id || !x.ts || !(+x.dur>=5) || !x.date || x.date<since) return;
+    const t=x.taskId && byId[x.taskId];
+    add('s:'+x.id, 'focus', x.id, { summary:'◎ Focus'+(t?' · '+t.title:''), start:cupGcMs(+x.ts-(+x.dur)*60000), end:cupGcMs(+x.ts), transparency:'transparent', reminders:{ useDefault:false } });
+  });
+  if(w.blocks) cupGcArr(S.events).forEach(e=>{
+    if(!e || e.type!=='focus_block' || !e.id || e.sourceId || e.icsUid || !e.date || e.date<since) return;
+    const s=timeStrToMinutes(e.time); if(s===null) return;
+    let en=timeStrToMinutes(e.endTime); if(en===null || en<=s) en=s+60;
+    add('b:'+e.id, 'block', e.id, { summary:e.title||'Focus block', start:cupGcDT(e.date,s), end:cupGcDT(e.date,en) });
+  });
+  return out;
+}
+// the difference between what should be there and what we last sent
+function cupGcPlan(cal){
+  const have=cupGc().ev, want=cupGcWant(), ops=[];
+  for(const id in have){ const h=have[id]; if(!want[id]) ops.push({ op:'del', id, h }); else if(h.c!==cal) ops.push({ op:'del', id, h, move:true }); }
+  for(const id in want){ const h=have[id], hash=cupGcHash(want[id].body);
+    if(!h || h.c!==cal || h.h!==hash) ops.push({ op:'put', id, w:want[id], hash, isNew:!h || h.c!==cal }); }
+  return ops;
+}
+
+// ── one pass ──
+let cupGcBusy=false, cupGcTimer=0, cupGcWait=0, cupGcMassOk=false, cupGcToasted=false;
+const cupGcInfo={ state:'', err:'', pending:0, hold:0 };   // state: '' | 'auth' | 'offline' | 'error'
+const cupGcSkip=new Set();   // ids Google refused this session (bad data) — not retried in a loop
+function cupGcSoon(ms){ clearTimeout(cupGcTimer); cupGcTimer=setTimeout(()=>{ cupGcRun().catch(e=>console.warn('[gcal]', e)); }, ms==null?1500:ms); }
+async function cupGcRun(){
+  const g=cupGc(); if(!g.on || cupGcBusy) return;
+  if(Date.now()<cupGcWait){ cupGcSoon(cupGcWait-Date.now()); return; }
+  if(!cupGcHasTok()){ cupGcInfo.state='auth'; cupGcInfo.pending=cupGcPlan(cupGcCalKey()).length; cupGcPaused(); cupGcRender(); return; }
+  if(navigator.onLine===false){ cupGcInfo.state='offline'; cupGcInfo.pending=cupGcPlan(cupGcCalKey()).length; cupGcRender(); return; }
+  cupGcBusy=true; let changed=false, more=false;
+  try{
+    const before=g.calId, cal=await cupGcCal(); if(g.calId!==before) changed=true;
+    let ops=cupGcPlan(cal).filter(o=>!cupGcSkip.has(o.id));
+    // never wipe a calendar by accident (e.g. a half-loaded planner): a big removal waits for a yes in Settings
+    const gone=ops.filter(o=>o.op==='del' && !o.move);
+    cupGcInfo.hold=0;
+    if(!cupGcMassOk && gone.length>15 && gone.length>Object.keys(g.ev).length*0.5){ cupGcInfo.hold=gone.length; ops=ops.filter(o=>!(o.op==='del' && !o.move)); }
+    cupGcMassOk=false;
+    more=ops.length>CUP_GC_BATCH;
+    cupGcInfo.state=''; cupGcInfo.err='';
+    for(const o of ops.slice(0,CUP_GC_BATCH)){
+      try{
+        if(o.op==='del'){ await cupGcDel(o.h.c, o.id); delete g.ev[o.id]; }
+        else { await cupGcPut(cal, o.id, o.w.body, o.isNew); g.ev[o.id]={ k:o.w.k, r:o.w.r, h:o.hash, c:cal }; }
+        changed=true;
+      }catch(e){
+        if(!e.status){ cupGcInfo.state='offline'; more=false; break; }
+        if(e.status===401 || (e.status===403 && /insufficient|auth/i.test(e.reason))){ cupGcSetTok({ t:'', exp:0, cid:'' }); cupGcInfo.state='auth'; more=false; cupGcPaused(); break; }
+        if(e.status===429 || (e.status===403 && /rate|quota|limit/i.test(e.reason))){ cupGcWait=Date.now()+60000; more=true; break; }
+        if(e.status>=500){ cupGcInfo.state='error'; cupGcInfo.err=e.message; cupGcWait=Date.now()+30000; more=true; break; }
+        cupGcSkip.add(o.id); cupGcInfo.err=e.message; console.warn('[gcal] skipped', o.id, e);
+      }
+    }
+  }catch(e){
+    if(!e.status) cupGcInfo.state='offline';
+    else if(e.status===401 || e.status===403){ cupGcSetTok({ t:'', exp:0, cid:'' }); cupGcInfo.state='auth'; cupGcPaused(); }
+    else { cupGcInfo.state='error'; cupGcInfo.err=e.message; cupGcWait=Date.now()+30000; }
+  }finally{ cupGcBusy=false; }
+  if(cupGcLinkIds()) changed=true;
+  if(changed){ g.last=Date.now(); cupGcSaveQuiet(); }
+  cupGcInfo.pending=cupGcPlan(cupGcCalKey()).filter(o=>!cupGcSkip.has(o.id)).length - cupGcInfo.hold;
+  cupGcRender();
+  if(more) cupGcSoon(cupGcWait>Date.now()?cupGcWait-Date.now():800);
+}
+// calendarEventId on each task / session / block = its (first) Google event
+function cupGcLinkIds(){
+  const ev=cupGc().ev, first={}; let ch=false;
+  Object.keys(ev).sort().forEach(id=>{ const r=ev[id].r; if(r && !first[r]) first[r]=id; });
+  const link=x=>{ if(!x || !x.id) return; const id=first[x.id];
+    if(id){ if(x.calendarEventId!==id){ x.calendarEventId=id; ch=true; } } else if(x.calendarEventId){ delete x.calendarEventId; ch=true; } };
+  cupGcArr(S.tasks).forEach(link); cupGcArr(S.sessions).forEach(link); cupGcArr(S.events).forEach(x=>{ if(x && x.type==='focus_block') link(x); });
+  return ch;
+}
+function cupGcPaused(){
+  if(cupGcToasted || !cupGcInfo.pending) return; cupGcToasted=true;
+  cupGcLoadGis().catch(()=>{});
+  showToast('Google Calendar is paused — sign in again to send your changes.','Resume',()=>cupGcResume());
+}
+
+// save without waking the sync again (it has nothing new to send)
+let _cupGcSaving=false;
+function cupGcSaveQuiet(){ _cupGcSaving=true; try{ save(); }finally{ _cupGcSaving=false; } }
+const _cupGcSave = save;
+save = function(){ const r=_cupGcSave.apply(this, arguments); try{ if(!_cupGcSaving && S && S.cup && S.cup.gcal && S.cup.gcal.on) cupGcSoon(); }catch(_){} return r; };
+
+// ── Google → Focus Hub stays read-only calendar links; skip the events we put there ──
+function cupGcMine(){ const s=new Set(); try{ Object.keys(cupGc().ev).forEach(id=>s.add(id)); cupGcArr(S.tasks).forEach(t=>{ if(t&&t.calendarEventId) s.add(t.calendarEventId); }); }catch(_){} return s; }
+const _cupGcParseICS = parseICS;
+parseICS = function(text){
+  const r=_cupGcParseICS.apply(this, arguments);
+  try{ if(r && Array.isArray(r.events)){ const mine=cupGcMine();
+    r.events=r.events.filter(e=>{ const u=String(e.uid||'').split('#')[0].split('@')[0]; return !(u && (/^fhub[0-9a-f]+$/.test(u) || mine.has(u))); }); } }catch(_){}
+  return r;
+};
+
+// ── actions ──
+function cupGcSetClient(v){ const g=cupGc(); g.clientId=String(v||'').trim().slice(0,200); save(); cupGcRender(); if(g.clientId) cupGcLoadGis().catch(()=>{}); }
+async function cupGcConnect(){
+  if(!cupGcClientId()){ showToast('Paste your OAuth client ID first.'); document.getElementById('cupGcClient')?.focus(); return; }
+  if(!(window.google && google.accounts && google.accounts.oauth2)){
+    showToast('Getting Google ready… tap Connect again in a moment.');
+    cupGcLoadGis().catch(()=>showToast('Couldn’t reach Google. Check your connection.')); return; }
+  try{ await cupGcAuth(''); }
+  catch(e){ showToast(/scope/.test(e.message)?'Google Calendar needs the calendar permission — tick it and try again.':'Google sign-in was cancelled.'); return; }
+  const g=cupGc(); g.on=true; if(!g.since) g.since=todayStr(); cupGcToasted=false; cupGcInfo.state='';
+  save(); cupGcRender(); showToast('Google Calendar connected.');
+  cupGcRun().catch(e=>console.warn('[gcal]', e));
+}
+async function cupGcResume(){
+  try{ await cupGcAuth(''); }catch(_){ showToast('Google sign-in was cancelled.'); return; }
+  cupGcToasted=false; cupGcInfo.state=''; cupGcRender(); cupGcRun().catch(e=>console.warn('[gcal]', e));
+}
+function cupGcSyncNow(){ if(!cupGcHasTok()){ cupGcResume(); return; } cupGcSkip.clear(); cupGcWait=0; cupGcRun().catch(e=>console.warn('[gcal]', e)); }
+let cupGcAsk='';   // '' | 'disconnect'
+function cupGcDisconnect(removeEvents){
+  const g=cupGc();
+  if(removeEvents){ if(!cupGcHasTok()){ showToast('Sign in again first, then remove.'); cupGcResume(); return; }
+    g.what={ tasks:false, focus:false, blocks:false }; cupGcMassOk=true; cupGcAsk='';
+    cupGcRun().then(()=>{ if(Object.keys(g.ev).length){ showToast('Some events couldn’t be removed yet — try again when online.'); return; } cupGcOff(); showToast('Disconnected. Focus Hub events were removed from Google.'); });
+    return; }
+  cupGcOff(); showToast('Disconnected. Events already on Google stay there.');
+}
+function cupGcOff(){
+  const g=cupGc(), tok=cupGcTok.t; g.on=false; g.what={ tasks:true, focus:true, blocks:true }; cupGcAsk='';
+  cupGcSetTok({ t:'', exp:0, cid:'' }); Object.assign(cupGcInfo, { state:'', err:'', pending:0, hold:0 });
+  try{ if(tok && window.google && google.accounts && google.accounts.oauth2 && google.accounts.oauth2.revoke) google.accounts.oauth2.revoke(tok, ()=>{}); }catch(_){}
+  save(); cupGcRender();
+}
+function cupGcSetWhat(k){ const g=cupGc(); g.what[k]=!g.what[k]; save(); cupGcRender(); }
+function cupGcSetCal(v){ const g=cupGc(); if(g.cal===v) return; g.cal=v==='primary'?'primary':'fh'; save(); cupGcRender();
+  if(v==='primary' || !cupGcHasTok()) cupGcResume(); }   // the main calendar needs one more permission
+function cupGcHoldAnswer(remove){
+  const g=cupGc();
+  if(remove){ cupGcMassOk=true; }
+  else { const want=cupGcWant(); Object.keys(g.ev).forEach(id=>{ if(!want[id]) delete g.ev[id]; }); cupGcSaveQuiet(); }   // keep them on Google, stop tracking them
+  cupGcInfo.hold=0; cupGcRender(); cupGcRun().catch(e=>console.warn('[gcal]', e));
+}
+
+// ── Settings → Google Calendar ──
+function cupGcAgo(ms){ if(!ms) return ''; const m=Math.round((Date.now()-ms)/60000); return m<1?'just now':m<60?`${m} min ago`:m<1440?`${Math.round(m/60)} h ago`:`${Math.round(m/1440)} d ago`; }
+function cupGcStatus(){
+  const g=cupGc(), i=cupGcInfo, n=i.pending;
+  if(i.state==='auth' && n) return [`${n} change${n===1?'':'s'} waiting — sign in again to send them.`, `<button type="button" class="btn btn-accent" onclick="cupGcResume()">Resume</button>`];
+  if(i.state==='offline' && n) return [`${n} change${n===1?'':'s'} waiting — sent when you’re back online.`, ''];
+  if(i.state==='error') return [`Google didn’t answer. Trying again shortly.`, ''];
+  if(cupGcBusy || n>0) return ['Syncing…', ''];
+  return [g.last?`Up to date · synced ${cupGcAgo(g.last)}`:'Up to date', ''];
+}
+function cupGcRender(){
+  const box=document.getElementById('cupGc'); if(!box) return;
+  const g=cupGc(), cid=cupGcClientId();
+  if(!g.on){
+    box.innerHTML=`
+      <div class="cup-pref"><span><b>Connect your Google Calendar</b><em>Put timed tasks, focus sessions and study blocks on your Google Calendar. Changes and deletes here update it too.</em></span>
+        <button type="button" class="btn btn-accent" onclick="cupGcConnect()" ${cid?'':'disabled'}>Connect</button></div>
+      ${CUP_GC_CLIENT_ID?'':`<div class="cup-pref"><span><b>OAuth client ID</b><em>One-time setup from Google Cloud → Credentials.</em></span>
+        <input id="cupGcClient" type="text" spellcheck="false" autocomplete="off" placeholder="…apps.googleusercontent.com" value="${esc(g.clientId||'')}" onchange="cupGcSetClient(this.value)" aria-label="OAuth client ID" style="max-width:220px"></div>`}`;
+    return;
+  }
+  const [st, act]=cupGcStatus();
+  const chip=(k,l)=>`<button type="button" class="${g.what[k]?'on':''}" aria-pressed="${!!g.what[k]}" onclick="cupGcSetWhat('${k}')">${l}</button>`;
+  box.innerHTML=`
+    <div class="cup-pref"><span><b>Connected</b><em>${esc(st)}</em></span>
+      <span class="cup-pref-btns">${act||`<button type="button" class="btn btn-ghost" onclick="cupGcSyncNow()">Sync now</button>`}${cupGcAsk==='disconnect'?'':`<button type="button" class="btn btn-ghost" onclick="cupGcAsk='disconnect';cupGcRender()">Disconnect</button>`}</span></div>
+    ${cupGcAsk==='disconnect'?`<div class="cup-pref"><span><b>Disconnect?</b><em>Events Focus Hub already put on Google can stay or go.</em></span>
+      <span class="cup-pref-btns"><button type="button" class="btn btn-ghost" onclick="cupGcDisconnect(false)">Keep events</button><button type="button" class="btn btn-ghost" onclick="cupGcDisconnect(true)">Remove events</button><button type="button" class="btn btn-ghost" onclick="cupGcAsk='';cupGcRender()">Cancel</button></span></div>`:''}
+    ${cupGcInfo.hold?`<div class="cup-pref"><span><b>Remove ${cupGcInfo.hold} events from Google?</b><em>Many items left Focus Hub at once, so this waits for you.</em></span>
+      <span class="cup-pref-btns"><button type="button" class="btn btn-ghost" onclick="cupGcHoldAnswer(true)">Remove</button><button type="button" class="btn btn-ghost" onclick="cupGcHoldAnswer(false)">Keep on Google</button></span></div>`:''}
+    <div class="cup-pref"><span><b>What goes to Google</b><em>From the day you connected on.</em></span>
+      <span class="cup-seg">${chip('tasks','Timed tasks')}${chip('focus','Focus sessions')}${chip('blocks','Study blocks')}</span></div>
+    <div class="cup-pref"><span><b>Calendar</b><em>Its own calendar keeps your main one tidy.</em></span>
+      <select onchange="cupGcSetCal(this.value)" aria-label="Calendar"><option value="fh" ${g.cal!=='primary'?'selected':''}>Focus Hub</option><option value="primary" ${g.cal==='primary'?'selected':''}>My main calendar</option></select></div>
+    <div class="cup-pref-note">Focus Hub owns these events: edit them here, not in Google. Your other Google calendars still come in through calendar links.</div>`;
+}
+const _cupGcPrefs = cupPrefsRender;
+cupPrefsRender = function(){
+  const r=_cupGcPrefs.apply(this, arguments);
+  try{
+    const box=document.getElementById('cupPrefs');
+    if(box && !document.getElementById('cupGc')){
+      const h=document.createElement('div'); h.className='cup-pref-h'; h.textContent='Google Calendar';
+      const el=document.createElement('div'); el.id='cupGc';
+      const before=[...box.querySelectorAll('.cup-pref-h')].find(x=>x.textContent.trim()==='Reminders') || box.querySelector('.cup-pref-sep');
+      if(before){ box.insertBefore(h, before); box.insertBefore(el, before); } else { box.appendChild(h); box.appendChild(el); }
+    }
+    if(cupGc().on || cupGcClientId()) cupGcLoadGis().catch(()=>{});   // ready before you tap, so the sign-in window isn’t blocked
+    cupGcInfo.pending=cupGc().on ? cupGcPlan(cupGcCalKey()).length - cupGcInfo.hold : 0;
+    cupGcRender();
+  }catch(e){ console.warn('[gcal] settings', e); }
+  return r;
+};
+
+// ── keep trying in the background ──
+window.addEventListener('online', ()=>{ try{ if(cupGc().on) cupGcSoon(500); }catch(_){} });
+document.addEventListener('visibilitychange', ()=>{ try{ if(document.visibilityState==='visible' && cupGc().on) cupGcSoon(1000); }catch(_){} });
+setInterval(()=>{ try{ if(cupGc().on) cupGcSoon(0); }catch(_){} }, 5*60000);
+setTimeout(()=>{ try{ if(cupGc().on){ cupGcLoadGis().catch(()=>{}); cupGcSoon(0); } }catch(_){} }, 6000);
+
 
 // Korean interface strings. Keys are the exact English text shown on screen.
 Object.assign(CUP_KO, {
@@ -23347,6 +23669,38 @@ CUP_KO_PAT.push(
   [/^(\d+) more coming up · see all →?$/, (m,n)=>`${n}개 더 · 모두 보기 →`]
 );
 CUP_KO_PAT.push([/^🔒 Finish (\d+) must-dos? to unlock the rest$/, (m,n)=>`🔒 필수 일 ${n}개를 끝내면 나머지가 열려요`]);
+
+// ── Google Calendar (Part 7) ──
+Object.assign(CUP_KO, {
+  "Google Calendar":"구글 캘린더","Connect your Google Calendar":"구글 캘린더 연결","Connected":"연결됨","Connect":"연결","OAuth client ID":"OAuth 클라이언트 ID",
+  "Put timed tasks, focus sessions and study blocks on your Google Calendar. Changes and deletes here update it too.":"시간이 정해진 할 일, 집중 세션, 공부 블록을 구글 캘린더에 넣어요. 여기서 바꾸거나 지우면 거기에도 반영돼요.",
+  "One-time setup from Google Cloud → Credentials.":"Google Cloud → 사용자 인증 정보에서 한 번만 설정해요.",
+  "Sync now":"지금 동기화","Disconnect":"연결 해제","Disconnect?":"연결을 해제할까요?",
+  "Events Focus Hub already put on Google can stay or go.":"Focus Hub가 구글에 넣은 일정은 남겨두거나 지울 수 있어요.",
+  "Keep events":"일정 남기기","Remove events":"일정 지우기","Keep on Google":"구글에 남기기",
+  "Many items left Focus Hub at once, so this waits for you.":"한꺼번에 많은 항목이 Focus Hub에서 빠져서 확인을 기다려요.",
+  "What goes to Google":"구글로 보낼 것","From the day you connected on.":"연결한 날부터요.",
+  "Timed tasks":"시간 정한 할 일","Focus sessions":"집중 세션","Study blocks":"공부 블록",
+  "Calendar":"캘린더","Its own calendar keeps your main one tidy.":"전용 캘린더를 쓰면 기본 캘린더가 깔끔해요.","My main calendar":"기본 캘린더",
+  "Focus Hub owns these events: edit them here, not in Google. Your other Google calendars still come in through calendar links.":"이 일정은 Focus Hub가 관리해요. 구글이 아닌 여기서 수정하세요. 다른 구글 캘린더는 계속 캘린더 링크로 들어와요.",
+  "Up to date":"최신 상태","Syncing…":"동기화 중…","Google didn’t answer. Trying again shortly.":"구글이 응답하지 않아요. 곧 다시 시도해요.",
+  "Paste your OAuth client ID first.":"먼저 OAuth 클라이언트 ID를 붙여넣으세요.",
+  "Getting Google ready… tap Connect again in a moment.":"구글 준비 중… 잠시 후 연결을 다시 누르세요.",
+  "Couldn’t reach Google. Check your connection.":"구글에 연결할 수 없어요. 인터넷 연결을 확인하세요.",
+  "Google Calendar needs the calendar permission — tick it and try again.":"구글 캘린더 권한이 필요해요 — 체크하고 다시 시도하세요.",
+  "Google sign-in was cancelled.":"구글 로그인이 취소됐어요.","Google Calendar connected.":"구글 캘린더가 연결됐어요.",
+  "Google Calendar is paused — sign in again to send your changes.":"구글 캘린더가 일시정지됐어요 — 다시 로그인하면 변경 사항을 보내요.",
+  "Sign in again first, then remove.":"먼저 다시 로그인한 뒤 지우세요.",
+  "Some events couldn’t be removed yet — try again when online.":"아직 지우지 못한 일정이 있어요 — 온라인일 때 다시 시도하세요.",
+  "Disconnected. Focus Hub events were removed from Google.":"연결을 해제했어요. Focus Hub 일정을 구글에서 지웠어요.",
+  "Disconnected. Events already on Google stay there.":"연결을 해제했어요. 구글에 있는 일정은 그대로 남아요."
+});
+CUP_KO_PAT.unshift(
+  [/^Up to date · synced (just now|(\d+) (min|h|d) ago)$/, (m,a,n,u)=>`최신 상태 · ${n?n+({min:'분',h:'시간',d:'일'})[u]+' 전':'방금'} 동기화`],
+  [/^(\d+) changes? waiting — sign in again to send them\.$/, (m,n)=>`변경 ${n}개 대기 중 — 다시 로그인하면 보내요.`],
+  [/^(\d+) changes? waiting — sent when you’re back online\.$/, (m,n)=>`변경 ${n}개 대기 중 — 다시 온라인이 되면 보내요.`],
+  [/^Remove (\d+) events from Google\?$/, (m,n)=>`구글에서 일정 ${n}개를 지울까요?`]
+);
 
 </script>
 </body>
