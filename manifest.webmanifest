@@ -1,13 +1,13 @@
 {
   "name": "Focus Hub",
   "short_name": "Focus Hub",
-  "description": "A calm, neurodivergent-friendly productivity engine — task bank, calendar, focus timer, and cognitive scaffolds in one place.",
+  "description": "A calm planner for classes, tasks, calendar, notes and focus.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "theme_color": "#2C4A8B",
-  "background_color": "#FAF7F2",
+  "theme_color": "#131210",
+  "background_color": "#131210",
   "lang": "en",
   "icons": [
     {
@@ -45,25 +45,20 @@
       "purpose": "maskable"
     }
   ],
-  "categories": ["productivity", "lifestyle"],
+  "categories": [
+    "productivity",
+    "lifestyle"
+  ],
   "shortcuts": [
     {
       "name": "Add task",
       "short_name": "Add",
       "url": "/?addtask=1",
       "description": "Open the Add Task modal"
-    },
-    {
-      "name": "Brain dump",
-      "short_name": "Inbox",
-      "url": "/?inbox=1",
-      "description": "Open the brain-dump inbox"
-    },
-    {
-      "name": "Shortcuts",
-      "short_name": "Tips",
-      "url": "/?shortcuts=1",
-      "description": "View keyboard shortcuts and tips"
     }
+  ],
+  "display_override": [
+    "window-controls-overlay",
+    "standalone"
   ]
 }

@@ -6487,6 +6487,40 @@ body.cup-lean .cup-mini-garden .cup-dim{ display:none; }
 @media (max-width: 760px){ body.cup-lean .cup-plus-fab{ display:none !important; } .cup-meadow-h{ flex-wrap:wrap; } .cup-meadow-h .cup-dim{ margin-left:0; width:100%; } }
 .cup-today-card .cup-todayev button{ max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:block; }
 
+/* ── Installed app: blend the window title bar into the app ── */
+.cup-titlebar{ display:none; }
+@media (display-mode: window-controls-overlay){
+  .cup-titlebar{ display:flex; align-items:center; gap:8px; position:fixed; top:0; left:0; right:0; z-index:10001;
+    height:env(titlebar-area-height, 33px); padding-left:calc(env(titlebar-area-x, 0px) + 12px);
+    background:var(--bg); border-bottom:1px solid var(--border); color:var(--text3); font-size:calc(12px * var(--cup-fs,1)); letter-spacing:.02em;
+    -webkit-app-region:drag; app-region:drag; user-select:none; }
+  .cup-titlebar b{ color:var(--text2); font-weight:600; }
+  .app{ margin-top:env(titlebar-area-height, 33px); height:calc(100vh - env(titlebar-area-height, 33px)); }
+  .workspace{ height:calc(100vh - env(titlebar-area-height, 33px)); }
+  .login-screen{ top:env(titlebar-area-height, 33px); }
+}
+
+/* ── Month calendar: room to read. Rows grow to fit 3 items; the panel scrolls instead of clipping. ── */
+#page-todo .cal-grid{ grid-auto-rows:minmax(118px, auto); flex:none; overflow:visible; align-content:start; gap:4px; }
+#page-todo .cal-cell{ min-height:118px; padding:7px 6px 6px; gap:3px; border-radius:10px; }
+#page-todo .cal-cell .cal-num{ font-size:calc(12.5px * var(--cup-fs,1)); font-weight:600; margin-bottom:4px; color:var(--text2); }
+#page-todo .cal-cell.today .cal-num{ color:var(--accent); }
+#page-todo .cal-mini-list{ gap:3px; }
+#page-todo .cal-mini-chip.cupc{ font-size:calc(12px * var(--cup-fs,1)); line-height:1.45; padding:2px 6px 2px 15px; }
+#page-todo .cal-mini-chip.cupc-ev{ padding-left:7px; }
+#page-todo .cal-mini-chip.cupc i{ font-size:.85em; }
+#page-todo .cal-mini-chip.cal-mini-more{ font-size:calc(11px * var(--cup-fs,1)); color:var(--text3); background:none; border:0; padding-left:6px; }
+#page-todo .cal-day-name{ font-size:calc(10.5px * var(--cup-fs,1)); padding:6px 0; }
+@media (max-width: 760px){
+  #page-todo .cal-grid{ grid-auto-rows:minmax(86px, auto); gap:2px; }
+  #page-todo .cal-cell{ min-height:86px; padding:4px 3px; }
+  #page-todo .cal-mini-chip.cupc{ font-size:calc(10px * var(--cup-fs,1)); padding:1px 3px 1px 10px; }
+}
+#page-todo .cal-panel.page-cal{ overflow-y:auto; overscroll-behavior:contain; }
+#page-todo .cal-panel.page-cal .cal-body{ overflow:visible; }
+#page-todo .cal-panel.page-cal .cal-nav, #page-todo .cal-panel.page-cal .cal-toolbar-row, #page-todo .cal-panel.page-cal .cup-calf{ position:sticky; z-index:3; background:var(--surface, var(--bg)); }
+#page-todo .cal-panel.page-cal .cal-nav{ top:0; } #page-todo .cal-panel.page-cal .cal-toolbar-row{ top:24px; } #page-todo .cal-panel.page-cal .cup-calf{ top:51px; padding-bottom:6px; }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -17055,11 +17089,11 @@ function cupRenderHome(){
       ${S.tasks.some(t=>t.isHabit&&!t.archived&&cupHabitDueToday(t))?`<div class="cup-today-habits">${cupHabitsHTML()}</div>`:''}
     </div>
     ${cupHomeChips(behind)}`;
-  html += `<div class="cup-next-foot">${q.length>1?`<button class="cup-more-btn" onclick="cupSetHomeFull(${!cupHomeFull})">${cupHomeFull?'Hide the full list':`${q.length-1} more coming up · see all`}</button>`:''}</div>${cupDaySel?cupDayPanel(cupDaySel):''}`;
+  html += `<div class="cup-next-foot">${q.length>1?`${cupPref('extras')?`<button class="cup-more-btn" onclick="cupSetHomeFull(${!cupHomeFull})">${cupHomeFull?'Hide the full list':`${q.length-1} more coming up · see all`}</button>`:`<button class="cup-more-btn" onclick="showPage('todo')">${q.length-1} more coming up · see all →</button>`}`:''}</div>${cupDaySel?cupDayPanel(cupDaySel):''}`;
   if(next._last!==html){ next.innerHTML=html; next._last=html; }
 
   const page=document.getElementById('page-dashboard');
-  if(page) page.classList.toggle('cup-calm', !cupHomeFull);
+  if(page) page.classList.toggle('cup-calm', !(cupHomeFull && cupPref('extras')));   // one Today list on Home; the full layout is an extra
 
   const card=document.getElementById('cupHomeWaiting');
   if(card){
@@ -20345,7 +20379,11 @@ function cupNoteHideBtn(n){
 // ── Calm Home: today's events in one line, and one quiet row of chips ──
 function cupTodayEvLine(){
   const nowHM=`${pad(cupNow().getHours())}:${pad(cupNow().getMinutes())}`;
-  const ev=cupCalEventsOn(todayStr()).filter(e=>e.allDay||!e.time||e.time>=nowHM||(e.endTime&&e.endTime>nowHM)).slice(0,3);
+  // the same class can come from Google Calendar and from a folder's weekly times — show it once
+  const key=e=>(e.time||'')+'|'+String(e.title||'').toLowerCase().replace(/[^a-z0-9가-힣 ]/g,' ').trim().split(/\s+/).slice(0,2).join(' ');
+  const seen=new Set();
+  const ev=cupCalEventsOn(todayStr()).filter(e=>e.allDay||!e.time||e.time>=nowHM||(e.endTime&&e.endTime>nowHM))
+    .filter(e=>{ const k=key(e); if(seen.has(k)) return false; seen.add(k); return true; }).slice(0,3);
   if(!ev.length) return '';
   return `<div class="cup-todayev">${ev.map(e=>`<button type="button" onclick="editEvent('${e.id}')"><i style="background:${esc(e.color||'var(--accent)')}"></i>${e.time&&!e.allDay?cupT12(e.time)+' ':''}${esc(e.title)}</button>`).join('')}</div>`;
 }
@@ -21113,6 +21151,20 @@ function cupAddSlotLine(ex){
 setInterval(()=>{ try{ const b=document.body; if(!b) return;
   const idle=!(typeof pomoState!=='undefined'&&pomoState.running) && !(typeof currentPomoTask!=='undefined'&&currentPomoTask);
   if(b.classList.contains('cup-hud-on')===idle) b.classList.toggle('cup-hud-on', !idle); }catch(_){} }, 1000);
+
+// Installed app: the window bar takes the app's own background (follows Light/Dark), and a quiet drag strip when the title bar is hidden
+function cupSyncThemeColor(){
+  try{
+    const bg=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()||'#131210';
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m=>{ if(m.content!==bg) m.content=bg; });
+    if(!document.querySelector('.cup-titlebar') && document.body){ const t=document.createElement('div'); t.className='cup-titlebar'; t.innerHTML='<b>Focus Hub</b>'; document.body.prepend(t); }
+    const t=document.querySelector('.cup-titlebar b'); const pg=document.querySelector('.nav-item.active');
+    if(t){ const name=pg?pg.textContent.replace(/[^\p{L}\p{N}&· ]/gu,'').trim():''; const txt=name?`Focus Hub · ${name}`:'Focus Hub'; if(t.textContent!==txt) t.textContent=txt; }
+  }catch(_){}
+}
+{ const _tt=toggleTheme; toggleTheme=function(){ const r=_tt.apply(this,arguments); cupSyncThemeColor(); return r; }; }
+{ const _ap=cupApplyPrefs; cupApplyPrefs=function(){ const r=_ap.apply(this,arguments); cupSyncThemeColor(); return r; }; }
+if(document.readyState!=='loading') cupSyncThemeColor(); else document.addEventListener('DOMContentLoaded', cupSyncThemeColor);
 
 
 // ════════════════════════════════════════════════════════════════════
