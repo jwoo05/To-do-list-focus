@@ -6390,6 +6390,103 @@ body.cup-side-min .sidebar-bottom{ display:none; }
 .cup-friends-page{ max-width:640px; }
 .cup-friends-page .cup-soc-intro{ padding:24px 12px; }
 
+/* ── Calm Home ── */
+.cup-today-card{ margin-top:14px; padding-top:12px; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:8px; }
+.cup-today-card .cup-todayev{ margin:0; }
+.cup-today-list .cup-todo{ grid-template-columns:16px minmax(0,1fr) auto auto; padding:4px 0; }
+.cup-todo{ grid-template-columns:16px minmax(0,1fr) auto auto; }
+.cup-today-list .cup-todo .t{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:left; }
+.cup-today-list .cup-pin-btn{ opacity:0; transition:opacity .15s; }
+.cup-today-list .cup-todo:hover .cup-pin-btn, .cup-today-list .cup-pin-btn:focus{ opacity:1; }
+@media (hover:none){ .cup-today-list .cup-pin-btn{ display:none; } }
+.cup-today-card > .cup-more-btn{ align-self:flex-start; }
+.cup-today-habits .cup-th-row{ flex-wrap:wrap; }
+.cup-today-empty{ padding:4px 0; }
+.cup-hchips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:14px; align-items:center; }
+.cup-hchips .cup-hbtn.warn{ color:var(--orange,#d9822b); border-color:color-mix(in srgb, var(--orange,#d9822b) 40%, var(--border)); }
+.cup-hchips .cup-hf{ margin-left:auto; max-width:140px; }
+.cup-hchips .cup-hf.on{ border-color:var(--accent); color:var(--text); }
+
+/* ── Friends: meadow, cheers, check-ins, group trees ── */
+.cup-friends-page{ max-width:760px; }
+.cup-meadow{ display:grid; grid-template-columns:repeat(auto-fill,minmax(132px,1fr)); gap:10px; margin:8px 0 14px; }
+.cup-meadow.sm{ grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); gap:8px; margin:10px 0 2px; }
+.cup-meadow-h{ display:flex; align-items:baseline; gap:10px; margin-top:6px; font-size:calc(12px * var(--cup-fs,1)); text-transform:uppercase; letter-spacing:.06em; color:var(--text3); }
+.cup-meadow-h .cup-dim{ text-transform:none; letter-spacing:0; margin-left:auto; }
+.cup-plot{ position:relative; display:flex; flex-direction:column; align-items:center; gap:3px; padding:14px 8px 10px; border-radius:14px; text-align:center;
+  background:linear-gradient(180deg, transparent 55%, color-mix(in srgb, var(--green) 10%, transparent)); border:1px solid var(--border); font-family:inherit; color:var(--text); }
+.cup-plot.me{ border-color:color-mix(in srgb, var(--green) 45%, var(--border)); }
+.cup-plot.live{ box-shadow:0 0 0 2px color-mix(in srgb, var(--green) 35%, transparent); }
+.cup-plot.live .cup-plot-tree{ animation:cupSway 3s ease-in-out infinite; }
+@keyframes cupSway{ 0%,100%{ transform:rotate(-3deg) } 50%{ transform:rotate(3deg) } }
+@media (prefers-reduced-motion: reduce){ .cup-plot.live .cup-plot-tree{ animation:none; } }
+.cup-plot-tree{ font-size:40px; line-height:1.1; transform-origin:50% 100%; }
+.cup-plot.sm{ padding:10px 6px 8px; } .cup-plot.sm .cup-plot-tree{ font-size:28px; }
+.cup-plot-name{ font-size:calc(13px * var(--cup-fs,1)); font-weight:600; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cup-plot-st{ font-size:calc(11.5px * var(--cup-fs,1)); color:var(--text2); min-height:16px; }
+.cup-plot-wk{ font-size:calc(11px * var(--cup-fs,1)); color:var(--text3); font-variant-numeric:tabular-nums; }
+.cup-plot-checks{ letter-spacing:.05em; }
+.cup-plot-cheer{ display:flex; gap:2px; margin-top:4px; min-height:24px; align-items:center; }
+.cup-plot-cheer button{ font-size:calc(15px * var(--cup-fs,1)); width:26px; height:24px; border-radius:8px; opacity:.55; transition:opacity .15s, transform .15s; }
+.cup-plot-cheer button:hover{ opacity:1; transform:translateY(-2px) scale(1.15); background:var(--bg2); }
+.cup-plot.ghost{ border-style:dashed; background:none; color:var(--text3); cursor:pointer; justify-content:center; }
+.cup-plot.ghost .cup-plot-tree{ font-size:24px; opacity:.6; }
+.cup-plot.dim{ opacity:.6; }
+.cup-meadow-preview{ max-width:560px; margin:0 auto 6px; grid-template-columns:repeat(4,1fr); }
+.cup-meadow-preview .cup-plot.ghost{ cursor:default; }
+.cup-soc-feats{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; max-width:520px; margin:14px auto; text-align:left; }
+.cup-soc-feats > div{ display:grid; grid-template-columns:28px 1fr; column-gap:8px; padding:10px; border:1px solid var(--border); border-radius:10px; }
+.cup-soc-feats span{ grid-row:span 2; font-size:20px; } .cup-soc-feats b{ font-size:calc(13px * var(--cup-fs,1)); } .cup-soc-feats em{ font-style:normal; font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); }
+.cup-soc-note{ margin:12px auto 0; max-width:520px; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text2); background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:8px 12px; }
+.cup-cheers{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; padding:8px 10px; border-radius:12px; background:color-mix(in srgb, var(--accent) 8%, transparent); margin-bottom:10px; }
+.cup-cheers-l{ font-size:calc(12px * var(--cup-fs,1)); color:var(--text2); margin-right:4px; }
+.cup-cheer{ font-size:calc(12.5px * var(--cup-fs,1)); padding:2px 8px; border-radius:99px; background:var(--bg2); }
+.cup-cheers .cup-ts-x{ margin-left:auto; }
+.cup-req{ display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--border); border-radius:10px; margin-bottom:8px; font-size:calc(13px * var(--cup-fs,1)); }
+.cup-soc-add{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:calc(12.5px * var(--cup-fs,1)); }
+.cup-soc-add .cup-code{ font-family:ui-monospace,Menlo,monospace; letter-spacing:.12em; background:var(--bg2); padding:3px 10px; border-radius:var(--radius); }
+.cup-soc-add input{ flex:1; min-width:160px; }
+.cup-share-set{ margin-top:14px; border-top:1px solid var(--border); padding-top:10px; }
+.cup-share-set summary{ cursor:pointer; font-size:calc(13px * var(--cup-fs,1)); color:var(--text2); }
+.cup-share-row{ display:flex; align-items:center; gap:10px; padding:6px 0; font-size:calc(13px * var(--cup-fs,1)); }
+.cup-share-row select{ margin-left:auto; width:auto; }
+.cup-share-l{ display:flex; align-items:center; gap:8px; text-transform:none; letter-spacing:0; font-size:calc(13px * var(--cup-fs,1)); color:var(--text); margin:0; }
+.cup-group-h{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.cup-group-k{ font-size:18px; }
+.cup-gtree{ display:flex; gap:12px; align-items:center; margin:10px 0 6px; }
+.cup-gtree-ic{ font-size:38px; line-height:1; }
+.cup-gtree-body{ flex:1; min-width:0; }
+.cup-gtree-l{ font-size:calc(11.5px * var(--cup-fs,1)); margin-top:4px; }
+.cup-ci-grid{ display:grid; grid-template-columns:minmax(60px,auto) repeat(7, 28px); gap:4px 6px; align-items:center; margin:8px 0 4px; font-size:calc(12px * var(--cup-fs,1)); }
+.cup-ci-h{ text-align:center; color:var(--text3); } .cup-ci-h.now{ color:var(--text); font-weight:600; }
+.cup-ci-n{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text2); }
+.cup-ci-d{ width:26px; height:26px; border-radius:8px; background:var(--bg2); display:flex; align-items:center; justify-content:center; font-size:calc(14px * var(--cup-fs,1)); }
+.cup-ci-d.on{ background:color-mix(in srgb, var(--green) 20%, transparent); }
+.cup-ci-d.now{ outline:1px solid var(--border); } .cup-ci-d.fut{ opacity:.45; }
+.cup-ci-tip{ font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); margin:4px 0; }
+.cup-gnew{ margin-top:16px; }
+.cup-gkinds{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:6px 0 10px; }
+.cup-gkind{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; padding:10px; border:1px solid var(--border); border-radius:10px; text-align:left; font-family:inherit; color:var(--text); }
+.cup-gkind span{ font-size:20px; } .cup-gkind b{ font-size:calc(13px * var(--cup-fs,1)); } .cup-gkind em{ font-style:normal; font-size:calc(11.5px * var(--cup-fs,1)); color:var(--text3); }
+.cup-gkind.on{ border-color:var(--green); background:color-mix(in srgb, var(--green) 8%, transparent); }
+@media (max-width:560px){ .cup-gkinds{ grid-template-columns:repeat(2,1fr); } .cup-soc-feats{ grid-template-columns:1fr; } .cup-meadow-preview{ grid-template-columns:repeat(2,1fr); }
+  .cup-ci-grid{ grid-template-columns:minmax(48px,auto) repeat(7, 1fr); } .cup-ci-d{ width:100%; } }
+.cup-hchips .cup-hf{ margin-left:auto; width:auto; flex:none; max-width:120px; padding:3px 8px; font-size:calc(12px * var(--cup-fs,1)); }
+
+/* ── Lean mode (default): fewer controls. Settings → Extra tools brings them back. ── */
+body.cup-lean .cup-prep-btn, body.cup-lean .cup-addbar, body.cup-lean #densityToggle,
+body.cup-lean .sidebar-actions .variant-info, body.cup-lean .sidebar .nav-item[data-page="focus"],
+body.cup-lean #cupSideExtras, body.cup-lean .cup-side-cats, body.cup-lean .cup-side-head button[onclick="cupOpenImport()"],
+body.cup-lean .cup-hchips .cup-x-gentle, body.cup-lean .cup-hchips .cup-hf { display:none !important; }
+body.cup-lean:not(.cup-hud-on) .hud{ display:none !important; }
+.cup-plot .cup-join{ margin-top:6px; font-size:calc(11.5px * var(--cup-fs,1)); padding:4px 10px; }
+body.cup-lean #page-todo > .view-header .view-sub, body.cup-lean #page-todo .view-actions,
+body.cup-lean #page-todo .daily-toolbar-actions, body.cup-lean #page-todo .progress-bar-wrap,
+body.cup-lean #page-todo .task-progress-mini { display:none !important; }
+body.cup-lean .cup-mini-garden .cup-dim{ display:none; }
+@media (max-width: 760px){ body.cup-lean .cup-plus-fab{ display:none !important; } .cup-meadow-h{ flex-wrap:wrap; } .cup-meadow-h .cup-dim{ margin-left:0; width:100%; } }
+.cup-today-card .cup-todayev button{ max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:block; }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -16909,7 +17006,7 @@ function cupGoDay(ds){
 }
 let cupNextOpen=false;
 let cupProgOpen=true; try{ cupProgOpen=localStorage.getItem('cup_prog_open')!=='0'; }catch(_){}
-let cupTodayOpen=false; try{ cupTodayOpen=localStorage.getItem('cup_today_open')==='1'; }catch(_){}
+let cupTodayOpen=false; try{ cupTodayOpen=localStorage.getItem('cup_today_all')==='1'; }catch(_){}
 function cupRenderHome(){
   const next=document.getElementById('cupNextUp'); if(!next) return;
   const q=cupNextQueue(), first=q[0], rest=q.slice(1,3);
@@ -16946,20 +17043,18 @@ function cupRenderHome(){
   const paces=cupPacePlans(), prog=cupProgressItems();
   const own = first && first.t.plan ? paces.filter(p=>p.name===first.t.plan.name) : [];
   const today=todayStr(), todayN=S.tasks.filter(t=>!t.isHabit&&!t.waiting&&!cupDone(t)&&(t.due===today||(t.scheduledDates||[]).includes(today)||(t.due&&t.due<today))).length;
+  const behind=prog.filter(x=>x.behind).length;
+  const todayLeft=S.tasks.filter(t=>!t.isHabit&&!t.waiting&&!cupDone(t)&&(t.due===today||(t.scheduledDates||[]).includes(today)||(t.due&&t.due<today))).length;
+  const shown=cupTodayOpen?10:3;
   html += `${own.length?`<div class="cup-next-pace">${own.map(p=>cupPaceRow(p,'mini')).join('')}</div>`:''}
-    <div class="cup-next-fold"><button class="cup-fold-btn" onclick="cupTodayOpen=!cupTodayOpen;try{localStorage.setItem('cup_today_open',cupTodayOpen?'1':'0')}catch(_){};cupRenderHome()" aria-expanded="${cupTodayOpen}">
-      <span class="cup-fold-chev ${cupTodayOpen?'open':''}">›</span>To-do today<span class="cup-dim">${todayN}</span></button>
-      ${cupTodayOpen?`<div class="cup-next-today">${cupTodoHTML()}</div>`:''}</div>
-    ${typeof cupHabitsFold==='function'?cupHabitsFold():''}
-    ${prog.length?`<div class="cup-next-fold"><button class="cup-fold-btn" onclick="cupProgOpen=!cupProgOpen;try{localStorage.setItem('cup_prog_open',cupProgOpen?'1':'0')}catch(_){};cupRenderHome()" aria-expanded="${cupProgOpen}">
-      <span class="cup-fold-chev ${cupProgOpen?'open':''}">›</span>Progress<span class="cup-dim">${prog.filter(x=>x.behind).length?`${prog.filter(x=>x.behind).length} behind`:prog.length}</span></button>
-      ${cupProgOpen?`<div class="cup-next-today cup-prog">${prog.map(x=>x.html).join('')}<div class="cup-prog-hint"><b>Do next</b> puts it at the top of Home · <b>✓</b> checks it off · <b>Undo</b> un-checks the last one</div></div>`:''}</div>`:''}
-    ${cupHomeControls()}
-    <div class="cup-next-links">
-      <button onclick="cupJOpen(todayStr())">${cupIc('note')}${cupJHas(cupJEntry(today))?'Today’s journal':'Reflect on today'}${cupJStreak()?` · ${cupJStreak()}d`:''}</button>
-      <button onclick="showPage('compass')">${cupIc('goal')}Goals & deadlines</button>
-      ${cupMode().track||cupPacePlans().length?`<button onclick="cupPaceOpen()">${cupIc('plus')}Track a course</button>`:''}</div>`;
-  // one task only — the rest is a quiet link
+    <div class="cup-today-card">
+      ${cupTodayEvLine()}
+      <div class="cup-today-list">${cupTodoHTML(shown, cupTodayOpen)}</div>
+      ${todayLeft>shown?`<button class="cup-more-btn" onclick="cupTodayOpen=true;try{localStorage.setItem('cup_today_all','1')}catch(_){};cupRenderHome()">+ ${todayLeft-shown} more today</button>`
+        :cupTodayOpen&&todayN>3?`<button class="cup-more-btn" onclick="cupTodayOpen=false;try{localStorage.setItem('cup_today_all','0')}catch(_){};cupRenderHome()">Show less</button>`:''}
+      ${S.tasks.some(t=>t.isHabit&&!t.archived&&cupHabitDueToday(t))?`<div class="cup-today-habits">${cupHabitsHTML()}</div>`:''}
+    </div>
+    ${cupHomeChips(behind)}`;
   html += `<div class="cup-next-foot">${q.length>1?`<button class="cup-more-btn" onclick="cupSetHomeFull(${!cupHomeFull})">${cupHomeFull?'Hide the full list':`${q.length-1} more coming up · see all`}</button>`:''}</div>${cupDaySel?cupDayPanel(cupDaySel):''}`;
   if(next._last!==html){ next.innerHTML=html; next._last=html; }
 
@@ -18795,7 +18890,11 @@ function cupOpenFriends(tab){ if(tab) cupFriendsTab=tab; try{ closeModal('mCupGa
 function cupRenderFriendsPage(){
   const host=document.getElementById('cupFriendsPage'); if(!host) return;
   const tabs=[['friends','👋 Friends'],['groups','👥 Groups']];
-  host.innerHTML=(cupSoc().on&&cupMyUid()?`<div class="cup-gtabs cup-g-tabs">${tabs.map(([k,l])=>`<button class="cup-gtab ${cupFriendsTab===k?'on':''}" style="--gc:var(--green)" onclick="cupFriendsTab='${k}';cupRenderFriendsPage();cupSocialRefresh()">${l}</button>`).join('')}</div>`:'')+cupSocialHTML(cupFriendsTab);
+  const html=(cupSoc().on&&cupMyUid()?`<div class="cup-gtabs cup-g-tabs">${tabs.map(([k,l])=>`<button class="cup-gtab ${cupFriendsTab===k?'on':''}" style="--gc:var(--green)" onclick="cupFriendsTab='${k}';cupRenderFriendsPage();cupSocialRefresh()">${l}</button>`).join('')}</div>`:'')+cupSocialHTML(cupFriendsTab);
+  if(host._last===html) return;
+  const open=[...host.querySelectorAll('details[open] > summary')].map(x=>x.textContent);
+  host.innerHTML=html; host._last=html;
+  host.querySelectorAll('details > summary').forEach(x=>{ if(open.includes(x.textContent)) x.parentElement.open=true; });
 }
 function cupRenderGarden(){
   try{ if(typeof currentPage!=='undefined' && currentPage==='friends') cupRenderFriendsPage(); }catch(_){}
@@ -18823,7 +18922,7 @@ function cupRenderGarden(){
 //  focus minutes, tasks done and streak. Never tasks, notes or folders.
 //  Data lives in Firebase next to (not inside) your private planner.
 // ════════════════════════════════════════════════════════════
-const cupSocial = { friends:{}, requests:{}, groups:{}, profiles:{}, error:'', loaded:false };
+const cupSocial = { friends:{}, requests:{}, groups:{}, profiles:{}, cheers:{}, sent:{}, error:'', loaded:false };
 function cupSoc(){ cupEnsure(); if(!S.cup.social||typeof S.cup.social!=='object') S.cup.social={ on:false }; return S.cup.social; }
 function cupMyUid(){ return (typeof currentUser!=='undefined' && currentUser) ? currentUser.uid : null; }
 function cupDb(){ return typeof database!=='undefined' ? database : null; }
@@ -18851,14 +18950,7 @@ async function cupPublishProfile(force){
   const uid=cupMyUid(), db=cupDb(), soc=cupSoc(); if(!uid||!db||!soc.on) return;
   if(!force && Date.now()-cupPublishedAt<120000) return;
   cupPublishedAt=Date.now();
-  const g=cupGarden();
-  const live = (typeof pomoState!=='undefined' && pomoState.running && pomoState.phase==='focus') ? { since: pomoState.sessionStart || Date.now() } : null;
-  cupLiveSent = !!live;
-  const base = { name:(S.settings&&S.settings.name)||'Friend', code:soc.code||'', updatedAt:Date.now() };
-  // Shared: name, tree, streak, gems, weekly minutes/tasks, and *that* you're focusing — never what.
-  const prof = soc.paused ? Object.assign(base,{ paused:true }) : Object.assign(base,{ tree:cupTreeIcon(g.today.pts,g.species),
-    streak:g.streak, gems:g.gems, live, week:{ start:cupISO(cupWeekStart()), trees:g.week.trees, focus:g.week.focus, done:g.week.done },
-    lastWeek:{ start:cupISO(cupWeekStart(-1)), focus:cupWeekFocus(-1) } });
+  const prof=cupMyProfile(); cupLiveSent=!!prof.live;
   try{ await db.ref('profiles/'+uid).set(prof); }
   catch(e){ /* quiet in background */ }
 }
@@ -18878,6 +18970,11 @@ async function cupSocialRefresh(){
     for(const id of ids){ cupSocial.profiles[id]=(await db.ref('profiles/'+id).get()).val(); }
     cupSocial.loaded=true;
   }catch(e){ cupSocErr(e); return; }
+  try{
+    cupSocial.cheers=(await db.ref('cheers/'+uid).get()).val()||{};
+    const seen=+soc.cheersSeen||0, fresh=Object.values(cupSocial.cheers).filter(c=>(c.at||0)>seen);
+    if(fresh.length){ showToast(fresh.length===1?`${fresh[0].n||'A friend'} sent you ${fresh[0].e||'👏'}`:`${fresh.length} cheers from friends ${fresh.map(c=>c.e).join('')}`); soc.cheersSeen=Date.now(); save(); }
+  }catch(_){}
   cupRenderGarden();
 }
 async function cupAddFriend(code){
@@ -18903,7 +19000,7 @@ async function cupCreateGroup(name){
   name=String(name||'').trim(); const uid=cupMyUid(), db=cupDb(), soc=cupSoc(); if(!name||!uid) return;
   try{
     const gid=db.ref('groups').push().key; const code=cupCode();
-    await db.ref('groups/'+gid).set({ name, owner:uid, code, createdAt:Date.now(), members:{ [uid]:true } });
+    await db.ref('groups/'+gid).set({ name, kind:cupNewGroupKind, owner:uid, code, createdAt:Date.now(), members:{ [uid]:true } });
     await db.ref('groupCodes/'+code).set(gid);
     soc.groups=Object.assign({},soc.groups,{[gid]:true}); save(); await cupSocialRefresh();
     showToast(`Group created. Share the code ${code} to invite people.`);
@@ -18921,7 +19018,7 @@ async function cupJoinGroup(code){
 async function cupLeaveGroup(gid){ const uid=cupMyUid(), db=cupDb(), soc=cupSoc(); try{ await db.ref(`groups/${gid}/members/${uid}`).remove(); if(soc.groups) delete soc.groups[gid]; save(); await cupSocialRefresh(); }catch(e){ cupSocErr(e); } }
 async function cupCopyText(t){ try{ await navigator.clipboard.writeText(t); showToast('Copied '+t); }catch(_){ showToast(t); } }
 // ── people, ranking, presence ──
-const cupThisWeek = p => p && !p.paused && p.week && p.week.start===cupISO(cupWeekStart()) ? p.week : { trees:0, focus:0, done:0 };
+const cupThisWeek = p => p && !p.paused && p.week && Math.abs(cupParse(p.week.start)-cupWeekStart())<=1.5*864e5 ? p.week : { trees:0, focus:0, done:0 };   // a friend’s week may start a day earlier or later
 const cupLastWeekFocus = p => p && p.lastWeek && p.lastWeek.start===cupISO(cupWeekStart(-1)) ? (+p.lastWeek.focus||0) : 0;
 const cupLiveMin = p => p && !p.paused && p.live && p.live.since && Date.now()-p.updatedAt < 4*3600e3 ? Math.max(1,Math.round((Date.now()-p.live.since)/60000)) : 0;
 // Comeback boost: below the group's middle last week → this week's minutes count ×1.2
@@ -18955,48 +19052,175 @@ function cupJoinFocus(name){
 }
 function cupResetIn(){ const d=Math.ceil((cupWeekStart(1)-new Date())/864e5); return d<=1?'resets tomorrow':`resets in ${d} days`; }
 async function cupGroupSet(gid, k, v){
-  const db=cupDb(); try{ await db.ref(`groups/${gid}/${k}`).set(k==='goalHours'?(+v||0):String(v||'').trim().slice(0,120)); await cupSocialRefresh(); }catch(e){ cupSocErr(e); }
+  const db=cupDb(); try{ await db.ref(`groups/${gid}/${k}`).set((k==='goalHours'||k==='goalDays')?Math.max(1,Math.min(k==='goalDays'?7:200,+v||0)):String(v||'').trim().slice(0,120)); await cupSocialRefresh(); }catch(e){ cupSocErr(e); }
 }
 function cupPauseSharing(on){ const soc=cupSoc(); soc.paused=!!on; save(); cupPublishProfile(true).then(cupSocialRefresh); }
+// ── Check-ins you choose to share (e.g. 말씀 묵상 → QT ✓). Only “done or not” per day, never notes. ──
+const CUP_CHECK_KINDS=[['qt','🙏','QT'],['gym','🏋','Workout'],['read','📖','Reading'],['study','📚','Study'],['other','✓','Check-in']];
+const cupCK = k => CUP_CHECK_KINDS.find(x=>x[0]===k)||CUP_CHECK_KINDS[4];
+function cupGuessKind(title){ const s=String(title||'');
+  if(/qt|큐티|묵상|말씀|devotion|bible|pray|기도/i.test(s)) return 'qt';
+  if(/gym|workout|운동|헬스|run|lift|swim/i.test(s)) return 'gym';
+  if(/read|독서|책/i.test(s)) return 'read';
+  if(/study|공부/i.test(s)) return 'study';
+  return 'other'; }
+const cupShareList = () => { const s=cupSoc().share; return Array.isArray(s)?s:[]; };
+function cupWeekDays(){ const ws=cupWeekStart(); return [...Array(7)].map((_,i)=>{ const d=new Date(ws); d.setDate(d.getDate()+i); return cupISO(d); }); }
+const cupTodayIdx = () => cupWeekDays().indexOf(todayStr());
+function cupCheckWeek(){
+  const back=[...Array(9)].map((_,i)=>{ const d=cupParse(todayStr()); d.setDate(d.getDate()-i); return cupISO(d); });   // last 9 days covers any week start
+  return cupShareList().map(x=>{ const t=S.tasks.find(y=>y.id===x.id); if(!t) return null;
+    return { k:x.k||'other', l:String(t.title||'').slice(0,24), done:back.filter(ds=>t.completedDates&&t.completedDates[ds]) }; }).filter(Boolean);
+}
+// rows mapped onto *my* week (friends may start their week on a different day)
+function cupCI(p){
+  if(!p || p.paused || !p.ci || !Array.isArray(p.ci.rows)) return [];
+  const days=cupWeekDays();
+  return p.ci.rows.map(r=>({ k:r.k, l:r.l, days: Array.isArray(r.done) ? days.map(ds=>r.done.includes(ds)?'1':'0').join('') : (p.ci.start===days[0]&&r.days)||'0000000' }));
+}
+function cupShareToggle(id){
+  const soc=cupSoc(), list=cupShareList().slice(), i=list.findIndex(x=>x.id===id);
+  if(i>=0) list.splice(i,1); else { const t=S.tasks.find(x=>x.id===id); list.push({ id, k:cupGuessKind(t&&t.title) }); }
+  soc.share=list; save(); cupPublishProfile(true); cupRenderFriendsPage();
+}
+function cupShareKind(id,k){ const soc=cupSoc(); soc.share=cupShareList().map(x=>x.id===id?Object.assign({},x,{k}):x); save(); cupPublishProfile(true); cupRenderFriendsPage(); }
+// What you look like to friends — also used for your own plot when offline
+function cupMyProfile(){
+  const g=cupGarden(), soc=cupSoc();
+  const live = (typeof pomoState!=='undefined' && pomoState.running && pomoState.phase==='focus') ? { since: pomoState.sessionStart || Date.now() } : null;
+  const base = { name:(S.settings&&S.settings.name)||'Friend', code:soc.code||'', updatedAt:Date.now() };
+  if(soc.paused) return Object.assign(base,{ paused:true });
+  return Object.assign(base,{ tree:cupTreeIcon(g.today.pts,g.species), streak:g.streak, gems:g.gems, live,
+    week:{ start:cupISO(cupWeekStart()), trees:g.week.trees, focus:g.week.focus, done:g.week.done },
+    lastWeek:{ start:cupISO(cupWeekStart(-1)), focus:cupWeekFocus(-1) },
+    ci:{ start:cupISO(cupWeekStart()), rows:cupCheckWeek() } });
+}
+
+// ── Cheers: one tap, one emoji, no messages ──
+const CUP_CHEERS=['👏','🔥','🙏'];
+async function cupCheer(to, e){
+  const uid=cupMyUid(), db=cupDb(); if(!uid||!db||to===uid) return;
+  try{ await db.ref(`cheers/${to}/${uid}`).set({ e, n:(S.settings&&S.settings.name)||'Friend', at:Date.now() });
+    cupSocial.sent[to]=e; showToast(`Sent ${e}`); cupRenderFriendsPage(); }
+  catch(err){ cupSocErr(err); }
+}
+async function cupClearCheers(){ const uid=cupMyUid(), db=cupDb(); try{ await db.ref('cheers/'+uid).remove(); }catch(_){} cupSocial.cheers={}; cupRenderFriendsPage(); }
+const cupAgo = ts => { const m=Math.round((Date.now()-ts)/60000); return m<60?`${Math.max(1,m)}m`:m<1440?`${Math.round(m/60)}h`:`${Math.round(m/1440)}d`; };
+
+// ── The meadow: everyone's tree for today, side by side ──
+function cupPlot(id, small){
+  const me=id===cupMyUid()||id==='me', p=me?cupMyProfile():cupSocial.profiles[id];
+  if(!p) return `<div class="cup-plot dim"><div class="cup-plot-tree">·</div><div class="cup-plot-name">Someone</div><div class="cup-plot-st">hasn’t shared yet</div></div>`;
+  if(p.paused) return `<div class="cup-plot dim"><div class="cup-plot-tree">⏸</div><div class="cup-plot-name">${esc(me?'You':p.name)}</div><div class="cup-plot-st">taking a break</div></div>`;
+  const live=cupLiveMin(p), w=cupThisWeek(p), ti=cupTodayIdx();
+  const checks=cupCI(p).filter(r=>r.days[ti]==='1').map(r=>cupCK(r.k)[1]).join('');
+  const st = live?`<span class="cup-live">● focusing ${live}m</span>` : checks?`<span class="cup-plot-checks">${checks} ✓</span>` : p.streak?`🔥 ${p.streak}d`:'<span class="cup-dim">resting</span>';
+  const sent=cupSocial.sent[id];
+  return `<div class="cup-plot ${me?'me':''} ${live?'live':''} ${small?'sm':''}">
+    <div class="cup-plot-tree">${p.tree&&p.tree!=='·'?p.tree:'🌱'}</div>
+    <div class="cup-plot-name">${esc(me?'You':p.name)}</div>
+    <div class="cup-plot-st">${st}</div>
+    ${small?'':`<div class="cup-plot-wk">⏱ ${cupHM(w.focus||0)} · 🌳 ${w.trees||0}</div>`}
+    ${!me&&live&&!small?`<button class="btn btn-accent cup-join" onclick="cupJoinFocus('${esc(p.name)}')">Study with ${esc(p.name)}</button>`:''}
+    ${me||id==='me'?'':`<div class="cup-plot-cheer">${sent?`<span class="cup-dim">sent ${sent}</span>`:CUP_CHEERS.map(e=>`<button type="button" onclick="cupCheer('${id}','${e}')" title="Send ${e}">${e}</button>`).join('')}</div>`}
+  </div>`;
+}
+const cupGhostPlot = (label, onclick) => `<button type="button" class="cup-plot ghost" onclick="${onclick}"><div class="cup-plot-tree">＋</div><div class="cup-plot-name">${label}</div></button>`;
+
+// ── Group kinds ──
+const CUP_GROUP_KINDS=[
+  ['qt','🙏','Small group','QT check-ins — everyone ticks their quiet time','days'],
+  ['gym','🏋','Gym buddies','Workout check-ins together','days'],
+  ['study','📚','Study squad','Focus hours toward one weekly goal','hours'],
+  ['club','✨','Club or team','Focus hours and tasks done together','hours'],
+];
+const cupGK = k => CUP_GROUP_KINDS.find(x=>x[0]===k)||CUP_GROUP_KINDS[2];
+let cupNewGroupKind='study';
+function cupGroupTree(pct){ return pct>=100?'🌸':pct>=70?'🌳':pct>=35?'🌿':pct>0?'🌱':'🟫'; }
+function cupGroupCard(gid, g){
+  const ids=Object.keys(g.members||{}), owner=g.owner===cupMyUid(), K=cupGK(g.kind), ti=cupTodayIdx();
+  let pct, prog, grid='';
+  if(K[4]==='days'){
+    const target=+g.goalDays||5;
+    const rows=ids.map(id=>{ const p=id===cupMyUid()?cupMyProfile():cupSocial.profiles[id]; const r=cupCI(p).find(x=>x.k===g.kind); return { id, p, days:r?r.days:'0000000' }; });
+    const total=rows.reduce((a,r)=>a+Math.min(target,[...r.days].filter(x=>x==='1').length),0);
+    pct=Math.min(100, ids.length? total/(ids.length*target)*100 : 0);
+    const todayN=rows.filter(r=>r.days[ti]==='1').length;
+    prog=`<b>${todayN}/${ids.length}</b> <span>${K[1]} today</span><span class="cup-dim">· goal ${owner?`<input class="cup-ggoal" value="${target}" onchange="cupGroupSet('${gid}','goalDays',this.value)" aria-label="Days per week">`:target} days each</span>`;
+    const wd=cupWeekDays().map(ds=>cupParse(ds).toLocaleDateString(undefined,{weekday:'narrow'}));
+    grid=`<div class="cup-ci-grid"><span></span>${wd.map((d,i)=>`<span class="cup-ci-h ${i===ti?'now':''}">${d}</span>`).join('')}
+      ${rows.map(r=>`<span class="cup-ci-n">${esc(r.id===cupMyUid()?'You':(r.p&&r.p.name)||'·')}</span>${[...r.days].map((x,i)=>`<span class="cup-ci-d ${x==='1'?'on':''} ${i===ti?'now':''} ${i>ti?'fut':''}">${x==='1'?K[1]:''}</span>`).join('')}`).join('')}</div>
+      ${cupShareList().some(x=>x.k===g.kind)?'':`<div class="cup-ci-tip">Your ${K[1]} doesn’t show yet — pick which habit counts under <b>What friends see</b> below.</div>`}`;
+  } else {
+    const ranked=cupRank(ids), total=ranked.reduce((a,r)=>a+r.focus,0), goal=(+g.goalHours||10)*60;
+    pct=Math.min(100,total/goal*100);
+    prog=`<b>${cupHM(total)}</b> <span class="cup-dim">of ${owner?`<input class="cup-ggoal" value="${(+g.goalHours||10)}" onchange="cupGroupSet('${gid}','goalHours',this.value)" aria-label="Goal hours">`:(+g.goalHours||10)}h together this week</span>`;
+  }
+  return `<div class="cup-group-card">
+    <div class="cup-group-h"><span class="cup-group-k">${K[1]}</span><b>${esc(g.name)}</b><span class="cup-dim">${ids.length} · ${cupResetIn()}</span><span style="flex:1"></span>
+      <button class="cup-more-btn" onclick="cupCopyText('${esc(g.code)}')">Invite · ${esc(g.code)}</button><button class="cup-more-btn" onclick="cupLeaveGroup('${gid}')">Leave</button></div>
+    <div class="cup-gtree"><span class="cup-gtree-ic">${cupGroupTree(pct)}</span><div class="cup-gtree-body"><div class="cup-gfocus-top">${prog}</div>
+      <div class="cup-gfocus-bar"><i style="width:${pct}%"></i></div><div class="cup-dim cup-gtree-l">${pct>=100?'Our tree bloomed this week 🎉':`Our tree · ${Math.round(pct)}% to bloom`}</div></div></div>
+    ${grid}
+    ${cupStudyingNow(ids)}
+    <div class="cup-meadow sm">${ids.map(id=>cupPlot(id,true)).join('')}</div>
+  </div>`;
+}
+
+function cupShareSettingsHTML(){
+  const hab=S.tasks.filter(t=>t.isHabit&&!t.archived), list=cupShareList();
+  return `<details class="cup-share-set"><summary>What friends see</summary>
+    <p class="cup-dim-p">Always: your name, today’s tree, streak, weekly focus minutes and trees, and <i>that</i> you’re focusing (never on what). Never your tasks, notes, folders or journal.</p>
+    ${hab.length?`<div class="cup-g-h">Share these habits as check-ins</div>
+    ${hab.map(t=>{ const on=list.find(x=>x.id===t.id); return `<div class="cup-share-row"><label class="cup-share-l"><input type="checkbox" ${on?'checked':''} onchange="cupShareToggle('${t.id}')"> ${esc(t.title)}</label>
+      ${on?`<select onchange="cupShareKind('${t.id}',this.value)" aria-label="Show as">${CUP_CHECK_KINDS.map(([k,ic,l])=>`<option value="${k}" ${on.k===k?'selected':''}>${ic} ${l}</option>`).join('')}</select>`:''}</div>`; }).join('')}
+    <p class="cup-dim-p">Friends see only ✓ or nothing for each day.</p>`:'<p class="cup-dim-p">Add a habit (like 말씀 묵상 or Workout) to share it as a check-in.</p>'}
+    <div class="cup-soc-foot">${cupSoc().paused?`<button class="cup-more-btn" onclick="cupPauseSharing(false)">Resume sharing</button>`:`<button class="cup-more-btn" onclick="cupPauseSharing(true)">Pause sharing</button>`}
+      <button class="cup-more-btn" onclick="cupSocialDisable()">Turn off friends</button></div></details>`;
+}
+
 function cupSocialHTML(tab){
-  const soc=cupSoc();
-  if(!cupMyUid()) return `<div class="cup-empty">Sign in to add friends and groups.</div>`;
-  if(!soc.on) return `<div class="cup-soc-intro"><div class="cup-g-big">📚</div><h3>Study together, quietly</h3>
-    <p>Like a library table with friends: see who’s focusing right now, share a weekly goal, and cheer each other on. The board resets every week, and anyone who had a slow week gets a comeback boost.</p>
-    <p class="cup-dim">Shared: your <b>name, tree, streak, weekly focus minutes and tasks-done count</b>, and <b>that</b> you’re focusing (never what). Never your tasks, notes or folders. Pause or turn off any time.</p>
-    <button class="btn btn-accent" onclick="cupSocialEnable()">Turn on friends</button>${cupSocial.error?`<div class="cup-imp-errors" style="margin-top:12px">⚠ ${esc(cupSocial.error)}</div>`:''}</div>`;
-  const err=cupSocial.error?`<div class="cup-imp-errors">⚠ ${esc(cupSocial.error)}</div>`:'';
-  const privacy=`<div class="cup-privacy">🔒 Shared: name, weekly minutes, trees, streak, and whether you’re focusing — never what. ${soc.paused?`<button class="cup-more-btn" onclick="cupPauseSharing(false)">Resume sharing</button>`:`<button class="cup-more-btn" onclick="cupPauseSharing(true)">Pause sharing</button>`}</div>`;
+  const soc=cupSoc(), uid=cupMyUid();
+  if(!uid||!soc.on){
+    const why = !uid ? '<div class="cup-soc-note">Sign in to add friends and groups.</div>'
+      : cupSocial.error ? `<div class="cup-soc-note">⚙︎ ${esc(cupSocial.error)}</div>` : '';
+    return `<div class="cup-soc-intro">
+      <div class="cup-meadow cup-meadow-preview">${cupPlot('me')}${cupGhostPlot('Friend','')}${cupGhostPlot('Small group','')}${cupGhostPlot('Gym buddy','')}</div>
+      <h3>Grow your trees side by side</h3>
+      <div class="cup-soc-feats">
+        <div><span>🌳</span><b>A shared meadow</b><em>See everyone’s tree for today</em></div>
+        <div><span>🙏</span><b>QT check-ins</b><em>Your small group ticks quiet time together</em></div>
+        <div><span>👏</span><b>Cheers</b><em>One tap to cheer a friend on</em></div>
+        <div><span>📚</span><b>Focus together</b><em>Join when a friend starts studying</em></div>
+      </div>
+      <p class="cup-dim">No rankings. Only what you choose is shared, never your tasks or notes.</p>
+      ${uid?`<button class="btn btn-accent" onclick="cupSocialEnable()">Turn on friends</button>`:''}${why}</div>`;
+  }
+  const err=cupSocial.error?`<div class="cup-soc-note">⚙︎ ${esc(cupSocial.error)}</div>`:'';
   if(tab==='friends'){
-    const reqs=Object.entries(cupSocial.requests||{}), fr=Object.keys(cupSocial.friends||{}), me=cupMyUid();
-    const ranked=cupRank([me,...fr]);
-    return `${err}${privacy}
-      <div class="cup-soc-code">Your friend code <b>${esc(soc.code||'—')}</b><button class="cup-more-btn" onclick="cupCopyText('${esc(soc.code||'')}')">Copy</button></div>
-      <div class="cup-fnew"><input placeholder="Enter a friend’s code and press Enter" onkeydown="if(event.key==='Enter'){cupAddFriend(this.value);this.value=''}"></div>
-      ${reqs.length?`<div class="cup-g-h">Requests</div>${reqs.map(([f,r])=>`<div class="cup-person"><span class="cup-person-tree">👋</span><b>${esc(r.name||'Someone')}</b><span class="cup-dim">wants to be friends</span>
-        <span style="flex:1"></span><button class="btn btn-ghost" onclick="cupAnswerReq('${f}',false)">Decline</button><button class="btn btn-accent" onclick="cupAnswerReq('${f}',true)">Accept</button></div>`).join('')}`:''}
-      ${cupStudyingNow(fr)}
-      <div class="cup-g-h">This week · ${cupResetIn()}</div>
-      ${ranked.map((r,i)=>cupPersonRow(r,i, r.id===me?'':`<button class="cup-ts-x" onclick="cupRemoveFriend('${r.id}')" title="Remove friend" aria-label="Remove friend">✕</button>`)).join('')}
-      ${fr.length?'':'<p class="cup-dim-p">Share your code with a friend, or enter theirs above.</p>'}
-      <div class="cup-soc-foot"><button class="cup-more-btn" onclick="cupSocialDisable()">Turn off friends</button></div>`;
+    const reqs=Object.entries(cupSocial.requests||{}), fr=Object.keys(cupSocial.friends||{});
+    const order=fr.slice().sort((a,b)=>(cupLiveMin(cupSocial.profiles[b])-cupLiveMin(cupSocial.profiles[a]))||((cupThisWeek(cupSocial.profiles[b]).focus||0)-(cupThisWeek(cupSocial.profiles[a]).focus||0)));
+    const cheers=Object.entries(cupSocial.cheers||{}).sort((a,b)=>(b[1].at||0)-(a[1].at||0));
+    const all=[uid,...fr].map(id=>id===uid?cupMyProfile():cupSocial.profiles[id]).filter(p=>p&&!p.paused);
+    const tf=all.reduce((a,p)=>a+(cupThisWeek(p).focus||0),0), tt=all.reduce((a,p)=>a+(cupThisWeek(p).trees||0),0);
+    return `${err}
+      ${cheers.length?`<div class="cup-cheers"><span class="cup-cheers-l">Cheers for you</span>${cheers.map(([f,c])=>`<span class="cup-cheer">${esc(c.e||'👏')} <b>${esc(c.n||'Friend')}</b> <span class="cup-dim">${cupAgo(c.at||Date.now())}</span></span>`).join('')}<button class="cup-ts-x" onclick="cupClearCheers()" title="Clear" aria-label="Clear cheers">✕</button></div>`:''}
+      ${reqs.length?`${reqs.map(([f,r])=>`<div class="cup-req"><span>👋</span><b>${esc(r.name||'Someone')}</b><span class="cup-dim">wants to be friends</span><span style="flex:1"></span><button class="btn btn-ghost" onclick="cupAnswerReq('${f}',false)">Decline</button><button class="btn btn-accent" onclick="cupAnswerReq('${f}',true)">Accept</button></div>`).join('')}`:''}
+      <div class="cup-meadow-h"><span>Your meadow</span><span class="cup-dim">${fr.length?`Together this week: ${cupHM(tf)} focused · ${tt} trees`:''}</span></div>
+      <div class="cup-meadow">${cupPlot(uid)}${order.map(id=>cupPlot(id)).join('')}${cupGhostPlot('Invite a friend',`cupCopyText('${esc(soc.code||'')}')`)}</div>
+      <div class="cup-soc-add"><span class="cup-dim">Your code</span><b class="cup-code">${esc(soc.code||'—')}</b><button class="cup-more-btn" onclick="cupCopyText('${esc(soc.code||'')}')">Copy</button>
+        <input placeholder="Friend’s code — Enter" onkeydown="if(event.key==='Enter'){cupAddFriend(this.value);this.value=''}"></div>
+      ${fr.length?`<details class="cup-share-set"><summary>Manage friends</summary>${fr.map(id=>`<div class="cup-share-row"><span>${esc((cupSocial.profiles[id]&&cupSocial.profiles[id].name)||'Friend')}</span><button class="cup-more-btn" onclick="cupRemoveFriend('${id}')">Remove</button></div>`).join('')}</details>`:''}
+      ${cupShareSettingsHTML()}`;
   }
   const gs=Object.entries(cupSocial.groups||{});
-  return `${err}${privacy}<div class="cup-soc-row"><div class="cup-fnew"><input placeholder="New group name (e.g. Study squad) — Enter" onkeydown="if(event.key==='Enter'){cupCreateGroup(this.value);this.value=''}"></div>
-      <div class="cup-fnew"><input placeholder="Join with a group code — Enter" onkeydown="if(event.key==='Enter'){cupJoinGroup(this.value);this.value=''}"></div></div>
-    ${gs.length?gs.map(([gid,g])=>{
-      const ids=Object.keys(g.members||{}), ranked=cupRank(ids), owner=g.owner===cupMyUid();
-      const total=ranked.reduce((a,r)=>a+r.focus,0), goal=(+g.goalHours||10)*60, pct=Math.min(100,total/goal*100);
-      return `<div class="cup-group-card">
-        <div class="cup-group-h"><b>${esc(g.name)}</b><span class="cup-dim">${ids.length} member${ids.length===1?'':'s'} · ${cupResetIn()}</span><span style="flex:1"></span>
-          <button class="cup-more-btn" onclick="cupCopyText('${esc(g.code)}')">Invite · ${esc(g.code)}</button><button class="cup-more-btn" onclick="cupLeaveGroup('${gid}')">Leave</button></div>
-        <div class="cup-gfocus"><div class="cup-gfocus-top"><span>Group focus</span><b>${cupHM(total)}</b><span class="cup-dim">of ${owner?`<input class="cup-ggoal" value="${(+g.goalHours||10)}" onchange="cupGroupSet('${gid}','goalHours',this.value)" aria-label="Weekly group goal in hours">`:(+g.goalHours||10)}h goal</span></div>
-          <div class="cup-gfocus-bar"><i style="width:${pct}%"></i></div>${pct>=100?'<div class="cup-g-next">Goal reached together 🎉</div>':''}</div>
-        ${cupStudyingNow(ids)}
-        ${ranked.map((r,i)=>cupPersonRow(r,i)).join('')}
-
-      </div>`; }).join('')
-      : '<p class="cup-dim-p">Make a group for your study friends, club or small group and share its code.</p>'}`;
+  return `${err}
+    ${gs.map(([gid,g])=>cupGroupCard(gid,g)).join('')}
+    <div class="cup-gnew"><div class="cup-g-h">${gs.length?'Start another group':'Start a group'}</div>
+      <div class="cup-gkinds">${CUP_GROUP_KINDS.map(([k,ic,n,d])=>`<button type="button" class="cup-gkind ${cupNewGroupKind===k?'on':''}" onclick="cupNewGroupKind='${k}';cupRenderFriendsPage()"><span>${ic}</span><b>${n}</b><em>${d}</em></button>`).join('')}</div>
+      <div class="cup-soc-row"><div class="cup-fnew"><input placeholder="Name it (e.g. ${cupNewGroupKind==='qt'?'Thursday small group':cupNewGroupKind==='gym'?'IMA crew':'INFO 330 squad'}) — Enter" onkeydown="if(event.key==='Enter'){cupCreateGroup(this.value);this.value=''}"></div>
+      <div class="cup-fnew"><input placeholder="Or join with a code — Enter" onkeydown="if(event.key==='Enter'){cupJoinGroup(this.value);this.value=''}"></div></div></div>
+    ${cupShareSettingsHTML()}`;
 }
 
 // ── Prep ritual (optional) before Just start ──
@@ -19093,13 +19317,14 @@ function cupHabitsHTML(){
   return `<div class="cup-th-row">${hab.map(t=>{ const d=cupHabitDoneToday(t);
     return `<button class="cup-hchip ${d?'d':''}" onclick="toggleTask('${t.id}','${todayStr()}')" title="${d?'Done — tap to undo':'Tap when done'}"><span class="cup-hcheck ${d?'d':''}"></span>${esc(t.title)}${t.weeklyGoal?`<span class="cup-dim">${cupWeekCount(t)}/${t.weeklyGoal}</span>`:''}${t.scheduledTime&&!d?`<span class="cup-dim">${cupT12(t.scheduledTime)}</span>`:''}</button>`; }).join('')}</div>`;
 }
-function cupTodoHTML(){
+function cupTodoHTML(limit=10, withAdd=true){
   const today=todayStr();
   const list=S.tasks.filter(t=>!t.isHabit&&!t.waiting&&(t.due===today||(t.scheduledDates||[]).includes(today)||(!cupDone(t)&&t.due&&t.due<today)))
-    .sort((a,b)=>cupDone(a)-cupDone(b)||(a.dueTime||a.scheduledTime||'99').localeCompare(b.dueTime||b.scheduledTime||'99')).slice(0,10);
+    .sort((a,b)=>cupDone(a)-cupDone(b)||(a.dueTime||a.scheduledTime||'99').localeCompare(b.dueTime||b.scheduledTime||'99')).slice(0,limit);
+  if(!list.length && !withAdd) return '<div class="cup-dim cup-today-empty">Nothing due today ✓</div>';
   return list.map(t=>{ const d=cupDone(t); return `<div class="cup-todo ${d?'done':''}"><button class="cup-check2 ${d?'d':''}" onclick="toggleTask('${t.id}')" aria-label="Done"></button>
       <button class="t" onclick="editTask('${t.id}')">${esc(t.title)}</button>${t.dueTime?`<span class="cup-up-time">${cupT12(t.dueTime)}</span>`:''}${d?'':`<button class="cup-pin-btn" onclick="cupPin('${t.id}')" title="Put this at the top of Home">Do next</button>`}</div>`; }).join('')
-    + `<div class="cup-fnew"><input placeholder="+ To-do for today — Enter" onkeydown="if(event.key==='Enter'&&this.value.trim()){S.tasks.push(cupMakeTask({title:this.value.trim(),scheduledDates:[todayStr()]}));this.value='';save();render()}"></div>`;
+    + (withAdd?`<div class="cup-fnew"><input placeholder="+ To-do for today — Enter" onkeydown="if(event.key==='Enter'&&this.value.trim()){S.tasks.push(cupMakeTask({title:this.value.trim(),scheduledDates:[todayStr()]}));this.value='';save();render()}"></div>`:'');
 }
 function cupWeekBlockHTML(){
   const L=cupLoad(), waiting=S.tasks.filter(t=>t.waiting&&!cupDone(t)).length;
@@ -20117,6 +20342,34 @@ function cupNoteHideBtn(n){
 }
 
 
+// ── Calm Home: today's events in one line, and one quiet row of chips ──
+function cupTodayEvLine(){
+  const nowHM=`${pad(cupNow().getHours())}:${pad(cupNow().getMinutes())}`;
+  const ev=cupCalEventsOn(todayStr()).filter(e=>e.allDay||!e.time||e.time>=nowHM||(e.endTime&&e.endTime>nowHM)).slice(0,3);
+  if(!ev.length) return '';
+  return `<div class="cup-todayev">${ev.map(e=>`<button type="button" onclick="editEvent('${e.id}')"><i style="background:${esc(e.color||'var(--accent)')}"></i>${e.time&&!e.allDay?cupT12(e.time)+' ':''}${esc(e.title)}</button>`).join('')}</div>`;
+}
+function cupHomeChips(behind){
+  const f=(S.cup&&S.cup.homeFilter)||'', folders=cupActive(), labels=cupAllLabels(), people=cupAllPeople();
+  const late=cupLateTasks().length, wait=S.tasks.filter(t=>t.waiting&&!cupDone(t));
+  const stale=wait.filter(t=>t.submitted&&-cupDays(t.submitted)>=(+cupPref('nudgeDays',14)||14)).length;
+  const showF=folders.length>1||labels.length||people.length;
+  const opts=`<option value="">Filter</option>
+    ${folders.length>1?`<optgroup label="Folders">${folders.sort(cupByName).map(c=>`<option value="folder:${c.id}" ${f==='folder:'+c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</optgroup>`:''}
+    ${labels.length?`<optgroup label="Labels">${labels.map(l=>`<option value="label:${esc(l)}" ${f==='label:'+l?'selected':''}>#${esc(l)}</option>`).join('')}</optgroup>`:''}
+    ${people.length?`<optgroup label="People & clients">${people.map(p=>`<option value="person:${esc(p)}" ${f==='person:'+p?'selected':''}>${esc(p)}</option>`).join('')}</optgroup>`:''}`;
+  const evening=cupNow().getHours()>=18, j=cupJEntry(todayStr()), jHas=cupJHas(j);
+  return `<div class="cup-hchips">
+    ${behind?`<button type="button" class="cup-hbtn warn" onclick="showPage('compass')" title="Class pace — open Goals">${behind} class${behind>1?'es':''} behind →</button>`:''}
+    ${wait.length?`<button type="button" class="cup-hbtn" onclick="cupSetBankSel('waiting')" title="Things you sent and are waiting on">Waiting on · ${wait.length}${stale?` · ${stale} to nudge`:''}</button>`:''}
+    ${late>=3?`<button type="button" class="cup-hbtn" onclick="cupFreshOpen()" title="Reset everything that slipped">Fresh start · ${late}</button>`:''}
+    <button type="button" class="cup-hbtn cup-x-gentle ${cupEnergyLow()?'on':''}" onclick="cupToggleEnergy()" title="Low energy? Hides tasks marked Hard for today">${cupEnergyLow()?'Gentle day on':'Gentle day'}</button>
+    ${evening||jHas?`<button type="button" class="cup-hbtn" onclick="cupJOpen(todayStr())">${jHas?'✎ Today’s journal':'✎ Reflect'}</button>`:''}
+    ${showF?`<select class="cup-hf ${f?'on':''}" onchange="cupSetHomeFilter(this.value)" aria-label="Focus Home on">${opts}</select>`:''}
+  </div>`;
+}
+
+
 // ════════════════════════════════════════════════════════════════════
 //  PART 2 — fixes from the 50-persona study.
 //  Preferences · calendar repeat rules & time zones · welcome/setup ·
@@ -20124,7 +20377,7 @@ function cupNoteHideBtn(n){
 // ════════════════════════════════════════════════════════════════════
 
 // ── Preferences (S.cup.prefs) ──
-const CUP_PREF_DEFAULT = { gentle:true, gardenOn:true, minimal:false, easyRead:false, dayEnd:0, hideMeetings:true };
+const CUP_PREF_DEFAULT = { extras:false, gentle:true, gardenOn:true, minimal:false, easyRead:false, dayEnd:0, hideMeetings:true };
 function cupPref(k, d){ cupEnsure(); const p=S.cup.prefs||{}; return p[k]===undefined ? (d!==undefined?d:CUP_PREF_DEFAULT[k]) : p[k]; }
 function cupSetPref(k, v){ cupEnsure(); S.cup.prefs=Object.assign({}, S.cup.prefs||{}, {[k]:v}); save(); cupApplyPrefs(); render(); try{ cupPrefsRender(); }catch(_){} }
 const CUP_FS = { compact:1, normal:1.1, spacious:1.25 };
@@ -20134,6 +20387,7 @@ function cupApplyPrefs(){
   b.classList.toggle('cup-easy', !!cupPref('easyRead'));
   b.classList.toggle('cup-gentle', !!cupPref('gentle'));
   b.classList.toggle('cup-nogarden', !cupPref('gardenOn'));
+  b.classList.toggle('cup-lean', !cupPref('extras'));
   const dens=(S.settings&&S.settings.density)||'normal';
   let fs=CUP_FS[dens]||1.1; if(window.innerWidth<760) fs=Math.max(fs,1.12);
   document.documentElement.style.setProperty('--cup-fs', String(fs));
@@ -20158,6 +20412,7 @@ function cupPrefsRender(){
     <div class="cup-pref"><span><b>Text size</b><em>Applies to everything, including small labels.</em></span>
       <span class="cup-seg">${[['compact','S'],['normal','M'],['spacious','L']].map(([v,l])=>`<button type="button" class="${dens===v?'on':''}" onclick="setDensity('${v}')">${l}</button>`).join('')}</span></div>
     ${tog('easyRead','Easy-read text','Roomier spacing and a more open typeface.')}
+    ${tog('extras','Extra tools','Shows the S/M/L and shortcut buttons, the Focus page, Upcoming in the sidebar, Home blocks, Prep, Gentle day and the Home filter.')}
     ${tog('minimal','Minimal mode','Home shows just your one task. Hides side lists, Goals and Journal links.')}
     ${tog('gentle','Gentle late tasks','Late tasks show “from Oct 12” in a soft color instead of a red alarm.')}
     ${tog('gardenOn','Garden, gems and streaks','Turn off to remove all streak and tree pressure. Rest days keep a streak safe.')}
@@ -20854,6 +21109,11 @@ function cupAddSlotLine(ex){
   ta.focus();
 }
 
+// Lean mode: the timer bar only appears once a timer has a task or is running
+setInterval(()=>{ try{ const b=document.body; if(!b) return;
+  const idle=!(typeof pomoState!=='undefined'&&pomoState.running) && !(typeof currentPomoTask!=='undefined'&&currentPomoTask);
+  if(b.classList.contains('cup-hud-on')===idle) b.classList.toggle('cup-hud-on', !idle); }catch(_){} }, 1000);
+
 
 // ════════════════════════════════════════════════════════════════════
 //  PART 3 — + bar upgrades, search, voice, importing from other tools,
@@ -20887,7 +21147,7 @@ const _cupPlusSync = cupPlusSync;
 cupPlusSync = function(){
   { const i=CUP_PLUS.findIndex(x=>x[0]==='application'); if(cupMode().app && i<0) CUP_PLUS.splice(1,0,['application','Application','wait','“Stripe analyst oct 20”']); else if(!cupMode().app && i>=0) CUP_PLUS.splice(i,1); }
   _cupPlusSync();
-  { const bar=document.getElementById('cupPlusTypes'); if(bar){ const btns=[...bar.querySelectorAll('button:not(.cup-plus-more)')], MAIN=6;
+  { const bar=document.getElementById('cupPlusTypes'); if(bar){ const btns=[...bar.querySelectorAll('button:not(.cup-plus-more)')], MAIN=(cupPref('extras')?6:3);
       btns.forEach((b,i)=>{ const hide=!cupPlusMore && i>=MAIN && !b.classList.contains('on'); b.style.display=hide?'none':''; });
       if(btns.length>MAIN){ const m=document.createElement('button'); m.type='button'; m.className='cup-plus-more'; m.textContent=cupPlusMore?'Fewer':'More'; m.onmousedown=e=>e.preventDefault(); m.onclick=()=>{ cupPlusMore=!cupPlusMore; cupPlusSync(); }; bar.appendChild(m); } } }
   const mic=document.getElementById('cupPlusMic'); if(mic) mic.style.display=(window.SpeechRecognition||window.webkitSpeechRecognition)?'':'none';
@@ -21680,7 +21940,7 @@ Object.assign(CUP_KO, {
   "Group focus":"그룹 집중 시간","Goal reached together 🎉":"함께 목표를 달성했어요 🎉","Leave":"나가기",
   "When":"언제","Where & status":"폴더 & 상태","⧗ Waiting on reply":"⧗ 답변 대기 중","Every day (habit)":"매일 (습관)",
   "Or on specific days (habit)":"또는 특정 요일마다 (습관)",
-  "Shared Lists":"공유 목록","Weekly Load":"주간 로드","Friends":"친구","👥 Friends":"👥 친구","Friends & groups →":"친구 & 그룹 →","Garden":"가든","Study together, quietly. Friends and groups see only your name, trees, streak and focus minutes.":"조용히 함께 공부해요. 친구와 그룹에는 이름, 나무, 연속 일수, 집중 시간만 보여요.","Custom repeat":"직접 반복 설정","Every N days, weeks or months. When you finish it, the next one is created with a new due date.":"N일·N주·N개월마다 반복해요. 완료하면 새 마감일로 다음 항목이 만들어져요.",
+  "Shared Lists":"공유 목록","Weekly Load":"주간 로드","Friends":"친구","👥 Friends":"👥 친구","Friends & groups →":"친구 & 그룹 →","Garden":"가든","Study together, quietly. Friends and groups see only your name, trees, streak and focus minutes.":"조용히 함께 공부해요. 친구와 그룹에는 이름, 나무, 연속 일수, 집중 시간만 보여요.","Extra tools":"추가 도구","Shows the S/M/L and shortcut buttons, the Focus page, Upcoming in the sidebar, Home blocks, Prep, Gentle day and the Home filter.":"S/M/L·단축키 버튼, 집중 페이지, 사이드바의 다가오는 일정, 홈 블록, 준비, 가벼운 날, 홈 필터를 보여줘요.","Your meadow":"나의 정원","Invite a friend":"친구 초대","Your code":"내 코드","Copy":"복사","Friend’s code — Enter":"친구 코드 — Enter","Cheers for you":"받은 응원","Manage friends":"친구 관리","Remove":"삭제","What friends see":"친구에게 보이는 것","Share these habits as check-ins":"이 습관을 체크인으로 공유","Friends see only ✓ or nothing for each day.":"친구에게는 날마다 ✓ 표시만 보여요.","Pause sharing":"공유 일시정지","Turn off friends":"친구 기능 끄기","Grow your trees side by side":"나무를 나란히 키워요","A shared meadow":"함께하는 정원","See everyone’s tree for today":"모두의 오늘 나무를 봐요","QT check-ins":"큐티 체크인","Your small group ticks quiet time together":"소그룹이 함께 큐티를 체크해요","Cheers":"응원","One tap to cheer a friend on":"한 번 눌러 친구를 응원해요","Focus together":"함께 집중","Join when a friend starts studying":"친구가 공부를 시작하면 함께해요","No rankings. Only what you choose is shared, never your tasks or notes.":"순위는 없어요. 고른 것만 공유되고, 할 일이나 노트는 절대 공유되지 않아요.","Turn on friends":"친구 기능 켜기","Small group":"소그룹","Gym buddies":"운동 메이트","Study squad":"스터디","Club or team":"동아리 · 팀","QT check-ins — everyone ticks their quiet time":"큐티 체크인 — 모두 큐티를 체크해요","Workout check-ins together":"함께 운동 체크인","Focus hours toward one weekly goal":"주간 목표를 향한 집중 시간","Focus hours and tasks done together":"함께한 집중 시간과 완료한 일","Start a group":"그룹 만들기","Start another group":"그룹 하나 더 만들기","Or join with a code — Enter":"또는 코드로 참여 — Enter","resting":"쉬는 중","Gym buddy":"운동 메이트","Friend":"친구","Custom repeat":"직접 반복 설정","Every N days, weeks or months. When you finish it, the next one is created with a new due date.":"N일·N주·N개월마다 반복해요. 완료하면 새 마감일로 다음 항목이 만들어져요.",
   "▸ More options (priority, steps, work date, reminders, files…)":"▸ 추가 옵션 (우선순위, 단계, 작업일, 알림, 파일…)",
   "▾ Fewer options":"▾ 옵션 접기",
   // ── navigation & shell ──
@@ -21879,6 +22139,8 @@ Object.assign(CUP_KO, { "Before you lock in:":"시작하기 전에:","💧 Water
 CUP_KO_PAT.push([/^(\d+) of (\d+) (?:complete|done)$/, (m,a,b)=>`${a} / ${b} 완료`]);
 
 CUP_KO_PAT.push([/^(\d+)d streak · 💎 (\d+)$/, (m,a,b)=>`${a}일 연속 · 💎 ${b}`]);
+
+CUP_KO_PAT.push([/^Study with (.+)$/, (m,a)=>`${a}님과 함께 공부`],[/^Together this week: (.+) focused · (\d+) trees$/, (m,a,b)=>`이번 주 함께: ${a} 집중 · 나무 ${b}그루`],[/^Our tree · (\d+)% to bloom$/, (m,a)=>`우리 나무 · 꽃피기까지 ${a}%`],[/^focusing (\d+)m$/, (m,a)=>`집중 중 ${a}분`]);
 
 </script>
 </body>

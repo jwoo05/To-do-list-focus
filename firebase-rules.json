@@ -81,6 +81,16 @@
           }
         }
       }
+    },
+    "cheers": {
+      "$to": {
+        ".read": "auth != null && auth.uid === $to",
+        ".write": "auth != null && auth.uid === $to",
+        "$from": {
+          ".write": "auth != null && (auth.uid === $from || auth.uid === $to)",
+          ".validate": "!newData.exists() || (newData.child('e').isString() && newData.child('e').val().length <= 8 && newData.child('n').isString() && newData.child('n').val().length <= 60 && newData.child('at').isNumber())"
+        }
+      }
     }
   }
 }
