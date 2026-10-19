@@ -23191,8 +23191,9 @@ async function cupGcApi(method, path, body){
 }
 const cupGcEvPath = (cal, id) => '/calendars/'+encodeURIComponent(cal)+'/events'+(id?'/'+id:'');
 async function cupGcPut(cal, id, body, isNew){
-  const upd=()=>cupGcApi('PUT', cupGcEvPath(cal,id), Object.assign({ status:'confirmed' }, body));   // also brings back one deleted on Google
-  const ins=()=>cupGcApi('POST', cupGcEvPath(cal), Object.assign({ id }, body));
+  // PATCH sends only what Focus Hub owns (title, time, repeat), so notes, location or colour added in Google stay
+  const upd=()=>cupGcApi('PATCH', cupGcEvPath(cal,id), Object.assign({ status:'confirmed' }, body));   // also brings back one deleted on Google
+  const ins=()=>cupGcApi('POST', cupGcEvPath(cal), Object.assign({ id, description:'From Focus Hub', extendedProperties:{ private:{ focusHub:'1' } } }, body));
   if(isNew){ try{ return await ins(); }catch(e){ if(e.status===409) return upd(); throw e; } }
   try{ return await upd(); }catch(e){ if(e.status!==404 && e.status!==410) throw e; }
   try{ return await ins(); }catch(e){ if(e.status===409) return upd(); throw e; }
@@ -23216,12 +23217,48 @@ async function cupGcCal(){
 // ── what should be on Google right now ──
 function cupGcDT(ds, min){ const [y,m,d]=ds.split('-').map(Number); return { dateTime:new Date(y,m-1,d,0,min).toISOString(), timeZone:cupGcTz() }; }
 const cupGcMs = ms => ({ dateTime:new Date(ms).toISOString(), timeZone:cupGcTz() });
+// ── repeats: Google RRULE + EXDATE (times in your own time zone) ──
+const CUP_GC_DOW=['SU','MO','TU','WE','TH','FR','SA'];
+const cupGcD8 = ds => ds.replace(/-/g,'');
+const cupGcHM = min => pad(Math.floor(min/60)%24)+pad(min%60);
+function cupGcUntil(ds){ const [y,m,d]=ds.split('-').map(Number); return new Date(y,m-1,d,23,59,59).toISOString().replace(/[-:]/g,'').replace(/\.\d+/,''); }
+function cupGcEx(dates, min){ const l=[...new Set(dates)].filter(Boolean).sort(); return l.length ? ['EXDATE;TZID='+cupGcTz()+':'+l.map(ds=>cupGcD8(ds)+'T'+cupGcHM(min)+'00').join(',')] : []; }
+// a habit = one weekly event on its days, from the later of its start and the day you connected
+function cupGcHabit(t, since){
+  const s=timeStrToMinutes(t.scheduledTime); if(s===null) return null;
+  const days=cupGcArr(t.scheduledDays).map(Number).filter(d=>d>=0&&d<7); if(!days.length) return null;
+  let start=t.habitStart && t.habitStart>since ? t.habitStart : since;
+  for(let i=0; i<7 && !days.includes(cupParse(start).getDay()); i++) start=cupAddDays(start,1);   // first instance must be a real one
+  if(t.habitEnd && t.habitEnd<start) return null;
+  const dur=Math.max(15, Number(t.estimate||t.duration)||30);
+  const skipped=Object.keys(t.skippedDates||{}).filter(ds=>t.skippedDates[ds] && ds>=start);
+  return { summary:t.title||'Habit', start:cupGcDT(start,s), end:cupGcDT(start,s+dur),
+    recurrence:['RRULE:FREQ=WEEKLY;BYDAY='+[...new Set(days)].sort().map(d=>CUP_GC_DOW[d]).join(',')+(t.habitEnd?';UNTIL='+cupGcUntil(t.habitEnd):''), ...cupGcEx(skipped, s)] };
+}
+// a repeating study block, same rules the calendar uses (cupEvMatch); past-only series are left out
+function cupGcBlockRule(e, since, min){
+  let rec=(e.recurrence||'').toLowerCase(), iv=Math.max(1, +e.recurrenceInterval||1), days=cupGcArr(e.recurrenceDays).map(Number);
+  if(rec==='biweekly'){ rec='weekly'; iv=2; } else if(rec==='weekdays'){ rec='weekly'; days=[1,2,3,4,5]; } else if(rec==='custom') rec='weekly';
+  const freq={ daily:'DAILY', weekly:'WEEKLY', monthly:'MONTHLY', yearly:'YEARLY' }[rec]; if(!freq) return null;
+  if(e.recurrenceUntil && e.recurrenceUntil<since) return null;
+  const count=+e.recurrenceCount||0;
+  let start=e.date;
+  if(start<since && !count){   // begin at the first time it happens on or after the day you connected (keeps the old weeks off Google)
+    let x=since, ok=false; for(let i=0;i<400;i++,x=cupAddDays(x,1)){ if(cupEvStartsOn(e,x)){ ok=true; break; } } if(!ok) return null;
+    start=x;
+  }
+  let r='RRULE:FREQ='+freq+(iv>1?';INTERVAL='+iv:'');
+  if(freq==='WEEKLY'){ const use=days.length?days:[cupParse(e.date).getDay()]; r+=';BYDAY='+[...new Set(use)].sort().map(d=>CUP_GC_DOW[d]).join(','); if(iv>1) r+=';WKST=MO'; }
+  if(count) r+=';COUNT='+count; else if(e.recurrenceUntil) r+=';UNTIL='+cupGcUntil(e.recurrenceUntil);
+  return { start, recurrence:[r, ...cupGcEx(cupGcArr(e.exdates).filter(ds=>ds>=start), min)] };
+}
 function cupGcWant(){
   const g=cupGc(), w=g.what, since=g.since||todayStr(), out={};
-  const add=(key, kind, ref, body)=>{ out[cupGcId(key)]={ k:kind, r:ref, body:Object.assign(body, { description:'From Focus Hub', extendedProperties:{ private:{ focusHub:kind } } }) }; };
+  const add=(key, kind, ref, body)=>{ out[cupGcId(key)]={ k:kind, r:ref, body }; };
   const tasks=cupGcArr(S.tasks), byId={}; tasks.forEach(t=>{ if(t&&t.id) byId[t.id]=t; });
   if(w.tasks) tasks.forEach(t=>{
-    if(!t || !t.id || t.isHabit || t.icsUid || t.sourceId || (t.archived && !t.completed)) return;   // calendar-link imports already live in a calendar
+    if(!t || !t.id || t.icsUid || t.sourceId || (t.archived && !t.completed)) return;   // calendar-link imports already live in a calendar
+    if(t.isHabit){ const h=cupGcHabit(t, since); if(h) add('h:'+t.id, 'habit', t.id, h); return; }
     const title=(t.completed?'✓ ':'')+(t.title||'Task');
     const dates=new Set(cupGcArr(t.scheduledDates).filter(Boolean));
     const s=timeStrToMinutes(t.scheduledTime);
@@ -23236,9 +23273,12 @@ function cupGcWant(){
     add('s:'+x.id, 'focus', x.id, { summary:'◎ Focus'+(t?' · '+t.title:''), start:cupGcMs(+x.ts-(+x.dur)*60000), end:cupGcMs(+x.ts), transparency:'transparent', reminders:{ useDefault:false } });
   });
   if(w.blocks) cupGcArr(S.events).forEach(e=>{
-    if(!e || e.type!=='focus_block' || !e.id || e.sourceId || e.icsUid || !e.date || e.date<since) return;
+    if(!e || e.type!=='focus_block' || !e.id || e.sourceId || e.icsUid || !e.date) return;
+    if(e.date<since && !(e.recurrence && e.recurrence!=='none')) return;
     const s=timeStrToMinutes(e.time); if(s===null) return;
     let en=timeStrToMinutes(e.endTime); if(en===null || en<=s) en=s+60;
+    const rec=(e.recurrence||'').toLowerCase();
+    if(rec && rec!=='none'){ const r=cupGcBlockRule(e, since, s); if(r) add('br:'+e.id, 'block', e.id, { summary:e.title||'Focus block', start:cupGcDT(r.start,s), end:cupGcDT(r.start,en), recurrence:r.recurrence }); return; }
     add('b:'+e.id, 'block', e.id, { summary:e.title||'Focus block', start:cupGcDT(e.date,s), end:cupGcDT(e.date,en) });
   });
   return out;
@@ -23386,7 +23426,7 @@ function cupGcRender(){
   const g=cupGc(), cid=cupGcClientId();
   if(!g.on){
     box.innerHTML=`
-      <div class="cup-pref"><span><b>Connect your Google Calendar</b><em>Put timed tasks, focus sessions and study blocks on your Google Calendar. Changes and deletes here update it too.</em></span>
+      <div class="cup-pref"><span><b>Connect your Google Calendar</b><em>Put timed tasks, habits, focus sessions and study blocks on your Google Calendar. Changes and deletes here update it too.</em></span>
         <button type="button" class="btn btn-accent" onclick="cupGcConnect()" ${cid?'':'disabled'}>Connect</button></div>
       ${CUP_GC_CLIENT_ID?'':`<div class="cup-pref"><span><b>OAuth client ID</b><em>One-time setup from Google Cloud → Credentials.</em></span>
         <input id="cupGcClient" type="text" spellcheck="false" autocomplete="off" placeholder="…apps.googleusercontent.com" value="${esc(g.clientId||'')}" onchange="cupGcSetClient(this.value)" aria-label="OAuth client ID" style="max-width:220px"></div>`}`;
@@ -23405,7 +23445,7 @@ function cupGcRender(){
       <span class="cup-seg">${chip('tasks','Timed tasks')}${chip('focus','Focus sessions')}${chip('blocks','Study blocks')}</span></div>
     <div class="cup-pref"><span><b>Calendar</b><em>Its own calendar keeps your main one tidy.</em></span>
       <select onchange="cupGcSetCal(this.value)" aria-label="Calendar"><option value="fh" ${g.cal!=='primary'?'selected':''}>Focus Hub</option><option value="primary" ${g.cal==='primary'?'selected':''}>My main calendar</option></select></div>
-    <div class="cup-pref-note">Focus Hub owns these events: edit them here, not in Google. Your other Google calendars still come in through calendar links.</div>`;
+    <div class="cup-pref-note">Change titles and times here. Notes, places or colours you add in Google stay. Your other Google calendars still come in through calendar links.</div>`;
 }
 const _cupGcPrefs = cupPrefsRender;
 cupPrefsRender = function(){
@@ -23673,7 +23713,7 @@ CUP_KO_PAT.push([/^🔒 Finish (\d+) must-dos? to unlock the rest$/, (m,n)=>`�
 // ── Google Calendar (Part 7) ──
 Object.assign(CUP_KO, {
   "Google Calendar":"구글 캘린더","Connect your Google Calendar":"구글 캘린더 연결","Connected":"연결됨","Connect":"연결","OAuth client ID":"OAuth 클라이언트 ID",
-  "Put timed tasks, focus sessions and study blocks on your Google Calendar. Changes and deletes here update it too.":"시간이 정해진 할 일, 집중 세션, 공부 블록을 구글 캘린더에 넣어요. 여기서 바꾸거나 지우면 거기에도 반영돼요.",
+  "Put timed tasks, habits, focus sessions and study blocks on your Google Calendar. Changes and deletes here update it too.":"시간이 정해진 할 일, 습관, 집중 세션, 공부 블록을 구글 캘린더에 넣어요. 여기서 바꾸거나 지우면 거기에도 반영돼요.",
   "One-time setup from Google Cloud → Credentials.":"Google Cloud → 사용자 인증 정보에서 한 번만 설정해요.",
   "Sync now":"지금 동기화","Disconnect":"연결 해제","Disconnect?":"연결을 해제할까요?",
   "Events Focus Hub already put on Google can stay or go.":"Focus Hub가 구글에 넣은 일정은 남겨두거나 지울 수 있어요.",
@@ -23682,7 +23722,7 @@ Object.assign(CUP_KO, {
   "What goes to Google":"구글로 보낼 것","From the day you connected on.":"연결한 날부터요.",
   "Timed tasks":"시간 정한 할 일","Focus sessions":"집중 세션","Study blocks":"공부 블록",
   "Calendar":"캘린더","Its own calendar keeps your main one tidy.":"전용 캘린더를 쓰면 기본 캘린더가 깔끔해요.","My main calendar":"기본 캘린더",
-  "Focus Hub owns these events: edit them here, not in Google. Your other Google calendars still come in through calendar links.":"이 일정은 Focus Hub가 관리해요. 구글이 아닌 여기서 수정하세요. 다른 구글 캘린더는 계속 캘린더 링크로 들어와요.",
+  "Change titles and times here. Notes, places or colours you add in Google stay. Your other Google calendars still come in through calendar links.":"제목과 시간은 여기서 바꾸세요. 구글에서 추가한 메모, 장소, 색은 그대로 남아요. 다른 구글 캘린더는 계속 캘린더 링크로 들어와요.",
   "Up to date":"최신 상태","Syncing…":"동기화 중…","Google didn’t answer. Trying again shortly.":"구글이 응답하지 않아요. 곧 다시 시도해요.",
   "Paste your OAuth client ID first.":"먼저 OAuth 클라이언트 ID를 붙여넣으세요.",
   "Getting Google ready… tap Connect again in a moment.":"구글 준비 중… 잠시 후 연결을 다시 누르세요.",
