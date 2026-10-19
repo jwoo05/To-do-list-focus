@@ -6385,6 +6385,11 @@ body.cup-side-min .sidebar-bottom{ display:none; }
 .cup-side-hid:hover{ color:var(--text); }
 .cup-tpg .cup-tadd + .cup-tadd{ margin-left:-2px; }
 
+.cup-soc-intro p, .cup-soc-intro .cup-dim{ white-space:normal; overflow-wrap:anywhere; }
+.cup-g-link{ margin-top:14px; text-align:right; }
+.cup-friends-page{ max-width:640px; }
+.cup-friends-page .cup-soc-intro{ padding:24px 12px; }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -6865,6 +6870,9 @@ document.addEventListener('DOMContentLoaded', () => {
       </button>
       <button class="nav-item" data-page="journal" onclick="showPage('journal',this)">
         <span>✎</span> Journal
+      </button>
+      <button class="nav-item" data-page="friends" onclick="showPage('friends',this)">
+        <span>👥</span> Friends
       </button>
     </nav>
     <div class="cup-side-extras" id="cupSideExtras" aria-label="Upcoming and recent pages"></div>
@@ -7462,6 +7470,11 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="view-header"><div><div class="view-title">Journal</div>
         <div class="view-sub">Reflections, daily writing and photos. Each day also shows on your calendar.</div></div></div>
       <div id="cupJournalPage"></div>
+    </section>
+    <section class="page" id="page-friends">
+      <div class="view-header"><div><div class="view-title">Friends</div>
+        <div class="view-sub">Study together, quietly. Friends and groups see only your name, trees, streak and focus minutes.</div></div></div>
+      <div id="cupFriendsPage" class="cup-friends-page"></div>
     </section>
     <section class="page" id="page-compass">
       <div class="view-header"><div><div class="view-title">Goals</div>
@@ -17176,6 +17189,7 @@ function renderCup(){
   try{ cupPaceReflow(); }catch(_){}
   if(typeof currentPage!=='undefined' && currentPage==='compass') cupRenderCompass();
   if(typeof currentPage!=='undefined' && currentPage==='journal') cupRenderJournalPage();
+  if(typeof currentPage!=='undefined' && currentPage==='friends') cupRenderFriendsPage();
   if(cupSel) setTimeout(cupSelPaint,0);
   cupRenderCalFilters();
   cupEnsure();
@@ -18775,12 +18789,19 @@ function cupGardenMini(){
     <span class="cup-mini-tree">${cupTreeIcon(g.today.pts,g.species)}</span>${g.streak?`<b>${g.streak}</b>🔥`:''}<span class="cup-dim">💎${g.gems}</span></button>`;
 }
 let cupGardenTab='garden';
-function cupOpenGarden(tab){ if(tab) cupGardenTab=tab; cupRenderGarden(); openModal('mCupGarden'); if(cupGardenTab!=='garden') cupSocialRefresh(); }
+let cupFriendsTab='friends';
+function cupOpenGarden(tab){ if(tab==='friends'||tab==='groups'){ cupOpenFriends(tab); return; } cupGardenTab='garden'; cupRenderGarden(); openModal('mCupGarden'); }
+function cupOpenFriends(tab){ if(tab) cupFriendsTab=tab; try{ closeModal('mCupGarden'); closeModal('mCupMobMe'); }catch(_){} showPage('friends'); cupRenderFriendsPage(); if(cupSoc().on) cupSocialRefresh(); }
+function cupRenderFriendsPage(){
+  const host=document.getElementById('cupFriendsPage'); if(!host) return;
+  const tabs=[['friends','👋 Friends'],['groups','👥 Groups']];
+  host.innerHTML=(cupSoc().on&&cupMyUid()?`<div class="cup-gtabs cup-g-tabs">${tabs.map(([k,l])=>`<button class="cup-gtab ${cupFriendsTab===k?'on':''}" style="--gc:var(--green)" onclick="cupFriendsTab='${k}';cupRenderFriendsPage();cupSocialRefresh()">${l}</button>`).join('')}</div>`:'')+cupSocialHTML(cupFriendsTab);
+}
 function cupRenderGarden(){
+  try{ if(typeof currentPage!=='undefined' && currentPage==='friends') cupRenderFriendsPage(); }catch(_){}
   const host=document.getElementById('cupGardenBody'); if(!host) return;
-  const tabs=[['garden','🌳 Garden'],['friends','👋 Friends'],['groups','👥 Groups']];
   let body='';
-  if(cupGardenTab==='garden'){
+  {
     const g=cupGarden(), t=g.today, st=cupStage(t.pts);
     const need = g.next ? Math.ceil((g.next[0]-t.pts)*2)/2 : 0;
     body=`<div class="cup-g-today"><div class="cup-g-big">${cupTreeIcon(t.pts,g.species)}</div>
@@ -18793,8 +18814,8 @@ function cupRenderGarden(){
       <div class="cup-g-h">Trees you can grow</div>
       <div class="cup-g-species">${CUP_SPECIES.map(([need,ic,n])=>`<div class="${g.gems>=need?'':'locked'}"><span>${g.gems>=need?ic:'🔒'}</span>${n}<em>${need?`💎${need}`:'start'}</em></div>`).join('')}</div>
       <p class="cup-dim-p">1 point per finished task, 1 per 25 focus minutes, ½ per habit. 6 points grows a full tree (+1 💎). Streaks of 3, 7, 14 and 30 days give bonus gems.</p>`;
-  } else body = cupSocialHTML(cupGardenTab);
-  host.innerHTML=`<div class="cup-gtabs cup-g-tabs">${tabs.map(([k,l])=>`<button class="cup-gtab ${cupGardenTab===k?'on':''}" style="--gc:var(--green)" onclick="cupGardenTab='${k}';cupRenderGarden();${k!=='garden'?'cupSocialRefresh()':''}">${l}</button>`).join('')}</div>${body}`;
+  }
+  host.innerHTML=`${body}<div class="cup-g-link"><button class="cup-more-btn" onclick="cupOpenFriends('friends')">👥 Friends & groups →</button></div>`;
 }
 
 // ════════════════════════════════════════════════════════════
@@ -21418,7 +21439,8 @@ function cupOpenMobileMe(){
     <div class="modal-body cup-me-grid">
       <button class="cup-me-card" onclick="closeModal('mCupMobMe');cupJOpen(todayStr())"><span>✎</span><b>Journal</b><em>Daily reflection & mood</em></button>
       <button class="cup-me-card" onclick="closeModal('mCupMobMe');showPage('compass')"><span>◇</span><b>Goals & Pace</b><em>Deadlines & class pace</em></button>
-      <button class="cup-me-card" onclick="closeModal('mCupMobMe');cupOpenGarden('garden')"><span>${cupTreeIcon(g.today.pts,g.species)}</span><b>Garden & Friends</b><em>${g.streak}d streak · 💎 ${g.gems}</em></button>
+      <button class="cup-me-card" onclick="closeModal('mCupMobMe');cupOpenGarden('garden')"><span>${cupTreeIcon(g.today.pts,g.species)}</span><b>Garden</b><em>${g.streak}d streak · 💎 ${g.gems}</em></button>
+      <button class="cup-me-card" onclick="cupOpenFriends('friends')"><span>👥</span><b>Friends</b><em>Study together, quietly</em></button>
       <button class="cup-me-card" onclick="closeModal('mCupMobMe');showPage('focus')"><span>◎</span><b>Focus Timer</b><em>Pomodoro session</em></button>
       <button class="cup-me-card" onclick="closeModal('mCupMobMe');cupShareNewOpen()"><span>↗</span><b>Shared Lists</b><em>Family, club, team</em></button>
       <button class="cup-me-card" onclick="closeModal('mCupMobMe');cupOpenLoad()"><span>☕</span><b>Weekly Load</b><em>Capacity planner</em></button>
@@ -21658,7 +21680,7 @@ Object.assign(CUP_KO, {
   "Group focus":"그룹 집중 시간","Goal reached together 🎉":"함께 목표를 달성했어요 🎉","Leave":"나가기",
   "When":"언제","Where & status":"폴더 & 상태","⧗ Waiting on reply":"⧗ 답변 대기 중","Every day (habit)":"매일 (습관)",
   "Or on specific days (habit)":"또는 특정 요일마다 (습관)",
-  "Shared Lists":"공유 목록","Weekly Load":"주간 로드","Custom repeat":"직접 반복 설정","Every N days, weeks or months. When you finish it, the next one is created with a new due date.":"N일·N주·N개월마다 반복해요. 완료하면 새 마감일로 다음 항목이 만들어져요.",
+  "Shared Lists":"공유 목록","Weekly Load":"주간 로드","Friends":"친구","👥 Friends":"👥 친구","Friends & groups →":"친구 & 그룹 →","Garden":"가든","Study together, quietly. Friends and groups see only your name, trees, streak and focus minutes.":"조용히 함께 공부해요. 친구와 그룹에는 이름, 나무, 연속 일수, 집중 시간만 보여요.","Custom repeat":"직접 반복 설정","Every N days, weeks or months. When you finish it, the next one is created with a new due date.":"N일·N주·N개월마다 반복해요. 완료하면 새 마감일로 다음 항목이 만들어져요.",
   "▸ More options (priority, steps, work date, reminders, files…)":"▸ 추가 옵션 (우선순위, 단계, 작업일, 알림, 파일…)",
   "▾ Fewer options":"▾ 옵션 접기",
   // ── navigation & shell ──
