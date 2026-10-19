@@ -6984,6 +6984,115 @@ input[type=date]:disabled, input[type=time]:disabled{ cursor:default; opacity:.5
 .cup-me-card b { font-size:calc(13px * var(--cup-fs,1)); font-weight: 600; }
 .cup-me-card em { font-size:calc(11px * var(--cup-fs,1)); font-style: normal; color: var(--text3); }
 
+/* Home: "Add widget" fills the empty half-slot if there is one; otherwise it spans the row, so nothing sits lopsided */
+.cup-ws > .cup-w-addtile.full{ grid-column:1 / -1; min-height:56px; }
+
+/* ════ Calendar, easy to read ════ */
+/* month cells: bigger chips, readable “+N more”, journal mark in the corner */
+#page-todo .cal-cell{ position:relative; }
+#page-todo .cal-mini-chip.cupc{ font-size:calc(13px * var(--cup-fs,1)); line-height:1.4; }
+#page-todo .cal-mini-chip.cupc i{ color:var(--text2) !important; font-size:calc(12px * var(--cup-fs,1)); font-variant-numeric:tabular-nums; }
+#page-todo .cal-day-name{ color:var(--text2) !important; font-size:calc(11.5px * var(--cup-fs,1)); }
+#page-todo .cal-mini-chip.cal-mini-more{ font-size:calc(12px * var(--cup-fs,1)); color:var(--text2) !important; font-weight:500; padding:0 6px; }
+#page-todo .cal-cell.cup-past .cal-num{ color:var(--text2); }
+.cup-dots{ display:none; }
+.cup-jmark{ position:absolute; top:9px; right:8px; width:6px; height:6px; border-radius:50%; background:#d38cc4; cursor:pointer; }
+
+/* phone: dots, not text — the day is read in the list below */
+#page-todo .cal-grid.cup-dotmode{ grid-template-rows:none; grid-auto-rows:auto; flex:none; }
+#page-todo .cal-grid.cup-dotmode .cal-cell{ height:46px; min-height:0; padding:5px 0 0; align-items:center; display:flex; flex-direction:column; gap:4px; }
+#page-todo .cal-grid.cup-dotmode .cal-cell.cup-past{ height:36px; }
+#page-todo .cal-grid.cup-dotmode .cal-cell .cal-num{ font-size:calc(14px * var(--cup-fs,1)); margin:0; text-align:center; }
+#page-todo .cal-grid.cup-dotmode .cal-mini-list{ display:flex; justify-content:center; }
+#page-todo .cal-grid.cup-dotmode .cal-mini-chip{ display:none !important; }
+#page-todo .cal-grid.cup-dotmode .cup-dots{ display:flex; gap:3px; justify-content:center; }
+#page-todo .cal-grid.cup-dotmode .cup-dots i{ width:5px; height:5px; border-radius:50%; background:var(--c); }
+#page-todo .cal-grid.cup-dotmode .cup-jmark{ top:6px; right:5px; width:4px; height:4px; }
+
+/* laptop: the selected day sits beside the month, so the grid keeps the full height */
+#todoWorkbench #workbenchCalendar.cup-cal-side{ display:grid !important; grid-template-columns:minmax(0,1fr) minmax(260px,300px); grid-template-rows:auto minmax(0,1fr); column-gap:12px; align-content:stretch; }
+#workbenchCalendar.cup-cal-side > .col-strip, #workbenchCalendar.cup-cal-side > .cal-split-resize{ display:none !important; }
+#workbenchCalendar.cup-cal-side > .workbench-heading{ grid-column:1 / -1; }
+#workbenchCalendar.cup-cal-side > #calPanel{ grid-column:1; grid-row:2; min-height:0; height:auto !important; }
+#workbenchCalendar.cup-cal-side > #calDayTasks{ grid-column:2; grid-row:2; min-height:0; height:auto !important; overflow-y:auto; }
+/* Agenda layout fills the column; the day drawer isn't needed */
+#workbenchCalendar.cup-cal-agenda > #calDayTasks, #workbenchCalendar.cup-cal-agenda > .cal-split-resize{ display:none !important; }
+#workbenchCalendar.cup-cal-agenda > #calPanel{ flex:1 1 auto !important; }
+
+/* agenda rows (selected day + Agenda layout) */
+#calDayTasks{ padding:14px 14px 10px; }
+.cup-ag-head{ display:flex; align-items:baseline; gap:8px; margin:0 0 8px; font-size:calc(14px * var(--cup-fs,1)); font-weight:600; letter-spacing:0; text-transform:none; color:var(--text); }
+.cup-ag-head em{ font-style:normal; font-size:calc(12px * var(--cup-fs,1)); font-weight:600; color:var(--accent); }
+.cup-ag-list{ display:flex; flex-direction:column; }
+.cup-ag-row.cal-task-item, .cup-ag-row{ display:grid; grid-template-columns:52px minmax(0,1fr) auto; column-gap:10px; align-items:start; margin:0; padding:8px 6px 8px 0;
+  background:none; border:0; border-radius:0; border-top:1px solid var(--border); font-size:calc(14.5px * var(--cup-fs,1)); line-height:1.4; color:var(--text); cursor:pointer; text-align:left; }
+.cup-ag-list > .cup-ag-row:first-child{ border-top:0; }
+.cup-ag-row:hover{ background:var(--bg2); }
+.cup-ag-time{ font-size:calc(13px * var(--cup-fs,1)); font-variant-numeric:tabular-nums; color:var(--text); text-align:right; padding-top:1px; white-space:nowrap; }
+.cup-ag-time small{ display:block; font-size:calc(12px * var(--cup-fs,1)); color:var(--text2); }
+.cup-ag-allday{ font-size:calc(12px * var(--cup-fs,1)); color:var(--text2); }
+.cup-ag-main{ min-width:0; display:flex; flex-direction:column; gap:2px; padding-left:10px; border-left:3px solid var(--c); }
+.cup-ag-title{ display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; overflow-wrap:anywhere; }
+.cup-ag-meta{ font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text2); display:flex; flex-wrap:wrap; align-items:baseline; gap:0 5px; min-width:0; }
+.cup-ag-meta > span{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cup-ag-kind{ font-weight:600; font-size:calc(11.5px * var(--cup-fs,1)); letter-spacing:.02em; color:var(--text2); }
+:root{ --cup-due-ink:#b42f2f; } [data-theme="dark"]{ --cup-due-ink:#f27e7e; }
+.cup-ag-row.k-due .cup-ag-kind, .cup-ag-row.k-exam .cup-ag-kind{ color:var(--cup-due-ink); }
+.cup-ag-sep{ color:var(--text2); }
+.cup-ag-row.done .cup-ag-title, .cup-ag-hab.done{ text-decoration:line-through; color:var(--text2); }
+.cup-ag-row.past .cup-ag-title, .cup-ag-row.past .cup-ag-time{ color:var(--text2); }
+.cup-ag-habits{ cursor:default; }
+.cup-ag-habits .cup-ag-title{ -webkit-line-clamp:3; }
+.cup-ag-hab{ font:inherit; color:inherit; background:none; border:0; padding:0; cursor:pointer; text-align:left; }
+.cup-ag-hab:hover{ text-decoration:underline; }
+.cup-ag-habits .cup-ag-sep{ margin:0 5px; }
+.cup-ag-empty{ font-size:calc(14px * var(--cup-fs,1)); color:var(--text2); padding:6px 0 10px 62px; }
+.cup-ag-row .cup-ev-notes{ align-self:center; font-size:calc(12px * var(--cup-fs,1)); color:var(--text2); border:1px solid var(--border); border-radius:999px; padding:2px 9px; background:none; }
+.cup-due-tag{ display:inline; margin-right:5px; font-size:calc(10.5px * var(--cup-fs,1)); font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--cup-due-ink); background:none; }
+/* Journal follows the day's items, folded to one line */
+#calDayTasks .cup-jcal.cup-jcal-min{ flex-direction:row; align-items:center; gap:8px; margin:10px 0 2px; padding:8px 10px; }
+#calDayTasks .cup-jcal.cup-jcal-min .cup-jcal-ex, #calDayTasks .cup-jcal.cup-jcal-min .cup-jp-strip{ display:none; }
+#calDayTasks .cup-jcal.cup-jcal-min b, #calDayTasks .cup-jcal.cup-jcal-min .cup-jcal-empty{ font-size:calc(13.5px * var(--cup-fs,1)); font-weight:500; color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+#calDayTasks .cup-jcal.cup-jcal-min .cup-jcal-l{ color:var(--text2); flex:none; }
+
+/* Agenda layout */
+.cup-agenda{ flex:1 1 0; min-height:0; overflow-y:auto; padding:4px 2px 12px; }
+.cup-agenda > .cup-agd{ max-width:760px; margin-inline:auto; }
+.cup-agd{ padding:12px 0 6px; border-top:1px solid var(--border); }
+.cup-agd:first-child{ border-top:0; padding-top:4px; }
+.cup-agd .cup-ag-head{ position:sticky; top:0; background:var(--surface); padding:4px 0; z-index:1; }
+.cup-agd.today .cup-ag-head > span{ color:var(--accent); }
+
+@media (max-width: 699px){
+  .cup-ag-row.cal-task-item, .cup-ag-row{ grid-template-columns:48px minmax(0,1fr) auto; column-gap:8px; padding:10px 4px 10px 0; font-size:calc(15px * var(--cup-fs,1)); }
+  .cup-ag-empty{ padding-left:56px; }
+}
+@media (max-width: 699px){
+  #workbenchCalendar > #calPanel{ flex:none !important; height:auto !important; }
+  #workbenchCalendar > #calPanel .cal-body{ flex:none; }
+  #workbenchCalendar > .cal-split-resize{ display:none !important; }
+  #workbenchCalendar > #calDayTasks{ flex:1 1 0 !important; min-height:180px; margin-top:10px; overflow-y:auto; overscroll-behavior:contain; }
+  #page-todo .cal-toolbar-row{ display:flex; align-items:center; gap:8px; }
+  #page-todo .cal-toolbar-row .cup-calf-btn{ margin:0 0 0 auto; flex:none; width:auto; }
+  #workbenchCalendar.cup-cal-agenda > #calPanel{ flex:1 1 auto !important; }
+  #workbenchCalendar.cup-cal-agenda > #calPanel .cal-body{ flex:1 1 0; min-height:0; }
+}
+@media (hover: hover){
+  .cup-ag-row .cup-ev-notes{ position:absolute; right:6px; top:50%; transform:translateY(-50%); opacity:0; pointer-events:none; background:var(--surface); transition:opacity .12s; }
+  .cup-ag-row:hover .cup-ev-notes, .cup-ag-row .cup-ev-notes:focus-visible{ opacity:1; pointer-events:auto; }
+  .cup-ag-row{ position:relative; }
+}
+
+/* Home + Tasks & Calendar: quiet text stays readable (≥ 4.5:1 in both themes), list text 15 px */
+#page-dashboard, #page-todo{ --text3:#6b6860; }
+[data-theme="dark"] #page-dashboard, [data-theme="dark"] #page-todo{ --text3:#87847c; }
+#page-dashboard .cup-sched-n, #page-dashboard .cup-tsec .t{ font-size:calc(15px * var(--cup-fs,1)); }
+#page-dashboard .cup-sched-row{ grid-template-columns:52px 3px minmax(0,1fr) auto; align-items:start; padding:6px 0; }
+#page-dashboard .cup-sched-row i{ align-self:stretch; height:auto; min-height:18px; }
+#page-dashboard .cup-sched-t{ font-size:calc(13px * var(--cup-fs,1)); color:var(--text); padding-top:2px; }
+#page-dashboard .cup-sched-t small{ display:block; font-size:calc(12px * var(--cup-fs,1)); color:var(--text2); }
+#page-dashboard .cup-sched-n{ white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; line-height:1.4; }
+
 </style>
 <script>
 /* Immediately apply saved theme + density to avoid flash */
@@ -20777,7 +20886,7 @@ function cupTodayEvLine(){
     .filter(e=>{ const k=key(e); if(seen.has(k)) return false; seen.add(k); return true; }).slice(0,3);
   if(!ev.length) return '';
   return `<div class="cup-tsec"><div class="cup-tsec-h static">Schedule</div><div class="cup-sched">${ev.map(e=>{ const now=e.time&&e.time<=nowHM&&(!e.endTime||e.endTime>nowHM);
-    return `<button type="button" class="cup-sched-row ${now?'now':''}" onclick="editEvent('${e.id}')"><span class="cup-sched-t">${e.allDay||!e.time?'All day':cupT12(e.time)}</span><i style="background:${esc(e.color||'var(--accent)')}"></i><span class="cup-sched-n">${esc(e.title)}</span>${now?'<span class="cup-sched-now">now</span>':e.endTime&&e.time?`<span class="cup-dim">${cupT12(e.endTime)}</span>`:''}</button>`; }).join('')}</div></div>`;
+    return `<button type="button" class="cup-sched-row ${now?'now':''}" onclick="editEvent('${e.id}')"><span class="cup-sched-t">${e.allDay||!e.time?'All day':cupTShort(e.time)}${!e.allDay&&e.time&&e.endTime?`<small>${cupTShort(e.endTime)}</small>`:''}</span><i style="background:${esc(e.color||'var(--accent)')}"></i><span class="cup-sched-n" data-keep>${esc(e.title)}</span>${now?'<span class="cup-sched-now">now</span>':''}</button>`; }).join('')}</div></div>`;
 }
 function cupHomeChips(behind){
   const f=(S.cup&&S.cup.homeFilter)||'', folders=cupActive(), labels=cupAllLabels(), people=cupAllPeople();
@@ -21656,39 +21765,181 @@ function cupSyncThemeColor(){
 { const _ap=cupApplyPrefs; cupApplyPrefs=function(){ const r=_ap.apply(this,arguments); cupSyncThemeColor(); return r; }; }
 if(document.readyState!=='loading') cupSyncThemeColor(); else document.addEventListener('DOMContentLoaded', cupSyncThemeColor);
 
-// Month view: show as many whole items as fit in each day, then “+N more” — no clipped half-lines, no scrolling
+// Month view: show as many whole items as fit in each day, then “+N more” — no clipped half-lines, no scrolling.
+// On a phone (< 700 px) days show coloured dots instead, and the selected day is read in the agenda below.
+const cupCalPhone = () => { try{ return matchMedia('(max-width: 699px)').matches; }catch(_){ return innerWidth<700; } };
+function cupCalSideSync(){
+  const col=document.getElementById('workbenchCalendar'); if(!col) return;
+  const w=col.getBoundingClientRect().width;
+  if(w) col.classList.toggle('cup-cal-side', !cupCalPhone() && w>=1100 && calLayout!=='agenda');
+  col.classList.toggle('cup-cal-agenda', calLayout==='agenda');
+}
 function cupFitMonth(){
-  const grid=document.querySelector('#calPanel .cal-grid'); if(!grid || !grid.offsetHeight) return;
+  cupCalSideSync();
+  const grid=document.querySelector('#calPanel .cal-grid'); if(!grid) return;
+  const dots=cupCalPhone(); grid.classList.toggle('cup-dotmode', dots);
+  if(dots || !grid.offsetHeight) return;
   grid.querySelectorAll('.cal-cell').forEach(cell=>{
     const list=cell.querySelector('.cal-mini-list'); if(!list) return;
     list.querySelectorAll('.cal-mini-more').forEach(m=>m.remove());
-    const chips=[...list.children]; chips.forEach(c=>{ c.style.display=''; });
+    const chips=[...list.children].filter(c=>c.classList.contains('cal-mini-chip')); chips.forEach(c=>{ c.style.display=''; });
     const room=cell.clientHeight - list.offsetTop - 3;
     if(list.scrollHeight<=room) return;
     let hidden=0;
-    for(let i=chips.length-1; i>=0 && list.scrollHeight>room-14; i--){ chips[i].style.display='none'; hidden++; }
-    if(hidden){ const m=document.createElement('span'); m.className='cal-mini-chip cal-mini-more'; m.textContent=`+${hidden} more`; list.appendChild(m); }
+    for(let i=chips.length-1; i>=0 && list.scrollHeight>room-16; i--){ chips[i].style.display='none'; hidden++; }
+    if(hidden){ const m=document.createElement('span'); m.className='cal-mini-chip cal-mini-more'; m.textContent= hidden===chips.length ? `${hidden} item${hidden>1?'s':''}` : `+${hidden} more`; list.appendChild(m); }
   });
+}
+
+// ════════════════════════════════════════════════════════════
+//  CALENDAR, EASY TO READ — month cells keep classes, events and deadlines;
+//  the selected day (and the Agenda layout) list everything as rows:
+//  time in a left column, the whole title, a small kind label.
+// ════════════════════════════════════════════════════════════
+const CUP_AGK = { class:['Class','#e9c46a'], event:['Event','var(--accent)'], exam:['Exam','var(--must)'], focus:['Focus','var(--accent)'],
+  due:['Due','#f26060'], assign:['Assignment','#f59040'], todo:['To-do','#4dd49a'], habit:['Habit','#b07fff'] };
+function cupAgEvKind(e){ return e.type==='test'?'exam' : e.type==='focus_block'?'focus' : (e.type==='class'||(!e.type&&e.cupFolder))?'class' : 'event'; }
+function cupAgTaskKind(t, ds){
+  if(t.isHabit) return 'habit';
+  if(t.due===ds && !(t.scheduledDates||[]).includes(ds)) return 'due';
+  if(t.type==='exam' || t.calendarSignal==='exam') return 'exam';
+  return CUP_ASSIGN_TYPES.has(t.type) ? 'assign' : 'todo';
+}
+const cupAgLoc = () => cupIsKo() ? 'ko-KR' : undefined;
+function cupAgItems(ds){
+  const out=[], nowHM=(()=>{ const d=cupNow(); return pad(d.getHours())+':'+pad(d.getMinutes()); })(), isToday=ds===todayStr();
+  const evs = typeof calViewMode!=='undefined' && calViewMode==='tasks' ? [] : cupCalEventsOn(ds);
+  const tks = typeof calViewMode!=='undefined' && calViewMode==='events' ? [] : cupCalTasksOn(ds);
+  evs.forEach(e=>{
+    const k=cupAgEvKind(e), multi=e.date && e.date<ds && e.recurrence==='none';
+    const allDay=!!(e.allDay || !e.time || multi);
+    const end=!allDay && e.endTime ? e.endTime : '';
+    out.push({ ev:true, k, id:e.id, title:e.title, time:allDay?'':e.time, end, allDay, color:e.color||eventColorForType(e.type)||CUP_AGK[k][1],
+      meta:e.location||'', grp:allDay?0:2, past:isToday && !allDay && (end||e.time)<nowHM });
+  });
+  tks.forEach(t=>{
+    const k=cupAgTaskKind(t,ds), tt=cupTaskTimeOn(t,ds), done=t.isHabit?!!(t.completedDates&&t.completedDates[ds]):cupDone(t);
+    const sub=t.subject && !String(t.title).includes(t.subject) ? t.subject : '';
+    out.push({ ev:false, k, id:t.id, title:t.title, time:tt?tt.time:'', end:'', allDay:false, color:CUP_AGK[k][1], meta:sub, done,
+      grp: tt ? 2 : k==='due' ? 1 : k==='habit' ? 4 : 3 });
+  });
+  return out.sort((a,b)=>a.grp-b.grp || (a.time||'').localeCompare(b.time||'') || (a.done?1:0)-(b.done?1:0));
+}
+function cupAgRow(it, ds){
+  const [label]=CUP_AGK[it.k];
+  const time = it.allDay ? '<span class="cup-ag-allday">All day</span>' : it.time ? `${cupTShort(it.time)}${it.end?`<small>${cupTShort(it.end)}</small>`:''}` : '';
+  const act = it.ev ? `onclick="editEvent('${it.id}')"` : `onclick="editTask('${it.id}')" draggable="true" ondragstart="onDayTaskDragStart(event,'${it.id}','${ds}')"`;
+  return `<div class="cal-task-item cup-ag-row k-${it.k}${it.done?' done':''}${it.past?' past':''}" style="--c:${esc(it.color)}" ${act}>
+    <span class="cup-ag-time">${time}</span>
+    <span class="cup-ag-main"><span class="cup-ag-title" data-keep>${esc(it.title)}</span>
+      <span class="cup-ag-meta"><b class="cup-ag-kind">${label}</b>${it.meta?`<span class="cup-ag-sep">·</span><span data-keep>${esc(it.meta)}</span>`:''}</span></span></div>`;
+}
+// untimed habits fold into one quiet row, so a day of six habits doesn't bury the class at 2:30
+function cupAgRows(ds){
+  const items=cupAgItems(ds), hab=items.filter(i=>i.grp===4), rest=items.filter(i=>i.grp!==4);
+  let html=rest.map(i=>cupAgRow(i,ds)).join('');
+  if(hab.length===1) html+=cupAgRow(hab[0],ds);
+  else if(hab.length){ const n=hab.filter(h=>h.done).length;
+    html+=`<div class="cup-ag-row k-habit cup-ag-habits" style="--c:${CUP_AGK.habit[1]}"><span class="cup-ag-time"></span>
+      <span class="cup-ag-main"><span class="cup-ag-title">${hab.map(h=>`<button type="button" class="cup-ag-hab${h.done?' done':''}" data-keep onclick="editTask('${h.id}')">${esc(h.title)}</button>`).join('<span class="cup-ag-sep">·</span>')}</span>
+      <span class="cup-ag-meta"><b class="cup-ag-kind">Habits</b><span class="cup-ag-sep">·</span><span>${n}/${hab.length} done</span></span></span></div>`; }
+  return { html, n:items.length };
+}
+function cupAgDayHead(ds){
+  const d=cupParse(ds), t=todayStr(), rel=ds===t?'Today':ds===cupAddDays(t,1)?'Tomorrow':'';
+  return `<span data-keep>${d.toLocaleDateString(cupAgLoc(),{weekday:'short',month:'short',day:'numeric'})}</span>${rel?`<em>${rel}</em>`:''}`;
+}
+
+// selected day: the day's items come first; the Journal follows, folded to one line
+{ const _prev=renderCalDayTasks; renderCalDayTasks=function(){
+  _prev.apply(this, arguments);
+  const wrap=document.getElementById('calDayTasks'), ds=calSelectedDate; if(!wrap||!ds) return;
+  const j=wrap.querySelector('.cup-jcal'), r=cupAgRows(ds);
+  wrap.innerHTML=`<div class="cal-day-title cup-ag-head">${cupAgDayHead(ds)}</div>
+    <div class="cup-ag-list">${r.n?r.html:'<div class="cup-ag-empty">Nothing planned</div>'}</div>`;
+  if(j){ j.classList.add('cup-jcal-min'); wrap.appendChild(j); }
+}; }
+
+// month cells: classes/events and deadlines only (habits and untimed to-dos live in the day list);
+// a dot row for phones and a small journal mark ride along and are shown by CSS when they fit
+const CUP_DOTK = [['due','#f26060'],['exam','var(--must)'],['class','#e9c46a'],['event','var(--accent)'],['focus','var(--accent)'],['task','#4dd49a']];
+cupMonthChips = function(evs, tasks, ds){
+  const keep=tasks.filter(t=>{ if(t.isHabit) return false; return t.due===ds || !!cupTaskTimeOn(t,ds); });
+  const out=_cupMonthChipsJ(evs, keep, ds);
+  const kinds=new Set();
+  keep.forEach(t=>kinds.add(t.due===ds?'due':'task')); evs.forEach(e=>kinds.add(cupAgEvKind(e)));
+  const dots=CUP_DOTK.filter(([k])=>kinds.has(k)).slice(0,3);
+  out.unshift(`<span class="cup-dots" aria-hidden="true">${dots.map(([,c])=>`<i style="--c:${c}"></i>`).join('')}</span>`);
+  const j=typeof cupJEntry==='function'?cupJEntry(ds):null;
+  if(j && cupCalShow().journal && cupJHas(j)) out.unshift(`<span class="cup-jmark" title="Journal" onclick="event.stopPropagation();cupJOpen('${ds}')"></span>`);
+  return out;
+};
+// past weeks (before this one) get shorter rows, so this week and next get the room
+function cupMonthRows(){
+  const grid=document.getElementById('calGrid'); if(!grid || calLayout!=='month') return;
+  const y=calViewDate.getFullYear(), mo=calViewDate.getMonth(), first=new Date(y,mo,1).getDay(), n=new Date(y,mo+1,0).getDate();
+  const rows=Math.ceil((first+n)/7), now=cupNow(), wk0=new Date(now.getFullYear(),now.getMonth(),now.getDate()-now.getDay());
+  const past=[]; for(let r=0;r<rows;r++){ const sat=new Date(y,mo,1-first+r*7+6); past.push(sat<wk0); }
+  grid.querySelectorAll('.cal-cell').forEach((c,i)=>c.classList.toggle('cup-past', !!past[Math.floor(i/7)]));
+  grid.style.gridTemplateRows = cupCalPhone() ? '' : 'auto '+past.map(p=>p?'minmax(0,.4fr)':'minmax(0,1fr)').join(' ');
+}
+
+// week/day view: “Due” is a small label, not part of the title
+{ const strip=a=>a.map(it=>Object.assign(it,{ title:String(it.title||'').replace(/^Due · /,'') }));
+  const _ad=collectAllDayItems; collectAllDayItems=function(){ return strip(_ad.apply(this,arguments)); };
+  const _ti=collectTimedItems; collectTimedItems=function(){ return strip(_ti.apply(this,arguments)); };
+  const _wv=renderWeekView; renderWeekView=function(){ const r=_wv.apply(this,arguments);
+    document.querySelectorAll('#calWeekGrid .cwk-block.sig-due .cwk-block-title, #calWeekAllday .cwk-allday-item.sig-due').forEach(el=>{
+      if(!el.querySelector('.cup-due-tag')) el.insertAdjacentHTML('afterbegin','<b class="cup-due-tag">Due</b>'); });
+    return r; }; }
+
+// Agenda layout: the next 7 days, grouped by day, in the same rows. Remembered per device.
+try{ const v=localStorage.getItem('focus_cal_layout'); if(v==='day'||v==='agenda') calLayout=v; }catch(_){}
+{ const _s=setCalLayout; setCalLayout=function(l){
+  if(l!=='agenda') return _s.apply(this, arguments);
+  calLayout='agenda'; try{ localStorage.setItem('focus_cal_layout','agenda'); }catch(_){}
+  calViewDate=cupNow(); renderCalendar(); }; }
+{ const _m=calMove; calMove=function(dir){ if(calLayout!=='agenda') return _m.apply(this, arguments); calViewDate.setDate(calViewDate.getDate()+dir*7); renderCalendar(); }; }
+function cupAgendaMount(){
+  const tg=document.querySelector('#calPanel .cal-layout-toggle');
+  if(tg && !tg.querySelector('[data-layout="agenda"]')) tg.insertAdjacentHTML('beforeend','<button class="clt-opt" data-layout="agenda" onclick="setCalLayout(\'agenda\')">Agenda</button>');
+  document.querySelectorAll('#calPanel .clt-opt[data-layout]').forEach(b=>b.classList.toggle('active', b.dataset.layout===calLayout));
+  const grid=document.getElementById('calGrid'); if(!grid) return;
+  let ag=document.getElementById('cupAgenda');
+  if(calLayout!=='agenda'){ if(ag) ag.style.display='none'; return; }
+  if(!ag){ ag=document.createElement('div'); ag.id='cupAgenda'; ag.className='cup-agenda'; grid.after(ag); }
+  grid.style.display='none'; const ww=document.getElementById('calWeekWrap'); if(ww){ ww.style.display='none'; ww.hidden=true; }
+  ag.style.display='';
+  const start=cupISO(calViewDate), days=[...Array(7)].map((_,i)=>cupAddDays(start,i));
+  const a=cupParse(days[0]), b=cupParse(days[6]), loc=cupAgLoc();
+  const lbl=document.getElementById('calMonthLabel');
+  if(lbl) lbl.textContent=`${a.toLocaleDateString(loc,{month:'short',day:'numeric'})} – ${b.toLocaleDateString(loc,a.getMonth()===b.getMonth()?{day:'numeric'}:{month:'short',day:'numeric'})}, ${b.getFullYear()}`;
+  const html=days.map(ds=>{ const r=cupAgRows(ds);
+    return `<section class="cup-agd${ds===todayStr()?' today':''}"><h4 class="cup-ag-head">${cupAgDayHead(ds)}</h4>
+      <div class="cup-ag-list">${r.n?r.html:'<div class="cup-ag-empty">Nothing planned</div>'}</div></section>`; }).join('');
+  if(ag._last!==html){ ag.innerHTML=html; ag._last=html; }
 }
 function cupCalfBtn(){
   const nav=document.querySelector('#calPanel .cal-nav'); if(!nav) return;
-  let b=nav.querySelector('.cup-calf-btn');
+  let b=document.querySelector('#calPanel .cup-calf-btn');
   if(!b){ b=document.createElement('button'); b.type='button'; b.className='cup-calf-btn'; b.textContent='Filter';
-    b.onclick=()=>{ document.body.classList.toggle('cup-calf-open'); try{ cupRenderCalFilters(); }catch(_){} requestAnimationFrame(cupFitMonth); };
-    nav.appendChild(b); }
+    b.onclick=()=>{ document.body.classList.toggle('cup-calf-open'); try{ cupRenderCalFilters(); }catch(_){} requestAnimationFrame(cupFitMonth); }; }
+  // phone: it sits at the end of the Month · Week · Day · Agenda row, not on a line of its own
+  const host=(cupCalPhone() && document.querySelector('#calPanel .cal-toolbar-row')) || nav;
+  if(b.parentElement!==host) host.appendChild(b);
   let off=0; try{ const f=cupCalShow(); off=CUP_CALF.filter(([k])=>!f[k]).length + (S.icalSources||[]).filter(x=>f.off&&f.off[x.id]).length; }catch(_){}
   b.classList.toggle('on', !!off); b.textContent = off?`Filter · ${off} hidden`:'Filter';
 }
-const cupFitSoon=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{ try{ cupCalfBtn(); cupFitMonth(); }catch(_){} }));
+const cupFitSoon=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{ try{ cupCalfBtn(); cupMonthRows(); cupFitMonth(); }catch(_){} }));
 // fit right away, before the browser paints — waiting a frame flashed every day's full list on each click
-{ const _rc=renderCalendar; renderCalendar=function(){ const r=_rc.apply(this,arguments); try{ cupCalfBtn(); cupFitMonth(); }catch(_){} cupFitSoon(); return r; }; }
+{ const _rc=renderCalendar; renderCalendar=function(){ const r=_rc.apply(this,arguments); try{ cupAgendaMount(); cupCalfBtn(); cupMonthRows(); cupFitMonth(); }catch(e){ console.warn(e); } cupFitSoon(); return r; }; }
 { const _ac=applyCalSplit; }
 { let ro=null; const watch=()=>{ const p=document.getElementById('calPanel'); if(p && !p._cupRO && typeof ResizeObserver!=='undefined'){ p._cupRO=new ResizeObserver(()=>cupFitSoon()); p._cupRO.observe(p); } };
   if(document.readyState!=='loading') watch(); else document.addEventListener('DOMContentLoaded', watch); setTimeout(watch,1500); }
 // Calendar gets most of the column by default (the day list below is a small strip); dragging the divider still wins
 if(typeof applyCalSplit==='function'){ applyCalSplit=function(){
   const panel=document.getElementById('calPanel'), day=document.getElementById('calDayTasks'); if(!panel||!day) return;
-  const f=Math.max(0.3, Math.min(0.9, Number(S.settings?.calSplit) || 0.86));
+  const f=Math.max(0.3, Math.min(0.9, Number(S.settings?.calSplit) || 0.8));
   panel.style.flex=`${f} 1 0`; day.style.flex=`${1-f} 1 0`; }; }
 
 
@@ -23154,7 +23405,7 @@ cupRenderDash = function(){
           :`<button class="cup-w-rm" onclick="cupBlockRemove('${k}')" title="Remove from Home" aria-label="Remove ${esc(name)}">✕</button>`}</h5>
       <div class="cup-w-body">${body}</div></section>`; };
   const html=`<div class="cup-ws ${cupWEdit?'editing':''}">${ws.map(card).join('')}
-      ${cupWEdit?'':`<button type="button" class="cup-w-addtile" onclick="cupWSheet()"><span>＋</span>${ws.length?'Add widget':'Add widgets to Home'}</button>`}</div>
+      ${cupWEdit?'':`<button type="button" class="cup-w-addtile ${ws.reduce((c,k)=>CUP_WIDGETS[k][4]?0:(c+1)%2,0)?'':'full'}" onclick="cupWSheet()"><span>＋</span>${ws.length?'Add widget':'Add widgets to Home'}</button>`}</div>
     ${ws.length>1?`<div class="cup-wtools">${cupWEdit?`<button class="btn btn-accent" onclick="cupWEditSet(false)">Done</button>`:`<button class="cup-more-btn" onclick="cupWEditSet(true)">Arrange widgets</button>`}</div>`:''}`;
   if(host.contains(document.activeElement) && document.activeElement.tagName==='INPUT') return;
   if(host._last!==html){ host.innerHTML=html; host._last=html; }
@@ -23858,6 +24109,15 @@ Object.assign(CUP_KO, { "Open or start a notes page for this event":"이 일정�
 CUP_KO_PAT.unshift(
   [/^Filed in new folder “(.+)”$/, (m,a)=>`새 폴더 “${a}”에 넣었어요`],
   [/^Filed in “(.+)”$/, (m,a)=>`“${a}”에 넣었어요`],
+);
+
+// ── Calendar, easy to read (agenda rows, Agenda layout) ──
+Object.assign(CUP_KO, { "Agenda":"일정 목록","Exam":"시험","Nothing planned":"일정 없음","Filter":"필터" });
+CUP_KO_PAT.unshift(
+  [/^\+(\d+) more$/, (m,n)=>`+${n}개 더`],
+  [/^(\d+) items?$/, (m,n)=>`${n}개`],
+  [/^(\d+)\/(\d+) done$/, (m,a,b)=>`${a}/${b} 완료`],
+  [/^Filter · (\d+) hidden$/, (m,n)=>`필터 · ${n}개 숨김`],
 );
 
 </script>
