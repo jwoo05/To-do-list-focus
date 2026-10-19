@@ -6694,6 +6694,44 @@ body.cup-lean .cup-wtools .cup-more-btn{ opacity:.6; } body.cup-lean .cup-wtools
 .cup-w-fsl .n{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .cup-w-fsl .bar{ height:5px; border-radius:99px; background:var(--bg3); overflow:hidden; } .cup-w-fsl .bar i{ display:block; height:100%; }
 .cup-w-fsl b{ font-variant-numeric:tabular-nums; text-align:right; }
 
+/* ── Tasks: calm list (lean) ── */
+body.cup-lean .cup-extra-only, body:not(.cup-lean) .cup-lean-only{ display:none !important; }
+#cupTaskList{ display:none; }
+#todoWorkbench[data-mcol="list"]{ display:none !important; }
+body.cup-lean #page-todo:has(#todoWorkbench[data-mcol="list"]) #cupTaskList{ display:block; }
+.cup-tl{ max-width:760px; margin:6px auto 40px; }
+.cup-tl-top{ display:flex; gap:8px; align-items:center; margin-bottom:18px; flex-wrap:wrap; }
+.cup-tl-add{ flex:1; min-width:220px; display:flex; align-items:center; gap:10px; padding:10px 14px; border:1px dashed var(--border); border-radius:12px; color:var(--text2); font-family:inherit; font-size:calc(14px * var(--cup-fs,1)); text-align:left; }
+.cup-tl-add:hover{ border-color:var(--accent); color:var(--text); } .cup-tl-add span{ font-size:18px; color:var(--accent); } .cup-tl-add em{ font-style:normal; font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); margin-left:auto; }
+.cup-tl-fsel{ width:auto; max-width:180px; padding:8px 10px; font-size:calc(13px * var(--cup-fs,1)); border-radius:10px; } .cup-tl-fsel.on{ border-color:var(--accent); }
+.cup-tl-q{ width:150px; padding:8px 10px; font-size:calc(13px * var(--cup-fs,1)); border-radius:10px; }
+.cup-tl-sec{ margin-bottom:18px; }
+.cup-tl-h{ display:flex; align-items:center; gap:8px; padding:0 2px 6px; border-bottom:1px solid var(--border); margin-bottom:4px; font-family:'Source Serif 4',Georgia,serif; font-size:17px; color:var(--text); }
+.cup-tl-h > button{ display:flex; align-items:center; gap:6px; font:inherit; color:inherit; }
+.cup-tl-h .cup-dim{ font-family:var(--font, inherit); font-size:calc(12.5px * var(--cup-fs,1)); }
+.cup-tl-n{ font-family:inherit; font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); font-variant-numeric:tabular-nums; }
+.cup-tl-sec.over .cup-tl-h{ color:var(--orange, #d9822b); }
+.cup-tl-fresh{ margin-left:auto; font-size:calc(12px * var(--cup-fs,1)); padding:3px 10px; border:1px solid var(--border); border-radius:99px; color:var(--text2); font-family:inherit; }
+.cup-tl-row{ display:grid; grid-template-columns:18px minmax(0,1fr) auto auto 26px; align-items:center; gap:10px; padding:7px 2px; border-radius:8px; }
+.cup-tl-row:hover{ background:var(--bg2); }
+.cup-tl-t{ text-align:left; font-size:calc(14px * var(--cup-fs,1)); color:var(--text); font-family:inherit; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:flex; align-items:center; gap:7px; }
+.cup-tl-must{ width:6px; height:6px; border-radius:50%; background:var(--must); flex:none; }
+.cup-tl-row.done .cup-tl-t{ color:var(--text3); text-decoration:line-through; }
+.cup-tl-meta{ display:flex; gap:12px; font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); white-space:nowrap; font-variant-numeric:tabular-nums; }
+.cup-tl-f{ display:inline-flex; align-items:center; gap:5px; max-width:180px; overflow:hidden; text-overflow:ellipsis; } .cup-tl-f i{ width:6px; height:6px; border-radius:2px; flex:none; }
+.cup-tl-act button{ width:24px; height:24px; border-radius:7px; color:var(--text3); opacity:0; } .cup-tl-row:hover .cup-tl-act button{ opacity:1; } .cup-tl-act button:hover{ background:var(--bg3); color:var(--accent); }
+.cup-tl-empty{ text-align:center; color:var(--text3); padding:40px 0; }
+.cup-tl-sec.donesec .cup-tl-h{ color:var(--text3); }
+@media (max-width:760px){ .cup-tl-row{ grid-template-columns:18px minmax(0,1fr) auto; } .cup-tl-meta .cup-tl-f, .cup-tl-act{ display:none; } .cup-tl-q{ flex:1; } .cup-tl-add em{ display:none; } }
+@media (hover:none){ .cup-tl-act button{ opacity:1; } }
+
+body.cup-lean #cupMSeg{ display:flex; gap:22px; background:none; border:0; border-bottom:1px solid var(--border); border-radius:0; padding:0; max-width:760px; margin:0 auto 14px; box-shadow:none; }
+body.cup-lean #cupMSeg .clt-opt{ background:none; border:0; border-radius:0; padding:8px 0 10px; font-size:calc(14px * var(--cup-fs,1)); letter-spacing:0; text-transform:none; color:var(--text3); box-shadow:none; margin-bottom:-1px; border-bottom:2px solid transparent; }
+body.cup-lean #cupMSeg .clt-opt.active{ color:var(--text); border-bottom-color:var(--text); }
+body.cup-lean #page-todo:has(#todoWorkbench[data-mcol="cal"]) #cupMSeg{ max-width:none; }
+.cup-tl-fresh, .cup-tl-n, .cup-tl-h .cup-dim{ font-family:'Inter',system-ui,-apple-system,sans-serif; }
+body.cup-lean #cupMSeg{ justify-content:flex-start; width:100%; }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -7466,7 +7504,8 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
 
-      <div class="cal-layout-toggle cup-mseg" id="cupMSeg" role="tablist" aria-label="Show"><button class="clt-opt" data-mcol="today" onclick="cupSetMCol('today')">Day</button><button class="clt-opt" data-mcol="cal" onclick="cupSetMCol('cal')">Calendar</button><button class="clt-opt" data-mcol="bank" onclick="cupSetMCol('bank')">Folders</button><button class="clt-opt" data-mcol="all" onclick="cupSetMCol('all')" title="Show all three side by side">All</button></div>
+      <div class="cal-layout-toggle cup-mseg" id="cupMSeg" role="tablist" aria-label="Show"><button class="clt-opt cup-lean-only" data-mcol="list" onclick="cupSetMCol('list')">List</button><button class="clt-opt cup-extra-only" data-mcol="today" onclick="cupSetMCol('today')">Day</button><button class="clt-opt" data-mcol="cal" onclick="cupSetMCol('cal')">Calendar</button><button class="clt-opt cup-extra-only" data-mcol="bank" onclick="cupSetMCol('bank')">Folders</button><button class="clt-opt cup-extra-only" data-mcol="all" onclick="cupSetMCol('all')" title="Show all three side by side">All</button></div>
+      <div class="cup-tlist" id="cupTaskList"></div>
       <div class="workbench" id="todoWorkbench">
 
         <!-- LEFT: To-Do Bank -->
@@ -22636,6 +22675,84 @@ function cupWFocusScores(){
 if(typeof CUP_WIDGETS==='object') CUP_WIDGETS.fscores=['◎','Focus scores','Your last study sessions, scored','Focus',0,cupWFocusScores];
 window.addEventListener('beforeunload',()=>{ if(cupFCSess) cupFCEnd(false); });
 
+// ════════════════════════════════════════════════════════════
+//  TASKS — a calm list. Overdue · Today · Tomorrow · this week · Later · No date · Waiting.
+//  Replaces the three-panel workbench in lean mode (Extra tools brings it back).
+// ════════════════════════════════════════════════════════════
+let cupTLFolder=''; try{ cupTLFolder=localStorage.getItem('cup_tl_folder')||''; }catch(_){}
+let cupTLQuery='', cupTLOpen={ overdue:false, waiting:false, done:false, later:false, none:true };
+try{ Object.assign(cupTLOpen, JSON.parse(localStorage.getItem('cup_tl_open')||'{}')); }catch(_){}
+function cupTLToggle(k){ cupTLOpen[k]=!cupTLOpen[k]; try{ localStorage.setItem('cup_tl_open',JSON.stringify(cupTLOpen)); }catch(_){} cupRenderTaskList(); }
+const cupTLDate = t => { const td=todayStr(); const fut=(t.scheduledDates||[]).filter(d=>d>=td).sort()[0]; return t.due && (!fut || t.due<fut) ? t.due : (fut||t.due||''); };
+function cupTLMatch(t){
+  if(cupTLQuery && !String(t.title||'').toLowerCase().includes(cupTLQuery.toLowerCase())) return false;
+  if(!cupTLFolder) return true;
+  if(cupTLFolder.startsWith('area:')) return t.area===cupTLFolder.slice(5);
+  const c=cupCommit(t.commitId); let x=c; while(x){ if(x.id===cupTLFolder) return true; x=x.parentId?cupCommit(x.parentId):null; } return false;
+}
+function cupTLRow(t, showDate){
+  const c=cupCommit(t.commitId), folder=c?c.name:(CUP_AREA[t.area]?.name||'');
+  const ds=cupTLDate(t), time=t.dueTime||t.scheduledTime||'';
+  const must=t.priority==='must'||t.priority==='MUST';
+  return `<div class="cup-tl-row ${cupDone(t)?'done':''}">
+    <button class="cup-check2 ${cupDone(t)?'d':''}" onclick="toggleTask('${t.id}')" aria-label="Done"></button>
+    <button class="cup-tl-t" onclick="editTask('${t.id}')">${must?'<i class="cup-tl-must" title="Must do"></i>':''}${esc(t.title)}</button>${typeof cupFCChip==='function'?cupFCChip(t):''}
+    <span class="cup-tl-meta">${showDate&&ds?`<span>${cupWd(ds)} ${cupFmt(ds)}</span>`:''}${time?`<span>${cupT12(time)}</span>`:''}${folder?`<span class="cup-tl-f"><i style="background:${cupSphColor(t.area)}"></i>${esc(folder)}</span>`:''}</span>
+    <span class="cup-tl-act">${cupDone(t)?'':`<button onclick="cupSessionOpen('${t.id}')" title="Start a session">◎</button>`}</span>
+  </div>`;
+}
+function cupRenderTaskList(){
+  const host=document.getElementById('cupTaskList'); if(!host) return;
+  const td=todayStr(), d=n=>{ const x=cupParse(td); x.setDate(x.getDate()+n); return cupISO(x); }, tm=d(1), wk=d(7);
+  // one lecture per tracked class (the next one), like Next up
+  const seenPlan=new Set();
+  const all=S.tasks.filter(t=>!t.isHabit && !t.archived).sort((a,b)=>(cupTLDate(a)||'9999').localeCompare(cupTLDate(b)||'9999')||(a.dueTime||'99').localeCompare(b.dueTime||'99'))
+    .filter(t=>{ if(!(t.plan&&t.plan.name) || cupDone(t)) return true; if(seenPlan.has(t.plan.name)) return false; seenPlan.add(t.plan.name); return true; });
+  const open=all.filter(t=>!cupDone(t)&&cupTLMatch(t)), doneToday=S.tasks.filter(t=>!t.isHabit&&t.completed&&(t.completedAt?cupISO(new Date(t.completedAt))===td:(t.completedDate===td))&&cupTLMatch(t));
+  const waiting=open.filter(t=>t.waiting), act=open.filter(t=>!t.waiting);
+  const over=act.filter(t=>t.due&&t.due<td && !(t.scheduledDates||[]).some(x=>x>=td));
+  const rest=act.filter(t=>!over.includes(t));
+  const on=k=>rest.filter(t=>cupTLDate(t)===k);
+  const week=[]; for(let i=2;i<=7;i++){ const k=d(i), l=on(k); if(l.length) week.push([k,l]); }
+  const later=rest.filter(t=>{ const k=cupTLDate(t); return k && k>wk; }), none=rest.filter(t=>!cupTLDate(t));
+  const sec=(key,title,list,{fold,showDate,extra,cls}={})=>{ if(!list.length) return '';
+    const isOpen=fold?cupTLOpen[key]:true;
+    return `<section class="cup-tl-sec ${cls||''}"><div class="cup-tl-h">${fold?`<button onclick="cupTLToggle('${key}')" aria-expanded="${isOpen}"><span class="cup-fold-chev ${isOpen?'open':''}">›</span>${title}</button>`:`<span>${title}</span>`}<span class="cup-tl-n">${list.length}</span>${extra||''}</div>
+      ${isOpen?list.map(t=>cupTLRow(t,showDate)).join(''):''}</section>`; };
+  const folders=cupActive().filter(c=>!c.parentId).sort(cupByName);
+  const html=`<div class="cup-tl">
+    <div class="cup-tl-top">
+      <button class="cup-tl-add" onclick="cupPlusOpen('task')"><span>+</span>Add a task<em>try “PHYS lab fri 3pm”</em></button>
+      <select class="cup-tl-fsel ${cupTLFolder?'on':''}" onchange="cupTLFolder=this.value;try{localStorage.setItem('cup_tl_folder',this.value)}catch(_){};cupRenderTaskList()" aria-label="Folder">
+        <option value="">All folders</option>${folders.map(c=>`<option value="${c.id}" ${cupTLFolder===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
+      <input class="cup-tl-q" placeholder="Search" value="${esc(cupTLQuery)}" oninput="cupTLQuery=this.value;cupRenderTaskList()" aria-label="Search tasks">
+    </div>
+    ${sec('overdue','Overdue',over,{ fold:true, showDate:true, cls:'over', extra:over.length>=3?`<button class="cup-tl-fresh" onclick="cupFreshOpen()">Fresh start</button>`:'' })}
+    ${sec('today','Today',on(td))}
+    ${sec('tomorrow','Tomorrow',on(tm))}
+    ${week.map(([k,l])=>sec('d'+k, `${cupWd(k)} <span class="cup-dim">${cupFmt(k)}</span>`, l)).join('')}
+    ${sec('later','Later',later,{ fold:true, showDate:true })}
+    ${sec('none','No date',none,{ fold:true })}
+    ${sec('waiting','Waiting on',waiting,{ fold:true })}
+    ${sec('done','Done today',doneToday,{ fold:true, cls:'donesec' })}
+    ${!open.length&&!doneToday.length?`<div class="cup-tl-empty">${cupTLQuery||cupTLFolder?'Nothing matches.':'Nothing to do. Enjoy it ✓'}</div>`:''}
+  </div>`;
+  if(host.contains(document.activeElement) && document.activeElement.classList.contains('cup-tl-q')){
+    const sel=document.activeElement.selectionStart; if(host._last!==html){ host.innerHTML=html; host._last=html; const q=host.querySelector('.cup-tl-q'); q.focus(); try{ q.setSelectionRange(sel,sel); }catch(_){} } return; }
+  if(host._last!==html){ host.innerHTML=html; host._last=html; }
+}
+// view switch: List / Calendar in lean mode
+{ const _set=cupSetMCol; cupSetMCol=function(c){
+    if(document.body.classList.contains('cup-lean') && c!=='cal' && c!=='list') c='list';
+    if(!document.body.classList.contains('cup-lean') && c==='list') c='today';
+    _set.call(this,c); if(c==='list') cupRenderTaskList(); }; }
+{ const _rc=renderCup; renderCup=function(){ const r=_rc.apply(this,arguments);
+    try{ const lean=document.body.classList.contains('cup-lean');
+      if(lean && cupMCol!=='cal' && cupMCol!=='list') cupSetMCol('list');
+      if(!lean && cupMCol==='list') cupSetMCol('today');
+      if(cupMCol==='list' && typeof currentPage!=='undefined' && currentPage==='todo') cupRenderTaskList(); }catch(_){}
+    return r; }; }
+
 
 // Korean interface strings. Keys are the exact English text shown on screen.
 Object.assign(CUP_KO, {
@@ -22660,7 +22777,7 @@ Object.assign(CUP_KO, {
   "Group focus":"그룹 집중 시간","Goal reached together 🎉":"함께 목표를 달성했어요 🎉","Leave":"나가기",
   "When":"언제","Where & status":"폴더 & 상태","⧗ Waiting on reply":"⧗ 답변 대기 중","Every day (habit)":"매일 (습관)",
   "Or on specific days (habit)":"또는 특정 요일마다 (습관)",
-  "Shared Lists":"공유 목록","Weekly Load":"주간 로드","Friends":"친구","👥 Friends":"👥 친구","Friends & groups →":"친구 & 그룹 →","Garden":"가든","Study together, quietly. Friends and groups see only your name, trees, streak and focus minutes.":"조용히 함께 공부해요. 친구와 그룹에는 이름, 나무, 연속 일수, 집중 시간만 보여요.","Extra tools":"추가 도구","Shows the S/M/L and shortcut buttons, the Focus page, Upcoming in the sidebar, Home blocks, Prep, Gentle day and the Home filter.":"S/M/L·단축키 버튼, 집중 페이지, 사이드바의 다가오는 일정, 홈 블록, 준비, 가벼운 날, 홈 필터를 보여줘요.","Your meadow":"나의 정원","Invite a friend":"친구 초대","Your code":"내 코드","Copy":"복사","Friend’s code — Enter":"친구 코드 — Enter","Cheers for you":"받은 응원","Manage friends":"친구 관리","Remove":"삭제","What friends see":"친구에게 보이는 것","Share these habits as check-ins":"이 습관을 체크인으로 공유","Friends see only ✓ or nothing for each day.":"친구에게는 날마다 ✓ 표시만 보여요.","Pause sharing":"공유 일시정지","Turn off friends":"친구 기능 끄기","Grow your trees side by side":"나무를 나란히 키워요","A shared meadow":"함께하는 정원","See everyone’s tree for today":"모두의 오늘 나무를 봐요","QT check-ins":"큐티 체크인","Your small group ticks quiet time together":"소그룹이 함께 큐티를 체크해요","Cheers":"응원","One tap to cheer a friend on":"한 번 눌러 친구를 응원해요","Focus together":"함께 집중","Join when a friend starts studying":"친구가 공부를 시작하면 함께해요","No rankings. Only what you choose is shared, never your tasks or notes.":"순위는 없어요. 고른 것만 공유되고, 할 일이나 노트는 절대 공유되지 않아요.","Turn on friends":"친구 기능 켜기","Small group":"소그룹","Gym buddies":"운동 메이트","Study squad":"스터디","Club or team":"동아리 · 팀","QT check-ins — everyone ticks their quiet time":"큐티 체크인 — 모두 큐티를 체크해요","Workout check-ins together":"함께 운동 체크인","Focus hours toward one weekly goal":"주간 목표를 향한 집중 시간","Focus hours and tasks done together":"함께한 집중 시간과 완료한 일","Start a group":"그룹 만들기","Start another group":"그룹 하나 더 만들기","Or join with a code — Enter":"또는 코드로 참여 — Enter","resting":"쉬는 중","Gym buddy":"운동 메이트","Friend":"친구","This week’s league":"이번 주 리그","ends in":"종료까지","Change":"변경","Save":"저장","Cancel":"취소","Pick a username so friends can add you":"친구가 추가할 수 있도록 사용자 이름을 정하세요","New username":"새 사용자 이름","Available ✓":"사용 가능 ✓","Taken — try another":"이미 사용 중 — 다른 이름을 써 보세요","Checking…":"확인 중…","That’s you":"지금 내 이름이에요","3–20 letters, numbers, _ or .":"영문 소문자·숫자·_·. 3–20자","Add a friend — @username":"친구 추가 — @사용자이름","Copy mine":"내 것 복사","Your league starts with one friend":"친구 한 명이면 리그가 시작돼요","1 pt per focus minute · 20 per task done · 10 per check-in · resets every week":"집중 1분 1점 · 완료한 일 20점 · 체크인 10점 · 매주 초기화","Join":"함께하기","+ Add widget":"+ 위젯 추가","Edit widgets":"위젯 편집","Done":"완료","Add a widget":"위젯 추가","Study":"공부","Plan":"계획","Together":"함께","Life":"생활","Course pace":"수업 진도","Exam countdown":"시험 카운트다운","Deadlines":"마감","Focus today":"오늘 집중","Time left":"남은 시간","This week":"이번 주","Waiting on":"답변 대기","Goals":"목표","Friends league":"친구 리그","Garden":"가든","Journal":"일기","Habits":"습관","Recent pages":"최근 페이지","Principles":"원칙","How many lectures behind each class is":"수업별로 몇 강 밀렸는지","Days until the next midterm, final or big deadline":"다음 중간·기말고사나 큰 마감까지 남은 날","Everything due soon":"곧 마감되는 모든 것","Minutes focused today toward your goal":"오늘 목표 대비 집중 시간","Day, week and term remaining":"오늘·이번 주·학기 남은 시간","Your next events and classes":"다음 일정과 수업","The week at a glance and your load":"한눈에 보는 이번 주와 부담","Things you sent and are waiting to hear back on":"보내고 답을 기다리는 것","Your goals and how far along they are":"목표와 진행 상황","Your rank this week and who’s close":"이번 주 내 순위와 가까운 친구","Today’s tree, streak and gems":"오늘의 나무, 연속 기록, 보석","Today’s reflection and your streak":"오늘의 기록과 연속 일수","Tick today’s habits":"오늘 습관 체크","Notes you edited lately":"최근 수정한 노트","The rules you want to live by":"지키고 싶은 원칙","+ Add":"+ 추가","Start a weekly league":"주간 리그 시작","Race friends on focus minutes and tasks.":"집중 시간과 완료한 일로 친구와 겨뤄요.","Add a friend to start":"친구를 추가해 시작하세요","How was today?":"오늘 어땠나요?","A line or two is enough":"한두 줄이면 충분해요","◎ Start a session":"◎ 세션 시작","Track a class to see how many lectures behind you are.":"수업을 추적하면 몇 강 밀렸는지 볼 수 있어요.","Every widget is already on Home.":"모든 위젯이 이미 홈에 있어요.","Schedule":"일정","To do today":"오늘 할 일","Show less":"접기","All day":"종일","now":"지금","Start a session":"세션 시작","Working on":"작업 중","What does done look like?":"어떻게 되면 끝인가요?","Focus check":"집중 체크","Scores how focused you are and gives advice afterwards":"얼마나 집중했는지 점수를 매기고 끝나면 조언해요","Camera":"카메라","Screen":"화면","Mic":"마이크","On this device":"이 기기에서만","◎ Start session":"◎ 세션 시작","Session report":"세션 리포트","Advice for next time":"다음을 위한 조언","Minute by minute":"분 단위 기록","Earlier sessions on this task":"이 할 일의 이전 세션","Pause":"일시정지","Resume":"다시 시작","End":"끝내기","Delete":"삭제","On task":"집중 중","On phone":"휴대폰 사용","Off-task screen":"관련 없는 화면","Talking":"대화 중","Moving around":"움직이는 중","Zoning out":"멍때림","Away":"자리 비움","Reading / thinking":"읽기 / 생각","Focus scores":"집중 점수","Your last study sessions, scored":"최근 공부 세션 점수","Start a checked session":"집중 체크 세션 시작","Get a focus score and advice after each study block":"공부가 끝날 때마다 점수와 조언을 받아요","First check in a moment…":"곧 첫 체크를 해요…","What are you working on?":"무엇을 하나요?","Custom repeat":"직접 반복 설정","Every N days, weeks or months. When you finish it, the next one is created with a new due date.":"N일·N주·N개월마다 반복해요. 완료하면 새 마감일로 다음 항목이 만들어져요.",
+  "Shared Lists":"공유 목록","Weekly Load":"주간 로드","Friends":"친구","👥 Friends":"👥 친구","Friends & groups →":"친구 & 그룹 →","Garden":"가든","Study together, quietly. Friends and groups see only your name, trees, streak and focus minutes.":"조용히 함께 공부해요. 친구와 그룹에는 이름, 나무, 연속 일수, 집중 시간만 보여요.","Extra tools":"추가 도구","Shows the S/M/L and shortcut buttons, the Focus page, Upcoming in the sidebar, Home blocks, Prep, Gentle day and the Home filter.":"S/M/L·단축키 버튼, 집중 페이지, 사이드바의 다가오는 일정, 홈 블록, 준비, 가벼운 날, 홈 필터를 보여줘요.","Your meadow":"나의 정원","Invite a friend":"친구 초대","Your code":"내 코드","Copy":"복사","Friend’s code — Enter":"친구 코드 — Enter","Cheers for you":"받은 응원","Manage friends":"친구 관리","Remove":"삭제","What friends see":"친구에게 보이는 것","Share these habits as check-ins":"이 습관을 체크인으로 공유","Friends see only ✓ or nothing for each day.":"친구에게는 날마다 ✓ 표시만 보여요.","Pause sharing":"공유 일시정지","Turn off friends":"친구 기능 끄기","Grow your trees side by side":"나무를 나란히 키워요","A shared meadow":"함께하는 정원","See everyone’s tree for today":"모두의 오늘 나무를 봐요","QT check-ins":"큐티 체크인","Your small group ticks quiet time together":"소그룹이 함께 큐티를 체크해요","Cheers":"응원","One tap to cheer a friend on":"한 번 눌러 친구를 응원해요","Focus together":"함께 집중","Join when a friend starts studying":"친구가 공부를 시작하면 함께해요","No rankings. Only what you choose is shared, never your tasks or notes.":"순위는 없어요. 고른 것만 공유되고, 할 일이나 노트는 절대 공유되지 않아요.","Turn on friends":"친구 기능 켜기","Small group":"소그룹","Gym buddies":"운동 메이트","Study squad":"스터디","Club or team":"동아리 · 팀","QT check-ins — everyone ticks their quiet time":"큐티 체크인 — 모두 큐티를 체크해요","Workout check-ins together":"함께 운동 체크인","Focus hours toward one weekly goal":"주간 목표를 향한 집중 시간","Focus hours and tasks done together":"함께한 집중 시간과 완료한 일","Start a group":"그룹 만들기","Start another group":"그룹 하나 더 만들기","Or join with a code — Enter":"또는 코드로 참여 — Enter","resting":"쉬는 중","Gym buddy":"운동 메이트","Friend":"친구","This week’s league":"이번 주 리그","ends in":"종료까지","Change":"변경","Save":"저장","Cancel":"취소","Pick a username so friends can add you":"친구가 추가할 수 있도록 사용자 이름을 정하세요","New username":"새 사용자 이름","Available ✓":"사용 가능 ✓","Taken — try another":"이미 사용 중 — 다른 이름을 써 보세요","Checking…":"확인 중…","That’s you":"지금 내 이름이에요","3–20 letters, numbers, _ or .":"영문 소문자·숫자·_·. 3–20자","Add a friend — @username":"친구 추가 — @사용자이름","Copy mine":"내 것 복사","Your league starts with one friend":"친구 한 명이면 리그가 시작돼요","1 pt per focus minute · 20 per task done · 10 per check-in · resets every week":"집중 1분 1점 · 완료한 일 20점 · 체크인 10점 · 매주 초기화","Join":"함께하기","+ Add widget":"+ 위젯 추가","Edit widgets":"위젯 편집","Done":"완료","Add a widget":"위젯 추가","Study":"공부","Plan":"계획","Together":"함께","Life":"생활","Course pace":"수업 진도","Exam countdown":"시험 카운트다운","Deadlines":"마감","Focus today":"오늘 집중","Time left":"남은 시간","This week":"이번 주","Waiting on":"답변 대기","Goals":"목표","Friends league":"친구 리그","Garden":"가든","Journal":"일기","Habits":"습관","Recent pages":"최근 페이지","Principles":"원칙","How many lectures behind each class is":"수업별로 몇 강 밀렸는지","Days until the next midterm, final or big deadline":"다음 중간·기말고사나 큰 마감까지 남은 날","Everything due soon":"곧 마감되는 모든 것","Minutes focused today toward your goal":"오늘 목표 대비 집중 시간","Day, week and term remaining":"오늘·이번 주·학기 남은 시간","Your next events and classes":"다음 일정과 수업","The week at a glance and your load":"한눈에 보는 이번 주와 부담","Things you sent and are waiting to hear back on":"보내고 답을 기다리는 것","Your goals and how far along they are":"목표와 진행 상황","Your rank this week and who’s close":"이번 주 내 순위와 가까운 친구","Today’s tree, streak and gems":"오늘의 나무, 연속 기록, 보석","Today’s reflection and your streak":"오늘의 기록과 연속 일수","Tick today’s habits":"오늘 습관 체크","Notes you edited lately":"최근 수정한 노트","The rules you want to live by":"지키고 싶은 원칙","+ Add":"+ 추가","Start a weekly league":"주간 리그 시작","Race friends on focus minutes and tasks.":"집중 시간과 완료한 일로 친구와 겨뤄요.","Add a friend to start":"친구를 추가해 시작하세요","How was today?":"오늘 어땠나요?","A line or two is enough":"한두 줄이면 충분해요","◎ Start a session":"◎ 세션 시작","Track a class to see how many lectures behind you are.":"수업을 추적하면 몇 강 밀렸는지 볼 수 있어요.","Every widget is already on Home.":"모든 위젯이 이미 홈에 있어요.","Schedule":"일정","To do today":"오늘 할 일","Show less":"접기","All day":"종일","now":"지금","Start a session":"세션 시작","Working on":"작업 중","What does done look like?":"어떻게 되면 끝인가요?","Focus check":"집중 체크","Scores how focused you are and gives advice afterwards":"얼마나 집중했는지 점수를 매기고 끝나면 조언해요","Camera":"카메라","Screen":"화면","Mic":"마이크","On this device":"이 기기에서만","◎ Start session":"◎ 세션 시작","Session report":"세션 리포트","Advice for next time":"다음을 위한 조언","Minute by minute":"분 단위 기록","Earlier sessions on this task":"이 할 일의 이전 세션","Pause":"일시정지","Resume":"다시 시작","End":"끝내기","Delete":"삭제","On task":"집중 중","On phone":"휴대폰 사용","Off-task screen":"관련 없는 화면","Talking":"대화 중","Moving around":"움직이는 중","Zoning out":"멍때림","Away":"자리 비움","Reading / thinking":"읽기 / 생각","Focus scores":"집중 점수","Your last study sessions, scored":"최근 공부 세션 점수","Start a checked session":"집중 체크 세션 시작","Get a focus score and advice after each study block":"공부가 끝날 때마다 점수와 조언을 받아요","First check in a moment…":"곧 첫 체크를 해요…","What are you working on?":"무엇을 하나요?","List":"목록","Add a task":"할 일 추가","All folders":"모든 폴더","Search":"검색","Overdue":"지난 일","Today":"오늘","Tomorrow":"내일","Later":"나중","No date":"날짜 없음","Done today":"오늘 완료","Fresh start":"새 출발","Nothing matches.":"일치하는 항목이 없어요.","Nothing to do. Enjoy it ✓":"할 일이 없어요. 즐기세요 ✓","Custom repeat":"직접 반복 설정","Every N days, weeks or months. When you finish it, the next one is created with a new due date.":"N일·N주·N개월마다 반복해요. 완료하면 새 마감일로 다음 항목이 만들어져요.",
   "▸ More options (priority, steps, work date, reminders, files…)":"▸ 추가 옵션 (우선순위, 단계, 작업일, 알림, 파일…)",
   "▾ Fewer options":"▾ 옵션 접기",
   // ── navigation & shell ──
