@@ -6513,6 +6513,62 @@ body.cup-minimal .cup-next-foot, body.cup-minimal .cup-fold-btn .cup-dim{ displa
 .cup-ev-notes:hover{ color:var(--text); border-color:var(--text3); }
 #cupPlusPgTpl{ width:auto; max-width:210px; font-size:calc(12.5px * var(--cup-fs,1)); padding:4px 8px; }
 
+/* ════════ Date & time picker ════════ */
+input[type=date], input[type=time]{ -webkit-appearance:none; appearance:none; cursor:pointer; padding-right:34px;
+  background-repeat:no-repeat; background-position:right 11px center; background-size:15px; min-height:36px; }
+input[type=date]{ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238a8a85' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.5' y='3.5' width='11' height='10' rx='2'/%3E%3Cpath d='M2.5 6.5h11M5.5 2v3M10.5 2v3'/%3E%3C/svg%3E"); }
+input[type=time]{ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238a8a85' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='8' cy='8' r='5.5'/%3E%3Cpath d='M8 5v3l2 1.5'/%3E%3C/svg%3E"); }
+input[type=date]::-webkit-calendar-picker-indicator, input[type=time]::-webkit-calendar-picker-indicator{ display:none; }
+input[type=date]:disabled, input[type=time]:disabled{ cursor:default; opacity:.5; }
+.cup-selbar-pick input[type=date], .cup-ts-pick input[type=date], .cup-ts-pick input[type=time], .cup-lm-date input{ background-image:none; }
+.cup-dp-bd{ position:fixed; inset:0; z-index:3400; background:rgba(0,0,0,.35); display:none; }
+.cup-dp-bd.show{ display:block; }
+.cup-dp{ position:fixed; z-index:3500; width:292px; display:none; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:14px;
+  box-shadow:0 18px 50px rgba(0,0,0,.28); padding:12px; user-select:none; -webkit-user-select:none; }
+.cup-dp.show{ display:block; animation:cupdp .12s ease-out; }
+@keyframes cupdp{ from{ opacity:0; transform:translateY(-4px); } to{ opacity:1; transform:none; } }
+.cup-dp.sheet{ width:100%; border-radius:18px 18px 0 0; padding:14px 16px calc(16px + env(safe-area-inset-bottom)); max-height:80vh; overflow-y:auto; animation:cupdp2 .18s ease-out; }
+@keyframes cupdp2{ from{ transform:translateY(24px); opacity:0; } to{ transform:none; opacity:1; } }
+.cup-dp-head{ display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:8px; }
+.cup-dp-title{ flex:1; padding:6px 8px; border-radius:8px; font-size:calc(14.5px * var(--cup-fs,1)); font-weight:600; text-align:center; font-family:'Source Serif 4',Georgia,serif; }
+.cup-dp-title:not(.static):hover{ background:var(--bg2); }
+.cup-dp-nav{ width:32px; height:32px; border-radius:8px; font-size:18px; line-height:1; color:var(--text2); }
+.cup-dp-nav:hover{ background:var(--bg2); color:var(--text); }
+.cup-dp-wk{ display:grid; grid-template-columns:repeat(7,1fr); text-align:center; font-size:calc(10.5px * var(--cup-fs,1)); letter-spacing:.06em; text-transform:uppercase; color:var(--text3); margin-bottom:2px; }
+.cup-dp-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+.cup-dp-day{ position:relative; aspect-ratio:1; max-height:38px; border-radius:50%; font-size:calc(13px * var(--cup-fs,1)); color:var(--text); display:grid; place-items:center; }
+.cup-dp-day.other{ color:var(--text3); opacity:.55; }
+.cup-dp-day:hover:not(:disabled){ background:var(--bg2); }
+.cup-dp-day.today{ box-shadow:inset 0 0 0 1.5px var(--accent); }
+.cup-dp-day.cur{ background:var(--bg2); }
+.cup-dp-day.sel{ background:var(--accent); color:#fff; font-weight:600; }
+.cup-dp-day:disabled{ opacity:.25; cursor:default; }
+.cup-dp-day i{ position:absolute; bottom:4px; left:50%; width:4px; height:4px; margin-left:-2px; border-radius:50%; background:var(--text3); }
+.cup-dp-day i.many{ background:var(--orange); }
+.cup-dp-day.sel i{ background:#fff; }
+.cup-dp-quick{ display:flex; flex-wrap:wrap; gap:4px; margin-top:10px; padding-top:10px; border-top:1px solid var(--border); }
+.cup-dp-quick button{ padding:5px 10px; font-size:calc(12px * var(--cup-fs,1)); border-radius:999px; border:1px solid var(--border); color:var(--text2); }
+.cup-dp-quick button:hover{ color:var(--text); border-color:var(--text3); }
+.cup-dp-quick .clr{ color:var(--text3); margin-left:auto; border-style:dashed; }
+.cup-dp-type{ width:100%; margin-top:8px; font-size:calc(13px * var(--cup-fs,1)); padding:7px 10px; border-radius:8px; }
+.cup-dp-hint{ min-height:16px; margin-top:4px; font-size:calc(11.5px * var(--cup-fs,1)); color:var(--accent); }
+.cup-dp-months{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+.cup-dp-months button{ padding:12px 0; border-radius:10px; font-size:calc(13.5px * var(--cup-fs,1)); color:var(--text2); }
+.cup-dp-months button:hover{ background:var(--bg2); color:var(--text); }
+.cup-dp-months button.on{ background:var(--accent-dim); color:var(--accent); font-weight:600; }
+.cup-dp-seg{ display:inline-flex; border:1px solid var(--border); border-radius:999px; overflow:hidden; }
+.cup-dp-seg button{ padding:5px 12px; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text2); }
+.cup-dp-seg button.on{ background:var(--accent-dim); color:var(--accent); font-weight:600; }
+.cup-dp-title.static{ text-align:left; font-size:18px; }
+.cup-dp-cols{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.cup-dp-col{ max-height:168px; overflow-y:auto; display:flex; flex-direction:column; gap:2px; padding:2px; border:1px solid var(--border); border-radius:10px; scrollbar-width:thin; position:relative; }
+.cup-dp-opt{ padding:7px 0; border-radius:8px; font-size:calc(14px * var(--cup-fs,1)); font-variant-numeric:tabular-nums; color:var(--text2); }
+.cup-dp-opt:hover{ background:var(--bg2); color:var(--text); }
+.cup-dp-opt.on{ background:var(--accent); color:#fff; font-weight:600; }
+.cup-dp-row{ display:flex; gap:8px; align-items:center; margin-top:8px; }
+.cup-dp-row .cup-dp-type{ margin:0; flex:1; }
+.cup-dp-ok{ padding:8px 16px; }
+
 </style>
 <script>
 /* Immediately apply saved theme + density to avoid flash */
@@ -19351,7 +19407,7 @@ function cupSelPaint(){
     <span class="cup-selbar-sep"></span>
     <button ${n?'':'disabled'} onclick="cupSelDo('done')">${cupIc('check')} Done</button>
     <button ${n?'':'disabled'} onclick="cupSelDo('today')">${cupIc('date')} Today</button>
-    <label class="cup-selbar-pick ${n?'':'off'}">${cupIc('cal')} Due<input type="date" ${n?'':'disabled'} onclick="try{this.showPicker()}catch(_){}" onchange="cupSelDo('due',this.value)"></label>
+    <label class="cup-selbar-pick ${n?'':'off'}">${cupIc('cal')} Due<input type="date" ${n?'':'disabled'} onchange="cupSelDo('due',this.value)"></label>
     <label class="cup-selbar-pick ${n?'':'off'}">${cupIc('folder')} Move<select ${n?'':'disabled'} onchange="cupSelDo('move',this.value)"><option value="">Move to…</option><option value="none">No folder</option>${cupFolderOptions('').replace('<option value="">None</option>','')}</select></label>
     <button ${n?'':'disabled'} onclick="cupSelDo('wait')">${cupIc('wait')} Waiting</button>
     <button ${n?'':'disabled'} onclick="cupSelDo('page')">${cupIc('page')} Make a page</button>
@@ -21300,6 +21356,137 @@ function cupKoDump(){
   document.querySelectorAll('[placeholder],[title],[aria-label]').forEach(el=>{ if(el.closest(CUP_KO_SKIP)) return; CUP_KO_ATTRS.forEach(a=>{ const v=(el.getAttribute(a)||'').trim(); if(v&&/[A-Za-z]/.test(v)&&cupTr(v)===null) out.add(v); }); });
   return [...out];
 }
+
+
+// ════════════════════════════════════════════════════════════════════
+//  DATE & TIME PICKER — one calm picker for every date and time field
+//  (replaces each browser's own picker, which looked different everywhere
+//  and didn't fit the app). Type a date too: "fri", "oct 28", "내일".
+// ════════════════════════════════════════════════════════════════════
+const cupDP = { el:null, input:null, kind:'', view:'days', y:0, m:0, cur:'', sel:'', hh:9, mm:0, ap:'am' };
+const cupDPKo = () => (typeof cupLang==='function' && cupLang()==='ko');
+const cupDPLocale = () => cupDPKo() ? 'ko-KR' : undefined;
+function cupDPEnsure(){
+  if(cupDP.el) return cupDP.el;
+  const el=document.createElement('div'); el.id='cupDP'; el.className='cup-dp'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','false');
+  el.addEventListener('mousedown', e=>{ if(!e.target.closest('input')) e.preventDefault(); });   // keep focus where it was
+  document.body.appendChild(el);
+  const bd=document.createElement('div'); bd.id='cupDPBd'; bd.className='cup-dp-bd'; bd.onclick=cupDPClose; document.body.appendChild(bd);
+  cupDP.el=el; return el;
+}
+function cupDPClose(){ if(!cupDP.el) return; cupDP.el.classList.remove('show'); document.getElementById('cupDPBd')?.classList.remove('show'); cupDP.input=null; }
+function cupDPSet(value){
+  const inp=cupDP.input; if(!inp) return;
+  inp.value=value; inp.dispatchEvent(new Event('input',{bubbles:true})); inp.dispatchEvent(new Event('change',{bubbles:true}));
+  cupDPClose();
+}
+function cupDPPlace(){
+  const el=cupDP.el, inp=cupDP.input; if(!el||!inp) return;
+  const vis=inp.getBoundingClientRect().width>6 && getComputedStyle(inp).opacity!=='0';
+  const r=(vis?inp:(inp.closest('label')||inp.parentElement||inp)).getBoundingClientRect();
+  const phone=window.innerWidth<560;
+  document.getElementById('cupDPBd').classList.toggle('show', phone);
+  el.classList.toggle('sheet', phone);
+  if(phone){ el.style.left='0'; el.style.top='auto'; el.style.bottom='0'; return; }
+  el.style.bottom='auto'; const w=el.offsetWidth||300, h=el.offsetHeight||330;
+  let left=Math.min(Math.max(8,r.left), window.innerWidth-w-8), top=r.bottom+6;
+  if(top+h>window.innerHeight-8) top=Math.max(8, r.top-h-6);
+  el.style.left=left+'px'; el.style.top=top+'px';
+}
+const cupDPIso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+function cupDPOpen(input){
+  if(input.disabled) return;
+  const el=cupDPEnsure(); cupDP.input=input; cupDP.kind=input.type; cupDP.view='days';
+  if(input.type==='date'){
+    const v=/^\d{4}-\d{2}-\d{2}$/.test(input.value)?input.value:'', base=v||todayStr(); cupDP.sel=v; cupDP.cur=base;
+    const d=cupParse(base); cupDP.y=d.getFullYear(); cupDP.m=d.getMonth();
+  } else {
+    const v=/^\d{1,2}:\d{2}$/.test(input.value)?input.value:'', [h,mi]=(v||'09:00').split(':').map(Number);
+    cupDP.sel=v; cupDP.ap=h>=12?'pm':'am'; cupDP.hh=h%12||12; cupDP.mm=mi;
+  }
+  el.setAttribute('aria-label', input.type==='date'?(cupDPKo()?'날짜 선택':'Choose a date'):(cupDPKo()?'시간 선택':'Choose a time'));
+  el.classList.add('show'); cupDPRender(); cupDPPlace();
+  setTimeout(()=>{ cupDPPlace(); el.querySelector('.cup-dp-day.sel, .cup-dp-day.today, .cup-dp-opt.on')?.scrollIntoView?.({block:'nearest'}); },30);
+}
+// ── dates ──
+function cupDPDayHTML(){
+  const y=cupDP.y, m=cupDP.m, ko=cupDPKo(), first=new Date(y,m,1), start=(typeof cupSunStart==='function'&&cupSunStart())?0:1;
+  const lead=(first.getDay()-start+7)%7, days=new Date(y,m+1,0).getDate(), today=todayStr(), min=cupDP.input.min||'', max=cupDP.input.max||'';
+  const wk=[...Array(7)].map((_,i)=>{ const d=new Date(2024,0,7+((start+i)%7)); return d.toLocaleDateString(cupDPLocale(),{weekday:ko?'short':'narrow'}); });
+  let cells=''; for(let i=0;i<lead;i++){ const d=new Date(y,m,1-lead+i); cells+=cupDPCell(d,true,today,min,max); }
+  for(let d=1; d<=days; d++) cells+=cupDPCell(new Date(y,m,d),false,today,min,max);
+  while((cells.match(/cup-dp-day/g)||[]).length%7) { const d=new Date(y,m,days+((cells.match(/cup-dp-day/g)||[]).length-lead-days)+1); cells+=cupDPCell(d,true,today,min,max); }
+  const title=new Date(y,m,1).toLocaleDateString(cupDPLocale(),{month:'long',year:'numeric'});
+  return `<div class="cup-dp-head"><button type="button" class="cup-dp-nav" onclick="cupDPMove(-1)" aria-label="${ko?'이전 달':'Previous month'}">‹</button>
+      <button type="button" class="cup-dp-title" onclick="cupDP.view='months';cupDPRender()">${esc(title)}</button>
+      <button type="button" class="cup-dp-nav" onclick="cupDPMove(1)" aria-label="${ko?'다음 달':'Next month'}">›</button></div>
+    <div class="cup-dp-wk">${wk.map(w=>`<span>${esc(w)}</span>`).join('')}</div>
+    <div class="cup-dp-grid" role="grid">${cells}</div>`;
+}
+function cupDPCell(d, other, today, min, max){
+  const iso=cupDPIso(d); let dis=(min&&iso<min)||(max&&iso>max), n=0;
+  try{ n=cupCalTasksOn(iso).length+cupCalEventsOn(iso).length; }catch(_){}
+  return `<button type="button" class="cup-dp-day ${other?'other':''} ${iso===today?'today':''} ${iso===cupDP.sel?'sel':''} ${iso===cupDP.cur&&iso!==cupDP.sel?'cur':''}" ${dis?'disabled':''} onclick="cupDPSet('${iso}')" aria-label="${esc(cupParse(iso).toLocaleDateString(cupDPLocale(),{weekday:'long',month:'long',day:'numeric'}))}" ${iso===cupDP.sel?'aria-selected="true"':''}>${d.getDate()}${n?`<i class="${n>3?'many':''}"></i>`:''}</button>`;
+}
+function cupDPMove(n){ cupDP.m+=n; if(cupDP.m<0){ cupDP.m=11; cupDP.y--; } if(cupDP.m>11){ cupDP.m=0; cupDP.y++; } cupDPRender(); cupDPPlace(); }
+function cupDPMonthsHTML(){
+  const ko=cupDPKo();
+  return `<div class="cup-dp-head"><button type="button" class="cup-dp-nav" onclick="cupDP.y--;cupDPRender()" aria-label="${ko?'이전 해':'Previous year'}">‹</button><button type="button" class="cup-dp-title" onclick="cupDP.view='days';cupDPRender()">${cupDP.y}</button><button type="button" class="cup-dp-nav" onclick="cupDP.y++;cupDPRender()" aria-label="${ko?'다음 해':'Next year'}">›</button></div>
+    <div class="cup-dp-months">${[...Array(12)].map((_,i)=>`<button type="button" class="${i===cupDP.m?'on':''}" onclick="cupDP.m=${i};cupDP.view='days';cupDPRender();cupDPPlace()">${new Date(2024,i,1).toLocaleDateString(cupDPLocale(),{month:'short'})}</button>`).join('')}</div>`;
+}
+function cupDPQuick(){
+  const ko=cupDPKo(), t=todayStr(), fri=(()=>{ const d=cupParse(t); d.setDate(d.getDate()+((5-d.getDay()+7)%7||7)); return cupDPIso(d); })();
+  const items=[[t,ko?'오늘':'Today'],[cupAddDays(t,1),ko?'내일':'Tomorrow'],[fri,ko?'이번 금요일':'This Fri'],[cupAddDays(t,7),ko?'일주일 뒤':'In a week']];
+  const min=cupDP.input.min||'';
+  return `<div class="cup-dp-quick">${items.filter(([v])=>!min||v>=min).map(([v,l])=>`<button type="button" onclick="cupDPSet('${v}')">${l}</button>`).join('')}${cupDP.input.required?'':`<button type="button" class="clr" onclick="cupDPSet('')">${ko?'지우기':'Clear'}</button>`}</div>
+    <input class="cup-dp-type" placeholder="${ko?'직접 입력: 금요일, 10월 28일, 내일':'Type a date: fri, oct 28, next week'}" aria-label="${ko?'날짜 직접 입력':'Type a date'}" onkeydown="if(event.key==='Enter'){event.preventDefault();cupDPTyped(this.value)}" oninput="cupDPTypedHint(this)"><div class="cup-dp-hint" id="cupDPHint"></div>`;
+}
+function cupDPParse(text){ text=String(text||'').trim(); if(!text) return ''; const p=cupAnyDate(text); return p&&p.date||''; }
+function cupDPTypedHint(inp){ const d=cupDPParse(inp.value), h=document.getElementById('cupDPHint'); if(h) h.textContent=d?`→ ${cupParse(d).toLocaleDateString(cupDPLocale(),{weekday:'long',month:'long',day:'numeric'})}`:''; }
+function cupDPTyped(v){ const d=cupDPParse(v); if(d) cupDPSet(d); else { const h=document.getElementById('cupDPHint'); if(h) h.textContent=cupDPKo()?'날짜를 이해하지 못했어요':'Couldn’t read that date'; } }
+// ── times ──
+function cupDPTimeHTML(){
+  const ko=cupDPKo(), cur=cupDP.sel;
+  const hrs=[12,1,2,3,4,5,6,7,8,9,10,11], mins=[0,5,10,15,20,25,30,35,40,45,50,55];
+  const val=h=>{ let H=h%12; if(cupDP.ap==='pm') H+=12; return H; };
+  const to24=()=>{ let H=cupDP.hh%12; if(cupDP.ap==='pm') H+=12; return String(H).padStart(2,'0')+':'+String(cupDP.mm).padStart(2,'0'); };
+  const shown=cupT12(to24());
+  const quick=[['09:00',ko?'오전 9시':'9 am'],['12:00',ko?'정오':'Noon'],['17:00',ko?'오후 5시':'5 pm'],['23:59',ko?'오후 11:59':'11:59 pm']];
+  return `<div class="cup-dp-head"><span class="cup-dp-title static">${shown}</span><span class="cup-dp-seg"><button type="button" class="${cupDP.ap==='am'?'on':''}" onclick="cupDP.ap='am';cupDPRender()">${ko?'오전':'AM'}</button><button type="button" class="${cupDP.ap==='pm'?'on':''}" onclick="cupDP.ap='pm';cupDPRender()">${ko?'오후':'PM'}</button></span></div>
+    <div class="cup-dp-cols"><div class="cup-dp-col" aria-label="${ko?'시':'Hour'}">${hrs.map(h=>`<button type="button" class="cup-dp-opt ${h===cupDP.hh?'on':''}" onclick="cupDP.hh=${h};cupDPRender()">${h}</button>`).join('')}</div>
+      <div class="cup-dp-col" aria-label="${ko?'분':'Minute'}">${mins.map(m=>`<button type="button" class="cup-dp-opt ${m===cupDP.mm?'on':''}" onclick="cupDP.mm=${m};cupDPRender()">${String(m).padStart(2,'0')}</button>`).join('')}</div></div>
+    <div class="cup-dp-quick">${quick.map(([v,l])=>`<button type="button" onclick="cupDPSet('${v}')">${l}</button>`).join('')}${cupDP.input.required?'':`<button type="button" class="clr" onclick="cupDPSet('')">${ko?'지우기':'Clear'}</button>`}</div>
+    <div class="cup-dp-row"><input class="cup-dp-type" placeholder="${ko?'직접 입력: 3pm, 오후 3시 30분':'Type a time: 3pm, 15:30'}" aria-label="${ko?'시간 직접 입력':'Type a time'}" onkeydown="if(event.key==='Enter'){event.preventDefault();cupDPTypedTime(this.value)}"><button type="button" class="btn btn-accent cup-dp-ok" onclick="cupDPSet(cupDPTimeValue())">${ko?'확인':'Set'}</button></div>`;
+}
+function cupDPTimeValue(){ let H=cupDP.hh%12; if(cupDP.ap==='pm') H+=12; return String(H).padStart(2,'0')+':'+String(cupDP.mm).padStart(2,'0'); }
+function cupDPTypedTime(v){ const t=cupParseTime(cupKoNorm(String(v)).replace(/\s+/g,'')); if(t) cupDPSet(t); else showToast(cupDPKo()?'시간을 이해하지 못했어요.':'Couldn’t read that time.'); }
+function cupDPRender(){
+  const el=cupDP.el, inp=cupDP.input; if(!el||!inp) return;
+  el.innerHTML = inp.type==='date' ? (cupDP.view==='months'?cupDPMonthsHTML():cupDPDayHTML()+cupDPQuick()) : cupDPTimeHTML();
+  if(typeof cupKoWalk==='function' && cupDPKo()) cupKoWalk(el);
+  el.querySelectorAll('.cup-dp-col').forEach(c=>{ const on=c.querySelector('.on'); if(on) c.scrollTop=on.offsetTop-c.clientHeight/2+16; });
+}
+// ── wiring: every date/time input opens this picker instead of the browser's ──
+function cupDPTake(inp){ if(!inp || inp._dp) return; inp._dp=true; inp.readOnly=true; inp.setAttribute('inputmode','none'); inp.autocomplete='off'; }
+function cupDPSweep(root){ (root||document).querySelectorAll('input[type=date],input[type=time]').forEach(cupDPTake); }
+document.addEventListener('click', e=>{
+  const inp=e.target.closest&&(e.target.matches('input[type=date],input[type=time]')?e.target:null)
+    || (e.target.closest&&e.target.closest('label')&&e.target.closest('label').querySelector('input[type=date],input[type=time]'));
+  if(inp && !inp.disabled){ e.preventDefault(); e.stopPropagation(); cupDPTake(inp); if(cupDP.input===inp && cupDP.el.classList.contains('show')) cupDPClose(); else cupDPOpen(inp); return; }
+  if(cupDP.el && cupDP.el.classList.contains('show') && !e.target.closest('#cupDP')) cupDPClose();
+}, true);
+document.addEventListener('keydown', e=>{
+  const a=document.activeElement;
+  if(a && a.matches && a.matches('input[type=date],input[type=time]') && (e.key==='Enter'||e.key===' ')){ e.preventDefault(); cupDPOpen(a); return; }
+  if(!cupDP.el || !cupDP.el.classList.contains('show')) return;
+  if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); const i=cupDP.input; cupDPClose(); try{ i&&i.focus(); }catch(_){} return; }
+  if(cupDP.kind==='date' && cupDP.view==='days' && !e.target.matches('.cup-dp-type') && /^Arrow/.test(e.key)){
+    e.preventDefault(); const d=cupParse(cupDP.cur||todayStr()); d.setDate(d.getDate()+({ArrowLeft:-1,ArrowRight:1,ArrowUp:-7,ArrowDown:7}[e.key])); cupDP.cur=cupDPIso(d); cupDP.y=d.getFullYear(); cupDP.m=d.getMonth(); cupDPRender();
+  } else if(cupDP.kind==='date' && e.key==='Enter' && !e.target.matches('.cup-dp-type') && !e.target.closest('.cup-dp-day')){ e.preventDefault(); cupDPSet(cupDP.cur); }
+}, true);
+window.addEventListener('resize', ()=>{ if(cupDP.el&&cupDP.el.classList.contains('show')) cupDPPlace(); });
+if(document.readyState!=='loading') cupDPSweep(); else document.addEventListener('DOMContentLoaded', ()=>cupDPSweep());
+new MutationObserver(ms=>{ for(const m of ms) m.addedNodes.forEach(n=>{ if(n.nodeType===1){ if(n.matches&&n.matches('input[type=date],input[type=time]')) cupDPTake(n); else if(n.querySelector) cupDPSweep(n); } }); }).observe(document.documentElement,{childList:true,subtree:true});
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
