@@ -9,7 +9,26 @@
     "profiles": {
       "$uid": {
         ".write": "auth != null && auth.uid === $uid",
-        ".read": "auth != null"
+        ".read": "auth != null",
+        ".validate": "newData.hasChild('name')",
+        "name": {
+          ".validate": "newData.isString() && newData.val().length <= 60"
+        },
+        "username": {
+          ".validate": "newData.isString() && (newData.val() === '' || root.child('usernames').child(newData.val()).val() === $uid)"
+        },
+        "tree": {
+          ".validate": "newData.isString() && newData.val().length <= 8"
+        },
+        "streak": {
+          ".validate": "newData.isNumber()"
+        },
+        "gems": {
+          ".validate": "newData.isNumber()"
+        },
+        "code": {
+          ".validate": "newData.isString() && newData.val().length <= 8"
+        }
       }
     },
     "codes": {
@@ -22,7 +41,8 @@
       "$to": {
         ".read": "auth != null && auth.uid === $to",
         "$from": {
-          ".write": "auth != null && (auth.uid === $from || auth.uid === $to)"
+          ".write": "auth != null && (auth.uid === $from || auth.uid === $to)",
+          ".validate": "!newData.exists() || (newData.child('name').isString() && newData.child('name').val().length <= 60)"
         }
       }
     },
@@ -30,7 +50,7 @@
       "$to": {
         ".read": "auth != null && auth.uid === $to",
         "$from": {
-          ".write": "auth != null && (auth.uid === $from || auth.uid === $to)"
+          ".write": "auth != null && ((auth.uid === $from && root.child('friendReq').child($from).child($to).exists()) || auth.uid === $to)"
         }
       }
     },
@@ -45,10 +65,17 @@
         ".write": "auth != null && (data.exists() ? data.child('owner').val() === auth.uid : newData.child('owner').val() === auth.uid)",
         "members": {
           "$member": {
-            ".write": "auth != null && auth.uid === $member"
+            ".write": "auth != null && auth.uid === $member",
+            ".validate": "$member.matches(/^[A-Za-z0-9_-]{4,64}$/)"
           }
         },
-        ".read": "auth != null"
+        ".read": "auth != null",
+        "code": {
+          ".validate": "newData.isString() && newData.val().matches(/^[A-Z0-9]{6}$/)"
+        },
+        "name": {
+          ".validate": "newData.isString() && newData.val().length <= 60"
+        }
       }
     },
     "groupCodes": {
@@ -77,7 +104,8 @@
         },
         "items": {
           "$i": {
-            ".write": "auth != null && data.parent().parent().child('members').child(auth.uid).exists()"
+            ".write": "auth != null && data.parent().parent().child('members').child(auth.uid).exists()",
+            ".validate": "$i.matches(/^[A-Za-z0-9_-]{1,64}$/)"
           }
         }
       }
