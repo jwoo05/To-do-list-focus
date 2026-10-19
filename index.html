@@ -6500,26 +6500,132 @@ body.cup-lean .cup-mini-garden .cup-dim{ display:none; }
   .login-screen{ top:env(titlebar-area-height, 33px); }
 }
 
-/* ── Month calendar: room to read. Rows grow to fit 3 items; the panel scrolls instead of clipping. ── */
-#page-todo .cal-grid{ grid-auto-rows:minmax(118px, auto); flex:none; overflow:visible; align-content:start; gap:4px; }
-#page-todo .cal-cell{ min-height:118px; padding:7px 6px 6px; gap:3px; border-radius:10px; }
-#page-todo .cal-cell .cal-num{ font-size:calc(12.5px * var(--cup-fs,1)); font-weight:600; margin-bottom:4px; color:var(--text2); }
+/* ── Month calendar: fits the panel (no scrolling). Rows share the height; each day shows as many full lines as fit, then “+N more”. ── */
+#page-todo .cal-grid{ grid-auto-rows:minmax(0,1fr); gap:3px; }
+#page-todo .cal-cell{ min-height:0; padding:6px 6px 4px; gap:2px; border-radius:9px; }
+#page-todo .cal-cell .cal-num{ font-size:calc(12px * var(--cup-fs,1)); font-weight:600; margin-bottom:3px; color:var(--text2); }
 #page-todo .cal-cell.today .cal-num{ color:var(--accent); }
-#page-todo .cal-mini-list{ gap:3px; }
-#page-todo .cal-mini-chip.cupc{ font-size:calc(12px * var(--cup-fs,1)); line-height:1.45; padding:2px 6px 2px 15px; }
+#page-todo .cal-mini-list{ gap:2px; }
+#page-todo .cal-mini-chip.cupc{ font-size:calc(11.5px * var(--cup-fs,1)); line-height:1.4; padding:1px 6px 1px 14px; }
 #page-todo .cal-mini-chip.cupc-ev{ padding-left:7px; }
 #page-todo .cal-mini-chip.cupc i{ font-size:.85em; }
-#page-todo .cal-mini-chip.cal-mini-more{ font-size:calc(11px * var(--cup-fs,1)); color:var(--text3); background:none; border:0; padding-left:6px; }
-#page-todo .cal-day-name{ font-size:calc(10.5px * var(--cup-fs,1)); padding:6px 0; }
+#page-todo .cal-mini-chip.cal-mini-more{ font-size:calc(10.5px * var(--cup-fs,1)); color:var(--text3); background:none; border:0; padding:0 6px; }
+#page-todo .cal-day-name{ font-size:calc(10.5px * var(--cup-fs,1)); padding:4px 0; }
 @media (max-width: 760px){
-  #page-todo .cal-grid{ grid-auto-rows:minmax(86px, auto); gap:2px; }
-  #page-todo .cal-cell{ min-height:86px; padding:4px 3px; }
-  #page-todo .cal-mini-chip.cupc{ font-size:calc(10px * var(--cup-fs,1)); padding:1px 3px 1px 10px; }
+  #page-todo .cal-cell{ padding:3px 2px; }
+  #page-todo .cal-mini-chip.cupc{ font-size:calc(9.5px * var(--cup-fs,1)); padding:0 2px 0 9px; }
 }
-#page-todo .cal-panel.page-cal{ overflow-y:auto; overscroll-behavior:contain; }
-#page-todo .cal-panel.page-cal .cal-body{ overflow:visible; }
-#page-todo .cal-panel.page-cal .cal-nav, #page-todo .cal-panel.page-cal .cal-toolbar-row, #page-todo .cal-panel.page-cal .cup-calf{ position:sticky; z-index:3; background:var(--surface, var(--bg)); }
-#page-todo .cal-panel.page-cal .cal-nav{ top:0; } #page-todo .cal-panel.page-cal .cal-toolbar-row{ top:24px; } #page-todo .cal-panel.page-cal .cup-calf{ top:51px; padding-bottom:6px; }
+
+/* Month view, one header row: [Month Week Day]   ‹ October 2026 ›   [Today] [Filter] */
+#page-todo .cal-grid{ grid-template-rows:auto; }
+@media (min-width: 761px){
+  #page-todo .cal-body{ position:relative; }
+  #page-todo .cal-body > .cal-toolbar-row{ position:absolute; top:14px; left:14px; z-index:2; margin:0; height:auto; }
+  #page-todo .cal-body > .cal-toolbar-row .cal-layout-toggle{ margin:0; }
+}
+.cup-calf-btn{ font-size:calc(11.5px * var(--cup-fs,1)); padding:3px 10px; border:1px solid var(--border); border-radius:999px; color:var(--text2); margin-left:8px; background:none; }
+.cup-calf-btn.on{ border-color:var(--accent); color:var(--text); }
+body.cup-lean #page-todo .cup-calf{ display:none; }
+body.cup-lean.cup-calf-open #page-todo .cup-calf{ display:block; }
+body:not(.cup-lean) .cup-calf-btn{ display:none; }
+body.cup-lean #workbenchCalendar > .workbench-heading, body.cup-lean #page-todo .cal-focus-block-btn{ display:none !important; }
+#page-todo .cal-nav{ position:relative; }
+#page-todo .cal-nav .cup-calf-btn{ position:absolute; right:74px; top:50%; transform:translateY(-50%); width:auto; flex:none; margin:0; }
+@media (max-width:760px){ #page-todo .cal-nav .cup-calf-btn{ position:static; transform:none; } }
+
+/* ── Usernames ── */
+.cup-uname{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+.cup-uname-at{ font-family:'Source Serif 4',Georgia,serif; font-size:20px; color:var(--text); }
+.cup-uname.edit{ padding:12px; border:1px dashed var(--border); border-radius:12px; }
+.cup-uname-in{ display:inline-flex; align-items:center; border:1px solid var(--border); border-radius:8px; padding:0 8px; background:var(--bg2); }
+.cup-uname-in span{ color:var(--text3); } .cup-uname-in input{ border:0; background:none; padding:6px 4px; width:160px; outline:none; }
+.cup-uname-msg{ font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); } .cup-uname-msg.free{ color:var(--green); } .cup-uname-msg.taken, .cup-uname-msg.bad{ color:var(--must); }
+
+/* ── Weekly league: podium + standings ── */
+.cup-league{ position:relative; overflow:hidden; border-radius:18px; padding:18px 18px 14px; margin:6px 0 16px;
+  background:radial-gradient(120% 90% at 50% -10%, color-mix(in srgb, #f5b942 22%, transparent), transparent 60%),
+             linear-gradient(160deg, color-mix(in srgb, var(--accent) 14%, var(--bg2)), var(--bg2));
+  border:1px solid color-mix(in srgb, #f5b942 30%, var(--border)); }
+.cup-league.empty{ text-align:center; padding:26px 18px; }
+.cup-league-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+.cup-league-k{ font-size:calc(11px * var(--cup-fs,1)); letter-spacing:.14em; text-transform:uppercase; color:#f5b942; font-weight:700; }
+.cup-league-t{ font-family:'Source Serif 4',Georgia,serif; font-size:22px; color:var(--text); margin-top:2px; }
+.cup-league-clock{ display:flex; flex-direction:column; align-items:flex-end; font-size:calc(11px * var(--cup-fs,1)); color:var(--text3); text-transform:uppercase; letter-spacing:.08em; }
+.cup-league-clock b{ font-size:18px; color:var(--text); letter-spacing:0; font-variant-numeric:tabular-nums; text-transform:none; }
+.cup-podium{ display:grid; grid-template-columns:1fr 1.15fr 1fr; align-items:end; gap:10px; margin:16px auto 4px; max-width:460px; }
+.cup-pod{ display:flex; flex-direction:column; align-items:center; gap:2px; min-width:0; }
+.cup-pod.empty{ visibility:hidden; }
+.cup-pod-tree{ font-size:34px; line-height:1; } .cup-pod.p1 .cup-pod-tree{ font-size:46px; animation:cupBob 2.4s ease-in-out infinite; }
+@keyframes cupBob{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-4px) } }
+@media (prefers-reduced-motion: reduce){ .cup-pod.p1 .cup-pod-tree{ animation:none; } }
+.cup-pod-name{ font-size:calc(13px * var(--cup-fs,1)); font-weight:600; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cup-pod.me .cup-pod-name{ color:var(--accent); }
+.cup-pod-pts{ font-size:20px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--text); } .cup-pod-pts span{ font-size:calc(10px * var(--cup-fs,1)); font-weight:600; color:var(--text3); margin-left:3px; }
+.cup-pod-bar{ width:100%; border-radius:10px 10px 4px 4px; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding-top:8px; gap:2px; margin-top:4px;
+  background:linear-gradient(180deg, color-mix(in srgb, var(--pc) 55%, transparent), color-mix(in srgb, var(--pc) 15%, transparent)); border:1px solid color-mix(in srgb, var(--pc) 50%, transparent); }
+.cup-pod.p1{ --pc:#f5b942; } .cup-pod.p2{ --pc:#b8c2cc; } .cup-pod.p3{ --pc:#cd8a55; }
+.cup-pod.p1 .cup-pod-bar{ height:92px; box-shadow:0 0 24px color-mix(in srgb, #f5b942 35%, transparent); } .cup-pod.p2 .cup-pod-bar{ height:66px; } .cup-pod.p3 .cup-pod-bar{ height:48px; }
+.cup-pod-medal{ font-size:20px; } .cup-pod-n{ font-size:calc(13px * var(--cup-fs,1)); font-weight:800; color:var(--text); opacity:.8; }
+.cup-league-call{ margin:12px 0 4px; padding:9px 12px; border-radius:10px; background:color-mix(in srgb, var(--must) 12%, transparent); border:1px solid color-mix(in srgb, var(--must) 30%, transparent); font-size:calc(13px * var(--cup-fs,1)); color:var(--text); }
+.cup-standings{ display:flex; flex-direction:column; gap:4px; margin-top:10px; }
+.cup-stand{ display:grid; grid-template-columns:22px 28px minmax(0,1fr) auto auto auto; align-items:center; gap:8px; padding:7px 8px; border-radius:10px; background:color-mix(in srgb, var(--bg) 40%, transparent); }
+.cup-stand.me{ background:color-mix(in srgb, var(--accent) 16%, transparent); box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent); }
+.cup-stand-n{ font-weight:800; color:var(--text3); text-align:center; font-variant-numeric:tabular-nums; } .cup-stand.top .cup-stand-n{ color:#f5b942; }
+.cup-stand-tree{ font-size:20px; text-align:center; }
+.cup-stand-main{ display:flex; flex-wrap:wrap; align-items:center; column-gap:8px; row-gap:3px; min-width:0; font-size:calc(13px * var(--cup-fs,1)); }
+.cup-stand-fire{ font-size:calc(11.5px * var(--cup-fs,1)); color:#f5904a; }
+.cup-stand-bar{ flex-basis:100%; height:5px; border-radius:99px; background:var(--bg3); overflow:hidden; } .cup-stand-bar i{ display:block; height:100%; border-radius:99px; background:linear-gradient(90deg, var(--accent), #f5b942); }
+.cup-stand-sub{ flex-basis:100%; font-size:calc(11px * var(--cup-fs,1)); color:var(--text3); font-variant-numeric:tabular-nums; }
+.cup-stand-pts{ font-size:calc(16px * var(--cup-fs,1)); font-weight:800; font-variant-numeric:tabular-nums; }
+.cup-stand-cheer{ display:flex; gap:1px; } .cup-stand-cheer button{ font-size:calc(14px * var(--cup-fs,1)); width:24px; height:24px; border-radius:7px; opacity:.5; } .cup-stand-cheer button:hover{ opacity:1; transform:scale(1.15); background:var(--bg2); }
+.cup-league-rules{ font-size:calc(11px * var(--cup-fs,1)); color:var(--text3); text-align:center; margin-top:10px; }
+.cup-group-card .cup-league{ margin:10px 0 0; padding:14px; } .cup-group-card .cup-league-t{ font-size:17px; }
+@media (max-width:560px){ .cup-stand{ grid-template-columns:20px 24px minmax(0,1fr) auto; } .cup-stand-cheer{ grid-column:3 / -1; } .cup-pod-pts{ font-size:calc(16px * var(--cup-fs,1)); } .cup-pod.p1 .cup-pod-bar{ height:72px; } }
+
+/* ── Home widgets ── */
+.cup-ws{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:16px; }
+.cup-w{ position:relative; background:var(--bg2); border:1px solid var(--border); border-radius:16px; padding:14px 16px; min-width:0; }
+.cup-w.wide{ grid-column:1/-1; }
+.cup-w h5{ display:flex; align-items:center; gap:8px; margin:0 0 10px; font-size:calc(11px * var(--cup-fs,1)); font-weight:650; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); }
+.cup-w-ic{ font-size:calc(14px * var(--cup-fs,1)); letter-spacing:0; }
+.cup-w-move{ margin-left:auto; display:flex; gap:4px; } .cup-w-move button{ width:24px; height:22px; border-radius:6px; border:1px solid var(--border); color:var(--text2); } .cup-w-move button:disabled{ opacity:.3; }
+.cup-ws.editing .cup-w{ animation:cupJiggle .32s ease-in-out infinite alternate; border-style:dashed; }
+.cup-ws.editing .cup-w:nth-child(2n){ animation-delay:.12s; }
+@keyframes cupJiggle{ from{ transform:rotate(-.35deg) } to{ transform:rotate(.35deg) } }
+@media (prefers-reduced-motion: reduce){ .cup-ws.editing .cup-w{ animation:none; } }
+.cup-ws.editing .cup-w-body{ pointer-events:none; opacity:.75; }
+.cup-w-x{ position:absolute; top:-8px; left:-8px; width:24px; height:24px; border-radius:50%; background:var(--must); color:#fff; font-size:calc(16px * var(--cup-fs,1)); font-weight:700; line-height:1; box-shadow:0 2px 6px rgba(0,0,0,.3); z-index:2; }
+.cup-wtools{ display:flex; gap:8px; justify-content:center; margin:14px 0 4px; }
+body.cup-lean .cup-wtools .cup-more-btn{ opacity:.6; } body.cup-lean .cup-wtools .cup-more-btn:hover{ opacity:1; }
+.cup-wg{ margin-top:10px; padding:14px; border:1px solid var(--border); border-radius:16px; background:var(--bg2); }
+.cup-wg-h{ display:flex; align-items:center; justify-content:space-between; font-size:calc(14px * var(--cup-fs,1)); margin-bottom:4px; }
+.cup-wg-g{ font-size:calc(11px * var(--cup-fs,1)); letter-spacing:.1em; text-transform:uppercase; color:var(--text3); margin:12px 0 6px; }
+.cup-wg-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px; }
+.cup-wg-card{ display:flex; flex-direction:column; align-items:flex-start; gap:3px; text-align:left; padding:12px; border:1px solid var(--border); border-radius:12px; background:var(--bg); color:var(--text); font-family:inherit; }
+.cup-wg-card:hover{ border-color:var(--accent); } .cup-wg-ic{ font-size:20px; } .cup-wg-card b{ font-size:calc(13px * var(--cup-fs,1)); } .cup-wg-card em{ font-style:normal; font-size:calc(11.5px * var(--cup-fs,1)); color:var(--text3); line-height:1.35; }
+.cup-wg-add{ margin-top:4px; font-size:calc(11.5px * var(--cup-fs,1)); color:var(--accent); }
+.cup-w-cta{ display:flex; align-items:center; gap:12px; width:100%; text-align:left; font-family:inherit; color:var(--text); }
+.cup-w-cta > span:first-child{ font-size:26px; } .cup-w-cta b{ display:block; font-size:calc(14px * var(--cup-fs,1)); } .cup-w-cta em{ font-style:normal; font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); }
+.cup-w-league{ display:block; width:100%; text-align:left; font-family:inherit; color:var(--text); }
+.cup-w-rank{ display:flex; align-items:baseline; gap:6px; } .cup-w-rank b{ font-size:30px; font-weight:800; color:#f5b942; line-height:1; } .cup-w-rank span{ font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); }
+.cup-w-lrows{ display:flex; flex-direction:column; gap:5px; margin:10px 0 8px; }
+.cup-w-lrows > div{ display:grid; grid-template-columns:20px minmax(0,90px) 1fr auto; align-items:center; gap:8px; font-size:calc(12.5px * var(--cup-fs,1)); }
+.cup-w-lrows > div.me .n{ color:var(--accent); font-weight:600; } .cup-w-lrows .n{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cup-w-lrows .bar{ height:5px; border-radius:99px; background:var(--bg3); overflow:hidden; } .cup-w-lrows .bar i{ display:block; height:100%; background:linear-gradient(90deg,var(--accent),#f5b942); }
+.cup-w-lrows b{ font-variant-numeric:tabular-nums; font-size:calc(12.5px * var(--cup-fs,1)); }
+.cup-w-foot{ font-size:calc(11.5px * var(--cup-fs,1)); color:var(--text3); }
+.cup-w-count{ display:flex; align-items:center; gap:14px; }
+.cup-w-big{ display:flex; flex-direction:column; align-items:center; min-width:62px; padding:6px 8px; border-radius:12px; background:var(--bg3); }
+.cup-w-big b{ font-size:28px; font-weight:800; line-height:1.05; font-variant-numeric:tabular-nums; } .cup-w-big span{ font-size:calc(10.5px * var(--cup-fs,1)); color:var(--text3); text-transform:uppercase; letter-spacing:.08em; }
+.cup-w-big.hot{ background:color-mix(in srgb, var(--must) 18%, transparent); } .cup-w-big.hot b{ color:var(--must); }
+.cup-w-ct{ font-size:calc(14px * var(--cup-fs,1)); font-weight:600; }
+.cup-w-next{ display:flex; justify-content:space-between; gap:8px; font-size:calc(12.5px * var(--cup-fs,1)); margin-top:8px; padding-top:8px; border-top:1px solid var(--border); }
+.cup-w-focus{ display:flex; align-items:center; gap:16px; }
+.cup-w-ring{ --p:0; width:78px; height:78px; border-radius:50%; flex:none; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:radial-gradient(closest-side, var(--bg2) 78%, transparent 80% 100%), conic-gradient(var(--accent) calc(var(--p)*1%), var(--bg3) 0); }
+.cup-w-ring b{ font-size:calc(15px * var(--cup-fs,1)); } .cup-w-ring span{ font-size:calc(10px * var(--cup-fs,1)); color:var(--text3); }
+.cup-w-focus .btn{ margin-top:6px; }
+@media (max-width:760px){ .cup-ws{ grid-template-columns:1fr; } .cup-w.wide{ grid-column:auto; } }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -13682,7 +13788,7 @@ function renderCalendar(){
     // Chip text shows just the title — the color stripe already encodes
     // the category. How many chips fit scales with calZoom: at 1.0 → 3,
     // at 1.5 → 5, at 0.7 → 2. Anything beyond shows "+N more".
-    const zoomChipCap = Math.max(2, Math.round(3 * (Number(S.settings?.calZoom) || 1)));
+    const zoomChipCap = 40;   // Cup fits chips to each cell after render (cupFitMonth)
     const allChips = [
       ...(typeof cupMonthChips==='function' ? cupMonthChips(dayEvents, dayTasks, ds) : [])
     ];
@@ -19012,10 +19118,12 @@ async function cupSocialRefresh(){
   cupRenderGarden();
 }
 async function cupAddFriend(code){
-  code=String(code||'').trim().toUpperCase(); const uid=cupMyUid(), db=cupDb(); if(!code||!uid) return;
+  const raw=String(code||'').trim(); const uid=cupMyUid(), db=cupDb(); if(!raw||!uid) return;
   try{
-    const to=(await db.ref('codes/'+code).get()).val();
-    if(!to){ showToast('No one has that code — check it and try again.'); return; }
+    let to=null; const un=cupUNorm(raw);
+    if(cupUNameOk(un)) to=(await db.ref('usernames/'+un).get()).val();
+    if(!to && /^[A-Za-z0-9]{6}$/.test(raw.replace(/^@/,''))) to=(await db.ref('codes/'+raw.replace(/^@/,'').toUpperCase()).get()).val();
+    if(!to){ showToast(`No one is @${un||raw} — check the spelling.`); return; }
     if(to===uid){ showToast('That’s your own code 🙂'); return; }
     await db.ref(`friendReq/${to}/${uid}`).set({ name:(S.settings&&S.settings.name)||'Friend', at:Date.now() });
     showToast('Friend request sent.');
@@ -19122,7 +19230,7 @@ function cupShareKind(id,k){ const soc=cupSoc(); soc.share=cupShareList().map(x=
 function cupMyProfile(){
   const g=cupGarden(), soc=cupSoc();
   const live = (typeof pomoState!=='undefined' && pomoState.running && pomoState.phase==='focus') ? { since: pomoState.sessionStart || Date.now() } : null;
-  const base = { name:(S.settings&&S.settings.name)||'Friend', code:soc.code||'', updatedAt:Date.now() };
+  const base = { name:(S.settings&&S.settings.name)||'Friend', code:soc.code||'', username:soc.username||'', updatedAt:Date.now() };
   if(soc.paused) return Object.assign(base,{ paused:true });
   return Object.assign(base,{ tree:cupTreeIcon(g.today.pts,g.species), streak:g.streak, gems:g.gems, live,
     week:{ start:cupISO(cupWeekStart()), trees:g.week.trees, focus:g.week.focus, done:g.week.done },
@@ -19196,8 +19304,88 @@ function cupGroupCard(gid, g){
     <div class="cup-gtree"><span class="cup-gtree-ic">${cupGroupTree(pct)}</span><div class="cup-gtree-body"><div class="cup-gfocus-top">${prog}</div>
       <div class="cup-gfocus-bar"><i style="width:${pct}%"></i></div><div class="cup-dim cup-gtree-l">${pct>=100?'Our tree bloomed this week 🎉':`Our tree · ${Math.round(pct)}% to bloom`}</div></div></div>
     ${grid}
-    ${cupStudyingNow(ids)}
-    <div class="cup-meadow sm">${ids.map(id=>cupPlot(id,true)).join('')}</div>
+    ${cupLeagueHTML(ids, g.name)}
+  </div>`;
+}
+
+// ── Usernames: unique, changeable. usernames/<name> → uid; rules allow claiming a free name and releasing your own. ──
+const cupUNameOk = n => /^[a-z0-9_.]{3,20}$/.test(n);
+const cupUNorm = n => String(n||'').trim().replace(/^@/,'').toLowerCase();
+let cupUNameState={ v:'', status:'', t:0 };
+async function cupUNameCheck(v){
+  const n=cupUNorm(v), my=cupSoc().username||''; cupUNameState.v=n;
+  if(!n){ cupUNameState.status=''; return cupUNamePaint(); }
+  if(!cupUNameOk(n)){ cupUNameState.status='bad'; return cupUNamePaint(); }
+  if(n===my){ cupUNameState.status='mine'; return cupUNamePaint(); }
+  cupUNameState.status='checking'; cupUNamePaint();
+  clearTimeout(cupUNameState.t);
+  cupUNameState.t=setTimeout(async()=>{ try{ const v2=(await cupDb().ref('usernames/'+n).get()).val();
+    if(cupUNameState.v!==n) return; cupUNameState.status = !v2||v2===cupMyUid() ? 'free' : 'taken'; }catch(_){ cupUNameState.status='err'; } cupUNamePaint(); }, 350);
+}
+function cupUNamePaint(){
+  const el=document.getElementById('cupUNameMsg'), btn=document.getElementById('cupUNameSave'); if(!el) return;
+  const s=cupUNameState.status;
+  el.className='cup-uname-msg '+s;
+  el.textContent = s==='bad'?'3–20 letters, numbers, _ or .' : s==='taken'?'Taken — try another' : s==='free'?'Available ✓' : s==='checking'?'Checking…' : s==='mine'?'That’s you' : s==='err'?'Couldn’t check right now':'';
+  if(btn) btn.disabled = s!=='free';
+}
+async function cupSetUsername(v){
+  const uid=cupMyUid(), db=cupDb(), soc=cupSoc(), n=cupUNorm(v), old=soc.username||'';
+  if(!uid||!db||!cupUNameOk(n)||n===old) return;
+  try{
+    await db.ref('usernames/'+n).set(uid);                          // fails if someone else holds it
+    if(old) { try{ await db.ref('usernames/'+old).remove(); }catch(_){} }
+    soc.username=n; soc.unameEdit=false; save(); await cupPublishProfile(true);
+    showToast(`You’re @${n}`); cupRenderFriendsPage();
+  }catch(e){ if(/permission/i.test(String(e&&(e.code||e.message)))){ cupUNameState.status='taken'; cupUNamePaint(); } else cupSocErr(e); }
+}
+function cupUNameEditor(){
+  const soc=cupSoc(), has=!!soc.username;
+  if(has && !soc.unameEdit) return `<div class="cup-uname"><span class="cup-uname-at">@${esc(soc.username)}</span><button class="cup-more-btn" onclick="cupSoc().unameEdit=true;cupRenderFriendsPage()">Change</button></div>`;
+  return `<div class="cup-uname edit"><span class="cup-dim">${has?'New username':'Pick a username so friends can add you'}</span>
+    <span class="cup-uname-in"><span>@</span><input id="cupUNameIn" maxlength="20" placeholder="jay.kim" value="${esc(cupUNameState.v||'')}" oninput="cupUNameCheck(this.value)" onkeydown="if(event.key==='Enter'&&cupUNameState.status==='free')cupSetUsername(this.value)" autocapitalize="off" autocomplete="off" spellcheck="false"></span>
+    <button id="cupUNameSave" class="btn btn-accent" disabled onclick="cupSetUsername(document.getElementById('cupUNameIn').value)">Save</button>
+    ${has?`<button class="cup-more-btn" onclick="cupSoc().unameEdit=false;cupRenderFriendsPage()">Cancel</button>`:''}
+    <span id="cupUNameMsg" class="cup-uname-msg"></span></div>`;
+}
+
+// ── The weekly league: points = focus minutes + 20 per task done + 10 per check-in day ──
+function cupPts(p){ if(!p||p.paused) return { pts:0, focus:0, done:0, ci:0 };
+  const w=cupThisWeek(p), ci=cupCI(p).reduce((a,r)=>a+[...r.days].filter(x=>x==='1').length,0);
+  const focus=+w.focus||0, done=+w.done||0; return { pts: focus + done*20 + ci*10, focus, done, ci }; }
+function cupLeftInWeek(){ const ms=cupWeekStart(1)-cupNow(); const d=Math.floor(ms/864e5), h=Math.floor(ms%864e5/36e5); return d?`${d}d ${h}h`:`${h}h ${Math.floor(ms%36e5/6e4)}m`; }
+function cupLeague(ids){
+  const me=cupMyUid();
+  return ids.map(id=>{ const p=id===me?cupMyProfile():cupSocial.profiles[id]; return Object.assign({ id, p, me:id===me, name: id===me?'You':((p&&(p.username?'@'+p.username:p.name))||'Friend') }, cupPts(p)); })
+    .filter(r=>r.p&&!r.p.paused).sort((a,b)=>b.pts-a.pts || b.focus-a.focus);
+}
+function cupLeagueHTML(ids, title){
+  const rows=cupLeague(ids); if(!rows.length) return '';
+  const meI=rows.findIndex(r=>r.me), meR=rows[meI];
+  const podium=[rows[1],rows[0],rows[2]];
+  const medal=['🥈','🥇','🥉'], place=[2,1,3];
+  let callout='';
+  if(rows.length>1 && meR){
+    if(meI===0){ const gap=meR.pts-rows[1].pts; callout=`👑 You’re leading by <b>${gap}</b> pts. ${rows[1].name} is coming for it.`; }
+    else { const ahead=rows[meI-1], gap=ahead.pts-meR.pts+1; callout=`⚔️ <b>${gap}</b> pts to pass ${esc(ahead.name)} — that’s ${gap<=60?`${gap} min of focus`:`${Math.ceil(gap/20)} tasks`}.`; }
+  }
+  return `<div class="cup-league">
+    <div class="cup-league-top"><div><div class="cup-league-k">${esc(title)}</div><div class="cup-league-t">This week’s league</div></div>
+      <div class="cup-league-clock"><span>ends in</span><b>${cupLeftInWeek()}</b></div></div>
+    ${rows.length>1?`<div class="cup-podium">${podium.map((r,i)=>r?`<div class="cup-pod p${place[i]} ${r.me?'me':''}">
+        <div class="cup-pod-tree">${r.p.tree&&r.p.tree!=='·'?r.p.tree:'🌱'}</div><div class="cup-pod-name">${esc(r.name)}</div>
+        <div class="cup-pod-pts">${r.pts}<span>pts</span></div>
+        <div class="cup-pod-bar"><span class="cup-pod-medal">${medal[i]}</span><span class="cup-pod-n">${place[i]}</span></div></div>`:'<div class="cup-pod empty"></div>').join('')}</div>`:''}
+    ${callout?`<div class="cup-league-call">${callout}</div>`:''}
+    <div class="cup-standings">${rows.map((r,i)=>{ const live=cupLiveMin(r.p), max=rows[0].pts||1;
+      return `<div class="cup-stand ${r.me?'me':''} ${i<3?'top':''}"><span class="cup-stand-n">${i+1}</span><span class="cup-stand-tree">${r.p.tree&&r.p.tree!=='·'?r.p.tree:'🌱'}</span>
+        <span class="cup-stand-main"><b>${esc(r.name)}</b>${live?`<span class="cup-live">● ${live}m</span>`:''}${r.p.streak?`<span class="cup-stand-fire">🔥${r.p.streak}</span>`:''}
+          <span class="cup-stand-bar"><i style="width:${Math.max(3,r.pts/max*100)}%"></i></span>
+          <span class="cup-stand-sub">⏱ ${cupHM(r.focus)} · ✓ ${r.done}${r.ci?` · 🙏 ${r.ci}`:''}</span></span>
+        <span class="cup-stand-pts">${r.pts}</span>
+        ${r.me?'':`<span class="cup-stand-cheer">${cupSocial.sent[r.id]?`<span class="cup-dim">${cupSocial.sent[r.id]}</span>`:CUP_CHEERS.map(e=>`<button type="button" onclick="cupCheer('${r.id}','${e}')" title="Send ${e}">${e}</button>`).join('')}</span>`}
+        ${!r.me&&live?`<button class="btn btn-accent cup-join" onclick="cupJoinFocus('${esc(r.name)}')">Join</button>`:''}</div>`; }).join('')}</div>
+    <div class="cup-league-rules">1 pt per focus minute · 20 per task done · 10 per check-in · resets every week</div>
   </div>`;
 }
 
@@ -19233,18 +19421,15 @@ function cupSocialHTML(tab){
   const err=cupSocial.error?`<div class="cup-soc-note">⚙︎ ${esc(cupSocial.error)}</div>`:'';
   if(tab==='friends'){
     const reqs=Object.entries(cupSocial.requests||{}), fr=Object.keys(cupSocial.friends||{});
-    const order=fr.slice().sort((a,b)=>(cupLiveMin(cupSocial.profiles[b])-cupLiveMin(cupSocial.profiles[a]))||((cupThisWeek(cupSocial.profiles[b]).focus||0)-(cupThisWeek(cupSocial.profiles[a]).focus||0)));
     const cheers=Object.entries(cupSocial.cheers||{}).sort((a,b)=>(b[1].at||0)-(a[1].at||0));
-    const all=[uid,...fr].map(id=>id===uid?cupMyProfile():cupSocial.profiles[id]).filter(p=>p&&!p.paused);
-    const tf=all.reduce((a,p)=>a+(cupThisWeek(p).focus||0),0), tt=all.reduce((a,p)=>a+(cupThisWeek(p).trees||0),0);
     return `${err}
+      ${cupUNameEditor()}
       ${cheers.length?`<div class="cup-cheers"><span class="cup-cheers-l">Cheers for you</span>${cheers.map(([f,c])=>`<span class="cup-cheer">${esc(c.e||'👏')} <b>${esc(c.n||'Friend')}</b> <span class="cup-dim">${cupAgo(c.at||Date.now())}</span></span>`).join('')}<button class="cup-ts-x" onclick="cupClearCheers()" title="Clear" aria-label="Clear cheers">✕</button></div>`:''}
       ${reqs.length?`${reqs.map(([f,r])=>`<div class="cup-req"><span>👋</span><b>${esc(r.name||'Someone')}</b><span class="cup-dim">wants to be friends</span><span style="flex:1"></span><button class="btn btn-ghost" onclick="cupAnswerReq('${f}',false)">Decline</button><button class="btn btn-accent" onclick="cupAnswerReq('${f}',true)">Accept</button></div>`).join('')}`:''}
-      <div class="cup-meadow-h"><span>Your meadow</span><span class="cup-dim">${fr.length?`Together this week: ${cupHM(tf)} focused · ${tt} trees`:''}</span></div>
-      <div class="cup-meadow">${cupPlot(uid)}${order.map(id=>cupPlot(id)).join('')}${cupGhostPlot('Invite a friend',`cupCopyText('${esc(soc.code||'')}')`)}</div>
-      <div class="cup-soc-add"><span class="cup-dim">Your code</span><b class="cup-code">${esc(soc.code||'—')}</b><button class="cup-more-btn" onclick="cupCopyText('${esc(soc.code||'')}')">Copy</button>
-        <input placeholder="Friend’s code — Enter" onkeydown="if(event.key==='Enter'){cupAddFriend(this.value);this.value=''}"></div>
-      ${fr.length?`<details class="cup-share-set"><summary>Manage friends</summary>${fr.map(id=>`<div class="cup-share-row"><span>${esc((cupSocial.profiles[id]&&cupSocial.profiles[id].name)||'Friend')}</span><button class="cup-more-btn" onclick="cupRemoveFriend('${id}')">Remove</button></div>`).join('')}</details>`:''}
+      ${fr.length?cupLeagueHTML([uid,...fr],'Friends'):`<div class="cup-league empty"><div class="cup-league-t">Your league starts with one friend</div><p class="cup-dim">Add a friend by username below. Every week you race on focus minutes, tasks and check-ins.</p></div>`}
+      <div class="cup-soc-add"><input placeholder="Add a friend — @username" autocapitalize="off" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter'){cupAddFriend(this.value);this.value=''}">
+        <span class="cup-dim">or code <b class="cup-code">${esc(soc.code||'—')}</b></span><button class="cup-more-btn" onclick="cupCopyText('${esc(soc.username?'@'+soc.username:(soc.code||''))}')">Copy mine</button></div>
+      ${fr.length?`<details class="cup-share-set"><summary>Manage friends</summary>${fr.map(id=>`<div class="cup-share-row"><span>${esc((cupSocial.profiles[id]&&(cupSocial.profiles[id].username?'@'+cupSocial.profiles[id].username:cupSocial.profiles[id].name))||'Friend')}</span><button class="cup-more-btn" onclick="cupRemoveFriend('${id}')">Remove</button></div>`).join('')}</details>`:''}
       ${cupShareSettingsHTML()}`;
   }
   const gs=Object.entries(cupSocial.groups||{});
@@ -20407,6 +20592,104 @@ function cupHomeChips(behind){
   </div>`;
 }
 
+// ════════════════════════════════════════════════════════════
+//  HOME WIDGETS — like phone widgets: add from a gallery, remove, reorder.
+//  Stored in S.cup.home.blocks (same list the old blocks used).
+// ════════════════════════════════════════════════════════════
+function cupWPace(){
+  const ps=cupPacePlans();
+  return (ps.length?ps.map(p=>cupPaceRow(p,true)).join(''):'<div class="cup-dim">Track a class to see how many lectures behind you are.</div>')
+    + `<button class="cup-more-btn" onclick="cupPaceOpen()">+ Track a course</button>`;
+}
+function cupWLeague(){
+  const soc=cupSoc(), uid=cupMyUid();
+  if(!uid||!soc.on) return `<button class="cup-w-cta" onclick="cupOpenFriends('friends')"><span>🏆</span><span><b>Start a weekly league</b><em>Race friends on focus minutes and tasks.</em></span></button>`;
+  const fr=Object.keys(cupSocial.friends||{});
+  if(!fr.length) return `<button class="cup-w-cta" onclick="cupOpenFriends('friends')"><span>🏆</span><span><b>Add a friend to start</b><em>${soc.username?'Share @'+esc(soc.username):'Pick a username first'}</em></span></button>`;
+  const rows=cupLeague([uid,...fr]), i=rows.findIndex(r=>r.me), me=rows[i], max=rows[0].pts||1;
+  const gap = i>0 ? `${rows[i-1].pts-me.pts+1} pts to pass ${esc(rows[i-1].name)}` : rows[1]?`Leading by ${me.pts-rows[1].pts}`:'';
+  return `<button class="cup-w-league" onclick="cupOpenFriends('friends')">
+    <div class="cup-w-rank"><b>#${i+1}</b><span>of ${rows.length}</span></div>
+    <div class="cup-w-lrows">${rows.slice(0,3).map((r,k)=>`<div class="${r.me?'me':''}"><span>${['🥇','🥈','🥉'][k]}</span><span class="n">${esc(r.name)}</span><span class="bar"><i style="width:${Math.max(4,r.pts/max*100)}%"></i></span><b>${r.pts}</b></div>`).join('')}</div>
+    <div class="cup-w-foot">${gap?`⚔️ ${gap} · `:''}ends in ${cupLeftInWeek()}</div></button>`;
+}
+function cupWCountdown(){
+  const today=todayStr(), until=cupISO(new Date(cupParse(today).getTime()+60*864e5));
+  const isBig=t=>/midterm|final|exam|quiz|test|중간|기말|시험/i.test(t||'');
+  const evs=[]; for(let d=cupParse(today), i=0; i<60; i++, d.setDate(d.getDate()+1)){ const ds=cupISO(d); (cupCalEventsOn(ds)||[]).forEach(e=>{ if(e.type==='test'||isBig(e.title)) evs.push({ t:e.title, ds, time:e.time }); }); if(evs.length>=3) break; }
+  const tasks=S.tasks.filter(t=>!cupDone(t)&&t.due&&t.due>=today&&t.due<=until&&(isBig(t.title)||t.priority==='must')).map(t=>({ t:t.title, ds:t.due, time:t.dueTime }));
+  const all=[...evs,...tasks].sort((a,b)=>a.ds.localeCompare(b.ds)).filter((x,i,a)=>a.findIndex(y=>y.t===x.t)===i).slice(0,3);
+  if(!all.length) return '<div class="cup-dim">No exams or big deadlines in the next 60 days.</div>';
+  const n=all[0], days=Math.round((cupParse(n.ds)-cupParse(today))/864e5);
+  return `<div class="cup-w-count"><div class="cup-w-big ${days<=3?'hot':''}"><b>${days===0?'Today':days}</b>${days?`<span>day${days===1?'':'s'}</span>`:''}</div>
+    <div><div class="cup-w-ct">${esc(n.t)}</div><div class="cup-dim">${cupWd(n.ds)} ${cupFmt(n.ds)}${n.time?' · '+cupT12(n.time):''}</div></div></div>
+    ${all.slice(1).map(x=>`<div class="cup-w-next"><span>${esc(x.t)}</span><span class="cup-dim">${Math.round((cupParse(x.ds)-cupParse(today))/864e5)}d</span></div>`).join('')}`;
+}
+function cupWFocus(){
+  const today=todayStr(), ses=(S.sessions||[]).filter(x=>x&&x.type==='focus');
+  const min=ses.filter(x=>x.date===today).reduce((a,x)=>a+(+x.dur||0),0), wk=cupWeekFocus(0), goal=+cupPref('focusGoal',120)||120;
+  const pct=Math.min(100,min/goal*100);
+  return `<div class="cup-w-focus"><div class="cup-w-ring" style="--p:${pct}"><b>${cupHM(min)}</b><span>of ${cupHM(goal)}</span></div>
+    <div><div class="cup-dim">This week ${cupHM(wk)}</div><button class="btn btn-accent" onclick="document.getElementById('cupStartInput')?.focus()">◎ Start a session</button></div></div>`;
+}
+function cupWJournal(){
+  const ds=todayStr(), j=cupJEntry(ds), has=cupJHas(j), st=cupJStreak();
+  return `<button class="cup-w-cta" onclick="cupJOpen(todayStr())"><span>✎</span><span><b>${has?'Today’s journal':'How was today?'}</b><em>${has?'Tap to keep writing':'A line or two is enough'}${st?` · ${st}-day streak`:''}</em></span></button>`;
+}
+// id: [icon, name, what it's for, group, wide?, render]
+const CUP_WIDGETS = {
+  pace:      ['📈','Course pace','How many lectures behind each class is','Study',1,cupWPace],
+  countdown: ['⏳','Exam countdown','Days until the next midterm, final or big deadline','Study',0,cupWCountdown],
+  deadlines: ['📅','Deadlines','Everything due soon','Study',0,cupDeadlinesHTML],
+  focus:     ['◎','Focus today','Minutes focused today toward your goal','Focus',0,cupWFocus],
+  time:      ['⌛','Time left','Day, week and term remaining','Focus',0,cupTimeBars],
+  upcoming:  ['🗓','Upcoming','Your next events and classes','Plan',0,()=>cupUpcomingHTML(cupUpcoming(6))],
+  week:      ['▦','This week','The week at a glance and your load','Plan',1,cupWeekBlockHTML],
+  waiting:   ['⧗','Waiting on','Things you sent and are waiting to hear back on','Plan',0,cupWaitingHTML],
+  goals:     ['◇','Goals','Your goals and how far along they are','Plan',0,cupGoalsHTML],
+  league:    ['🏆','Friends league','Your rank this week and who’s close','Together',0,cupWLeague],
+  garden:    ['🌳','Garden','Today’s tree, streak and gems','Together',0,cupGardenBlockHTML],
+  journal:   ['✎','Journal','Today’s reflection and your streak','Life',0,cupWJournal],
+  habits:    ['✓','Habits','Tick today’s habits','Life',0,cupHabitsHTML],
+  pages:     ['▤','Recent pages','Notes you edited lately','Life',0,cupPagesBlockHTML],
+  principles:['❝','Principles','The rules you want to live by','Life',0,cupPrinciplesHTML],
+};
+const CUP_W_GROUPS=['Study','Focus','Plan','Together','Life'];
+let cupWEdit=false, cupWGallery=false;
+function cupHomeW(){ const h=cupHome(); if(!h.w3){ h.blocks=h.blocks.filter(k=>CUP_WIDGETS[k]); if(!h.blocks.includes('pace') && cupPacePlans().length) h.blocks.unshift('pace'); h.w3=true; save(); } return h; }
+cupRenderDash = function(){
+  const host=document.getElementById('cupDash'); if(!host) return;
+  const h=cupHomeW(), ws=h.blocks.filter(k=>CUP_WIDGETS[k]);
+  const card=(k,i)=>{ const [ic,name,,,wide,fn]=CUP_WIDGETS[k]; let body=''; try{ body=fn(); }catch(e){ body='<div class="cup-dim">Couldn’t load this widget.</div>'; }
+    return `<section class="cup-w ${wide?'wide':''}" data-b="${k}" ondragover="cupBlockOver(event,'${k}')" ondrop="cupBlockDrop(event,'${k}')" ${cupWEdit?'':`oncontextmenu="event.preventDefault();cupWEditSet(true)"`}>
+      <h5 ${cupWEdit?`draggable="true" ondragstart="cupDragBlock='${k}';event.dataTransfer.effectAllowed='move'"`:''}><span class="cup-w-ic">${ic}</span>${esc(name)}
+        ${cupWEdit?`<span class="cup-w-move"><button onclick="cupWMove('${k}',-1)" ${i===0?'disabled':''} aria-label="Move up">↑</button><button onclick="cupWMove('${k}',1)" ${i===ws.length-1?'disabled':''} aria-label="Move down">↓</button></span>`:''}</h5>
+      ${cupWEdit?`<button class="cup-w-x" onclick="cupBlockRemove('${k}')" aria-label="Remove ${esc(name)}">−</button>`:''}
+      <div class="cup-w-body">${body}</div></section>`; };
+  const avail=Object.keys(CUP_WIDGETS).filter(k=>!ws.includes(k));
+  const gallery = cupWGallery ? `<div class="cup-wg">
+      <div class="cup-wg-h"><b>Add a widget</b><button class="cup-ts-x" onclick="cupWGallery=false;cupRenderDash()" aria-label="Close">✕</button></div>
+      ${CUP_W_GROUPS.map(g=>{ const ks=avail.filter(k=>CUP_WIDGETS[k][3]===g); return ks.length?`<div class="cup-wg-g">${g}</div><div class="cup-wg-grid">${ks.map(k=>{ const [ic,name,desc]=CUP_WIDGETS[k];
+        return `<button class="cup-wg-card" onclick="cupBlockAdd('${k}')"><span class="cup-wg-ic">${ic}</span><b>${esc(name)}</b><em>${esc(desc)}</em><span class="cup-wg-add">+ Add</span></button>`; }).join('')}</div>`:''; }).join('') || '<div class="cup-dim">Every widget is already on Home.</div>'}
+    </div>` : '';
+  const html = `${ws.length?`<div class="cup-ws ${cupWEdit?'editing':''}">${ws.map(card).join('')}</div>`:''}
+    <div class="cup-wtools">${cupWEdit?`<button class="btn btn-accent" onclick="cupWEditSet(false)">Done</button><button class="cup-more-btn" onclick="cupWGallery=true;cupRenderDash()">+ Add widget</button>`
+      :`<button class="cup-more-btn" onclick="cupWGallery=!cupWGallery;cupRenderDash()">+ Add widget</button>${ws.length?`<button class="cup-more-btn" onclick="cupWEditSet(true)">Edit widgets</button>`:''}`}</div>
+    ${gallery}`;
+  if(host.contains(document.activeElement) && document.activeElement.tagName==='INPUT') return;
+  if(host._last!==html){ host.innerHTML=html; host._last=html; cupWLongPress(host); }
+  cupRenderCompass();
+};
+function cupWEditSet(on){ cupWEdit=!!on; if(!on) cupWGallery=false; cupRenderDash(); }
+function cupWMove(k,d){ const h=cupHome(), i=h.blocks.indexOf(k), j=i+d; if(i<0||j<0||j>=h.blocks.length) return; [h.blocks[i],h.blocks[j]]=[h.blocks[j],h.blocks[i]]; save(); cupRenderDash(); }
+cupBlockAdd = function(k){ const h=cupHome(); if(!h.blocks.includes(k)) h.blocks.push(k); h.template=''; cupWGallery=false; save(); cupRenderDash(); showToast(`Added “${CUP_WIDGETS[k]?CUP_WIDGETS[k][1]:k}”.`); };
+cupBlockRemove = function(k){ const h=cupHome(), i=h.blocks.indexOf(k); h.blocks=h.blocks.filter(x=>x!==k); save(); cupRenderDash();
+  showToast(`Removed “${CUP_WIDGETS[k]?CUP_WIDGETS[k][1]:k}”.`,'Undo',()=>{ h.blocks.splice(i,0,k); save(); cupRenderDash(); }); };
+// phones: press and hold a widget to edit, like the home screen
+function cupWLongPress(host){ host.querySelectorAll('.cup-w').forEach(el=>{ let t=0;
+  el.addEventListener('touchstart',()=>{ if(cupWEdit) return; t=setTimeout(()=>{ try{ navigator.vibrate&&navigator.vibrate(10); }catch(_){} cupWEditSet(true); },550); },{passive:true});
+  ['touchend','touchmove','touchcancel'].forEach(ev=>el.addEventListener(ev,()=>clearTimeout(t),{passive:true})); }); }
+
 
 // ════════════════════════════════════════════════════════════════════
 //  PART 2 — fixes from the 50-persona study.
@@ -21165,6 +21448,40 @@ function cupSyncThemeColor(){
 { const _tt=toggleTheme; toggleTheme=function(){ const r=_tt.apply(this,arguments); cupSyncThemeColor(); return r; }; }
 { const _ap=cupApplyPrefs; cupApplyPrefs=function(){ const r=_ap.apply(this,arguments); cupSyncThemeColor(); return r; }; }
 if(document.readyState!=='loading') cupSyncThemeColor(); else document.addEventListener('DOMContentLoaded', cupSyncThemeColor);
+
+// Month view: show as many whole items as fit in each day, then “+N more” — no clipped half-lines, no scrolling
+function cupFitMonth(){
+  const grid=document.querySelector('#calPanel .cal-grid'); if(!grid || !grid.offsetHeight) return;
+  grid.querySelectorAll('.cal-cell').forEach(cell=>{
+    const list=cell.querySelector('.cal-mini-list'); if(!list) return;
+    list.querySelectorAll('.cal-mini-more').forEach(m=>m.remove());
+    const chips=[...list.children]; chips.forEach(c=>{ c.style.display=''; });
+    const room=cell.clientHeight - list.offsetTop - 3;
+    if(list.scrollHeight<=room) return;
+    let hidden=0;
+    for(let i=chips.length-1; i>=0 && list.scrollHeight>room-14; i--){ chips[i].style.display='none'; hidden++; }
+    if(hidden){ const m=document.createElement('span'); m.className='cal-mini-chip cal-mini-more'; m.textContent=`+${hidden} more`; list.appendChild(m); }
+  });
+}
+function cupCalfBtn(){
+  const nav=document.querySelector('#calPanel .cal-nav'); if(!nav) return;
+  let b=nav.querySelector('.cup-calf-btn');
+  if(!b){ b=document.createElement('button'); b.type='button'; b.className='cup-calf-btn'; b.textContent='Filter';
+    b.onclick=()=>{ document.body.classList.toggle('cup-calf-open'); try{ cupRenderCalFilters(); }catch(_){} requestAnimationFrame(cupFitMonth); };
+    nav.appendChild(b); }
+  let off=0; try{ const f=cupCalShow(); off=CUP_CALF.filter(([k])=>!f[k]).length + (S.icalSources||[]).filter(x=>f.off&&f.off[x.id]).length; }catch(_){}
+  b.classList.toggle('on', !!off); b.textContent = off?`Filter · ${off} hidden`:'Filter';
+}
+const cupFitSoon=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{ try{ cupCalfBtn(); cupFitMonth(); }catch(_){} }));
+{ const _rc=renderCalendar; renderCalendar=function(){ const r=_rc.apply(this,arguments); cupFitSoon(); return r; }; }
+{ const _ac=applyCalSplit; }
+{ let ro=null; const watch=()=>{ const p=document.getElementById('calPanel'); if(p && !p._cupRO && typeof ResizeObserver!=='undefined'){ p._cupRO=new ResizeObserver(()=>cupFitSoon()); p._cupRO.observe(p); } };
+  if(document.readyState!=='loading') watch(); else document.addEventListener('DOMContentLoaded', watch); setTimeout(watch,1500); }
+// Calendar gets most of the column by default (the day list below is a small strip); dragging the divider still wins
+if(typeof applyCalSplit==='function'){ applyCalSplit=function(){
+  const panel=document.getElementById('calPanel'), day=document.getElementById('calDayTasks'); if(!panel||!day) return;
+  const f=Math.max(0.3, Math.min(0.9, Number(S.settings?.calSplit) || 0.86));
+  panel.style.flex=`${f} 1 0`; day.style.flex=`${1-f} 1 0`; }; }
 
 
 // ════════════════════════════════════════════════════════════════════
@@ -21992,7 +22309,7 @@ Object.assign(CUP_KO, {
   "Group focus":"그룹 집중 시간","Goal reached together 🎉":"함께 목표를 달성했어요 🎉","Leave":"나가기",
   "When":"언제","Where & status":"폴더 & 상태","⧗ Waiting on reply":"⧗ 답변 대기 중","Every day (habit)":"매일 (습관)",
   "Or on specific days (habit)":"또는 특정 요일마다 (습관)",
-  "Shared Lists":"공유 목록","Weekly Load":"주간 로드","Friends":"친구","👥 Friends":"👥 친구","Friends & groups →":"친구 & 그룹 →","Garden":"가든","Study together, quietly. Friends and groups see only your name, trees, streak and focus minutes.":"조용히 함께 공부해요. 친구와 그룹에는 이름, 나무, 연속 일수, 집중 시간만 보여요.","Extra tools":"추가 도구","Shows the S/M/L and shortcut buttons, the Focus page, Upcoming in the sidebar, Home blocks, Prep, Gentle day and the Home filter.":"S/M/L·단축키 버튼, 집중 페이지, 사이드바의 다가오는 일정, 홈 블록, 준비, 가벼운 날, 홈 필터를 보여줘요.","Your meadow":"나의 정원","Invite a friend":"친구 초대","Your code":"내 코드","Copy":"복사","Friend’s code — Enter":"친구 코드 — Enter","Cheers for you":"받은 응원","Manage friends":"친구 관리","Remove":"삭제","What friends see":"친구에게 보이는 것","Share these habits as check-ins":"이 습관을 체크인으로 공유","Friends see only ✓ or nothing for each day.":"친구에게는 날마다 ✓ 표시만 보여요.","Pause sharing":"공유 일시정지","Turn off friends":"친구 기능 끄기","Grow your trees side by side":"나무를 나란히 키워요","A shared meadow":"함께하는 정원","See everyone’s tree for today":"모두의 오늘 나무를 봐요","QT check-ins":"큐티 체크인","Your small group ticks quiet time together":"소그룹이 함께 큐티를 체크해요","Cheers":"응원","One tap to cheer a friend on":"한 번 눌러 친구를 응원해요","Focus together":"함께 집중","Join when a friend starts studying":"친구가 공부를 시작하면 함께해요","No rankings. Only what you choose is shared, never your tasks or notes.":"순위는 없어요. 고른 것만 공유되고, 할 일이나 노트는 절대 공유되지 않아요.","Turn on friends":"친구 기능 켜기","Small group":"소그룹","Gym buddies":"운동 메이트","Study squad":"스터디","Club or team":"동아리 · 팀","QT check-ins — everyone ticks their quiet time":"큐티 체크인 — 모두 큐티를 체크해요","Workout check-ins together":"함께 운동 체크인","Focus hours toward one weekly goal":"주간 목표를 향한 집중 시간","Focus hours and tasks done together":"함께한 집중 시간과 완료한 일","Start a group":"그룹 만들기","Start another group":"그룹 하나 더 만들기","Or join with a code — Enter":"또는 코드로 참여 — Enter","resting":"쉬는 중","Gym buddy":"운동 메이트","Friend":"친구","Custom repeat":"직접 반복 설정","Every N days, weeks or months. When you finish it, the next one is created with a new due date.":"N일·N주·N개월마다 반복해요. 완료하면 새 마감일로 다음 항목이 만들어져요.",
+  "Shared Lists":"공유 목록","Weekly Load":"주간 로드","Friends":"친구","👥 Friends":"👥 친구","Friends & groups →":"친구 & 그룹 →","Garden":"가든","Study together, quietly. Friends and groups see only your name, trees, streak and focus minutes.":"조용히 함께 공부해요. 친구와 그룹에는 이름, 나무, 연속 일수, 집중 시간만 보여요.","Extra tools":"추가 도구","Shows the S/M/L and shortcut buttons, the Focus page, Upcoming in the sidebar, Home blocks, Prep, Gentle day and the Home filter.":"S/M/L·단축키 버튼, 집중 페이지, 사이드바의 다가오는 일정, 홈 블록, 준비, 가벼운 날, 홈 필터를 보여줘요.","Your meadow":"나의 정원","Invite a friend":"친구 초대","Your code":"내 코드","Copy":"복사","Friend’s code — Enter":"친구 코드 — Enter","Cheers for you":"받은 응원","Manage friends":"친구 관리","Remove":"삭제","What friends see":"친구에게 보이는 것","Share these habits as check-ins":"이 습관을 체크인으로 공유","Friends see only ✓ or nothing for each day.":"친구에게는 날마다 ✓ 표시만 보여요.","Pause sharing":"공유 일시정지","Turn off friends":"친구 기능 끄기","Grow your trees side by side":"나무를 나란히 키워요","A shared meadow":"함께하는 정원","See everyone’s tree for today":"모두의 오늘 나무를 봐요","QT check-ins":"큐티 체크인","Your small group ticks quiet time together":"소그룹이 함께 큐티를 체크해요","Cheers":"응원","One tap to cheer a friend on":"한 번 눌러 친구를 응원해요","Focus together":"함께 집중","Join when a friend starts studying":"친구가 공부를 시작하면 함께해요","No rankings. Only what you choose is shared, never your tasks or notes.":"순위는 없어요. 고른 것만 공유되고, 할 일이나 노트는 절대 공유되지 않아요.","Turn on friends":"친구 기능 켜기","Small group":"소그룹","Gym buddies":"운동 메이트","Study squad":"스터디","Club or team":"동아리 · 팀","QT check-ins — everyone ticks their quiet time":"큐티 체크인 — 모두 큐티를 체크해요","Workout check-ins together":"함께 운동 체크인","Focus hours toward one weekly goal":"주간 목표를 향한 집중 시간","Focus hours and tasks done together":"함께한 집중 시간과 완료한 일","Start a group":"그룹 만들기","Start another group":"그룹 하나 더 만들기","Or join with a code — Enter":"또는 코드로 참여 — Enter","resting":"쉬는 중","Gym buddy":"운동 메이트","Friend":"친구","This week’s league":"이번 주 리그","ends in":"종료까지","Change":"변경","Save":"저장","Cancel":"취소","Pick a username so friends can add you":"친구가 추가할 수 있도록 사용자 이름을 정하세요","New username":"새 사용자 이름","Available ✓":"사용 가능 ✓","Taken — try another":"이미 사용 중 — 다른 이름을 써 보세요","Checking…":"확인 중…","That’s you":"지금 내 이름이에요","3–20 letters, numbers, _ or .":"영문 소문자·숫자·_·. 3–20자","Add a friend — @username":"친구 추가 — @사용자이름","Copy mine":"내 것 복사","Your league starts with one friend":"친구 한 명이면 리그가 시작돼요","1 pt per focus minute · 20 per task done · 10 per check-in · resets every week":"집중 1분 1점 · 완료한 일 20점 · 체크인 10점 · 매주 초기화","Join":"함께하기","+ Add widget":"+ 위젯 추가","Edit widgets":"위젯 편집","Done":"완료","Add a widget":"위젯 추가","Study":"공부","Plan":"계획","Together":"함께","Life":"생활","Course pace":"수업 진도","Exam countdown":"시험 카운트다운","Deadlines":"마감","Focus today":"오늘 집중","Time left":"남은 시간","This week":"이번 주","Waiting on":"답변 대기","Goals":"목표","Friends league":"친구 리그","Garden":"가든","Journal":"일기","Habits":"습관","Recent pages":"최근 페이지","Principles":"원칙","How many lectures behind each class is":"수업별로 몇 강 밀렸는지","Days until the next midterm, final or big deadline":"다음 중간·기말고사나 큰 마감까지 남은 날","Everything due soon":"곧 마감되는 모든 것","Minutes focused today toward your goal":"오늘 목표 대비 집중 시간","Day, week and term remaining":"오늘·이번 주·학기 남은 시간","Your next events and classes":"다음 일정과 수업","The week at a glance and your load":"한눈에 보는 이번 주와 부담","Things you sent and are waiting to hear back on":"보내고 답을 기다리는 것","Your goals and how far along they are":"목표와 진행 상황","Your rank this week and who’s close":"이번 주 내 순위와 가까운 친구","Today’s tree, streak and gems":"오늘의 나무, 연속 기록, 보석","Today’s reflection and your streak":"오늘의 기록과 연속 일수","Tick today’s habits":"오늘 습관 체크","Notes you edited lately":"최근 수정한 노트","The rules you want to live by":"지키고 싶은 원칙","+ Add":"+ 추가","Start a weekly league":"주간 리그 시작","Race friends on focus minutes and tasks.":"집중 시간과 완료한 일로 친구와 겨뤄요.","Add a friend to start":"친구를 추가해 시작하세요","How was today?":"오늘 어땠나요?","A line or two is enough":"한두 줄이면 충분해요","◎ Start a session":"◎ 세션 시작","Track a class to see how many lectures behind you are.":"수업을 추적하면 몇 강 밀렸는지 볼 수 있어요.","Every widget is already on Home.":"모든 위젯이 이미 홈에 있어요.","Custom repeat":"직접 반복 설정","Every N days, weeks or months. When you finish it, the next one is created with a new due date.":"N일·N주·N개월마다 반복해요. 완료하면 새 마감일로 다음 항목이 만들어져요.",
   "▸ More options (priority, steps, work date, reminders, files…)":"▸ 추가 옵션 (우선순위, 단계, 작업일, 알림, 파일…)",
   "▾ Fewer options":"▾ 옵션 접기",
   // ── navigation & shell ──

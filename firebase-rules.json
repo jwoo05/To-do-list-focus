@@ -91,6 +91,13 @@
           ".validate": "!newData.exists() || (newData.child('e').isString() && newData.child('e').val().length <= 8 && newData.child('n').isString() && newData.child('n').val().length <= 60 && newData.child('at').isNumber())"
         }
       }
+    },
+    "usernames": {
+      "$name": {
+        ".read": "auth != null",
+        ".write": "auth != null && ((!data.exists() && newData.val() === auth.uid) || (data.val() === auth.uid && !newData.exists()))",
+        ".validate": "newData.isString() && $name.matches(/^[a-z0-9_.]{3,20}$/)"
+      }
     }
   }
 }
