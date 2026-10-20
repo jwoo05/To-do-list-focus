@@ -7025,6 +7025,11 @@ body.cup-nogarden .cup-podium, body.cup-nogarden .cup-league-call{ display:none 
 #mSettings .cup-pref .btn-accent:hover, #mSettings .cup-link-form .btn-accent:hover{ border-color:var(--accent); }
 #page-dashboard .cup-start .btn-accent{ background:transparent; color:var(--text); border:1px solid var(--border2, var(--border)); box-shadow:none; }
 
+/* List view: the Tasks page scrolls (the old workbench layout locked it to the screen height) */
+#page-todo:has(#todoWorkbench[data-mcol="list"]){ overflow-y:auto !important; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
+#page-todo:has(#todoWorkbench[data-mcol="list"]) #cupTaskList{ flex:none; }
+@media (max-width:760px){ .cup-tl{ margin-bottom:calc(110px + env(safe-area-inset-bottom)); } }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
