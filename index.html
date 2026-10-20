@@ -6788,6 +6788,58 @@ body.cup-lean #cupMSeg{ justify-content:flex-start; width:100%; }
 .cup-wg-card.on{ border-color:var(--accent); background:color-mix(in srgb, var(--accent) 8%, var(--bg)); }
 .cup-wg-card.on .cup-wg-add{ color:var(--text2); }
 
+/* ═══ WAVE 1 fixes (audit 2026-10-19) ═══ */
+/* 1 · folder view on the List */
+.cup-tl-fhead{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; margin:2px 0 12px; font-size:calc(14px * var(--cup-fs,1)); }
+.cup-tl-fhead > b{ font-size:calc(16px * var(--cup-fs,1)); margin-right:4px; }
+.cup-tl-page{ display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border:1px solid var(--border); border-radius:999px; font-size:calc(13px * var(--cup-fs,1)); color:var(--text2); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cup-tl-page svg{ width:13px; height:13px; flex:none; }
+.cup-tl-page:hover{ color:var(--text); border-color:var(--text3); }
+.cup-tl-fclear{ margin-left:auto; font-size:calc(13px * var(--cup-fs,1)); color:var(--text2); padding:4px 8px; border-radius:6px; }
+.cup-tl-fclear:hover{ background:var(--bg2); color:var(--text); }
+/* 4 · paced lectures folded into one line */
+.cup-tl-pacehid{ display:flex; align-items:center; gap:10px; padding:10px 2px; font-size:calc(13.5px * var(--cup-fs,1)); color:var(--text2); }
+.cup-tl-pacehid button{ color:var(--accent); font-weight:600; font-size:calc(13.5px * var(--cup-fs,1)); padding:4px 6px; border-radius:6px; }
+.cup-tl-pacehid button:hover{ background:var(--bg2); }
+/* 6 · after a session: Done ✓ / next tiny step */
+.cup-sess-after{ border:1px solid var(--border); border-radius:12px; padding:12px 14px; margin:0 0 14px; display:flex; flex-direction:column; gap:10px; font-size:calc(14px * var(--cup-fs,1)); }
+.cup-sess-after-q{ display:flex; flex-direction:column; gap:2px; } .cup-sess-after-q span{ color:var(--text2); }
+.cup-sess-after-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.cup-sess-after-row input{ flex:1; min-width:150px; padding:8px 10px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:calc(14px * var(--cup-fs,1)); }
+/* 7 · Settings → Calendar links */
+.cup-link-sw{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:7px; vertical-align:0; }
+.cup-link-add{ border-bottom:0; padding-bottom:4px; }
+.cup-link-form{ display:flex; flex-wrap:wrap; gap:8px; padding:0 0 10px; }
+.cup-link-form input[type=url]{ flex:2 1 220px; } .cup-link-form input:not([type]){ flex:1 1 140px; }
+.cup-link-form input[type=url], .cup-link-form input:not([type]){ padding:8px 10px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:calc(14px * var(--cup-fs,1)); min-width:0; }
+.cup-link-form input[type=color], #cupLinks .cup-pref-btns input[type=color]{ width:38px; height:36px; padding:2px; border:1px solid var(--border); border-radius:8px; background:var(--bg); }
+#cupLinkStatus:empty{ display:none; }
+/* 11 · Minimal mode = one card: the task, Focus, Done and Later. Pages and Search stay reachable. */
+body.cup-minimal #page-dashboard .cup-today-card, body.cup-minimal #page-dashboard .cup-hchips, body.cup-minimal #cupHeroGarden,
+body.cup-minimal #page-dashboard .cup-next-now, body.cup-minimal #page-dashboard .cup-start, body.cup-minimal #page-dashboard .cup-next-actions .cup-icon-btn:last-child:not(.cup-later),
+body.cup-minimal .sidebar .nav-item[data-page="friends"], body.cup-minimal .cup-side-cats, body.cup-minimal #page-dashboard .cup-pacemini{ display:none !important; }
+body.cup-minimal .sidebar .cup-side{ display:block !important; }
+/* 12 · phone pass */
+.cup-pacemini{ flex-wrap:wrap; row-gap:4px; min-width:0; max-width:100%; }
+.cup-pacemini .cup-pace-bar{ flex:1 1 80px; }
+.cup-pacemini .cup-pace-behind, .cup-pacemini .cup-pace-even{ width:auto; white-space:nowrap; }
+.cup-pacerow-top{ flex-wrap:wrap; }
+.cup-pacerow-name{ flex:1 1 auto; }
+@media (max-width:760px){
+  /* iOS zooms into any field under 16px */
+  input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]), select, textarea{ font-size:calc(16px * var(--cup-fs,1)) !important; }
+  .cup-mob-sheet .modal-body.cup-me-grid{ padding:8px 16px 16px !important; }
+  .cup-mob-sheet .modal-header{ padding-left:16px; padding-right:16px; }
+  #mCupSess .modal-footer, #mCupFCR .modal-footer, #mSessionSummary .modal-footer{ padding:12px 16px calc(12px + env(safe-area-inset-bottom)) !important; gap:8px; }
+  .cup-plus-fab, #cupPlusFab{ display:none !important; }                       /* the tab bar has Add */
+  #mCupNote .cup-note-icbtn, #mCupNote .modal-close{ min-width:34px !important; width:34px !important; height:34px !important; flex:none; }
+  #mCupNote .cup-note-top .cup-note-saved{ display:none; }
+  #mCupNote .cup-note-ai{ max-width:76px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:0 1 auto; }
+  #mCupNote .cup-note-move{ max-width:86px; min-width:0; flex:0 1 auto; }
+  #mCupNote .cup-note-icbtn[onclick^="cupNoteDelete"]{ margin-right:14px; }               /* delete well away from close */
+  .cup-pacemini-n{ width:auto; max-width:40%; }
+}
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -18812,7 +18864,7 @@ function cupNoteChanged(){
 function cupNoteSave(){
   const n=cupNoteById(cupNoteId); if(!n) return;
   n.title=document.getElementById('cupNoteTitle').value.trim();
-  if(!n.autoHid && cupPref('hideMeetings',true) && CUP_MEETING_RE.test(n.title)){ n.autoHid=true; n.hidden=true; cupNoteHideBtn(n); showToast('Meeting notes are kept out of the sidebar. “Show hidden pages” at the bottom of Pages brings them back.'); }
+  if(!n.autoHid && CUP_MEETING_RE.test(n.title) && (n.autoHid=true) && cupPref('hideMeetings',false) && Date.now()-(n.createdAt||0)>864e5){ n.hidden=true; cupNoteHideBtn(n); showToast('Meeting notes are kept out of the sidebar. “Show hidden pages” at the bottom of Pages brings them back.'); }
   const b=document.getElementById('cupNoteBody');
   b.querySelectorAll('[data-ph]').forEach(x=>x.removeAttribute('data-ph'));
   const html=cupCleanHTML(b.innerHTML);
@@ -19672,7 +19724,7 @@ function cupUNameEditor(){
   const soc=cupSoc(), has=!!soc.username;
   if(has && !soc.unameEdit) return `<div class="cup-uname"><span class="cup-uname-at">@${esc(soc.username)}</span><button class="cup-more-btn" onclick="cupSoc().unameEdit=true;cupRenderFriendsPage()">Change</button></div>`;
   return `<div class="cup-uname edit"><span class="cup-dim">${has?'New username':'Pick a username so friends can add you'}</span>
-    <span class="cup-uname-in"><span>@</span><input id="cupUNameIn" maxlength="20" placeholder="jay.kim" value="${esc(cupUNameState.v||'')}" oninput="cupUNameCheck(this.value)" onkeydown="if(event.key==='Enter'&&cupUNameState.status==='free')cupSetUsername(this.value)" autocapitalize="off" autocomplete="off" spellcheck="false"></span>
+    <span class="cup-uname-in"><span>@</span><input id="cupUNameIn" maxlength="20" placeholder="your.name" value="${esc(cupUNameState.v||'')}" oninput="cupUNameCheck(this.value)" onkeydown="if(event.key==='Enter'&&cupUNameState.status==='free')cupSetUsername(this.value)" autocapitalize="off" autocomplete="off" spellcheck="false"></span>
     <button id="cupUNameSave" class="btn btn-accent" disabled onclick="cupSetUsername(document.getElementById('cupUNameIn').value)">Save</button>
     ${has?`<button class="cup-more-btn" onclick="cupSoc().unameEdit=false;cupRenderFriendsPage()">Cancel</button>`:''}
     <span id="cupUNameMsg" class="cup-uname-msg"></span></div>`;
@@ -19740,11 +19792,11 @@ function cupSocialHTML(tab){
       <h3>Grow your trees side by side</h3>
       <div class="cup-soc-feats">
         <div><span>🌳</span><b>A shared meadow</b><em>See everyone’s tree for today</em></div>
-        <div><span>🙏</span><b>QT check-ins</b><em>Your small group ticks quiet time together</em></div>
+        <div><span>🙏</span><b>Daily check-ins</b><em>Your group ticks one small habit together, like quiet time or a run</em></div>
         <div><span>👏</span><b>Cheers</b><em>One tap to cheer a friend on</em></div>
         <div><span>📚</span><b>Focus together</b><em>Join when a friend starts studying</em></div>
       </div>
-      <p class="cup-dim">A weekly league with friends — race on focus time, tasks and QT check-ins. Only scores are shared, never your tasks or notes.</p>
+      <p class="cup-dim">A weekly league with friends — race on focus time, tasks and check-ins. Only scores are shared, never your tasks or notes.</p>
       ${uid?`<button class="btn btn-accent" onclick="cupSocialEnable()">Turn on friends</button>`:''}${why}</div>`;
   }
   const err=cupSocial.error?`<div class="cup-soc-note">⚙︎ ${esc(cupSocial.error)}</div>`:'';
@@ -20334,7 +20386,7 @@ function cupPacePlans(){
     // when you'd be caught up at perDay (the class keeps moving meanwhile)
     let caught=null;
     if(behind>0){ for(let d=0; d<120; d++){ const ds=cupTSDate(d), clsD=steps.filter(x=>x.classDate&&x.classDate<=ds).length; if(you+perDay*(d+1)>=clsD){ caught=ds; break; } } }
-    const prefix=(first.title.match(/^([A-Za-z]+)\d/)||[])[1]||'L';
+    const prefix=(first.title.match(/(?:^|:\s*)([A-Za-z]+)\d/)||[])[1]||'L';
     // time to catch up = each covered-but-unfinished lecture's own length
     const owe=steps.filter(x=>x.classDate&&x.classDate<=edge&&!cupDone(x)).reduce((m,x)=>m+(+x.plan.minutes||cupPaceMinutes(x)||mins),0);
     return { name, steps, folder:c, of, cls, you, behind, ahead:Math.max(0,you-cls), perDay, mins, owe, caught, nextStep, prefix, lead, done:you>=of };
@@ -20504,10 +20556,10 @@ function cupPaceSave(){
     if(finished) due=cd<today?cd:cupAddDays(cd,lead?-1:1);
     else if(cd<today || (lead&&cd<=cupAddDays(today,1))){ if(load>=perDay){ d++; load=0; } due=cupTSDate(d); load++; }   // already taught: spread from today
     else due=cupAddDays(cd, lead?-1:1);                                                                        // review the day after, or prep the day before
-    const t=cupMakeTask({ title:`${pre}${i+1}${titles[i]?' · '+titles[i]:''}`, type:'reading', priority:'medium', area:c.area, commitId:c.id, subject:c.name,
+    const t=cupMakeTask({ title:`${lead?'Prep':'Review'}: ${pre}${i+1}${titles[i]?' – '+titles[i]:''}`, type:'reading', priority:'medium', area:c.area, commitId:c.id, subject:c.name,
       due, scheduledDates:[due], classDate:cd, plan:{ name, step:i+1, of:list.length, perDay, minutes:mins, lead },
       notes:`${lead?'Class teaches this on':'Class covered this on'} ${cupParse(cd).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}.` });
-    if(finished){ t.completed=true; t.archived=true; t.completedAt=Date.now(); }
+    if(finished){ t.completed=true; t.archived=true; t.completedAt=null; t.prior=true; }   // covered before tracking: not a finish today (no journal, points or streak)
     S.tasks.push(t);
   });
   c.paceOf=name; save(); closeModal('mCupPace'); render();
@@ -20530,7 +20582,7 @@ function cupRenderCompass(){
   if(host.contains(document.activeElement) && document.activeElement.tagName==='INPUT') return;
   const paces=cupPacePlans();
   const html=`<div class="cup-compass">
-    <section class="cup-block wide"><h5><span class="cup-bic">${cupIc('cal')}</span>Deadlines · next 2 weeks</h5>${cupDeadlinesHTML()}</section>
+    <section class="cup-block wide"><h5><span class="cup-bic">${cupIc('cal')}</span>Deadlines · next ${(d=>d===365?'year':d===14?'2 weeks':d+' days')(+cupPref('deadlineDays',30)||30)}</h5>${cupDeadlinesHTML()}</section>
     <section class="cup-block"><h5><span class="cup-bic">${cupIc('goal')}</span>Goals</h5>${cupGoalsHTML()}</section>
     <section class="cup-block"><h5><span class="cup-bic">${cupIc('quote')}</span>Principles</h5>${cupPrinciplesHTML()}</section>
     <section class="cup-block wide"><h5><span class="cup-bic">${cupIc('week')}</span>Hours by folder</h5>${cupTimeReportHTML()}</section>
@@ -21037,7 +21089,7 @@ function cupWLongPress(host){ host.querySelectorAll('.cup-w').forEach(el=>{ let 
 // ════════════════════════════════════════════════════════════════════
 
 // ── Preferences (S.cup.prefs) ──
-const CUP_PREF_DEFAULT = { extras:false, gentle:true, gardenOn:true, minimal:false, easyRead:false, dayEnd:0, hideMeetings:true };
+const CUP_PREF_DEFAULT = { extras:false, gentle:true, gardenOn:true, minimal:false, easyRead:false, dayEnd:0, hideMeetings:false };
 function cupPref(k, d){ cupEnsure(); const p=S.cup.prefs||{}; return p[k]===undefined ? (d!==undefined?d:CUP_PREF_DEFAULT[k]) : p[k]; }
 function cupSetPref(k, v){ cupEnsure(); S.cup.prefs=Object.assign({}, S.cup.prefs||{}, {[k]:v}); save(); cupApplyPrefs(); render(); try{ cupPrefsRender(); }catch(_){} }
 const CUP_FS = { compact:1, normal:1.1, spacious:1.25 };
@@ -21073,7 +21125,7 @@ function cupPrefsRender(){
       <span class="cup-seg">${[['compact','S'],['normal','M'],['spacious','L']].map(([v,l])=>`<button type="button" class="${dens===v?'on':''}" onclick="setDensity('${v}')">${l}</button>`).join('')}</span></div>
     ${tog('easyRead','Easy-read text','Roomier spacing and a more open typeface.')}
     ${tog('extras','Extra tools','Shows the S/M/L and shortcut buttons, the Focus page, Upcoming in the sidebar, Home blocks, Prep, Gentle day and the Home filter.')}
-    ${tog('minimal','Minimal mode','Home shows just your one task. Hides side lists, Goals and Journal links.')}
+    ${tog('minimal','Minimal mode','Home is one card: your next task with Focus and Later. Pages and Search stay in the sidebar.')}
     ${tog('gentle','Gentle late tasks','Late tasks show “from Oct 12” in a soft color instead of a red alarm.')}
     ${tog('gardenOn','Garden, gems and streaks','Turn off to remove all streak and tree pressure. Rest days keep a streak safe.')}
     <div class="cup-pref"><span><b>My day ends at</b><em>For night shifts: “late” and Later reset at this hour, not midnight.</em></span>
@@ -21447,7 +21499,7 @@ const CUP_KO_RULES = [
   [new RegExp('다음\\s*주'+CUP_PART,'g'), ()=>' next week '],
   [/(오전|아침|새벽|오후|저녁|밤)\s*(\d{1,2})\s*시(?:\s*(\d{1,2})\s*분|\s*(반))?(?:에|까지|부터)?/g, (m,ap,h,mi,half)=>` ${cupKoHour(ap,h,half?30:mi)} `],
   [/정오(?:에|까지)?/g, ()=>' 12pm '],
-  [/(\d{1,2})\s*시(?:\s*(\d{1,2})\s*분|\s*(반))?(?:에|까지|부터)?/g, (m,h,mi,half)=>` ${cupKoHour('',h,half?30:mi)} `],
+  [/(\d{1,2})\s*시(?=반|에|까지|부터|\s|$|[^가-힣])(?:\s*(\d{1,2})\s*분|\s*(반))?(?:에|까지|부터)?/g, (m,h,mi,half)=>` ${cupKoHour('',h,half?30:mi)} `],
 ];
 function cupKoNorm(text){ if(!/[가-힣]/.test(String(text))) return text; let t=String(text); CUP_KO_RULES.forEach(([re,fn])=>{ t=t.replace(re,fn); }); return t.replace(/\s{2,}/g,' ').trim(); }
 function cupKoStrip(text){ if(!/[가-힣]/.test(String(text))) return text; let t=String(text); CUP_KO_RULES.forEach(([re])=>{ t=t.replace(re,' '); }); return t.replace(/\s{2,}/g,' ').trim(); }
@@ -22542,7 +22594,7 @@ function cupEventNotes(id, ds){
   const when=`<p><b>When:</b> ${esc(cupFmt(ds))}${e.time?' '+esc(cupT12(e.time))+(e.endTime?'–'+esc(cupT12(e.endTime)):''):''}${e.location?` · <b>Where:</b> ${esc(e.location)}`:''}${lecture&&folder?` · <b>Class:</b> ${esc(folder.name)}`:''}</p>`;
   n.html=cupCleanHTML(when + CUP_PAGE_TPL[lecture?'Lecture notes':'Meeting notes']().replace(/^<p>[^]*?<\/p>/,''));
   // same “keep meeting notes out of the sidebar” rule as other pages, without its extra toast — this one is already filed
-  [n, parent].forEach(x=>{ if(x && !x.autoHid){ x.autoHid=true; if(cupPref('hideMeetings',true) && CUP_MEETING_RE.test(x.title)) x.hidden=true; } });
+  [n, parent].forEach(x=>{ if(x && !x.autoHid){ x.autoHid=true; if(x!==n && cupPref('hideMeetings',false) && Date.now()-(x.createdAt||0)>864e5 && CUP_MEETING_RE.test(x.title)) x.hidden=true; } });   // never the page you just made
   save(); render(); cupOpenNote(n.id);
   if(folder) showToast(made ? `Filed in new folder “${folder.name}”` : `Filed in “${folder.name}”`);
 }
@@ -23527,7 +23579,7 @@ function cupWhenApply(w, tasks, events){
 }
 { const _add=cupAddItems; cupAddItems=function(items, base, lab, type){
   const w=cupWhenPending; cupWhenPending=null;
-  if(w && items.length===1){ const it=items[0]; if(w.date) it.date=w.date; if(w.time){ it.time=w.time; it.end=''; } if(it.kind==='event' && it.time && !it.end){ const m=Math.min(24*60-1, timeStrToMinutes(it.time)+60); it.end=String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); } if(w.touched && !w.date && !w.time && it.kind==='task'){ it.date=''; it.time=''; } }
+  if(w && items.length===1){ const it=items[0]; if(w.date) it.date=w.date; if(w.time && w.time!==it.time){ it.time=w.time; it.end=''; } if(it.kind==='event' && it.time && !it.end){ const m=Math.min(24*60-1, timeStrToMinutes(it.time)+60); it.end=String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); } if(w.touched && !w.date && !w.time && it.kind==='task'){ it.date=''; it.time=''; } }
   return _add.apply(this, arguments); }; }
 let cupWhenPending=null;
 { const _go=cupPlusGo; cupPlusGo=function(){
@@ -24008,6 +24060,315 @@ document.addEventListener('visibilitychange', ()=>{ try{ if(document.visibilityS
 setInterval(()=>{ try{ if(cupGc().on) cupGcSoon(0); }catch(_){} }, 5*60000);
 setTimeout(()=>{ try{ if(cupGc().on){ cupGcLoadGis().catch(()=>{}); cupGcSoon(0); } }catch(_){} }, 6000);
 
+// ════════════════════════════════════════════════════════════
+//  WAVE 1 — fixes for what was broken (audit 2026-10-19)
+// ════════════════════════════════════════════════════════════
+
+// ── 1 · Folder, area and Waiting links open the calm List, filtered (the workbench bank is hidden there) ──
+{ const _sb=cupSetBankSel; cupSetBankSel=function(v){
+  if(!document.body.classList.contains('cup-lean')) return _sb.apply(this,arguments);
+  v=v||''; const [k,id]=v.split(':');
+  cupBankSel=v;                                                     // sidebar highlight only; never saved
+  cupTLFolder = k==='folder'?id : k==='area'?v : k==='waiting'?'waiting' : '';
+  if(k==='waiting') cupTLOpen.waiting=true;
+  cupTLQuery='';
+  if(typeof currentPage==='undefined' || currentPage!=='todo') showPage('todo');
+  cupSetMCol('list'); render();
+  setTimeout(()=>document.getElementById('cupTaskList')?.scrollIntoView({ block:'start' }), 60); }; }
+{ const _m=cupTLMatch; cupTLMatch=function(t){
+  if(cupTLFolder!=='waiting') return _m.apply(this,arguments);
+  if(cupTLQuery && !String(t.title||'').toLowerCase().includes(cupTLQuery.toLowerCase())) return false;
+  return !!t.waiting; }; }
+// the list filter is for now, not for next time
+cupTLFolder=''; try{ localStorage.removeItem('cup_tl_folder'); }catch(_){}
+function cupTLFolderName(){ if(!cupTLFolder) return ''; if(cupTLFolder==='waiting') return 'Waiting on'; if(cupTLFolder.startsWith('area:')) return CUP_AREA[cupTLFolder.slice(5)]?.name||''; return cupCommit(cupTLFolder)?.name||''; }
+function cupTLClear(){ cupTLFolder=''; cupBankSel=''; cupRenderTaskList(); cupRenderSideTree(); }
+function cupTLFolderHead(host){
+  let h=host.querySelector('.cup-tl-fhead'); const name=cupTLFolderName();
+  if(!name){ if(h) h.remove(); return; }
+  const id=cupTLFolder.startsWith('area:')||cupTLFolder==='waiting'?'':cupTLFolder;
+  const pages=id?cupNotes().filter(n=>n.commitId===id&&!n.parentId).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,6):[];
+  const html=`<b>${esc(name)}</b>${pages.map(n=>`<button class="cup-tl-page" onclick="cupOpenNote('${n.id}')">${cupIc('page')}${esc(n.title||'Untitled')}</button>`).join('')}<button class="cup-tl-fclear" onclick="cupTLClear()">✕ All tasks</button>`;
+  if(!h){ h=document.createElement('div'); h.className='cup-tl-fhead'; host.querySelector('.cup-tl-top')?.after(h); }
+  if(h._h!==html){ h.innerHTML=html; h._h=html; }
+  // the dropdown shows the folder too (sub-folders and areas aren't in its list)
+  const sel=host.querySelector('.cup-tl-fsel');
+  if(sel && sel.value!==cupTLFolder){ let o=[...sel.options].find(x=>x.value===cupTLFolder); if(!o){ o=new Option(name, cupTLFolder); sel.add(o); } sel.value=cupTLFolder; sel.classList.add('on'); }
+}
+
+// ── 2 · The + bar files into the folder open right now, never a remembered one ──
+cupBankSel='';
+cupPersist=function(){ try{ localStorage.setItem('cup_ui', JSON.stringify({ sel:'', open:cupSideOpen })); }catch(_){} };
+cupPersist();
+function cupOpenFolderSel(){
+  if(typeof currentPage==='undefined' || currentPage!=='todo') return '';
+  if(document.body.classList.contains('cup-lean')) return cupMCol==='list' && cupTLFolder && cupTLFolder!=='waiting' ? (cupTLFolder.startsWith('area:')?cupTLFolder:'folder:'+cupTLFolder) : '';
+  return /^(folder|area):/.test(cupBankSel) ? cupBankSel : '';
+}
+{ const _wo=cupPlusWhereOptions; cupPlusWhereOptions=function(){ const keep=cupBankSel; cupBankSel=cupOpenFolderSel(); try{ return _wo.apply(this,arguments); } finally{ cupBankSel=keep; } }; }
+
+// ── 3 · One date reader for the + bar, sentences, the When row and Import ──
+const CUP_PRI_TOK=/(^|\s)!(must|urgent|high|med|medium|low|필수|긴급|중요|높음|보통|낮음)(?=\s|$)/i;
+const CUP_PRI_MAP={ must:'MUST', urgent:'MUST', '필수':'MUST', '긴급':'MUST', high:'high', '중요':'high', '높음':'high', med:'medium', medium:'medium', '보통':'medium', low:'low', '낮음':'low' };
+const CUP_NUMW={ a:1, an:1, one:1, two:2, three:3, four:4, five:5, six:6, seven:7 };
+function cupWhenNorm(text){
+  let s=' '+String(text||'')+' ';
+  const base=cupParse(todayStr()), md=n=>{ const d=new Date(base); d.setDate(d.getDate()+n); return ` ${CUP_MON3[d.getMonth()]} ${d.getDate()} `; };
+  s=s.replace(new RegExp(CUP_PRI_TOK.source,'gi'),' ');
+  s=s.replace(/\b(\d{1,2})\/(\d{1,2})(?:\/(?:\d{4}|\d{2}))?\b/g,(m,mo,d)=>+mo>=1&&+mo<=12&&+d>=1&&+d<=31 ? ` ${CUP_MON3[+mo-1]} ${+d} ` : m);   // 10/28 = Oct 28
+  s=s.replace(/\b(?:tmrw|tmr|tmw|tomm?or+ow)\b/gi,'tomorrow');
+  s=s.replace(/\b(?:the\s+)?day\s+after\s+tomorrow\b/gi,()=>md(2));
+  s=s.replace(/\bin\s+(\d{1,3}|a|an|one|two|three|four|five|six|seven)\s+(day|week)s?\b/gi,(m,n,u)=>md((CUP_NUMW[n.toLowerCase()]||+n)*(/week/i.test(u)?7:1)));
+  s=s.replace(/\bevery\s+weekdays?\b/gi,' weekdays ').replace(/\bevery\s+weekends?\b/gi,' weekends ');
+  s=s.replace(/\bevery\s+((?:(?:sun|mon|tue|tues|wed|weds|thu|thur|thurs|fri|sat)[a-z]*\.?(?:\s*(?:,|and|&|\/)\s*|\s+)?)+)/gi,(m,days)=>` ${days} habit `);
+  // 금 3시 / 금 물리 랩: one-letter weekdays at the start, or right before a time
+  if(/[가-힣]/.test(s)) s=s.replace(/(^\s*|\s)([월화수목금토])(?=\s+(?:\d{1,2}\s*시|오전|오후|아침|저녁|밤|\d{1,2}(?::\d{2})?\s*(?:am|pm)))/g,(m,sp,d)=>`${sp}${CUP_DAYEN[CUP_KOD[d]]} `)
+    .replace(/^(\s*)([월화수목금토])\s/,(m,sp,d)=>`${sp}${CUP_DAYEN[CUP_KOD[d]]} `);
+  return s.replace(/\s{2,}/g,' ').trim();
+}
+{ const _p=parseNLP; parseNLP=function(text){
+  const raw=String(text||''), pm=raw.match(CUP_PRI_TOK), r=_p.call(this, cupWhenNorm(raw));
+  if(pm) r.priority=CUP_PRI_MAP[pm[2].toLowerCase()]||r.priority;
+  const rg=typeof cupParseRange==='function'?cupParseRange(raw):null; if(rg) r.scheduledTime=rg.start;      // “3-4pm” starts at 3
+  // “test” alone isn't an exam (unit test, A/B test): only with exam words, a course code or a number
+  if(r.type==='exam' && !/\b(exams?|quiz(?:zes)?|midterms?|finals?)\b|시험|중간|기말|퀴즈/i.test(raw) && !/\b[A-Z]{2,6}\s*\d{3}\b|\btest\s*#?\d|\d\s*test\b/i.test(raw)){ r.type='task'; r.calendarSignal='auto'; }
+  r.source=raw; return r; }; }
+{ const _ct=cupCleanTitle; cupCleanTitle=function(s){
+  s=cupWhenNorm(s).replace(/\b\d{1,2}(?::\d{2})?\s*(?:am|pm)?\s*[-–~]\s*\d{1,2}(?::\d{2})?\s*(?:am|pm)\b/gi,' ').replace(/\bevery\b(?=\s*$|\s+habit\b)/gi,' ');
+  return _ct.call(this, s).replace(/\s+(?:due|by)$/i,'').trim(); }; }
+// the When row reads the words with the same code that saves them
+cupWhenFromText=function(){
+  if(cupWhen.touched) return;
+  const v=(document.getElementById('cupPlusInput')?.value||'').trim(); let date='', time='';
+  if(v){ try{
+    if(/[가-힣]/.test(v) || !/^(task|event|waiting)$/.test(cupPlusType)){ const n=parseNLP(v); date=n.due||cupKoDate(v)||''; time=n.scheduledTime||''; }
+    else { const sx=cupSentence(cupPullQuick(v).text); date=sx.date; time=sx.time; }
+  }catch(_){} }
+  if(cupPlusType==='event' && !date && v) date=todayStr();
+  cupWhen.date=date; cupWhen.time=time;
+};
+// “every mon” makes a habit (the repeating kind), like “daily”
+{ const _i=cupPlusInput; cupPlusInput=function(){ const r=_i.apply(this,arguments);
+  const v=document.getElementById('cupPlusInput')?.value||'';
+  if(!cupPlusPicked && cupPlusType==='task' && /\bevery\s+(?:(?:sun|mon|tue|wed|thu|fri|sat)[a-z]*|weekdays?|weekends?)\b|매주\s*[월화수목금토일]/i.test(v)){ cupPlusType='habit'; cupPlusWhereOptions(); cupPlusSync(); }
+  return r; }; }
+
+// ── 4 · Every open task shows: lectures due today count, the rest of a paced course is one “show” line ──
+cupOpenTasks=function(){ const nx=cupPlanNextIds(), td=todayStr();
+  return S.tasks.filter(t=>!t.isHabit&&!t.archived&&!cupDone(t)&&(!(t.plan&&t.plan.name)||nx.has(t.id)||(t.due&&t.due<=td)||(t.scheduledDates||[]).includes(td))); };
+let cupTLPace=false;
+{ const _tl=cupRenderTaskList; cupRenderTaskList=function(){
+  const _o=cupOpenTasks, hid=[];
+  cupOpenTasks=function(){ const shown=_o(), ids=new Set(shown.map(t=>t.id)); hid.length=0;
+    const rest=S.tasks.filter(t=>!ids.has(t.id)&&t.plan&&t.plan.name&&!t.isHabit&&!t.archived&&!cupDone(t));
+    if(cupTLPace || cupTLQuery) return shown.concat(rest);
+    hid.push(...rest); return shown; };
+  let r; try{ r=_tl.apply(this,arguments); } finally{ cupOpenTasks=_o; }
+  const host=document.getElementById('cupTaskList'), box=host&&host.querySelector('.cup-tl'); if(!box) return r;
+  // Today first; Overdue (folded) right after it
+  const over=box.querySelector('.cup-tl-sec.over'), secs=[...box.querySelectorAll('.cup-tl-sec')], today=secs.find(s=>s.querySelector('.cup-tl-h span')?.textContent==='Today');
+  if(over && today && over.nextElementSibling!==null && today.compareDocumentPosition(over)&Node.DOCUMENT_POSITION_PRECEDING) today.after(over);
+  const n=hid.filter(cupTLMatch).length; let line=box.querySelector('.cup-tl-pacehid');
+  const html = cupTLPace ? `<button onclick="cupTLPace=false;cupRenderTaskList()">Hide later lectures</button>` : n ? `<span>${n} later lecture${n===1?'':'s'} from course pace hidden</span><button onclick="cupTLPace=true;cupRenderTaskList()">Show</button>` : '';
+  if(!html){ if(line) line.remove(); }
+  else { if(!line){ line=document.createElement('div'); line.className='cup-tl-pacehid'; } const ref=box.querySelector('.cup-tl-sec.donesec')||box.querySelector('.cup-tl-empty'); if(line.parentNode!==box||line.nextSibling!==ref) box.insertBefore(line, ref); if(line._h!==html){ line.innerHTML=html; line._h=html; } }
+  cupTLFolderHead(box);
+  return r; }; }
+
+// ── 5 · “Start a focus timer on…” keeps what you typed: it links a task, or makes one when you start ──
+let cupSessFreeText='';
+cupJustStart=function(e){
+  if(e) e.preventDefault();
+  const inp=document.getElementById('cupStartInput'), text=(inp?.value||'').trim();
+  if(!text){ inp?.focus(); return; }
+  const open=S.tasks.filter(x=>!cupDone(x)&&!x.isHabit), k=cupNorm(text);
+  const t=open.find(x=>cupNorm(x.title)===k) || (open.filter(x=>cupNorm(x.title).startsWith(k)).length===1 ? open.find(x=>cupNorm(x.title).startsWith(k)) : null);
+  if(inp) inp.value='';
+  if(!document.body.classList.contains('cup-lean')){ const tt=t||cupMakeTask({ title:text, scheduledDates:[todayStr()] }); if(!t){ S.tasks.push(tt); save(); } render(); startPomoTask(tt.id); return; }
+  cupSessFreeText=t?'':text; cupSessionOpen(t?t.id:'');
+};
+{ const _o=cupSessionOpen; cupSessionOpen=function(id){ if(id) cupSessFreeText=''; return _o.apply(this,arguments); }; }
+{ const _r=cupSessionRender; cupSessionRender=function(){
+  const f0=document.getElementById('cupSessFree'); if(f0) cupSessFreeText=f0.value;
+  const r=_r.apply(this,arguments), f=document.getElementById('cupSessFree');
+  if(f){ f.value=cupSessFreeText; f.oninput=()=>{ cupSessFreeText=f.value; };
+    if(!f.previousElementSibling){ const l=document.createElement('span'); l.className='cup-dim'; l.textContent='Working on'; f.before(l); } }
+  return r; }; }
+{ const _st=cupSessionStart; cupSessionStart=async function(){ const r=await _st.apply(this,arguments); cupSessFreeText=''; return r; }; }
+
+// ── 6 · One session: End stops the timer and the Focus check together, then asks Done ✓ / next tiny step ──
+let cupSessAsk=null;
+const cupPomoLive = () => typeof pomoState!=='undefined' && !!(pomoState.running || pomoState.sessionStart);
+{ const _es=endSession; endSession=function(){
+  const s=cupFCSess; cupSessAsk=(s&&s.taskId)||(typeof currentPomoTask!=='undefined'&&currentPomoTask&&currentPomoTask.id)||null;
+  if(!s) return _es.apply(this,arguments);
+  const _ss=showSessionSummary; let args=null; showSessionSummary=function(){ args=arguments; };
+  try{ _es.apply(this,arguments); } finally{ showSessionSummary=_ss; }
+  cupFCEnd(true).then(()=>{ if(cupFC()[0]?.id!==s.id && args) showSessionSummary.apply(window,args); });    // too short to score: the plain summary asks instead
+}; }
+// after End the tab title stops showing a countdown
+setInterval(()=>{ try{ if(!cupPomoLive() && /^[+]?\d+:\d\d — /.test(document.title)) document.title=(S.settings&&S.settings.appName)||'Focus Hub'; }catch(_){} }, 1500);
+function cupSessEnd(){ if(cupPomoLive()) endSession(false); else if(cupFCSess){ cupSessAsk=cupFCSess.taskId; cupFCEnd(true); } }
+function cupSessPause(){ if(cupPomoLive() && !/Over$/.test(pomoState.phase||'')) togglePomo(); else cupFCPause(); }
+{ const _tp=togglePomo; togglePomo=function(){ const r=_tp.apply(this,arguments);
+  try{ if(cupFCSess){ cupFCSess.paused=!pomoState.running; cupFCPanel(); } }catch(_){}
+  try{ const b=document.getElementById('pomoPanelPlay'), ph=pomoState.phase; if(b && !/Over$/.test(ph) && !/^calibration/.test(ph)) b.textContent=pomoState.running?'Pause':(pomoState.sessionStart?'Resume':'Start'); }catch(_){}
+  return r; }; }
+{ const _fp=cupFCPanel; cupFCPanel=function(){ const r=_fp.apply(this,arguments);
+  const el=document.getElementById('cupFCLive'), b=el&&el.querySelectorAll('.cup-fc-btns button');
+  if(b&&b.length>=2){ b[0].setAttribute('onclick','cupSessPause()'); b[1].setAttribute('onclick','cupSessEnd()'); b[1].textContent='End session'; }
+  return r; }; }
+function cupSessAfterHTML(id){
+  const t=S.tasks.find(x=>x.id===id); if(!t || t.isHabit) return '';
+  if(cupDone(t)) return `<div class="cup-sess-after" id="cupSessAfter"><b>✓ ${esc(t.title)} is done.</b></div>`;
+  return `<div class="cup-sess-after" id="cupSessAfter"><div class="cup-sess-after-q"><b>Did you finish?</b><span>${esc(t.title)}</span></div>
+    <div class="cup-sess-after-row"><button type="button" class="btn btn-accent" onclick="cupSessDone('${t.id}')">Done ✓</button>
+      <input id="cupSessNextIn" placeholder="Not yet? Next tiny step…" value="${esc(t.firstStep||'')}" onkeydown="if(event.key==='Enter'&&!event.isComposing)cupSessNext('${t.id}')" aria-label="Next tiny step"><button type="button" class="btn btn-ghost" onclick="cupSessNext('${t.id}')">Save step</button></div></div>`;
+}
+function cupSessDone(id){ const t=S.tasks.find(x=>x.id===id); if(t && !cupDone(t)) toggleTask(id); cupSessAsk=null; const b=document.getElementById('cupSessAfter'); if(b) b.outerHTML=cupSessAfterHTML(id); }
+function cupSessNext(id){ const t=S.tasks.find(x=>x.id===id), v=(document.getElementById('cupSessNextIn')?.value||'').trim(); if(!t||!v) return;
+  t.firstStep=v; save(); render(); cupSessAsk=null; const b=document.getElementById('cupSessAfter'); if(b) b.innerHTML=`<b>Next step saved:</b> <span>${esc(v)}</span>`; }
+{ const _rep=cupFCReport; cupFCReport=function(id){ const r=_rep.apply(this,arguments);
+  const rec=cupFC().find(x=>x.id===id), body=document.querySelector('#mCupFCR .modal-body');
+  if(rec && body && cupSessAsk && rec.taskId===cupSessAsk && !body.querySelector('#cupSessAfter')) body.insertAdjacentHTML('afterbegin', cupSessAfterHTML(rec.taskId));
+  return r; }; }
+{ const _ss=showSessionSummary; showSessionSummary=function(){ const r=_ss.apply(this,arguments);
+  const m=document.getElementById('mSessionSummary'), body=m&&(m.querySelector('.modal-body')||m.querySelector('.modal'));
+  m?.querySelector('#cupSessAfter')?.remove();
+  if(body && cupSessAsk) body.insertAdjacentHTML('afterbegin', cupSessAfterHTML(cupSessAsk));
+  return r; }; }
+
+// ── 7 · Settings → Calendar links: paste a link, name it, pick a colour; [CSE 142] tags file into that folder ──
+function cupLinksHTML(){
+  const src=(S.icalSources||[]).filter(Boolean);
+  return `${src.map(s=>{ const n=(S.events||[]).filter(e=>e.sourceId===s.id).length+S.tasks.filter(t=>t.sourceId===s.id).length;
+      return `<div class="cup-pref"><span><b><i class="cup-link-sw" style="background:${esc(s.color||'#7aa2ff')}"></i>${esc(s.name)}</b><em>${s.url?esc(cupSyncLabel(s)):'Imported once from a file'} · ${n} item${n===1?'':'s'}</em></span>
+        <span class="cup-pref-btns"><input type="color" value="${esc(s.color||'#7aa2ff')}" onchange="setIcalSourceColor('${s.id}',this.value);cupLinksRender()" aria-label="Colour">${s.url?`<button type="button" class="btn btn-ghost" onclick="cupLinkSync('${s.id}')">Sync</button>`:''}<button type="button" class="btn btn-ghost" onclick="cupLinkDel('${s.id}')">Remove</button></span></div>`; }).join('')}
+    <div class="cup-pref cup-link-add"><span><b>Add a calendar link</b><em>From Canvas, Google, Outlook or iCloud: copy the calendar’s iCal (.ics) link and paste it here. It refreshes by itself.</em></span></div>
+    <div class="cup-link-form"><input id="cupLinkUrl" type="url" inputmode="url" spellcheck="false" autocomplete="off" placeholder="https://…/calendar.ics" aria-label="Calendar link">
+      <input id="cupLinkName" placeholder="Name, e.g. Canvas" aria-label="Name"><input id="cupLinkColor" type="color" value="#5b8def" aria-label="Colour"><button type="button" class="btn btn-accent" onclick="cupLinkAdd()">Add</button></div>
+    <div class="cup-pref-note" id="cupLinkStatus" aria-live="polite"></div>`;
+}
+function cupLinksRender(){ const b=document.getElementById('cupLinks'); if(!b) return; const keep=['cupLinkUrl','cupLinkName'].map(id=>document.getElementById(id)?.value||''); const st=document.getElementById('cupLinkStatus')?.textContent||'';
+  b.innerHTML=cupLinksHTML(); ['cupLinkUrl','cupLinkName'].forEach((id,i)=>{ const x=document.getElementById(id); if(x) x.value=keep[i]; }); const s=document.getElementById('cupLinkStatus'); if(s) s.textContent=st; }
+const cupLinkSay = t => { const s=document.getElementById('cupLinkStatus'); if(s) s.textContent=t; };
+async function cupLinkAdd(){
+  const url=(document.getElementById('cupLinkUrl')?.value||'').trim(), name=(document.getElementById('cupLinkName')?.value||'').trim(), color=document.getElementById('cupLinkColor')?.value||'';
+  if(!/^(https?|webcal):\/\/\S+$/i.test(url)){ cupLinkSay('Paste a link that starts with https:// or webcal://'); return; }
+  cupLinkSay('Reading the calendar…');
+  try{
+    const text=await cupIcalFetch(url), { name:n0, events }=parseICS(text);
+    const src=ensureIcalSource(name||(n0&&n0.trim())||'Calendar link', url);
+    src.url=url; src.autoSync=true; if(name) src.name=name; if(color) src.color=color;
+    S.events=(S.events||[]).filter(e=>e.sourceId!==src.id);
+    const r=await importEvents(events, src); src.lastSync=Date.now(); src.syncError='';
+    save(); render(); ['cupLinkUrl','cupLinkName'].forEach(id=>{ const x=document.getElementById(id); if(x) x.value=''; });
+    cupLinksRender(); cupLinkSay(`✓ ${src.name} linked: ${r.added} item${r.added===1?'':'s'}.`);
+  }catch(e){ cupLinkSay(`Couldn’t read that link (${e.message||e}). Check that it’s the iCal / .ics address.`); }
+}
+async function cupLinkSync(id){ const s=(S.icalSources||[]).find(x=>x.id===id); if(!s) return; cupLinkSay('Syncing…');
+  try{ const r=await cupSyncSource(s); save(); render(); cupLinksRender(); cupLinkSay(`✓ ${s.name}: ${r.added} item${r.added===1?'':'s'}.`); }catch(e){ s.syncError=String(e.message||e); cupLinksRender(); cupLinkSay(`Couldn’t sync ${s.name} (${s.syncError}).`); } }
+async function cupLinkDel(id){ await deleteIcalSource(id); cupLinksRender(); }
+// “HW 5 due [CSE 142]” → “HW 5” in the CSE 142 folder
+function cupTagFolders(sid){
+  if(!sid) return; const fs=cupActive(), sq=x=>cupNorm(x).replace(/\s+/g,'');
+  const find=tag=>fs.find(c=>cupNorm(c.name)===cupNorm(tag))||fs.find(c=>sq(c.name)===sq(tag));
+  const fix=(x,task)=>{ const m=String(x.title||'').match(/\s*\[([^\]]{2,40})\]\s*/); const c=m&&find(m[1]); if(!c) return;
+    x.title=x.title.replace(m[0],' ').replace(/\s{2,}/g,' ').trim().replace(/\s+(?:due|by)$/i,''); x.subject=c.name; if(task){ x.commitId=c.id; x.area=c.area; } };
+  (S.events||[]).filter(e=>e.sourceId===sid).forEach(e=>fix(e,false)); S.tasks.filter(t=>t.sourceId===sid).forEach(t=>fix(t,true));
+}
+{ const _ie=importEvents; importEvents=async function(events, src){ const r=await _ie.apply(this,arguments); try{ cupTagFolders(src&&src.id); }catch(_){} return r; }; }
+{ const _pr=cupPrefsRender; cupPrefsRender=function(){ const r=_pr.apply(this,arguments);
+  try{ const box=document.getElementById('cupPrefs');
+    if(box && !document.getElementById('cupLinks')){ const h=document.createElement('div'); h.className='cup-pref-h'; h.textContent='Calendar links'; const el=document.createElement('div'); el.id='cupLinks';
+      const after=document.getElementById('cupGc'); if(after){ after.after(h); h.after(el); } else box.appendChild(h), box.appendChild(el); }
+    cupLinksRender(); }catch(e){ console.warn('[links]', e); }
+  return r; }; }
+
+// ── 8 · Markdown at the start of a line: remove only what you typed, keep the caret, then format ──
+cupNoteKey=function(e){
+  if(cupSlash.open && cupSlashKey(e)) return;
+  if((e.key!==' ' && e.key!=='Enter') || e.isComposing) return;
+  const sel=window.getSelection(); if(!sel.rangeCount) return;
+  const node=sel.anchorNode; if(!node || node.nodeType!==3) return;
+  const before=node.textContent.slice(0, sel.anchorOffset);
+  const map={ '#':'h1', '##':'h2', '-':'ul', '*':'ul', '1.':'ol', '[]':'todo', '[ ]':'todo', '>':'quote', '!':'callout' };
+  const strip=()=>{ const r=document.createRange(); r.setStart(node,0); r.setEnd(node,before.length); sel.removeAllRanges(); sel.addRange(r); document.execCommand('delete',false); };
+  if(e.key===' ' && map[before] && (node.parentNode.id==='cupNoteBody' || /^(P|DIV)$/.test(node.parentNode.tagName))){ e.preventDefault(); strip(); cupNoteCmd(map[before]); }
+  else if(e.key==='Enter' && before==='---'){ e.preventDefault(); strip(); cupNoteCmd('hr'); }
+  else if(e.key==='Enter' && before==='```'){ e.preventDefault(); strip(); cupNoteCmd('code'); }
+};
+// Enter in the title goes to the start of the page
+document.addEventListener('keydown', e=>{
+  if(e.target && e.target.id==='cupNoteTitle' && e.key==='Enter' && !e.isComposing && e.keyCode!==229){
+    e.preventDefault(); const b=document.getElementById('cupNoteBody'); if(!b) return; b.focus();
+    const r=document.createRange(); r.setStart(b,0); r.collapse(true); const s=window.getSelection(); s.removeAllRanges(); s.addRange(r); try{ cupNotePh(); }catch(_){} }
+});
+
+// ── 9 · Meeting pages that hid themselves under the old default come back (once) ──
+function cupMeetUnhide(){ cupEnsure(); if(S.cup.meetUnhid || (S.cup.prefs&&S.cup.prefs.hideMeetings!==undefined)) return; let n=0;
+  cupNotes().forEach(p=>{ if(p.autoHid && p.hidden){ p.hidden=false; n++; } }); S.cup.meetUnhid=true; if(n) save(); }
+
+// ── 10 · Course pace: no fake finishes, clear titles, real deadlines first ──
+function cupPaceMigrate(){ cupEnsure(); if(S.cup.pace2) return; let n=0;
+  S.tasks.forEach(t=>{ if(!t.plan||!t.plan.name) return;
+    if(t.completed && !t.prior && t.completedAt && Math.abs(t.completedAt-(t.createdAt||0))<10000){ t.prior=true; t.completedAt=null; n++; }   // marked done the moment tracking started
+    const m=!cupDone(t) && String(t.title||'').match(/^([A-Za-z]{1,4})(\d+)(?:\s*·\s*(.+))?$/);
+    if(m){ t.title=`${t.plan.lead?'Prep':'Review'}: ${m[1]}${m[2]}${m[3]?' – '+m[3]:''}`; n++; } });
+  S.cup.pace2=true; if(n) save(); }
+{ const _nq=cupNextQueue; cupNextQueue=function(){ const q=_nq.apply(this,arguments);
+  q.forEach(x=>{ if(x.pinned) return;
+    if(x.t.plan && x.t.plan.name) x.rank+=10;                                   // a lecture never outranks a real deadline
+    else if(x.rank===0 && cupDays(x.t.due)<0) x.rank=2; });                       // today before overdue
+  return q.sort((a,b)=>a.rank-b.rank || (a.t.scheduledTime||'12:00').localeCompare(b.t.scheduledTime||'12:00') || a.p-b.p); }; }
+
+// ── 13 · Smaller fixes ──
+// undo on a repeating task also takes back the next one it made
+{ const _rs=cupRepeatScan; cupRepeatScan=function(){
+  S.tasks.slice().forEach(t=>{ if(!t.repeatSpawned || cupDone(t)) return; const k=S.tasks.find(c=>c.spawnedFrom===t.id);
+    if(k && !cupDone(k)) S.tasks=S.tasks.filter(c=>c!==k); if(!k || !cupDone(k)) t.repeatSpawned=false; });
+  const had=new Set(S.tasks.filter(t=>t.repeatSpawned).map(t=>t.id)), n0=S.tasks.length;
+  const r=_rs.apply(this,arguments);
+  const src=S.tasks.filter(t=>t.repeatSpawned && !had.has(t.id)), made=S.tasks.slice(n0);
+  made.forEach((c,i)=>{ if(src[i]) c.spawnedFrom=src[i].id; }); if(made.length) save();
+  return r; }; }
+// the + bar takes the first keystrokes: focus it in the same tap
+{ const _po=cupPlusOpen; cupPlusOpen=function(){ const r=_po.apply(this,arguments); const i=document.getElementById('cupPlusInput'); try{ i&&i.focus({ preventScroll:true }); }catch(_){} return r; }; }
+// big tests only: exam words, a course code or a number (not “Test login flow”)
+cupWCountdown=(f=>function(){ const keep=S.tasks; S.tasks=S.tasks.filter(t=>!/\btest\b/i.test(t.title||'') || /\b(exams?|quiz|midterms?|finals?)\b|시험|중간|기말/i.test(t.title) || /\b[A-Z]{2,6}\s*\d{3}\b|\btest\s*#?\d|\d\s*test\b/i.test(t.title));
+  try{ return f.apply(this,arguments); } finally{ S.tasks=keep; } })(cupWCountdown);
+// weekly load counts a folder's class times when it has no hours set
+function cupSlotHours(c){ return (c.slots||[]).reduce((h,s)=>{ const a=timeStrToMinutes(s.start), b=timeStrToMinutes(s.end); if(a===null||b===null) return h; const m=b>a?b-a:b+1440-a; return h+m/60*((s.days||[]).length||1); },0); }
+{ const _ld=cupLoad; cupLoad=function(){ const fs=cupActive().filter(c=>!(+c.hours) && (c.slots||[]).length); fs.forEach(c=>{ c._h=c.hours; c.hours=cupR1(cupSlotHours(c)); });
+  try{ return _ld.apply(this,arguments); } finally{ fs.forEach(c=>{ c.hours=c._h; delete c._h; }); } }; }
+// shared-list members get your name, not “Me”
+cupMyName=function(){ const u=(typeof currentUser!=='undefined'&&currentUser)||null, nm=(S.settings&&(S.settings.nameSet||S.settings.name!=='Jay')&&S.settings.name||'').trim();
+  const soc=S.cup&&S.cup.social&&S.cup.social.username;
+  return nm || (u&&u.displayName) || (soc?'@'+soc:'') || (u&&(u.email||'').split('@')[0]) || 'Friend'; };
+// Settings → Cancel puts back the switches you flipped
+let cupPrefsSnap=null;
+{ const _om=openModal; openModal=function(id){ if(id==='mSettings'){ try{ cupPrefsSnap={ prefs:JSON.parse(JSON.stringify((S.cup&&S.cup.prefs)||{})), density:S.settings&&S.settings.density }; }catch(_){ cupPrefsSnap=null; } } return _om.apply(this,arguments); }; }
+document.addEventListener('click', e=>{
+  const b=e.target.closest && e.target.closest('#mSettings .form-actions button, #mSettings .modal-footer button'); if(!b || !cupPrefsSnap || !/cancel/i.test(b.textContent||'')) return;
+  const snap=cupPrefsSnap; cupPrefsSnap=null; cupEnsure(); S.cup.prefs=snap.prefs;
+  if(snap.density && S.settings.density!==snap.density){ try{ setDensity(snap.density); }catch(_){ S.settings.density=snap.density; } }
+  save(); cupApplyPrefs(); render(); }, true);
+
+// ── 14 · No owner details in the public build ──
+{ const _h=renderHomeHero; renderHomeHero=function(){
+  const u=(typeof currentUser!=='undefined'&&currentUser)||null, nm=S.settings&&S.settings.name;
+  const hide = nm==='Jay' && !S.settings.nameSet && !(u && /^jay\b/i.test(u.displayName||''));     // the old default name, not yours
+  if(hide) S.settings.name='';
+  try{ return _h.apply(this,arguments); } finally{ if(hide) S.settings.name=nm;
+    if(cupIsKo()){ const d=document.getElementById('homeDate'); if(d){ const x=cupNow(); d.textContent=`${x.getMonth()+1}월 ${x.getDate()}일 ${'일월화수목금토'[x.getDay()]}요일`; } } } }; }
+{ const _df=renderDashboardFocus; renderDashboardFocus=function(){ const r=_df.apply(this,arguments); document.querySelectorAll('#dashFocus .health-cell span').forEach(s=>{ if(s.textContent==='Jay Score') s.textContent='Focus score'; }); return r; }; }
+{ const _ss=saveSettings; saveSettings=function(){ const r=_ss.apply(this,arguments); if(S.settings && S.settings.name==='Jay' && !S.settings.nameSet){ S.settings.name=''; save(); } return r; }; }
+CUP_GROUP_KINDS.forEach(x=>{ if(x[0]==='qt'){ x[2]='Daily check-in'; x[3]='Check-ins — everyone ticks the same small habit each day (quiet time, a run, reading)'; } });
+CUP_MODES.community.name='Clubs, faith & community';
+
+// run the one-time tidy-ups once data is in
+{ const _rc=renderCup; renderCup=function(){ try{ cupMeetUnhide(); cupPaceMigrate(); }catch(_){} return _rc.apply(this,arguments); }; }
+
 
 // Korean interface strings. Keys are the exact English text shown on screen.
 Object.assign(CUP_KO, {
@@ -24300,6 +24661,49 @@ Object.assign(CUP_KO, { "Note":"노트","Add to a note":"노트에 한 줄 추�
   "+ Add details":"+ 세부 내용 추가","Details":"세부 내용","Details, links, steps…":"세부 내용, 링크, 단계…","Add a to-do, event, habit or note":"할 일, 일정, 습관, 노트 추가",
   "A page to write in: lecture notes, ideas, plans":"쓰는 페이지: 강의 노트, 아이디어, 계획","Adds a line to a note you already have":"이미 있는 노트에 한 줄 추가",
   "A class, club, job or project to keep things together":"관련된 것들을 모아 두는 수업, 동아리, 일, 프로젝트","“Read chapter 6 by fri 3pm”":"“금요일 오후 3시까지 6장 읽기”" });
+
+// ── Wave 1 fixes: folder view, pace line, session end, calendar links, Korean gaps ──
+Object.assign(CUP_KO, {
+  "✕ All tasks":"✕ 모든 할 일","Show":"보기","Hide later lectures":"이후 강의 숨기기",
+  "Did you finish?":"다 끝냈나요?","Done ✓":"완료 ✓","Not yet? Next tiny step…":"아직이면? 다음 작은 단계…","Save step":"단계 저장","Next step saved:":"다음 단계 저장:","Next tiny step":"다음 작은 단계",
+  "End session":"세션 끝내기","Resume":"다시 시작","Start":"시작","Focus Goal":"집중 목표","Deep work":"딥 워크","Focus score":"집중 점수",
+  "No focus reports yet. Complete a study cycle to create one.":"아직 집중 리포트가 없어요. 공부 한 사이클을 마치면 생겨요.",
+  "Calendar links":"캘린더 링크","Add a calendar link":"캘린더 링크 추가","Sync":"동기화","Remove":"삭제","Colour":"색","Name":"이름","Calendar link":"캘린더 링크",
+  "From Canvas, Google, Outlook or iCloud: copy the calendar’s iCal (.ics) link and paste it here. It refreshes by itself.":"Canvas, 구글, Outlook, iCloud에서 캘린더의 iCal(.ics) 링크를 복사해 붙여 넣으세요. 알아서 새로고침돼요.",
+  "Name, e.g. Canvas":"이름 (예: Canvas)","Imported once from a file":"파일에서 한 번 가져옴","Reading the calendar…":"캘린더 읽는 중…","Syncing…":"동기화 중…",
+  "Paste a link that starts with https:// or webcal://":"https:// 또는 webcal://로 시작하는 링크를 붙여 넣으세요",
+  "Minimal mode":"미니멀 모드","Home is one card: your next task with Focus and Later. Pages and Search stay in the sidebar.":"홈은 카드 하나: 다음 할 일과 집중, 나중에. 페이지와 검색은 사이드바에 그대로 있어요.",
+  "You":"나","Daily check-ins":"매일 체크인","Daily check-in":"매일 체크인",
+  "Your group ticks one small habit together, like quiet time or a run":"그룹이 큐티나 달리기 같은 작은 습관 하나를 함께 체크해요",
+  "Check-ins — everyone ticks the same small habit each day (quiet time, a run, reading)":"체크인 — 매일 모두 같은 작은 습관을 체크해요 (큐티, 달리기, 독서)",
+  "A weekly league with friends — race on focus time, tasks and check-ins. Only scores are shared, never your tasks or notes.":"친구와 함께하는 주간 리그 — 집중 시간, 할 일, 체크인으로 겨뤄요. 점수만 공유되고 할 일이나 노트는 절대 공유되지 않아요.",
+  "Finished tasks will list here with their dates.":"끝낸 할 일이 날짜와 함께 여기에 쌓여요.",
+  "What went well?":"잘된 점은?","What was hard?":"힘들었던 점은?","What did I learn?":"배운 점은?","Grateful for":"감사한 것","Tomorrow I will…":"내일 할 일…",
+  "— recover any task you've deleted":"— 지운 할 일을 되살려요","— recover any task you’ve deleted":"— 지운 할 일을 되살려요",
+  "Clubs, faith & community":"동아리, 신앙 & 커뮤니티","Your name":"이름","your.name":"your.name","Friend":"친구"
+});
+CUP_KO_PAT.unshift(
+  [/^(?:Good (morning|afternoon|evening|night)|(Late night)),?\s*(.*)$/, (m,t,l,n)=>`${l?'늦은 밤이에요':({ morning:'좋은 아침이에요', afternoon:'안녕하세요', evening:'안녕하세요', night:'편안한 밤 보내세요' })[t]}${n?', '+n+'님':''}`],
+  [/^⏰ Due today(.*)$/, (m,t)=>`⏰ 오늘 마감${t}`], [/^● Today(.*)$/, (m,t)=>`● 오늘${t}`], [/^Tomorrow( · .*)$/, (m,t)=>`내일${t}`], [/^⚠ Overdue(.*)$/, (m,t)=>`⚠ 기한 지남${t}`], [/^⚠ (\d+)d late$/, (m,n)=>`⚠ ${n}일 지연`],
+  [/^↻ Daily(.*)$/, (m,t)=>`↻ 매일${t}`], [/^From (\d+월 \d+일)$/, (m,d)=>`${d}부터`],
+  [/^Due in (\d+) days$/, (m,n)=>`${n}일 뒤 마감`], [/^Due (Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)$/, (m,d)=>`${'일월화수목금토'[['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].indexOf(d)]}요일 마감`],
+  [/^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)( · .*)?$/, (m,d,t)=>`${'일월화수목금토'[['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(d)]}${t||''}`],
+  [/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{1,2})$/, (m,mo,d)=>`${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].indexOf(mo)+1}월 ${d}일`],
+  [/^(January|February|March|April|May|June|July|August|September|October|November|December) (\d{1,2}), (\d{4})$/, (m,mo,d,y)=>`${y}년 ${['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(mo)+1}월 ${d}일`],
+  [/^(January|February|March|April|May|June|July|August|September|October|November|December) (\d{4})$/, (m,mo,y)=>`${y}년 ${['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(mo)+1}월`],
+  [/^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday), (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* (\d{1,2})$/, (m,w,mo,d)=>`${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].indexOf(mo)+1}월 ${d}일 ${'일월화수목금토'[['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].indexOf(w)]}요일`],
+  [/^Due (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{1,2})$/, (m,mo,d)=>`${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].indexOf(mo)+1}월 ${d}일 마감`],
+  [/^Deadlines · next (\d+) days$/, (m,n)=>`마감 · 앞으로 ${n}일`], [/^Deadlines · next 2 weeks$/, ()=>'마감 · 앞으로 2주'], [/^Deadlines · next year$/, ()=>'마감 · 앞으로 1년'],
+  [/^(\d+) later lectures? from course pace hidden$/, (m,n)=>`진도 계획의 이후 강의 ${n}개 숨김`],
+  [/^([A-Z]{2,6} ?\d{3}[A-Z]?) pace$/, (m,n)=>`${n} 진도`],
+  [/^✓ (.+) linked: (\d+) items?\.$/, (m,a,n)=>`✓ ${a} 연결됨: ${n}개`], [/^✓ (.+): (\d+) items?\.$/, (m,a,n)=>`✓ ${a}: ${n}개`],
+  [/^(synced just now|synced (\d+) min ago|synced (\d+) h ago|syncing…|sync failed) · (\d+) items?$/, (m,s,mi,h,n)=>`${s==='sync failed'?'동기화 실패':s==='syncing…'?'동기화 중…':mi?mi+'분 전 동기화':h?h+'시간 전 동기화':'방금 동기화'} · ${n}개`],
+  [/^Imported once from a file · (\d+) items?$/, (m,n)=>`파일에서 한 번 가져옴 · ${n}개`],
+  [/^✓ (.+) is done\.$/, (m,a)=>`✓ ${a} 완료.`],
+  [/^Couldn’t read that link \((.+)\)\. Check that it’s the iCal \/ \.ics address\.$/, (m,e)=>`링크를 읽지 못했어요 (${e}). iCal / .ics 주소인지 확인하세요.`]
+);
+// default journal prompts in Korean (answers are kept by key, so switching language loses nothing)
+{ const _pp=cupPrompts; cupPrompts=function(){ const r=_pp.apply(this,arguments); return r===CUP_PROMPTS && cupIsKo() ? r.map(([k,q])=>[k, CUP_KO[q]||q]) : r; }; }
 
 </script>
 </body>
