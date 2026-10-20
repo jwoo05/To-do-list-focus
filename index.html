@@ -6480,8 +6480,8 @@ body.cup-lean #cupSideExtras, body.cup-lean .cup-side-cats, body.cup-lean .cup-s
 body.cup-lean .cup-hchips .cup-x-gentle, body.cup-lean .cup-hchips .cup-hf { display:none !important; }
 body.cup-lean:not(.cup-hud-on) .hud{ display:none !important; }
 .cup-plot .cup-join{ margin-top:6px; font-size:calc(11.5px * var(--cup-fs,1)); padding:4px 10px; }
-body.cup-lean #page-todo > .view-header .view-sub, body.cup-lean #page-todo .view-actions,
-body.cup-lean #page-todo .daily-toolbar-actions, body.cup-lean #page-todo .progress-bar-wrap,
+body:not(.cup-classic) #page-todo > .view-header .view-sub, body:not(.cup-classic) #page-todo .view-actions,
+body:not(.cup-classic) #page-todo .daily-toolbar-actions, body.cup-lean #page-todo .progress-bar-wrap,
 body.cup-lean #page-todo .task-progress-mini { display:none !important; }
 body.cup-lean .cup-mini-garden .cup-dim{ display:none; }
 @media (max-width: 760px){ body.cup-lean .cup-plus-fab{ display:none !important; } .cup-meadow-h{ flex-wrap:wrap; } .cup-meadow-h .cup-dim{ margin-left:0; width:100%; } }
@@ -6525,10 +6525,10 @@ body.cup-lean .cup-mini-garden .cup-dim{ display:none; }
 }
 .cup-calf-btn{ font-size:calc(11.5px * var(--cup-fs,1)); padding:3px 10px; border:1px solid var(--border); border-radius:999px; color:var(--text2); margin-left:8px; background:none; }
 .cup-calf-btn.on{ border-color:var(--accent); color:var(--text); }
-body.cup-lean #page-todo .cup-calf{ display:none; }
-body.cup-lean.cup-calf-open #page-todo .cup-calf{ display:block; }
-body:not(.cup-lean) .cup-calf-btn{ display:none; }
-body.cup-lean #workbenchCalendar > .workbench-heading, body.cup-lean #page-todo .cal-focus-block-btn{ display:none !important; }
+body:not(.cup-classic) #page-todo .cup-calf{ display:none; }
+body.cup-calf-open:not(.cup-classic) #page-todo .cup-calf{ display:block; }
+body.cup-classic .cup-calf-btn{ display:none; }
+body:not(.cup-classic) #workbenchCalendar > .workbench-heading, body:not(.cup-classic) #page-todo .cal-focus-block-btn{ display:none !important; }
 #page-todo .cal-nav{ position:relative; }
 #page-todo .cal-nav .cup-calf-btn{ position:absolute; right:74px; top:50%; transform:translateY(-50%); width:auto; flex:none; margin:0; }
 @media (max-width:760px){ #page-todo .cal-nav .cup-calf-btn{ position:static; transform:none; } }
@@ -6698,7 +6698,7 @@ body.cup-lean .cup-wtools .cup-more-btn{ opacity:.6; } body.cup-lean .cup-wtools
 body.cup-lean .cup-extra-only, body:not(.cup-lean) .cup-lean-only{ display:none !important; }
 #cupTaskList{ display:none; }
 #todoWorkbench[data-mcol="list"]{ display:none !important; }
-body.cup-lean #page-todo:has(#todoWorkbench[data-mcol="list"]) #cupTaskList{ display:block; }
+#page-todo:has(#todoWorkbench[data-mcol="list"]) #cupTaskList{ display:block; }
 .cup-tl{ max-width:760px; margin:6px auto 40px; }
 .cup-tl-top{ display:flex; gap:8px; align-items:center; margin-bottom:18px; flex-wrap:wrap; }
 .cup-tl-add{ flex:1; min-width:220px; display:flex; align-items:center; gap:10px; padding:10px 14px; border:1px dashed var(--border); border-radius:12px; color:var(--text2); font-family:inherit; font-size:calc(14px * var(--cup-fs,1)); text-align:left; }
@@ -6725,12 +6725,12 @@ body.cup-lean #page-todo:has(#todoWorkbench[data-mcol="list"]) #cupTaskList{ dis
 @media (max-width:760px){ .cup-tl-row{ grid-template-columns:18px minmax(0,1fr) auto; } .cup-tl-meta .cup-tl-f, .cup-tl-act{ display:none; } .cup-tl-q{ flex:1; } .cup-tl-add em{ display:none; } }
 @media (hover:none){ .cup-tl-act button{ opacity:1; } }
 
-body.cup-lean #cupMSeg{ display:flex; gap:22px; background:none; border:0; border-bottom:1px solid var(--border); border-radius:0; padding:0; max-width:760px; margin:0 auto 14px; box-shadow:none; }
-body.cup-lean #cupMSeg .clt-opt{ background:none; border:0; border-radius:0; padding:8px 0 10px; font-size:calc(14px * var(--cup-fs,1)); letter-spacing:0; text-transform:none; color:var(--text3); box-shadow:none; margin-bottom:-1px; border-bottom:2px solid transparent; }
-body.cup-lean #cupMSeg .clt-opt.active{ color:var(--text); border-bottom-color:var(--text); }
-body.cup-lean #page-todo:has(#todoWorkbench[data-mcol="cal"]) #cupMSeg{ max-width:none; }
+#cupMSeg{ display:flex; gap:22px; background:none; border:0; border-bottom:1px solid var(--border); border-radius:0; padding:0; max-width:760px; margin:0 auto 14px; box-shadow:none; }
+#cupMSeg .clt-opt{ background:none; border:0; border-radius:0; padding:8px 0 10px; font-size:calc(14px * var(--cup-fs,1)); letter-spacing:0; text-transform:none; color:var(--text3); box-shadow:none; margin-bottom:-1px; border-bottom:2px solid transparent; }
+#cupMSeg .clt-opt.active{ color:var(--text); border-bottom-color:var(--text); }
+#page-todo:has(#todoWorkbench[data-mcol="cal"]) #cupMSeg{ max-width:none; }
 .cup-tl-fresh, .cup-tl-n, .cup-tl-h .cup-dim{ font-family:'Inter',system-ui,-apple-system,sans-serif; }
-body.cup-lean #cupMSeg{ justify-content:flex-start; width:100%; }
+#cupMSeg{ justify-content:flex-start; width:100%; }
 
 /* review fixes */
 .cup-mob-sheet .cup-side{ display:block !important; border-top:0; margin-top:6px; overflow:visible; }
@@ -6903,6 +6903,127 @@ html[lang="ko"] .cup-note-body li[data-task]:not(.done)::after{ content:'할 일
   .cup-rev-row{ grid-template-columns:84px minmax(0,1fr); } .cup-rev-l{ grid-column:1 / -1; padding-left:0; }
   .cup-hub-k{ min-width:0; width:100%; }
 }
+
+/* ══ Wave 3: declutter (one way to do each thing) ══ */
+/* one focus experience: no Focus page, no timer dock, no Home timer strip; one floating bar */
+.sidebar .nav-item[data-page="focus"], .hud, #cupTimerStrip{ display:none !important; }
+.cup-sbar{ position:fixed; z-index:1200; left:50%; transform:translateX(-50%); bottom:18px; width:min(560px, calc(100vw - 32px)); display:flex; align-items:center; gap:10px;
+  padding:8px 8px 8px 14px; background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:0 14px 40px rgba(0,0,0,.25); }
+.cup-sbar[hidden]{ display:none; }
+.cup-sbar-main{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; }
+.cup-sbar-k{ display:flex; align-items:center; gap:8px; font-size:calc(13px * var(--cup-fs,1)); color:var(--text2); }
+.cup-sbar-k i{ width:8px; height:8px; border-radius:50%; background:var(--green, #4dd49a); flex:none; }
+.cup-sbar.paused .cup-sbar-k i{ background:var(--text3); } .cup-sbar.brk .cup-sbar-k i{ background:var(--accent); }
+.cup-sbar-time{ font-size:calc(16px * var(--cup-fs,1)); font-weight:600; color:var(--text); font-variant-numeric:tabular-nums; }
+.cup-sbar-t{ font-size:calc(14px * var(--cup-fs,1)); color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cup-sbar > button{ min-height:40px; padding:0 14px; border-radius:11px; border:1px solid var(--border); font-family:inherit; font-size:calc(14px * var(--cup-fs,1)); color:var(--text); background:var(--bg2); flex:none; }
+.cup-sbar > button:hover{ border-color:var(--accent); }
+.cup-sbar-fc:empty{ display:none; }
+.cup-sbar #cupFCLive{ position:static !important; inset:auto !important; transform:none !important; box-shadow:none !important; border:0 !important; background:none !important; padding:0 !important; margin:0 !important; width:auto !important; display:flex; align-items:center; gap:8px; }
+.cup-sbar #cupFCLive .cup-fc-btns, .cup-sbar #cupFCLive .cup-fc-note{ display:none !important; }
+.cup-sbar #cupFCLive .cup-fc-cam{ width:44px; height:33px; border-radius:8px; overflow:hidden; flex:none; }
+.cup-sbar #cupFCLive .cup-fc-cam video{ width:100%; height:100%; object-fit:cover; }
+.cup-sbar #cupFCLive .cup-fc-info{ font-size:calc(12.5px * var(--cup-fs,1)); max-width:150px; }
+.cup-sbar-ping{ animation:cupSbarPing .6s ease 2; }
+@keyframes cupSbarPing{ 50%{ box-shadow:0 0 0 4px var(--accent); } }
+@media (min-width:761px){ body.cup-sbar-on .cup-plus-fab{ bottom:86px; } }
+@media (max-width:760px){ .cup-sbar{ bottom:calc(74px + env(safe-area-inset-bottom)); width:calc(100vw - 24px); padding:6px 6px 6px 12px; gap:8px; }
+  .cup-sbar > button{ min-height:44px; padding:0 12px; } .cup-sbar #cupFCLive .cup-fc-info{ display:none; } }
+/* session sheet: one quiet timer choice, “something else”, past sessions */
+.cup-sess-timer{ text-transform:none; letter-spacing:0; font-weight:500; display:flex; align-items:center; justify-content:space-between; gap:10px; margin:12px 0 4px; font-size:calc(13.5px * var(--cup-fs,1)); color:var(--text2); }
+.cup-sess-timer select{ width:auto; min-width:150px; padding:7px 10px; font-size:calc(14px * var(--cup-fs,1)); border-radius:10px; }
+.cup-sess-chg{ margin-left:auto; font-size:calc(13px * var(--cup-fs,1)); color:var(--text2); text-decoration:underline; text-underline-offset:3px; font-family:inherit; padding:6px 2px; }
+.cup-sess-task{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+.cup-sess-rep{ margin-right:auto; }
+.cup-w3-rep .modal-body{ display:flex; flex-direction:column; gap:2px; }
+.cup-w3-rrow{ display:flex; align-items:center; gap:12px; width:100%; min-height:48px; padding:6px 8px; border-radius:10px; text-align:left; font-family:inherit; }
+.cup-w3-rrow:hover{ background:var(--bg2); }
+.cup-w3-rs{ width:34px; text-align:center; font-weight:700; font-size:calc(15px * var(--cup-fs,1)); color:var(--text2); flex:none; }
+.cup-w3-rt{ flex:1; min-width:0; display:flex; flex-direction:column; } .cup-w3-rt b{ font-size:calc(14.5px * var(--cup-fs,1)); font-weight:500; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cup-w3-rt em{ font-style:normal; font-size:calc(13px * var(--cup-fs,1)); color:var(--text2); }
+
+/* one Tasks screen: List · Calendar · More (the old workbench views appear only when picked from More) */
+#cupMSeg .cup-w3-cl:not(.active){ display:none !important; }
+#cupMSeg .cup-w3-more{ margin-left:auto; }
+.cup-w3-menu{ width:290px; } .cup-w3-menu button b{ font-size:calc(14px * var(--cup-fs,1)); font-weight:500; color:var(--text); } .cup-w3-menu button span{ font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text2); }
+@media (hover:none) and (pointer:coarse) and (max-width:640px){ #cupMSeg .clt-opt{ flex:1; } #cupMSeg .cup-w3-more{ flex:0 0 auto; margin-left:0; padding-left:10px; padding-right:4px; } }
+
+/* calendar: week and day views fill the column on a laptop (the day drawer isn't needed; the grid shows it) */
+#workbenchCalendar.cup-cal-tall{ display:flex !important; flex-direction:column; }
+#workbenchCalendar.cup-cal-tall > #calDayTasks, #workbenchCalendar.cup-cal-tall > .cal-split-resize, #workbenchCalendar.cup-cal-tall > .col-strip{ display:none !important; }
+#workbenchCalendar.cup-cal-tall > #calPanel{ flex:1 1 auto !important; min-height:0; height:auto !important; }
+
+/* Home: the next event sits above Next up; the day, pace and chips sit below it */
+#cupW3Ev{ margin:0 0 8px; } #cupW3Ev[hidden], #cupW3Today[hidden]{ display:none !important; }
+#cupW3Ev .cup-next-ev{ margin:0; border:1px solid var(--border); border-radius:12px; background:var(--bg2); }
+.cup-w3-today{ margin-top:12px; }
+.cup-w3-today .cup-today-card{ margin-top:0; padding-top:0; border-top:0; }
+.cup-w3-today .cup-hchips{ margin-top:10px; } .cup-w3-today .cup-hchips[hidden]{ display:none; }
+.cup-w3-today .cup-next-pace{ margin:10px 0 0; }
+body.cup-lean #page-dashboard .cup-start{ display:none; }
+body.cup-minimal #cupW3Today{ display:none !important; }
+
+/* calm Friends: with the garden off, no podium and no “pts to pass” race */
+body.cup-nogarden .cup-podium, body.cup-nogarden .cup-league-call{ display:none !important; }
+
+/* Settings: essentials on top, Advanced folded */
+#mSettings .modal-body.cup-w3-set{ display:flex; flex-direction:column; }
+#mSettings .cup-w3-set > #cupPrefs{ display:contents; }
+#mSettings .cup-w3-set .cup-w3-x{ display:none !important; }
+#mSettings .cup-w3-set:not(.cup-adv-open) .cup-w3-adv{ display:none !important; }
+#mSettings .cup-w3-set .cup-w3-h{ margin-top:18px; }
+#mSettings .cup-w3-set #cupW3hEss{ margin-top:0; }
+#mSettings .cup-w3-set .form-row{ margin-bottom:0; padding:10px 0; border-bottom:1px solid var(--border); }
+#mSettings .cup-w3-set .form-actions{ position:sticky; bottom:0; margin:12px -1px 0; padding:12px 0; background:var(--surface); border-top:1px solid var(--border); z-index:2; }
+#mSettings .cup-w3-set #gcClientIdHint{ display:none; }
+#cupGc .cup-pref:has(#cupGcClient){ display:none !important; }
+.cup-w3-advbtn{ display:flex; flex-direction:column; gap:2px; width:100%; margin-top:20px; padding:12px 12px; border:1px dashed var(--border); border-radius:12px; text-align:left; font-family:inherit; }
+.cup-w3-advbtn b{ font-size:calc(14.5px * var(--cup-fs,1)); font-weight:600; color:var(--text); } .cup-w3-advbtn span{ font-size:calc(13px * var(--cup-fs,1)); color:var(--text2); }
+.cup-w3-advbtn:hover{ border-color:var(--accent); }
+#mSettings .cup-w3-set.cup-adv-open .cup-w3-adv{ background:color-mix(in srgb, var(--bg2) 60%, transparent); }
+
+/* event editor: progressive like the task editor, footer always visible */
+#mAddTest .modal.cup-ev-modal{ display:flex; flex-direction:column; max-height:calc(100dvh - 40px); }
+#mAddTest .cup-ev-modal > .modal-body{ flex:1 1 auto; min-height:0; overflow-y:auto; padding-bottom:0; }
+#mAddTest .cup-ev-modal .form-row label:not(.toggle){ text-transform:none; letter-spacing:0; font-size:calc(13px * var(--cup-fs,1)); font-weight:500; color:var(--text2); }
+#mAddTest .cup-ev-modal .modal-body > .form-row:first-of-type > label{ display:none; }
+#mAddTest .cup-ev-modal #testTitle{ font-family:'Source Serif 4',Georgia,serif; font-size:21px; padding:6px 2px 8px; border:0; border-bottom:1px solid var(--border); border-radius:0; background:none; }
+#mAddTest .cup-ev-modal #testTitle:focus{ border-bottom-color:var(--accent); outline:none; box-shadow:none; }
+#mAddTest .cup-ev-modal .cup-ev-more{ display:none; }
+#mAddTest .cup-ev-modal.cup-ev-open .cup-ev-more{ display:block; }
+#mAddTest .cup-ev-morebtn{ display:block; margin:2px 0 10px; text-align:left; font-size:calc(13.5px * var(--cup-fs,1)); color:var(--text2); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#mAddTest .cup-ev-conv{ margin:4px 0 10px; } #mAddTest .cup-ev-conv .btn{ margin:0 !important; }
+#mAddTest .cup-ev-modal .form-actions{ position:sticky; bottom:0; z-index:2; margin:8px -24px 0; padding:12px 24px calc(12px + env(safe-area-inset-bottom)); background:var(--surface); border-top:1px solid var(--border); }
+
+/* phone Me sheet: a clear order (today · main · together · settings) */
+.cup-me-sheet .modal-body{ display:flex; flex-direction:column; gap:6px; padding-bottom:calc(20px + env(safe-area-inset-bottom)); }
+.cup-me-today{ display:flex; flex-direction:column; gap:2px; padding:4px 4px 10px; }
+.cup-me-today .cup-me-k{ font-size:calc(13px * var(--cup-fs,1)); color:var(--text2); } .cup-me-today b{ font-family:'Source Serif 4',Georgia,serif; font-size:20px; font-weight:500; color:var(--text); }
+.cup-me-sec{ margin:14px 4px 2px; font-size:calc(13px * var(--cup-fs,1)); font-weight:600; color:var(--text2); }
+.cup-me-group{ display:flex; flex-direction:column; border:1px solid var(--border); border-radius:14px; overflow:hidden; background:var(--bg2); }
+.cup-me-row{ display:flex; align-items:center; gap:12px; width:100%; min-height:56px; padding:8px 14px; text-align:left; font-family:inherit; border-bottom:1px solid var(--border); background:none; }
+.cup-me-group > .cup-me-row:last-child{ border-bottom:0; }
+.cup-me-row:active{ background:var(--bg3); }
+.cup-me-ic{ width:24px; text-align:center; font-size:18px; color:var(--text2); flex:none; }
+.cup-me-tx{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; }
+.cup-me-tx b{ font-size:calc(15.5px * var(--cup-fs,1)); font-weight:500; color:var(--text); } .cup-me-tx em{ font-style:normal; font-size:calc(13px * var(--cup-fs,1)); color:var(--text2); }
+.cup-me-row.main{ min-height:62px; } .cup-me-row.main .cup-me-tx b{ font-size:16.5px; }
+.cup-me-c{ color:var(--text3); font-size:18px; flex:none; }
+.cup-me-last{ margin-top:16px; }
+#mSettings .cup-w3-set .form-row > label:not(.btn):not(.toggle):not(.cup-ai-remember){ text-transform:none; letter-spacing:0; font-size:calc(14px * var(--cup-fs,1)); font-weight:600; color:var(--text); margin-bottom:6px; }
+#mSettings .cup-w3-set .form-row:has(button[onclick^="changePasswordFromSettings"]) > label{ display:none; }
+#mSettings .cup-w3-set .toggle-row{ padding:10px 0; border-bottom:1px solid var(--border); }
+.cup-sbar #cupFCLive .cup-fc-rec{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cup-tl-row:has(> .cup-fc-chip){ grid-template-columns:18px minmax(0,1fr) repeat(4, auto); }
+.cup-w3-today{ padding-top:14px; }
+#workbenchCalendar.cup-cal-phwk > #calPanel{ flex:none !important; height:min(560px, calc(100dvh - 250px)) !important; }
+#workbenchCalendar.cup-cal-phwk > #calDayTasks{ flex:none !important; height:auto !important; min-height:0 !important; }
+#workbenchCalendar.cup-cal-phwk > #calPanel .cal-body{ flex:1 1 auto !important; min-height:0 !important; height:auto !important; }
+.cup-side-new{ white-space:nowrap; }
+/* Settings: Save is the one primary button; row buttons are quiet */
+#mSettings .cup-pref .btn-accent, #mSettings .cup-link-form .btn-accent{ background:transparent; color:var(--text); border:1px solid var(--border2, var(--border)); box-shadow:none; }
+#mSettings .cup-pref .btn-accent:hover, #mSettings .cup-link-form .btn-accent:hover{ border-color:var(--accent); }
+#page-dashboard .cup-start .btn-accent{ background:transparent; color:var(--text); border:1px solid var(--border2, var(--border)); box-shadow:none; }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -7201,7 +7322,7 @@ input[type=date]:disabled, input[type=time]:disabled{ cursor:default; opacity:.5
 
 /* Home + Tasks & Calendar: quiet text stays readable (≥ 4.5:1 in both themes), list text 15 px */
 #page-dashboard, #page-todo{ --text3:#6b6860; }
-[data-theme="dark"] #page-dashboard, [data-theme="dark"] #page-todo{ --text3:#87847c; }
+[data-theme="dark"] #page-dashboard, [data-theme="dark"] #page-todo{ --text3:#8f8c84; }
 #page-dashboard .cup-sched-n, #page-dashboard .cup-tsec .t{ font-size:calc(15px * var(--cup-fs,1)); }
 #page-dashboard .cup-sched-row{ grid-template-columns:52px 3px minmax(0,1fr) auto; align-items:start; padding:6px 0; }
 #page-dashboard .cup-sched-row i{ align-self:stretch; height:auto; min-height:18px; }
@@ -7231,6 +7352,50 @@ input[type=date]:disabled, input[type=time]:disabled{ cursor:default; opacity:.5
 .cup-home-add kbd{ margin-left:auto; font-size:calc(11px * var(--cup-fs,1)); color:var(--text2); border:1px solid var(--border); border-radius:5px; padding:1px 6px; }
 @media (hover: none){ .cup-home-add kbd{ display:none; } }
 @media (max-width: 480px){ .cup-plus-types{ gap:2px; padding:8px 10px 4px; flex-wrap:wrap; overflow:visible; } .cup-plus-types button{ padding:6px 8px; gap:5px; font-size:calc(13px * var(--cup-fs,1)); } }
+
+/* ══ Wave 3 readability: text 13px+, lists 14–15px, secondary text ≥ 4.5:1 in both themes, 44px tap targets on the phone ══ */
+:root{ --text3:#6b6860; }
+[data-theme="dark"]{ --text3:#8f8c84; --text2:#a09d95; --orange:#e08a4c; --red:#e57373; }
+.cup-dim, .cup-dim-p, .home-date, .cup-up-time, .cup-fc-chip, .cup-calf-btn, .cup-ag-kind, .cal-day-name, .cup-pref em, .cup-pref-note,
+.cup-tl-meta, .cup-tl-n, .cup-tl-h .cup-dim, .cup-tl-add em, .cup-sched-t small, .cup-nev-t, .cup-wait-row .cup-dim, #mAddTest .toggle-label{ font-size:max(13px, 0px) !important; }
+.cup-badge2{ font-size:max(13px, 0px); }
+.cup-next-label, .cup-nev-k, .cup-tsec-h, .cup-pref-h, .home-focus-label{ font-size:max(13px, 0px) !important; text-transform:none !important; letter-spacing:0 !important; font-weight:600; color:var(--text2); }
+.cup-tl-t, .cup-today-list, .cup-sched-n, .cup-agenda .cup-ag-t, .cup-ag-t{ font-size:max(14.5px, 0px); }
+#page-todo .cal-today-btn, #page-todo .cal-layout-toggle .clt-opt, #mSettings .clt-opt{ font-size:max(13px, 0px) !important; text-transform:none !important; letter-spacing:0 !important; color:var(--text2); }
+#page-todo .cal-layout-toggle .clt-opt.active, #mSettings .clt-opt.active{ color:var(--text); }
+.cwk-dow{ font-size:max(13px, 0px) !important; letter-spacing:0 !important; }
+.cwk-block-time, .cwk-block-title{ font-size:max(13px, 0px) !important; }
+.cwk-hour-label{ font-size:max(13px, 0px) !important; letter-spacing:0 !important; }
+[data-theme="dark"] .cup-badge2.b-today{ color:#ef8a8a; }
+.cup-badge2.b-today{ color:color-mix(in srgb, var(--red) 85%, var(--text)); }
+.cwk-day-header.today .cwk-dow{ color:var(--text2) !important; }
+[data-theme="dark"] .cal-cell.today .cal-num, [data-theme="dark"] .cwk-num.today, [data-theme="dark"] .cwk-day-head.today .cwk-num, [data-theme="dark"] #mSettings .cup-seg button.on{ background:#4d6bb3 !important; color:#fff !important; }
+#mAddTest label[for="testNoEndDate"], #mAddTest .form-row label:has(#testNoEndDate){ font-size:max(13px, 0px) !important; }
+.mt-tab{ color:var(--text2) !important; } .mt-tab.active{ color:var(--accent) !important; }
+.mt-tab-label{ font-size:max(13px, 0px) !important; }
+.cup-badge2.b-soft{ background:color-mix(in srgb, var(--orange) 16%, transparent); }
+.btn-danger{ color:var(--red); }
+@media (max-width:760px){
+  .cup-nev-notes, .cup-ev-notes, .cup-sess-chg, #page-todo .cal-today-btn, #page-todo .cal-layout-toggle .clt-opt, .cup-calf-btn, #mSettings .clt-opt, #mSettings .cup-seg button{ min-height:44px; }
+  .cup-tl-sch, .cup-tl-act button{ min-width:44px !important; min-height:44px !important; }
+  #page-todo .cal-nav-btn, .modal-close{ min-width:44px; min-height:44px; }
+  .cup-next-folder, .cup-fc-chip{ padding-top:12px !important; padding-bottom:12px !important; margin-top:-12px !important; margin-bottom:-12px !important; }
+  .cup-check2{ position:relative; } .cup-check2::after{ content:''; position:absolute; inset:-14px; }
+  .cup-pref:has(> input[type="checkbox"]:only-of-type), .cup-sess-fch{ cursor:pointer; min-height:48px; }
+}
+/* desktop: the sidebar, buttons and calendar labels reach 13px too */
+.logo-sub, .nav-item, .nav-badge, .cup-side-new kbd, .cup-home-add kbd, .cup-side-head > span, .cup-side-empty, .cup-tname .l, .cup-trow .cup-n, .cup-chev, .theme-btn,
+.cup-mini, .cup-mini b, .cup-nev-notes, .cup-nev-notes span, .cup-next-folder, .btn, .cup-icon-btn, .cup-pin-btn, .cup-overline, .cup-more-btn, .cup-hchip, .cup-hbtn,
+.cal-nav-btn, .cal-num, .cal-mini-chip, .cal-mini-chip i, .cal-day-title em, .cup-ag-time small, .cup-ev-notes, .cwk-time-cell span, .cwk-allday-item, .cwk-allday-item .cup-due-tag, .cwk-allday-more,
+.cup-ag-head em, .cup-gate-sw, .cup-tl-act button, .cup-pg-chip, .cup-pg-chip span, .cup-sess-l, .cup-sess-fch em, .cup-sess-mode em, .cup-sess-priv, #mSettings .cup-seg button, .cup-fc-rec, .cup-w-foot{ font-size:max(13px, 0px) !important; }
+.cup-side-head > span, .cwk-time-cell span{ text-transform:none !important; letter-spacing:0 !important; }
+[data-theme="dark"] .cwk-allday-item.sig-habit{ color:#b3a6e6 !important; }
+[data-theme="dark"] .cwk-allday-item.sig-work, [data-theme="dark"] .cwk-allday-item.sig-journal{ color:#a3b8ec !important; }
+[data-theme="dark"] .cwk-day-header.today .cwk-num{ background:#4d6bb3 !important; color:#fff !important; }
+.cwk-block.sig-sess{ opacity:.9 !important; } .cwk-block.sig-sess .cwk-block-title, .cwk-block.sig-sess .cwk-block-time{ color:var(--text2) !important; }
+.sidebar-action-btn{ color:var(--text2); }
+.sidebar-action-btn{ color:var(--text2) !important; } .nav-badge{ color:var(--text2) !important; }
+:root:not([data-theme="dark"]) .cwk-allday-item.sig-due{ color:#8a4310 !important; }
 
 </style>
 <script>
@@ -18440,7 +18605,7 @@ async function cupAiSaveKey(){
   const remember=document.getElementById('cupAiRemember').checked;
   cupEnsure(); S.cup.aiModel=document.getElementById('cupAiModel').value; save();
   if(!k){ cupAiSettingsSync(); return; }
-  if(!/^sk-ant-/.test(k)){ st.textContent='That doesn’t look like a Claude API key (they start with sk-ant-).'; return; }
+  if(!/^sk-ant-/.test(k)){ st.textContent='That doesn’t look like a Claude key (they start with sk-ant-).'; return; }
   st.dataset.busy='1'; st.textContent='Checking the key with Anthropic…';
   const prev=cupAiKey();
   cupAiKeyMem=k;
@@ -18463,8 +18628,8 @@ function cupAiModelChange(v){ cupEnsure(); S.cup.aiModel=v; save(); }
 function cupImportAiUI(){
   const b=document.getElementById('cupAiSortBtn'); if(!b) return;
   const has=!!cupAiKey();
-  b.textContent = has ? '✨ Sort with Claude' : 'Use your own API key →';
-  b.title = has ? 'Send the box’s notes to Claude with your key' : 'Set up a Claude API key in Settings';
+  b.textContent = has ? '✨ Sort with Claude' : 'Add your Claude key →';
+  b.title = has ? 'Send the box’s notes to Claude with your key' : 'Add your Claude key in Settings';
 }
 const cupImportSchema = ()=>{
   const S_=t=>({type:t}), obj=(req,props)=>({type:'object',additionalProperties:false,required:req,properties:props});
@@ -18506,7 +18671,7 @@ async function cupAiSort(){
     det.textContent=`Sorted by Claude · ${cupImportItems.length} change${cupImportItems.length===1?'':'s'} — check them, then Apply`;
     cupImportCount();
   }catch(e){
-    const msg = e.status===401 ? 'Your API key was rejected — update it in Settings.'
+    const msg = e.status===401 ? 'Your Claude key was rejected — update it in Settings.'
       : e.status===429 ? 'Rate limited or out of credit — check your Anthropic account.'
       : e.status===400 && /credit/i.test(e.message||'') ? 'Your Anthropic account is out of credit.'
       : (e.message||String(e));
@@ -19219,7 +19384,7 @@ function cupOrgOpen(){
     </div>
     <div class="cup-org-ways">
       <button class="cup-org-way main" onclick="${has?'cupOrgRunAI()':'cupOrgNeedKey()'}" ${empty?'disabled':''}>
-        <b>${cupIc('spark')} ${has?'Organize with Claude':'Organize with Claude (your API key)'}</b><span>${has?'Best result, ready in a few seconds. Uses your key.':'Add your own key in Settings → AI import. About $0.01–0.05 a page.'}</span></button>
+        <b>${cupIc('spark')} ${has?'Organize with Claude':'Organize with Claude (your Claude key)'}</b><span>${has?'Best result, ready in a few seconds. Uses your key.':'Add your Claude key in Settings. About $0.01–0.05 a page.'}</span></button>
       <button class="cup-org-way" onclick="cupOrgCopy()" ${empty?'disabled':''}><b>Free: copy to Claude chat</b><span>Copies a prompt with this page. Paste it at claude.ai, then paste the reply below.</span></button>
       <button class="cup-org-way" onclick="cupOrgOffline()" ${empty?'disabled':''}><b>Quick outline (offline)</b><span>No AI. Pulls out headings, to-dos and “term: meaning” lines.</span></button>
     </div>
@@ -19229,7 +19394,7 @@ function cupOrgOpen(){
     </div>
     <div id="cupOrgOut"></div>`);
 }
-function cupOrgNeedKey(){ cupNoteClose(); openModal('mSettings'); setTimeout(()=>document.getElementById('cupAiKey')?.focus(),120); showToast('Paste your Claude API key under AI import.'); }
+function cupOrgNeedKey(){ cupNoteClose(); openModal('mSettings'); setTimeout(()=>document.getElementById('cupAiKey')?.focus(),120); showToast('Paste your Claude key under Claude key.'); }
 const cupOrgWant = () => Object.fromEntries(['sum','sec','act','terms','quiz','concl'].map(k=>[k, document.getElementById('cupOrg_'+k)?.checked!==false]));
 const cupOrgSchema = () => {
   const s={type:'string'}, arr=it=>({type:'array',items:it}), obj=(p)=>({type:'object',additionalProperties:false,required:Object.keys(p),properties:p});
@@ -19268,7 +19433,7 @@ async function cupOrgRunAI(){
     const text=(res.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
     cupOrgPreview(JSON.parse(text));
   }catch(e){
-    out.innerHTML=`<div class="cup-org-warn">${esc(e.status===401?'Your API key was rejected. Update it in Settings.':e.status===429?'Rate limited or out of credit. Check your Anthropic account.':(e.message||String(e)))}</div>`;
+    out.innerHTML=`<div class="cup-org-warn">${esc(e.status===401?'Your Claude key was rejected. Update it in Settings.':e.status===429?'Rate limited or out of credit. Check your Anthropic account.':(e.message||String(e)))}</div>`;
   }finally{ document.querySelectorAll('.cup-org-way').forEach(b=>b.disabled=false); }
 }
 async function cupOrgCopy(){
@@ -23017,7 +23182,7 @@ function cupSessionRender(){
           <input type="checkbox" ${p.on?'checked':''} onchange="cupFCSetPref('on',this.checked)" aria-label="Focus check"></div>
         ${p.on?`<div class="cup-sess-sws">${sw('cam','📷','Camera',cupCanCam())}${sw('screen','🖥','Screen',cupCanScreen())}${sw('mic','🎙','Mic',cupCanCam())}</div>
         <div class="cup-sess-mode">
-          <button type="button" class="${p.ai&&hasKey?'on':''}" ${hasKey?'':'disabled'} onclick="cupFCSetPref('ai',true)"><b>Claude</b><em>${hasKey?'Understands what you’re doing · ≈ 2¢ per 25 min':'Add your key in Settings → Sort with Claude'}</em></button>
+          <button type="button" class="${p.ai&&hasKey?'on':''}" ${hasKey?'':'disabled'} onclick="cupFCSetPref('ai',true)"><b>Claude</b><em>${hasKey?'Understands what you’re doing · ≈ 2¢ per 25 min':'Add your Claude key in Settings'}</em></button>
           <button type="button" class="${!(p.ai&&hasKey)?'on':''}" onclick="cupFCSetPref('ai',false)"><b>On this device</b><em>Movement, sound and face only · free · nothing leaves your computer</em></button></div>
         <p class="cup-sess-priv">🔒 Nothing is recorded. ${p.ai&&hasKey?'A small camera and screen snapshot goes to Claude once a minute with your own key, then is thrown away.':'Everything is analysed here and thrown away.'} Only the score and short notes are saved.</p>`:''}
       </div>
@@ -24685,6 +24850,355 @@ cupExportICS=function(){
   showToast(`Calendar exported: ${ne} event${ne===1?'':'s'}, ${nt} task${nt===1?'':'s'}. Import the .ics into Google, Apple or Outlook.`);
 };
 
+// ════════════════════════════════════════════════════════════
+//  WAVE 3 — declutter: one way to do each thing (audit 2026-10-19)
+//  Hide, never delete: old views, widgets and settings stay reachable
+//  under More / Advanced, and saved data is left as it is.
+// ════════════════════════════════════════════════════════════
+const cupW3T = (en, ko) => cupIsKo() ? ko : en;
+const cupW3Lean = fn => function(){ const b=document.body, had=b.classList.contains('cup-lean'); if(!had) b.classList.add('cup-lean');
+  try{ return fn.apply(this,arguments); } finally{ if(!had) b.classList.remove('cup-lean'); } };
+
+// ── 1 · One focus experience: the old Focus page opens the session sheet; one floating bar ──
+{ const _sp=showPage; showPage=function(page, el){
+  if(page!=='focus') return _sp.apply(this,arguments);
+  const user=!!(window.event && window.event.isTrusted);
+  if(!user) return _sp.call(this,'dashboard');                      // a saved “last page” of Focus lands on Home
+  if(cupPomoLive()||cupFCSess){ const b=document.getElementById('cupSessBar'); if(b){ b.classList.remove('cup-sbar-ping'); void b.offsetWidth; b.classList.add('cup-sbar-ping'); } return; }
+  cupSessionOpen((cupNextQueue()[0]||{}).t?.id||''); }; }
+// typing in “Start a focus timer on…” always goes through the session sheet
+cupJustStart=cupW3Lean(cupJustStart);
+
+const CUP_W3_PRESETS=[['classic','25 / 5','25분 / 5분'],['flowdoro','50 / 10','50분 / 10분'],['rule5217','52 / 17','52분 / 17분'],['personal','Auto (your rhythm)','자동 (내 리듬)']];
+function cupW3Preset(v){ try{ setPomoPreset(v); save(); }catch(_){} }
+{ const _r=cupSessionRender; cupSessionRender=function(){ const r=_r.apply(this,arguments);
+  try{ const el=document.getElementById('mCupSess'); if(!el) return r;
+    const task=el.querySelector('.cup-sess-task');
+    if(task && cupSessTask && !task.querySelector('.cup-sess-chg')) task.insertAdjacentHTML('beforeend', `<button type="button" class="cup-sess-chg" onclick="cupSessTask=null;cupSessFreeText='';cupSessionRender();setTimeout(()=>document.getElementById('cupSessFree')?.focus(),30)">${cupW3T('Something else','다른 일')}</button>`);
+    const fc=el.querySelector('.cup-sess-fc'), cur=(S.settings&&S.settings.pomo&&S.settings.pomo.presetMode)||'classic';
+    if(fc && !el.querySelector('.cup-sess-timer')) fc.insertAdjacentHTML('beforebegin', `<label class="cup-sess-timer"><span>${cupW3T('Timer','타이머')}</span>
+      <select onchange="cupW3Preset(this.value)" aria-label="${cupW3T('Timer','타이머')}">${CUP_W3_PRESETS.map(([v,en,ko])=>`<option value="${v}" ${cur===v?'selected':''}>${cupW3T(en,ko)}</option>`).join('')}</select></label>`);
+    const foot=el.querySelector('.modal-footer');
+    if(foot && !foot.querySelector('.cup-sess-rep') && cupW3RepList().length) foot.insertAdjacentHTML('afterbegin', `<button type="button" class="btn btn-ghost cup-sess-rep" onclick="closeModal('mCupSess');cupW3Reports()">${cupW3T('Past sessions','지난 세션')}</button>`);
+  }catch(_){}
+  return r; }; }
+
+// all focus reports in one list: timer reports and Focus check reports, newest first
+function cupW3RepList(){
+  const a=(S.focusReports||[]).filter(Boolean).map(r=>({ k:'p', id:r.id, t:r.taskTitle||cupW3T('Focus session','집중 세션'), at:Date.parse(r.date)||r.ts||0, ds:r.date, min:Math.round((r.actualFocusSec||0)/60), score:null }));
+  const b=(typeof cupFC==='function'?cupFC():[]).filter(Boolean).map(r=>({ k:'f', id:r.id, t:r.title||cupW3T('Focus session','집중 세션'), at:r.start||0, ds:cupISO(new Date(r.start||Date.now())), min:Math.round(((r.end||r.start)-r.start)/60000), score:r.score }));
+  return [...a,...b].sort((x,y)=>y.at-x.at);
+}
+let cupW3RepAll=false;
+function cupW3Reports(){
+  let el=document.getElementById('mCupW3Rep');
+  if(!el){ el=document.createElement('div'); el.className='overlay'; el.id='mCupW3Rep'; document.body.appendChild(el); }
+  const l=cupW3RepList(), shown=cupW3RepAll?l:l.slice(0,12);
+  el.innerHTML=`<div class="modal cup-w3-rep"><div class="modal-header"><span class="modal-title">${cupW3T('Focus reports','집중 리포트')}</span><button class="modal-close" onclick="closeModal('mCupW3Rep')" aria-label="Close">✕</button></div>
+    <div class="modal-body">${l.length?shown.map(x=>`<button type="button" class="cup-w3-rrow" onclick="closeModal('mCupW3Rep');${x.k==='f'?`cupFCReport('${x.id}')`:`openSessionReport('${x.id}')`}">
+      <span class="cup-w3-rs" ${x.score!==null?`style="color:${cupFCColor(x.score)}"`:''}>${x.score!==null?x.score:'◎'}</span><span class="cup-w3-rt"><b>${esc(x.t)}</b><em>${x.ds?cupFmt(x.ds):''}${x.min?` · ${x.min} min`:''}</em></span><span class="cup-me-c">›</span></button>`).join('')
+      +(l.length>shown.length?`<button type="button" class="cup-more-btn" onclick="cupW3RepAll=true;cupW3Reports()">${cupW3T(`Show all ${l.length}`,`${l.length}개 모두 보기`)}</button>`:'')
+      :`<div class="cup-dim" style="padding:10px 2px">${cupW3T('No sessions yet. Start one from Next up on Home.','아직 세션이 없어요. 홈의 다음 할 일에서 시작하세요.')}</div>`}</div></div>`;
+  if(cupIsKo() && typeof cupKoWalk==='function') cupKoWalk(el);
+  openModal('mCupW3Rep');
+}
+
+// one floating bar for the whole session: time, task, Focus check, Pause, End
+function cupW3Bar(){
+  const live=cupPomoLive(), fc=cupFCSess; let el=document.getElementById('cupSessBar');
+  if(!live && !fc){ if(el && !el.hidden){ el.hidden=true; document.body.classList.remove('cup-sbar-on'); } return; }
+  if(!el){ el=document.createElement('div'); el.id='cupSessBar'; el.className='cup-sbar'; el.setAttribute('role','region');
+    el.innerHTML=`<div class="cup-sbar-fc"></div><div class="cup-sbar-main"><span class="cup-sbar-k"><i></i><b class="cup-sbar-time"></b><span class="cup-sbar-ph"></span></span><span class="cup-sbar-t" data-keep></span></div>
+      <button type="button" class="cup-sbar-p"></button><button type="button" class="cup-sbar-e"></button>`;
+    el.querySelector('.cup-sbar-p').onclick=cupW3BarMain; el.querySelector('.cup-sbar-e').onclick=()=>{ cupSessEnd(); setTimeout(cupW3Bar,50); };
+    document.body.appendChild(el); }
+  el.setAttribute('aria-label', cupW3T('Focus session','집중 세션'));
+  if(el.hidden){ el.hidden=false; } document.body.classList.add('cup-sbar-on');
+  const slot=el.querySelector('.cup-sbar-fc'), card=document.getElementById('cupFCLive');
+  if(card && card.parentNode!==slot) slot.appendChild(card);
+  el.classList.toggle('fc', !!card);
+  const ph=live?(pomoState.phase||''):'', over=/Over$/.test(ph), brk=/break/i.test(ph), run=live?!!pomoState.running:!(fc&&fc.paused);
+  const time=live?(document.getElementById('hudTime')?.textContent||''):`${Math.floor((Date.now()-fc.start)/60000)}m`;
+  const set=(sel,v)=>{ const n=el.querySelector(sel); if(n.textContent!==v) n.textContent=v; };
+  set('.cup-sbar-time', time);
+  set('.cup-sbar-ph', over?(ph==='focusOver'?cupW3T('Time’s up','시간 됐어요'):cupW3T('Break’s over','휴식 끝')):brk?cupW3T('Break','휴식'):run?'':cupW3T('Paused','일시정지'));
+  set('.cup-sbar-t', (live&&typeof currentPomoTask!=='undefined'&&currentPomoTask?currentPomoTask.title:'')||(fc&&fc.title)||cupW3T('Focus','집중'));
+  set('.cup-sbar-p', over?(ph==='focusOver'?cupW3T('Take a break','휴식하기'):cupW3T('Back to focus','다시 집중')):run?cupW3T('Pause','일시정지'):cupW3T('Resume','계속'));
+  set('.cup-sbar-e', cupW3T('End','종료'));
+  el.classList.toggle('paused', !run && !over); el.classList.toggle('brk', brk);
+}
+function cupW3BarMain(){ const ph=cupPomoLive()?(pomoState.phase||''):''; if(/Over$/.test(ph)) togglePomo(); else cupSessPause(); cupW3Bar(); }
+setInterval(()=>{ try{ cupW3Bar(); }catch(_){} }, 500);
+{ const _tp=togglePomo; togglePomo=function(){ const r=_tp.apply(this,arguments); try{ cupW3Bar(); }catch(_){} return r; }; }
+
+// ── 2 · One Tasks screen: List / Calendar everywhere; the old workbench views sit under More ──
+const CUP_W3_CLASSIC=new Set(['today','bank','all']);
+let cupW3InRender=false, cupW3Pick='';
+if(CUP_W3_CLASSIC.has(cupMCol)) cupMCol='list';
+cupSetMCol=function(c){
+  if(cupW3InRender) return;                                  // views only change when you pick one, never as a side effect of drawing
+  if(CUP_W3_CLASSIC.has(c) && cupW3Pick!==c) c='list';
+  cupW3Pick='';
+  cupMCol=c; try{ localStorage.setItem('cup_mcol', CUP_W3_CLASSIC.has(c)?'list':c); }catch(_){}
+  const wb=document.getElementById('todoWorkbench'); if(wb) wb.dataset.mcol=c;
+  document.querySelectorAll('#cupMSeg .clt-opt').forEach(b=>b.classList.toggle('active', b.dataset.mcol===c));
+  const col={ today:'workbenchToday', cal:'workbenchCalendar', bank:'workbenchBank' }[c];
+  if(col) document.getElementById(col)?.classList.remove('collapsed');
+  if(c==='all') ['workbenchToday','workbenchCalendar','workbenchBank'].forEach(id=>document.getElementById(id)?.classList.remove('collapsed'));
+  document.body.classList.toggle('cup-classic', CUP_W3_CLASSIC.has(c));
+  requestAnimationFrame(()=>{ if(typeof renderCalendar==='function') renderCalendar(); window.dispatchEvent(new Event('resize')); });
+  if(c==='list') cupRenderTaskList();
+};
+function cupW3Classic(c){ cupW3MenuClose(); cupW3Pick=c; cupSetMCol(c); }
+{ const _rc=renderCup; renderCup=function(){ cupW3InRender=true; try{ return _rc.apply(this,arguments); } finally{ cupW3InRender=false; } }; }
+// “Open in Tasks & Calendar” for a day opens that day on the calendar
+cupGoDay=function(ds){ if(typeof calSelectedDate!=='undefined') calSelectedDate=ds; showPage('todo'); cupSetMCol('cal'); try{ if(!cupCalPhone()) setCalLayout('day'); }catch(_){} };
+// folder links always open the calm list's folder hub
+cupSetBankSel=cupW3Lean(cupSetBankSel);
+cupOpenFolderSel=cupW3Lean(cupOpenFolderSel);
+
+function cupW3Seg(){
+  const seg=document.getElementById('cupMSeg'); if(!seg) return;
+  if(!seg._w3){ seg._w3=1;
+    seg.querySelectorAll('.clt-opt').forEach(b=>{ b.classList.remove('cup-lean-only','cup-extra-only'); if(CUP_W3_CLASSIC.has(b.dataset.mcol)) b.classList.add('cup-w3-cl'); });
+    const m=document.createElement('button'); m.type='button'; m.className='clt-opt cup-w3-more'; m.setAttribute('aria-haspopup','menu');
+    m.onclick=e=>{ e.stopPropagation(); document.getElementById('cupW3Menu')?cupW3MenuClose():cupW3Menu(m); }; seg.appendChild(m); }
+  const m=seg.querySelector('.cup-w3-more'), t=cupW3T('More','더보기')+' ▾'; if(m.textContent!==t) m.textContent=t;
+  seg.querySelectorAll('.clt-opt').forEach(b=>b.classList.toggle('active', b.dataset.mcol===cupMCol));
+}
+function cupW3MenuClose(){ document.getElementById('cupW3Menu')?.remove(); }
+function cupW3Menu(btn){
+  cupW3MenuClose();
+  const m=document.createElement('div'); m.id='cupW3Menu'; m.className='cup-later-menu cup-w3-menu'; m.setAttribute('role','menu');
+  const it=(fn,b,s)=>`<button type="button" role="menuitem" onclick="${fn}"><b>${b}</b><span>${s}</span></button>`;
+  m.innerHTML=`<div class="cup-lm-h">${cupW3T('Other ways to see your tasks','다른 보기')}</div>
+    ${document.body.classList.contains('cup-classic')?it(`cupW3MenuClose();cupSetMCol('list')`, cupW3T('← Back to the list','← 목록으로'), cupW3T('The calm list','차분한 목록')):''}
+    ${it(`cupW3Classic('today')`, cupW3T('Day planner','하루 플래너'), cupW3T('Sections, sorting and missed work for one day','하루치 섹션, 정렬, 놓친 일'))}
+    ${it(`cupW3Classic('bank')`, cupW3T('Folders board','폴더 보드'), cupW3T('Every task by folder, with bulk select','폴더별 모든 할 일, 여러 개 선택'))}
+    ${innerWidth>=1000?it(`cupW3Classic('all')`, cupW3T('All side by side','나란히 보기'), cupW3T('Day, calendar and folders together; drag to schedule','하루, 캘린더, 폴더를 함께 · 끌어서 일정 잡기')):''}
+    ${typeof cupOpenImport==='function'?it(`cupW3MenuClose();cupOpenImport()`, cupW3T('Import a list…','목록 가져오기…'), cupW3T('Paste many tasks and events at once','할 일과 일정을 한꺼번에 붙여넣기')):''}`;
+  if(cupIsKo() && typeof cupKoWalk==='function') cupKoWalk(m);
+  document.body.appendChild(m);
+  const r=btn.getBoundingClientRect(); m.style.top=(r.bottom+window.scrollY+6)+'px'; m.style.left=Math.max(12,Math.min(r.left, innerWidth-m.offsetWidth-12))+'px';
+  setTimeout(()=>document.addEventListener('click', function f(e){ if(!e.target.closest('#cupW3Menu')){ cupW3MenuClose(); document.removeEventListener('click',f); } }),0);
+}
+{ const _rc=renderCup; renderCup=function(){ const r=_rc.apply(this,arguments); try{ cupW3Seg(); }catch(_){} return r; }; }
+function cupW3Boot(){ try{ cupW3Seg(); const wb=document.getElementById('todoWorkbench'); if(wb) wb.dataset.mcol=cupMCol; document.body.classList.toggle('cup-classic', CUP_W3_CLASSIC.has(cupMCol)); }catch(_){} }
+if(document.readyState!=='loading') cupW3Boot(); else document.addEventListener('DOMContentLoaded', cupW3Boot);
+
+// ── 3 · Calendar: week and day views fill the screen on a laptop and open at the current time ──
+function cupW3CalTall(){
+  const col=document.getElementById('workbenchCalendar'); if(!col) return;
+  const tall=!cupCalPhone() && (calLayout==='week'||calLayout==='day') && cupMCol==='cal';
+  col.classList.toggle('cup-cal-tall', tall);
+  col.classList.toggle('cup-cal-phwk', cupCalPhone() && (calLayout==='week'||calLayout==='day') && cupMCol==='cal');
+  if(!tall){ if(col.style.height) col.style.height=''; if(col.classList.contains('cup-cal-phwk')) cupW3NowScroll(); return; }
+  const top=col.getBoundingClientRect().top; if(top>0){ const h=Math.max(460, Math.round(innerHeight-top-14))+'px'; if(col.style.height!==h) col.style.height=h; }
+  cupW3NowScroll(); }
+function cupW3NowScroll(){
+  const sc=document.querySelector('#calPanel .cal-week-scroll'); if(!sc||!sc.clientHeight) return;
+  const first=sc.querySelector('[ondblclick]')?.getAttribute('ondblclick')||'', key=calLayout+'|'+first;
+  if(sc._w3k===key) return; sc._w3k=key;
+  const now=sc.querySelector('.cwk-now');
+  if(now) sc.scrollTop=Math.max(0, now.offsetTop - Math.round(sc.clientHeight/3));
+}
+{ const _rc=renderCalendar; renderCalendar=function(){ const r=_rc.apply(this,arguments); try{ cupW3Seg(); cupW3CalTall(); requestAnimationFrame(()=>{ try{ cupW3CalTall(); }catch(_){} }); }catch(_){} return r; }; }
+window.addEventListener('resize', ()=>{ try{ cupW3CalTall(); }catch(_){} });
+
+// ── 4 · Home: Next up holds only the task and its actions ──
+{ const _h=cupRenderHome; cupRenderHome=function(){
+  const next=document.getElementById('cupNextUp'), ev=document.querySelector('#cupW3Ev > .cup-next-ev');
+  if(next && ev) next.prepend(ev);                         // back in place so the code before this updates it, not a copy
+  const r=_h.apply(this,arguments);
+  try{ cupW3Home(); }catch(e){ console.warn(e); }
+  return r; }; }
+function cupW3Home(){
+  const next=document.getElementById('cupNextUp'); if(!next) return;
+  let evBox=document.getElementById('cupW3Ev'), tBox=document.getElementById('cupW3Today');
+  if(!evBox){ evBox=document.createElement('div'); evBox.id='cupW3Ev'; next.before(evBox); }
+  if(!tBox){ tBox=document.createElement('div'); tBox.id='cupW3Today'; tBox.className='home-focus-card cup-w3-today'; next.after(tBox); }
+  const ev=next.querySelector(':scope > .cup-next-ev');
+  if(ev) evBox.replaceChildren(ev); else if(!evBox.querySelector('.cup-next-ev')) evBox.replaceChildren();
+  evBox.hidden=!evBox.firstChild;
+  // the day (schedule, to-dos, habits), class pace and the small chips move below the card
+  const parts=['.cup-today-card','.cup-next-pace','.cup-hchips'].map(s=>next.querySelector(':scope > '+s)).filter(Boolean);
+  if(parts.length) tBox.replaceChildren(...parts);
+  const ch=tBox.querySelector('.cup-hchips'); if(ch) ch.hidden=!ch.querySelector('button:not([hidden]),select');
+  tBox.hidden=!tBox.querySelector('.cup-today-card,.cup-next-pace,.cup-hchips:not([hidden])');
+  // Korean: the day's heading is a noun (일정), not the Schedule button's verb
+  if(cupIsKo()) tBox.querySelectorAll('.cup-tsec-h').forEach(h=>h.childNodes.forEach(n=>{ if(n.nodeType===3 && /^(Schedule|일정 잡기)$/.test(n.textContent.trim())) n.textContent='일정'; }));
+  const rv=document.getElementById('cupReview'); if(rv && rv.previousElementSibling!==tBox && rv.parentNode===tBox.parentNode) tBox.after(rv);
+}
+
+// three calm widgets for a new account (existing Homes are left exactly as they are)
+{ const _hw=cupHomeW; cupHomeW=function(){ const h=cupHome(); if(!h.w3 && !h.blocks.length) h.blocks=['deadlines','focus','journal']; return _hw.apply(this,arguments); }; }
+// Principles and Time left leave the widget gallery (still shown for anyone who already has them)
+{ const _ws=cupWSheet; cupWSheet=function(){ const on=new Set(cupHome().blocks), hid={};
+  ['principles','time'].forEach(k=>{ if(CUP_WIDGETS[k] && !on.has(k)){ hid[k]=CUP_WIDGETS[k]; delete CUP_WIDGETS[k]; } });
+  try{ return _ws.apply(this,arguments); } finally{ Object.assign(CUP_WIDGETS, hid); } }; }
+// Exam countdown counts down only to what you marked as a test or exam (no guessing from titles)
+cupWCountdown=function(){
+  const today=todayStr(), until=cupAddDays(today,60), evs=[];
+  for(let i=0;i<60 && evs.length<3;i++){ const ds=cupAddDays(today,i); (cupCalEventsOn(ds)||[]).forEach(e=>{ if(e.type==='test'||e.type==='exam') evs.push({ t:e.title, ds, time:e.time }); }); }
+  const tasks=S.tasks.filter(t=>!cupDone(t)&&(t.type==='exam'||t.type==='test')&&t.due&&t.due>=today&&t.due<=until).map(t=>({ t:t.title, ds:t.due, time:t.dueTime }));
+  const all=[...evs,...tasks].sort((a,b)=>a.ds.localeCompare(b.ds)).filter((x,i,a)=>a.findIndex(y=>y.t===x.t)===i).slice(0,3);
+  if(!all.length) return `<div class="cup-dim">${cupW3T('No exams in the next 60 days. Set an event’s type to Test / Exam to count down to it.','앞으로 60일 동안 시험이 없어요. 일정 종류를 시험으로 정하면 카운트다운해요.')}</div>`;
+  const n=all[0], days=Math.round((cupParse(n.ds)-cupParse(today))/864e5);
+  return `<div class="cup-w-count"><div class="cup-w-big ${days<=3?'hot':''}"><b>${days===0?'Today':days}</b>${days?`<span>day${days===1?'':'s'}</span>`:''}</div>
+    <div><div class="cup-w-ct">${esc(n.t)}</div><div class="cup-dim">${cupWd(n.ds)} ${cupFmt(n.ds)}${n.time?' · '+cupT12(n.time):''}</div></div></div>
+    ${all.slice(1).map(x=>`<div class="cup-w-next"><span>${esc(x.t)}</span><span class="cup-dim">${Math.round((cupParse(x.ds)-cupParse(today))/864e5)}d</span></div>`).join('')}`;
+};
+if(CUP_WIDGETS.countdown) CUP_WIDGETS.countdown[5]=cupWCountdown;
+
+// ── 5 · Calm Friends: with the garden off there's no podium and no “pts to pass” race ──
+{ const _wl=cupWLeague; cupWLeague=function(){ const h=_wl.apply(this,arguments); return cupPref('gardenOn') ? h : String(h).replace(/(<div class="cup-w-foot">)⚔️[^<]*?· /, '$1'); }; if(CUP_WIDGETS.league) CUP_WIDGETS.league[5]=cupWLeague; }
+
+// ── 6 · Settings: essentials first, everything else under Advanced ──
+let cupW3AdvOpen=false;
+function cupW3Settings(){
+  const body=document.querySelector('#mSettings .modal-body'), box=document.getElementById('cupPrefs'); if(!body||!box) return;
+  body.classList.add('cup-w3-set'); body.classList.toggle('cup-adv-open', cupW3AdvOpen);
+  const put=(el,o,adv)=>{ if(!el) return; el.style.order=o; el.classList.toggle('cup-w3-adv', !!adv); };
+  const H=(id,o,en,ko)=>{ let h=document.getElementById(id); if(!h){ h=document.createElement('div'); h.id=id; h.className='cup-pref-h cup-w3-h'; body.appendChild(h); } const v=cupW3T(en,ko); if(h.textContent!==v) h.textContent=v; h.style.order=o; };
+  H('cupW3hEss',10,'Essentials','기본'); H('cupW3hCal',30,'Calendar','캘린더'); H('cupW3hKey',40,'Claude key','Claude 키');
+  H('cupW3hRem',50,'Reminders & privacy','알림 & 개인정보'); H('cupW3hData',60,'Your data','내 데이터'); H('cupW3hAcct',70,'Account','계정');
+  let adv=document.getElementById('cupW3Adv');
+  if(!adv){ adv=document.createElement('button'); adv.type='button'; adv.id='cupW3Adv'; adv.className='cup-w3-advbtn'; adv.onclick=()=>{ cupW3AdvOpen=!cupW3AdvOpen; cupW3Settings(); if(cupW3AdvOpen) adv.scrollIntoView({ block:'start', behavior:'smooth' }); }; body.appendChild(adv); }
+  adv.style.order=900; adv.setAttribute('aria-expanded', String(cupW3AdvOpen));
+  const at=`${cupW3AdvOpen?'▾':'▸'} ${cupW3T('Advanced','고급')}`, as=cupW3T('App name, density, timer numbers, extra tools, calendar drag-drop, developer settings','앱 이름, 밀도, 타이머 숫자, 추가 도구, 캘린더 끌어놓기, 개발자 설정');
+  if(adv._t!==at+as){ adv.innerHTML=`<b>${at}</b><span>${as}</span>`; adv._t=at+as; }
+  // the app's own preference rows
+  const sig=[["setDensity(",13],["'easyRead'",19],["'extras'",920,1],["'minimal'",16],["'gentle'",17],["'gardenOn'",18],["'dayEnd'",921,1],["'voiceLang'",922,1],["'nudgeDays'",923,1],
+    ["'deadlineDays'",924,1],["'hideMeetings'",925,1],["'syncMinutes'",34],["cupSetPrompts",926,1],["cupSetLang",11],["cupOpenSetup",927,1],["cupExportCSV",61],["cupLock",52],["cupAskNotify",51]];
+  let hIdx=-1, pastLinks=false;
+  [...box.children].forEach(c=>{
+    if(c.id==='cupGc') return put(c,31);
+    if(c.id==='cupLinks'){ pastLinks=true; return put(c,33); }
+    if(c.classList.contains('cup-pref-h')){ c.classList.add('cup-w3-x'); if(pastLinks) hIdx++; return; }
+    if(c.classList.contains('cup-pref-sep')){ c.classList.add('cup-w3-x'); return; }
+    const h=c.innerHTML, s=sig.find(([k])=>h.includes(k));
+    if(s) return put(c, s[1], s[2]);
+    put(c, hIdx===0?51:hIdx===1?53:800);                          // Alerts row without a button, privacy note, anything new
+  });
+  // the original form rows (found by their fields, so it works in every language)
+  [...body.children].forEach(c=>{
+    if(c===box || c.classList.contains('cup-w3-h') || c===adv) return;
+    const q=s=>c.querySelector(s), h=c.innerHTML;
+    if(c.classList.contains('form-actions')) return put(c,999);
+    if(q('#cupWeekStartPick')) return put(c,15);
+    if(q('#cupAiKey')){ const l=q('label[for="cupAiKey"]'), v=cupW3T('Claude key','Claude 키'); if(l && l.textContent!==v) l.textContent=v; return put(c,41); }
+    if(q('#sName')) return put(c,12);
+    if(q('#sDark')) return put(c,14);
+    if(q('#sAppName')) return put(c,950,1);
+    if(q('#sAppSubtitle')) return put(c,951,1);
+    if(h.includes('setAccentColor')) return put(c,952,1);
+    if(q('#settingsDensityToggle')) return put(c,953,1);
+    if(c.classList.contains('mobile-only-row')) return put(c,954,1);
+    if(q('#sAskOnDrop')) return put(c,955,1);
+    if(q('#sPomoFocus')) return put(c,960,1);
+    if(q('#sPomoShort')) return put(c,961,1);
+    if(q('#sPomoLong')) return put(c,962,1);
+    if(q('#sPomoCycles')) return put(c,963,1);
+    if(q('#sAlarmSound')) return put(c,964,1);
+    if(h.includes('exportBackup')) return put(c,62);
+    if(h.includes('openDeletedModal')) return put(c,63);
+    if(h.includes('changePasswordFromSettings')) return put(c,71);
+    if(c.classList.contains('settings-signout-row')) return put(c,72);
+    if(c.id==='cupW3Cid') return;
+    put(c,800);
+  });
+  // the developer OAuth client ID field moves from Google Calendar to Advanced
+  let cid=document.getElementById('cupW3Cid'); const need=!!document.getElementById('cupGcClient');
+  if(need && !cid){ cid=document.createElement('div'); cid.id='cupW3Cid'; cid.className='cup-pref'; body.appendChild(cid); }
+  if(cid){ cid.hidden=!need; put(cid,970,1);
+    const v=(cupGc().clientId||''), html=`<span><b>${cupW3T('Google OAuth client ID (developers)','Google OAuth 클라이언트 ID (개발자용)')}</b><em>${cupW3T('Only needed if you run your own copy of Focus Hub.','Focus Hub를 직접 운영할 때만 필요해요.')}</em></span>
+      <input type="text" spellcheck="false" autocomplete="off" placeholder="…apps.googleusercontent.com" value="${esc(v)}" onchange="cupGcSetClient(this.value)" aria-label="OAuth client ID" style="max-width:220px">`;
+    if(cid._h!==html && !cid.contains(document.activeElement)){ cid.innerHTML=html; cid._h=html; } }
+}
+{ const _pr=cupPrefsRender; cupPrefsRender=function(){ const r=_pr.apply(this,arguments); try{ cupW3Settings(); }catch(e){ console.warn(e); } return r; }; }
+{ const _gr=cupGcRender; cupGcRender=function(){ const r=_gr.apply(this,arguments); try{ if(document.getElementById('cupW3Cid')||document.getElementById('cupGcClient')) cupW3Settings(); }catch(_){} return r; }; }
+// the import window says “Claude key” too
+function cupW3KeyWords(){ document.querySelectorAll('.cup-imp-way b').forEach(b=>{ if(b.textContent==='With your own API key:') b.textContent='With your Claude key:'; }); }
+if(document.readyState!=='loading') cupW3KeyWords(); else document.addEventListener('DOMContentLoaded', cupW3KeyWords);
+
+// ── 7 · Event editor: title, when and where first; the rest under More ──
+function cupW3EvInit(){
+  const m=document.getElementById('mAddTest'); if(!m) return null; const md=m.querySelector('.modal');
+  if(md._w3) return md; md._w3=1; md.classList.add('cup-ev-modal');
+  const g=id=>document.getElementById(id), row=(id,sel)=>g(id)?.closest(sel);
+  const time=g('eventTimeRow'), loc=row('testLocation','.form-row'); if(!time||!loc) return md;
+  const where=document.createElement('div'); where.className='cup-ev-where'; where.appendChild(loc); time.after(where);
+  const btn=document.createElement('button'); btn.type='button'; btn.className='cup-more-btn cup-ev-morebtn'; btn.id='cupEvMoreBtn';
+  btn.onclick=()=>{ md.classList.toggle('cup-ev-open'); cupW3EvSum(); };
+  const more=document.createElement('div'); more.className='cup-ev-more';
+  where.after(btn); btn.after(more);
+  [row('testRecurrence','.form-grid'), g('eventRecurrenceDaysRow'), row('testSubject','.form-grid'), row('testNotes','.form-row'), row('eventColor','.form-grid')].forEach(r=>{ if(r) more.appendChild(r); });
+  const conv=g('eventToTaskBtn'); if(conv){ const w=document.createElement('div'); w.className='cup-ev-conv'; w.appendChild(conv); more.appendChild(w); }
+  ['testRecurrence','eventType','testSubject','testNotes','testReminder'].forEach(id=>g(id)?.addEventListener('change', cupW3EvSum));
+  return md;
+}
+function cupW3EvSum(){
+  const md=document.querySelector('#mAddTest .modal'), b=document.getElementById('cupEvMoreBtn'); if(!md||!b) return;
+  const g=id=>document.getElementById(id), opt=s=>s&&s.selectedIndex>=0?s.options[s.selectedIndex].textContent.trim():'';
+  const bits=[]; const rec=g('testRecurrence'); if(rec&&rec.value&&rec.value!=='none') bits.push(opt(rec));
+  const ty=g('eventType'); if(ty&&ty.selectedIndex>0) bits.push(opt(ty));
+  if((g('testSubject')?.value||'').trim()) bits.push(g('testSubject').value.trim());
+  if((g('testNotes')?.value||'').trim()) bits.push(cupW3T('Notes','메모'));
+  const rem=g('testReminder'); if(rem&&rem.value&&rem.value!=='none') bits.push(cupW3T('Reminder','알림'));
+  const open=md.classList.contains('cup-ev-open');
+  b.setAttribute('aria-expanded', String(open));
+  b.textContent = open ? cupW3T('▾ Fewer options','▾ 옵션 접기') : `${cupW3T('▸ More options','▸ 추가 옵션')}${bits.length?' · '+bits.join(' · '):cupW3T(' (repeat, type, class, notes, colour, reminder)',' (반복, 종류, 수업, 메모, 색, 알림)')}`;
+}
+{ const _om=openModal; openModal=function(id){ if(id==='mAddTest'){ const md=cupW3EvInit(); if(md) md.classList.remove('cup-ev-open'); }
+  const r=_om.apply(this,arguments);
+  if(id==='mAddTest'){ cupW3EvSum(); setTimeout(cupW3EvSum,0); setTimeout(cupW3EvSum,80); }
+  if(id==='mSettings'){ try{ cupW3Settings(); }catch(_){} }
+  return r; }; }
+
+// ── 8 · Phone Me sheet: today at the top, then what you use most, quieter extras, Settings last ──
+cupOpenMobileMe=function(){
+  let el=document.getElementById('mCupMobMe');
+  if(!el){ el=document.createElement('div'); el.className='overlay'; el.id='mCupMobMe'; document.body.appendChild(el); }
+  const g=cupGarden(), td=todayStr(), garden=cupPref('gardenOn');
+  const done=S.tasks.filter(t=>!t.isHabit&&t.completedAt&&cupISO(new Date(t.completedAt))===td).length;
+  const mins=(S.sessions||[]).filter(x=>x&&x.type==='focus'&&x.date===td).reduce((a,x)=>a+(+x.dur||0),0);
+  const j=cupJEntry(td), jHas=cupJHas(j), reps=cupW3RepList().length;
+  const row=(fn,ic,b,em,cls='')=>`<button type="button" class="cup-me-row ${cls}" onclick="${fn}"><span class="cup-me-ic">${ic}</span><span class="cup-me-tx"><b>${b}</b>${em?`<em>${em}</em>`:''}</span><span class="cup-me-c">›</span></button>`;
+  const close="closeModal('mCupMobMe');";
+  el.innerHTML=`<div class="modal cup-mob-sheet cup-me-sheet">
+    <div class="modal-header"><span class="modal-title">Me</span><button class="modal-close" onclick="closeModal('mCupMobMe')" aria-label="Close">✕</button></div>
+    <div class="modal-body">
+      <div class="cup-me-today"><span class="cup-me-k">${cupW3T('Today','오늘')}</span><b>${cupW3T(`${done} done · ${mins} min focused`,`${done}개 완료 · ${mins}분 집중`)}</b></div>
+      <div class="cup-me-group">
+        ${row(close+'cupJOpen(todayStr())','✎',jHas?cupW3T('Today’s journal','오늘의 일기'):cupW3T('How was today?','오늘 어땠나요?'),cupW3T('Daily reflection & mood','오늘의 기록과 기분'),'main')}
+        ${row(close+"showPage('compass')",'◇',cupW3T('Goals & Pace','목표 & 진도'),cupW3T('Deadlines & class pace','마감일과 수업 진도'),'main')}
+        ${row(close+'cupW3Reports()','◎',cupW3T('Focus reports','집중 리포트'),reps?cupW3T(`${reps} session${reps===1?'':'s'}`,`세션 ${reps}개`):cupW3T('Your study sessions, scored','공부 세션 기록'),'main')}
+      </div>
+      <div class="cup-me-sec">${cupW3T('Together','함께')}</div>
+      <div class="cup-me-group">
+        ${garden?row(close+"cupOpenGarden('garden')",(i=>i==='·'?'🌱':i)(cupTreeIcon(g.today.pts,g.species)),cupW3T('Garden','가든'),`${g.streak}d streak · 💎 ${g.gems}`):''}
+        ${row("cupOpenFriends('friends')",'👥',cupW3T('Friends','친구'),garden?cupW3T('Weekly league','주간 리그'):cupW3T('Study together, quietly','조용히 함께 공부해요'))}
+        ${row(close+'cupShareNewOpen()','↗',cupW3T('Shared Lists','공유 목록'),cupW3T('Family, club, team','가족, 동아리, 팀'),'cup-extra-only')}
+      </div>
+      <div class="cup-me-sec cup-extra-only">${cupW3T('More tools','더 많은 도구')}</div>
+      <div class="cup-me-group cup-extra-only">
+        ${row(close+'cupOpenLoad()','☕',cupW3T('Weekly Load','주간 로드'),cupW3T('Capacity planner','주간 여유량 플래너'))}
+        ${row(close+'cupOpenCats()','▤',cupW3T('Categories','카테고리'),cupW3T('Edit groups & areas','그룹 및 영역 편집'))}
+      </div>
+      <div class="cup-me-group cup-me-last">${row(close+"openModal('mSettings')",'⚙',cupW3T('Settings','설정'),cupW3T('Language, theme & sync','언어, 테마 및 동기화'))}</div>
+    </div>
+  </div>`;
+  if(cupIsKo() && typeof cupKoWalk==='function') cupKoWalk(el);
+  openModal('mCupMobMe');
+};
+{ const _ee=editEvent; editEvent=function(){ const md=cupW3EvInit(); if(md) md.classList.remove('cup-ev-open'); const r=_ee.apply(this,arguments); cupW3EvSum(); setTimeout(cupW3EvSum,0); setTimeout(cupW3EvSum,80); return r; }; }
+
+// ── 9 · Readability: a whole settings row toggles its checkbox (a big tap target on the phone) ──
+document.addEventListener('click', e=>{
+  const row=e.target.closest('.cup-pref, .cup-sess-fch'); if(!row || e.target.closest('input,select,button,textarea,a,label')) return;
+  const cbs=row.querySelectorAll('input[type="checkbox"]'); if(cbs.length!==1 || row.querySelector('select,button,textarea,input:not([type="checkbox"])')) return;
+  cbs[0].click(); });
+
 
 // Korean interface strings. Keys are the exact English text shown on screen.
 Object.assign(CUP_KO, {
@@ -24709,7 +25223,7 @@ Object.assign(CUP_KO, {
   "Group focus":"그룹 집중 시간","Goal reached together 🎉":"함께 목표를 달성했어요 🎉","Leave":"나가기",
   "When":"언제","Where & status":"폴더 & 상태","⧗ Waiting on reply":"⧗ 답변 대기 중","Every day (habit)":"매일 (습관)",
   "Or on specific days (habit)":"또는 특정 요일마다 (습관)",
-  "Shared Lists":"공유 목록","Weekly Load":"주간 로드","Friends":"친구","👥 Friends":"👥 친구","Friends & groups →":"친구 & 그룹 →","Garden":"가든","Study together, quietly. Friends and groups see only your name, trees, streak and focus minutes.":"조용히 함께 공부해요. 친구와 그룹에는 이름, 나무, 연속 일수, 집중 시간만 보여요.","Extra tools":"추가 도구","Shows the S/M/L and shortcut buttons, the Focus page, Upcoming in the sidebar, Home blocks, Prep, Gentle day and the Home filter.":"S/M/L·단축키 버튼, 집중 페이지, 사이드바의 다가오는 일정, 홈 블록, 준비, 가벼운 날, 홈 필터를 보여줘요.","Your meadow":"나의 정원","Invite a friend":"친구 초대","Your code":"내 코드","Copy":"복사","Friend’s code — Enter":"친구 코드 — Enter","Cheers for you":"받은 응원","Manage friends":"친구 관리","Remove":"삭제","What friends see":"친구에게 보이는 것","Share these habits as check-ins":"이 습관을 체크인으로 공유","Friends see only ✓ or nothing for each day.":"친구에게는 날마다 ✓ 표시만 보여요.","Pause sharing":"공유 일시정지","Turn off friends":"친구 기능 끄기","Grow your trees side by side":"나무를 나란히 키워요","A shared meadow":"함께하는 정원","See everyone’s tree for today":"모두의 오늘 나무를 봐요","QT check-ins":"큐티 체크인","Your small group ticks quiet time together":"소그룹이 함께 큐티를 체크해요","Cheers":"응원","One tap to cheer a friend on":"한 번 눌러 친구를 응원해요","Focus together":"함께 집중","Join when a friend starts studying":"친구가 공부를 시작하면 함께해요","No rankings. Only what you choose is shared, never your tasks or notes.":"순위는 없어요. 고른 것만 공유되고, 할 일이나 노트는 절대 공유되지 않아요.","Turn on friends":"친구 기능 켜기","Small group":"소그룹","Gym buddies":"운동 메이트","Study squad":"스터디","Club or team":"동아리 · 팀","QT check-ins — everyone ticks their quiet time":"큐티 체크인 — 모두 큐티를 체크해요","Workout check-ins together":"함께 운동 체크인","Focus hours toward one weekly goal":"주간 목표를 향한 집중 시간","Focus hours and tasks done together":"함께한 집중 시간과 완료한 일","Start a group":"그룹 만들기","Start another group":"그룹 하나 더 만들기","Or join with a code — Enter":"또는 코드로 참여 — Enter","resting":"쉬는 중","Gym buddy":"운동 메이트","Friend":"친구","This week’s league":"이번 주 리그","ends in":"종료까지","Change":"변경","Save":"저장","Cancel":"취소","Pick a username so friends can add you":"친구가 추가할 수 있도록 사용자 이름을 정하세요","New username":"새 사용자 이름","Available ✓":"사용 가능 ✓","Taken — try another":"이미 사용 중 — 다른 이름을 써 보세요","Checking…":"확인 중…","That’s you":"지금 내 이름이에요","3–20 letters, numbers, _ or .":"영문 소문자·숫자·_·. 3–20자","Add a friend — @username":"친구 추가 — @사용자이름","Copy mine":"내 것 복사","Your league starts with one friend":"친구 한 명이면 리그가 시작돼요","1 pt per focus minute · 20 per task done · 10 per check-in · resets every week":"집중 1분 1점 · 완료한 일 20점 · 체크인 10점 · 매주 초기화","Join":"함께하기","+ Add widget":"+ 위젯 추가","Edit widgets":"위젯 편집","Done":"완료","Add a widget":"위젯 추가","Study":"공부","Plan":"계획","Together":"함께","Life":"생활","Course pace":"수업 진도","Exam countdown":"시험 카운트다운","Deadlines":"마감","Focus today":"오늘 집중","Time left":"남은 시간","This week":"이번 주","Waiting on":"답변 대기","Goals":"목표","Friends league":"친구 리그","Garden":"가든","Journal":"일기","Habits":"습관","Recent pages":"최근 페이지","Principles":"원칙","How many lectures behind each class is":"수업별로 몇 강 밀렸는지","Days until the next midterm, final or big deadline":"다음 중간·기말고사나 큰 마감까지 남은 날","Everything due soon":"곧 마감되는 모든 것","Minutes focused today toward your goal":"오늘 목표 대비 집중 시간","Day, week and term remaining":"오늘·이번 주·학기 남은 시간","Your next events and classes":"다음 일정과 수업","The week at a glance and your load":"한눈에 보는 이번 주와 부담","Things you sent and are waiting to hear back on":"보내고 답을 기다리는 것","Your goals and how far along they are":"목표와 진행 상황","Your rank this week and who’s close":"이번 주 내 순위와 가까운 친구","Today’s tree, streak and gems":"오늘의 나무, 연속 기록, 보석","Today’s reflection and your streak":"오늘의 기록과 연속 일수","Tick today’s habits":"오늘 습관 체크","Notes you edited lately":"최근 수정한 노트","The rules you want to live by":"지키고 싶은 원칙","+ Add":"+ 추가","Start a weekly league":"주간 리그 시작","Race friends on focus minutes and tasks.":"집중 시간과 완료한 일로 친구와 겨뤄요.","Add a friend to start":"친구를 추가해 시작하세요","How was today?":"오늘 어땠나요?","A line or two is enough":"한두 줄이면 충분해요","◎ Start a session":"◎ 세션 시작","Track a class to see how many lectures behind you are.":"수업을 추적하면 몇 강 밀렸는지 볼 수 있어요.","Every widget is already on Home.":"모든 위젯이 이미 홈에 있어요.","Schedule":"일정","To do today":"오늘 할 일","Show less":"접기","All day":"종일","now":"지금","Start a session":"세션 시작","Working on":"작업 중","What does done look like?":"어떻게 되면 끝인가요?","Focus check":"집중 체크","Scores how focused you are and gives advice afterwards":"얼마나 집중했는지 점수를 매기고 끝나면 조언해요","Camera":"카메라","Screen":"화면","Mic":"마이크","On this device":"이 기기에서만","◎ Start session":"◎ 세션 시작","Session report":"세션 리포트","Advice for next time":"다음을 위한 조언","Minute by minute":"분 단위 기록","Earlier sessions on this task":"이 할 일의 이전 세션","Pause":"일시정지","Resume":"다시 시작","End":"끝내기","Delete":"삭제","On task":"집중 중","On phone":"휴대폰 사용","Off-task screen":"관련 없는 화면","Talking":"대화 중","Moving around":"움직이는 중","Zoning out":"멍때림","Away":"자리 비움","Reading / thinking":"읽기 / 생각","Focus scores":"집중 점수","Your last study sessions, scored":"최근 공부 세션 점수","Start a checked session":"집중 체크 세션 시작","Get a focus score and advice after each study block":"공부가 끝날 때마다 점수와 조언을 받아요","First check in a moment…":"곧 첫 체크를 해요…","What are you working on?":"무엇을 하나요?","List":"목록","Add a task":"할 일 추가","All folders":"모든 폴더","Search":"검색","Overdue":"지난 일","Today":"오늘","Tomorrow":"내일","Later":"나중","No date":"날짜 없음","Done today":"오늘 완료","Fresh start":"새 출발","Nothing matches.":"일치하는 항목이 없어요.","Nothing to do. Enjoy it ✓":"할 일이 없어요. 즐기세요 ✓","Home":"홈","Tasks":"할 일","Weekly league":"주간 리그","Now":"지금","Not started":"시작 전","Done":"완료","A weekly league with friends — race on focus time, tasks and QT check-ins. Only scores are shared, never your tasks or notes.":"친구와 주간 리그 — 집중 시간, 완료한 일, 큐티 체크인으로 겨뤄요. 점수만 공유되고 할 일이나 노트는 공유되지 않아요.","1 pt per focus minute · 10 per task (up to 25) · 10 per check-in · resets every week":"집중 1분 1점 · 완료한 일 10점(최대 25개) · 체크인 10점 · 매주 초기화","try “PHYS lab fri 3pm”":"예: “금 3시 물리 랩”","Add your key in Settings → Sort with Claude":"설정 → Claude로 정리에서 키를 추가하세요","Movement, sound and face only · free · nothing leaves your computer":"움직임·소리·얼굴만 · 무료 · 컴퓨터 밖으로 나가지 않아요","Understands what you’re doing · ≈ 2¢ per 25 min":"무엇을 하는지 이해해요 · 25분에 약 2센트","Show less":"접기","Must do first":"필수 먼저","Focus gate":"집중 잠금","Dim everything else until today’s must-dos are done":"오늘의 필수 일을 끝낼 때까지 나머지를 흐리게 해요","All must-dos done — everything is open":"필수 일을 모두 끝냈어요 — 모두 열렸어요","Add widget":"위젯 추가","Add widgets to Home":"홈에 위젯 추가","Arrange widgets":"위젯 정렬","Home widgets":"홈 위젯","Tap to add or remove. Changes show on Home right away.":"눌러서 추가하거나 빼요. 홈에 바로 반영돼요.","✓ On Home · Remove":"✓ 홈에 있음 · 빼기","Remove from Home":"홈에서 빼기","Custom repeat":"직접 반복 설정","Every N days, weeks or months. When you finish it, the next one is created with a new due date.":"N일·N주·N개월마다 반복해요. 완료하면 새 마감일로 다음 항목이 만들어져요.",
+  "Shared Lists":"공유 목록","Weekly Load":"주간 로드","Friends":"친구","👥 Friends":"👥 친구","Friends & groups →":"친구 & 그룹 →","Garden":"가든","Study together, quietly. Friends and groups see only your name, trees, streak and focus minutes.":"조용히 함께 공부해요. 친구와 그룹에는 이름, 나무, 연속 일수, 집중 시간만 보여요.","Extra tools":"추가 도구","Shows the S/M/L and shortcut buttons, the Focus page, Upcoming in the sidebar, Home blocks, Prep, Gentle day and the Home filter.":"S/M/L·단축키 버튼, 집중 페이지, 사이드바의 다가오는 일정, 홈 블록, 준비, 가벼운 날, 홈 필터를 보여줘요.","Your meadow":"나의 정원","Invite a friend":"친구 초대","Your code":"내 코드","Copy":"복사","Friend’s code — Enter":"친구 코드 — Enter","Cheers for you":"받은 응원","Manage friends":"친구 관리","Remove":"삭제","What friends see":"친구에게 보이는 것","Share these habits as check-ins":"이 습관을 체크인으로 공유","Friends see only ✓ or nothing for each day.":"친구에게는 날마다 ✓ 표시만 보여요.","Pause sharing":"공유 일시정지","Turn off friends":"친구 기능 끄기","Grow your trees side by side":"나무를 나란히 키워요","A shared meadow":"함께하는 정원","See everyone’s tree for today":"모두의 오늘 나무를 봐요","QT check-ins":"큐티 체크인","Your small group ticks quiet time together":"소그룹이 함께 큐티를 체크해요","Cheers":"응원","One tap to cheer a friend on":"한 번 눌러 친구를 응원해요","Focus together":"함께 집중","Join when a friend starts studying":"친구가 공부를 시작하면 함께해요","No rankings. Only what you choose is shared, never your tasks or notes.":"순위는 없어요. 고른 것만 공유되고, 할 일이나 노트는 절대 공유되지 않아요.","Turn on friends":"친구 기능 켜기","Small group":"소그룹","Gym buddies":"운동 메이트","Study squad":"스터디","Club or team":"동아리 · 팀","QT check-ins — everyone ticks their quiet time":"큐티 체크인 — 모두 큐티를 체크해요","Workout check-ins together":"함께 운동 체크인","Focus hours toward one weekly goal":"주간 목표를 향한 집중 시간","Focus hours and tasks done together":"함께한 집중 시간과 완료한 일","Start a group":"그룹 만들기","Start another group":"그룹 하나 더 만들기","Or join with a code — Enter":"또는 코드로 참여 — Enter","resting":"쉬는 중","Gym buddy":"운동 메이트","Friend":"친구","This week’s league":"이번 주 리그","ends in":"종료까지","Change":"변경","Save":"저장","Cancel":"취소","Pick a username so friends can add you":"친구가 추가할 수 있도록 사용자 이름을 정하세요","New username":"새 사용자 이름","Available ✓":"사용 가능 ✓","Taken — try another":"이미 사용 중 — 다른 이름을 써 보세요","Checking…":"확인 중…","That’s you":"지금 내 이름이에요","3–20 letters, numbers, _ or .":"영문 소문자·숫자·_·. 3–20자","Add a friend — @username":"친구 추가 — @사용자이름","Copy mine":"내 것 복사","Your league starts with one friend":"친구 한 명이면 리그가 시작돼요","1 pt per focus minute · 20 per task done · 10 per check-in · resets every week":"집중 1분 1점 · 완료한 일 20점 · 체크인 10점 · 매주 초기화","Join":"함께하기","+ Add widget":"+ 위젯 추가","Edit widgets":"위젯 편집","Done":"완료","Add a widget":"위젯 추가","Study":"공부","Plan":"계획","Together":"함께","Life":"생활","Course pace":"수업 진도","Exam countdown":"시험 카운트다운","Deadlines":"마감","Focus today":"오늘 집중","Time left":"남은 시간","This week":"이번 주","Waiting on":"답변 대기","Goals":"목표","Friends league":"친구 리그","Garden":"가든","Journal":"일기","Habits":"습관","Recent pages":"최근 페이지","Principles":"원칙","How many lectures behind each class is":"수업별로 몇 강 밀렸는지","Days until the next midterm, final or big deadline":"다음 중간·기말고사나 큰 마감까지 남은 날","Everything due soon":"곧 마감되는 모든 것","Minutes focused today toward your goal":"오늘 목표 대비 집중 시간","Day, week and term remaining":"오늘·이번 주·학기 남은 시간","Your next events and classes":"다음 일정과 수업","The week at a glance and your load":"한눈에 보는 이번 주와 부담","Things you sent and are waiting to hear back on":"보내고 답을 기다리는 것","Your goals and how far along they are":"목표와 진행 상황","Your rank this week and who’s close":"이번 주 내 순위와 가까운 친구","Today’s tree, streak and gems":"오늘의 나무, 연속 기록, 보석","Today’s reflection and your streak":"오늘의 기록과 연속 일수","Tick today’s habits":"오늘 습관 체크","Notes you edited lately":"최근 수정한 노트","The rules you want to live by":"지키고 싶은 원칙","+ Add":"+ 추가","Start a weekly league":"주간 리그 시작","Race friends on focus minutes and tasks.":"집중 시간과 완료한 일로 친구와 겨뤄요.","Add a friend to start":"친구를 추가해 시작하세요","How was today?":"오늘 어땠나요?","A line or two is enough":"한두 줄이면 충분해요","◎ Start a session":"◎ 세션 시작","Track a class to see how many lectures behind you are.":"수업을 추적하면 몇 강 밀렸는지 볼 수 있어요.","Every widget is already on Home.":"모든 위젯이 이미 홈에 있어요.","Schedule":"일정","To do today":"오늘 할 일","Show less":"접기","All day":"종일","now":"지금","Start a session":"세션 시작","Working on":"작업 중","What does done look like?":"어떻게 되면 끝인가요?","Focus check":"집중 체크","Scores how focused you are and gives advice afterwards":"얼마나 집중했는지 점수를 매기고 끝나면 조언해요","Camera":"카메라","Screen":"화면","Mic":"마이크","On this device":"이 기기에서만","◎ Start session":"◎ 세션 시작","Session report":"세션 리포트","Advice for next time":"다음을 위한 조언","Minute by minute":"분 단위 기록","Earlier sessions on this task":"이 할 일의 이전 세션","Pause":"일시정지","Resume":"다시 시작","End":"끝내기","Delete":"삭제","On task":"집중 중","On phone":"휴대폰 사용","Off-task screen":"관련 없는 화면","Talking":"대화 중","Moving around":"움직이는 중","Zoning out":"멍때림","Away":"자리 비움","Reading / thinking":"읽기 / 생각","Focus scores":"집중 점수","Your last study sessions, scored":"최근 공부 세션 점수","Start a checked session":"집중 체크 세션 시작","Get a focus score and advice after each study block":"공부가 끝날 때마다 점수와 조언을 받아요","First check in a moment…":"곧 첫 체크를 해요…","What are you working on?":"무엇을 하나요?","List":"목록","Add a task":"할 일 추가","All folders":"모든 폴더","Search":"검색","Overdue":"지난 일","Today":"오늘","Tomorrow":"내일","Later":"나중","No date":"날짜 없음","Done today":"오늘 완료","Fresh start":"새 출발","Nothing matches.":"일치하는 항목이 없어요.","Nothing to do. Enjoy it ✓":"할 일이 없어요. 즐기세요 ✓","Home":"홈","Tasks":"할 일","Weekly league":"주간 리그","Now":"지금","Not started":"시작 전","Done":"완료","A weekly league with friends — race on focus time, tasks and QT check-ins. Only scores are shared, never your tasks or notes.":"친구와 주간 리그 — 집중 시간, 완료한 일, 큐티 체크인으로 겨뤄요. 점수만 공유되고 할 일이나 노트는 공유되지 않아요.","1 pt per focus minute · 10 per task (up to 25) · 10 per check-in · resets every week":"집중 1분 1점 · 완료한 일 10점(최대 25개) · 체크인 10점 · 매주 초기화","try “PHYS lab fri 3pm”":"예: “금 3시 물리 랩”","Add your Claude key in Settings":"설정에서 Claude 키를 추가하세요","Movement, sound and face only · free · nothing leaves your computer":"움직임·소리·얼굴만 · 무료 · 컴퓨터 밖으로 나가지 않아요","Understands what you’re doing · ≈ 2¢ per 25 min":"무엇을 하는지 이해해요 · 25분에 약 2센트","Show less":"접기","Must do first":"필수 먼저","Focus gate":"집중 잠금","Dim everything else until today’s must-dos are done":"오늘의 필수 일을 끝낼 때까지 나머지를 흐리게 해요","All must-dos done — everything is open":"필수 일을 모두 끝냈어요 — 모두 열렸어요","Add widget":"위젯 추가","Add widgets to Home":"홈에 위젯 추가","Arrange widgets":"위젯 정렬","Home widgets":"홈 위젯","Tap to add or remove. Changes show on Home right away.":"눌러서 추가하거나 빼요. 홈에 바로 반영돼요.","✓ On Home · Remove":"✓ 홈에 있음 · 빼기","Remove from Home":"홈에서 빼기","Custom repeat":"직접 반복 설정","Every N days, weeks or months. When you finish it, the next one is created with a new due date.":"N일·N주·N개월마다 반복해요. 완료하면 새 마감일로 다음 항목이 만들어져요.",
   "▸ More options (priority, steps, work date, reminders, files…)":"▸ 추가 옵션 (우선순위, 단계, 작업일, 알림, 파일…)",
   "▾ Fewer options":"▾ 옵션 접기",
   // ── navigation & shell ──
@@ -24766,7 +25280,7 @@ Object.assign(CUP_KO, {
   // ── folders, import, pace, goals ──
   "New folder":"새 폴더","Edit folder":"폴더 편집","Delete folder":"폴더 삭제","Archive":"보관","Name":"이름","Area":"영역","Your role":"내 역할","Hours per week":"주당 시간","When (summary)":"일정 요약","Weekly times — added to your calendar":"주간 시간 — 캘린더에 추가돼요","Ends on (optional — quarter, rotation, season)":"종료일 (선택 — 학기, 순환근무, 시즌)",
   "Busy weeks — extra hours (exams, deadlines)":"바쁜 주 — 추가 시간 (시험, 마감)","Class, club, role, project…":"수업, 동아리, 역할, 프로젝트…","Member, President…":"회원, 회장…","Meetings TBD":"모임 시간 미정",
-  "Import":"가져오기","Import many at once":"한꺼번에 가져오기","Paste many tasks, folders and events at once":"할 일, 폴더, 일정을 한꺼번에 붙여넣기","Type it yourself":"직접 입력","One item per line. See the format below.":"한 줄에 하나씩. 아래 형식을 보세요.","Or let Claude sort it":"또는 Claude가 정리하게 하기","✨ Sort with Claude":"✨ Claude로 정리","Copy prompt for Claude":"Claude용 프롬프트 복사","Use your own API key →":"내 API 키 사용 →",
+  "Import":"가져오기","Import many at once":"한꺼번에 가져오기","Paste many tasks, folders and events at once":"할 일, 폴더, 일정을 한꺼번에 붙여넣기","Type it yourself":"직접 입력","One item per line. See the format below.":"한 줄에 하나씩. 아래 형식을 보세요.","Or let Claude sort it":"또는 Claude가 정리하게 하기","✨ Sort with Claude":"✨ Claude로 정리","Copy prompt for Claude":"Claude용 프롬프트 복사","Add your Claude key →":"Claude 키 추가 →",
   "Coming from another app?":"다른 앱에서 오셨나요?","Choose a file…":"파일 선택…","Choose a CSV (Todoist, Notion, Sheets) or a markdown/text file (Obsidian tasks). Finished items are left out.":"CSV(Todoist, Notion, 스프레드시트)나 마크다운/텍스트 파일(Obsidian 할 일)을 고르세요. 완료된 항목은 빠져요.","Insert example":"예시 넣기","Format for typing it yourself":"직접 입력하는 형식","Preview":"미리보기",
   "Folder — the lines under it go there. New name = new folder.":"폴더 — 아래 줄이 그 폴더로 들어가요. 새 이름이면 새 폴더가 돼요.","Priority":"우선순위","Submitted, waiting to hear back":"제출함, 답변 대기","Calendar event":"캘린더 일정","Put one line in a folder without a heading":"제목 없이 한 줄만 폴더에 넣기","A page inside the page above it":"위 페이지 안의 하위 페이지","Your items will show up here, one at a time, before anything is added.":"추가하기 전에 항목이 여기에 하나씩 보여요.",
   "✓ Add":"✓ 추가","Skip":"건너뛰기","✎ Edit":"✎ 수정","Apply adds everything except what you skipped.":"건너뛴 것만 빼고 모두 추가돼요.","Item 1":"항목 1","Item 2":"항목 2","Item 3":"항목 3","Item 4":"항목 4","Item 5":"항목 5","Item 6":"항목 6","Item 7":"항목 7","Reading quick lines":"빠른 입력 읽는 중","Page text":"페이지 내용","Description":"설명",
@@ -24787,7 +25301,7 @@ Object.assign(CUP_KO, {
   "Privacy":"개인정보","Passcode lock":"잠금 비밀번호","Off. Hides the app behind a passcode on this device.":"꺼짐. 이 기기에서 앱을 비밀번호로 가려요.","On. Locks this device after you step away.":"켜짐. 자리를 비우면 이 기기가 잠겨요.","Set passcode":"비밀번호 설정","Lock now":"지금 잠그기","Remove":"제거","Passcode":"비밀번호","Unlock":"잠금 해제","Focus Hub is locked":"Focus Hub가 잠겨 있어요","Enter your passcode to continue.":"계속하려면 비밀번호를 입력하세요.","Enter your passcode":"비밀번호를 입력하세요","To confirm it’s you.":"본인 확인을 위해서예요.","Set a passcode":"비밀번호 설정","Again":"한 번 더","Lock after":"잠금 시간",
   "Your planner is stored in your own account and can only be read by you. It isn’t shared or used for ads. AI features only send what you choose, with your own key, straight to Anthropic. The passcode hides the screen on this device; it isn’t encryption.":"플래너는 내 계정에 저장되며 나만 읽을 수 있어요. 공유되거나 광고에 쓰이지 않아요. AI 기능은 내가 고른 내용만 내 키로 Anthropic에 직접 보내요. 비밀번호는 이 기기에서 화면을 가릴 뿐 암호화는 아니에요.",
   "Set up & export":"설정 & 내보내기","What I use it for":"사용 목적","Changes default folders and wording (school, work, family…).":"기본 폴더와 문구를 바꿔요 (학교, 업무, 가족…).","Change":"변경","Export":"내보내기","Tasks and waiting items as a spreadsheet, the calendar as .ics, or print this week.":"할 일과 답변 대기 항목은 스프레드시트로, 캘린더는 .ics로, 이번 주는 인쇄로 내보내요.","Tasks CSV":"할 일 CSV","Waiting CSV":"대기 CSV","Calendar .ics":"캘린더 .ics","Print week":"이번 주 인쇄",
-  "Week starts on":"한 주의 시작","Sunday":"일요일","Monday":"월요일","AI import — your own Claude API key":"AI 가져오기 — 내 Claude API 키","Remember on this device":"이 기기에 저장","Remove key":"키 삭제","Save & test":"저장 & 테스트","Model":"모델","No key yet — Import still works with “Copy prompt for Claude”.":"아직 키가 없어요. “Claude용 프롬프트 복사”로도 가져올 수 있어요.",
+  "Week starts on":"한 주의 시작","Sunday":"일요일","Monday":"월요일","Claude key":"Claude 키","Remember on this device":"이 기기에 저장","Remove key":"키 삭제","Save & test":"저장 & 테스트","Model":"모델","No key yet — Import still works with “Copy prompt for Claude”.":"아직 키가 없어요. “Claude용 프롬프트 복사”로도 가져올 수 있어요.",
   "What will you use Focus Hub for?":"Focus Hub를 어디에 쓰실 건가요?","This sets your starting folders and wording. You can change it anytime in Settings.":"시작 폴더와 문구가 정해져요. 설정에서 언제든 바꿀 수 있어요.","The short tour":"간단 투어","Welcome to Focus Hub":"Focus Hub에 오신 것을 환영해요",
   "School":"학교","Classes, assignments, exams, clubs":"수업, 과제, 시험, 동아리","Work":"업무","Projects, meetings, deadlines":"프로젝트, 회의, 마감","Family & home":"가족 & 집","Kids, appointments, bills, household":"아이, 진료 예약, 공과금, 집안일","Creative & freelance":"창작 & 프리랜서","Clients, projects, invoices, content":"고객, 프로젝트, 청구서, 콘텐츠","Church, clubs & community":"교회, 동아리 & 커뮤니티","Events, volunteers, budgets, follow-ups":"행사, 봉사자, 예산, 후속 연락","Healthcare & shifts":"의료 & 교대 근무","Shifts, licences, CE, paperwork":"근무, 면허, 보수교육, 서류","Job search & startup":"구직 & 창업","Applications, interviews, building, fundraising":"지원, 면접, 제품 개발, 투자 유치","Just a to-do list":"그냥 할 일 목록","Simple. Home, work, personal":"단순하게. 집, 업무, 개인",
   // ── categories (defaults) ──
@@ -24806,7 +25320,7 @@ Object.assign(CUP_KO, {
   "Type / for commands, or just start writing":"/ 를 눌러 명령을 쓰거나 바로 쓰기 시작하세요","Type / for commands":"/ 로 명령 입력","Type":"유형","Heading 1":"제목 1","Heading 2":"제목 2","Text":"텍스트","Bulleted list":"글머리 목록","Numbered list":"번호 목록","To-do list":"체크리스트","Quote":"인용","Callout":"콜아웃","Code":"코드","Divider":"구분선","Make it a task":"할 일로 만들기","Add to calendar":"캘린더에 추가","Today’s date":"오늘 날짜","Organize with AI":"AI로 정리","To-do":"할 일","List":"목록",
   "Plain writing":"일반 글","Big section title · #":"큰 제목 · #","Smaller heading · ##":"작은 제목 · ##","- then space":"- 입력 후 스페이스","1. then space":"1. 입력 후 스페이스","[] then space":"[] 입력 후 스페이스","> then space":"> 입력 후 스페이스","Highlighted box · ! then space":"강조 상자 · ! 입력 후 스페이스","``` then Enter":"``` 입력 후 Enter","--- then Enter":"--- 입력 후 Enter","A new page inside this one":"이 페이지 안의 새 페이지","Mention another page":"다른 페이지 언급","This line becomes a real task":"이 줄이 실제 할 일이 돼요","This line becomes an event":"이 줄이 일정이 돼요","Insert the date":"날짜 넣기","Summary, action items, quiz":"요약, 실행 항목, 퀴즈",
   "Basic":"기본","Planner":"플래너","AI":"AI","Heading · # then space":"제목 · # 입력 후 스페이스","Subheading · ## then space":"소제목 · ## 입력 후 스페이스","Bold":"굵게","Bold · ⌘B":"굵게 · ⌘B","Italic":"기울임","Italic · ⌘I":"기울임 · ⌘I","Bullets · - then space":"글머리 · - 입력 후 스페이스","Numbered · 1. then space":"번호 · 1. 입력 후 스페이스","To-do · [] then space":"체크 · [] 입력 후 스페이스","Quote · > then space":"인용 · > 입력 후 스페이스","Divider · --- then Enter":"구분선 · --- 입력 후 Enter","Link a web address or another page":"웹 주소 또는 다른 페이지 링크","Page inside this page · /page":"이 페이지 안의 페이지 · /page","Make this line a task · /task":"이 줄을 할 일로 · /task","Formatting":"서식",
-  "Organize this page":"이 페이지 정리하기","Summary":"요약","Key points by topic":"주제별 핵심","Action items":"실행 항목","Key terms":"핵심 용어","Quiz":"퀴즈","Conclusion":"결론","Review questions":"복습 질문","Quick outline (offline)":"빠른 개요 (오프라인)","No AI. Pulls out headings, to-dos and “term: meaning” lines.":"AI 없이 제목, 할 일, “용어: 뜻” 줄을 뽑아내요.","Free: copy to Claude chat":"무료: Claude 채팅에 복사","Copies a prompt with this page. Paste it at claude.ai, then paste the reply below.":"이 페이지가 담긴 프롬프트를 복사해요. claude.ai에 붙여넣고, 답을 아래에 붙여넣으세요.","Use reply":"답변 사용","Organize with Claude (your API key)":"Claude로 정리하기 (내 API 키)","Add your own key in Settings → AI import. About $0.01–0.05 a page.":"설정 → AI 가져오기에 내 키를 추가하세요. 한 페이지에 약 $0.01–0.05예요.","Save as a page inside":"하위 페이지로 저장","Add to the top of this page":"이 페이지 맨 위에 추가","Also add the action items to my tasks":"실행 항목을 내 할 일에도 추가",
+  "Organize this page":"이 페이지 정리하기","Summary":"요약","Key points by topic":"주제별 핵심","Action items":"실행 항목","Key terms":"핵심 용어","Quiz":"퀴즈","Conclusion":"결론","Review questions":"복습 질문","Quick outline (offline)":"빠른 개요 (오프라인)","No AI. Pulls out headings, to-dos and “term: meaning” lines.":"AI 없이 제목, 할 일, “용어: 뜻” 줄을 뽑아내요.","Free: copy to Claude chat":"무료: Claude 채팅에 복사","Copies a prompt with this page. Paste it at claude.ai, then paste the reply below.":"이 페이지가 담긴 프롬프트를 복사해요. claude.ai에 붙여넣고, 답을 아래에 붙여넣으세요.","Use reply":"답변 사용","Organize with Claude (your Claude key)":"Claude로 정리하기 (내 Claude 키)","Add your Claude key in Settings. About $0.01–0.05 a page.":"설정에서 Claude 키를 추가하세요. 한 페이지에 약 $0.01–0.05예요.","Save as a page inside":"하위 페이지로 저장","Add to the top of this page":"이 페이지 맨 위에 추가","Also add the action items to my tasks":"실행 항목을 내 할 일에도 추가",
   "Writing in pages":"페이지에 쓰기","Type / on any line for the menu, or use these shortcuts at the start of a line.":"어느 줄에서든 / 를 입력하면 메뉴가 나와요. 줄 맨 앞에서 아래 단축키도 쓸 수 있어요.","Linked from":"연결된 곳","Organize pages: put a page inside another with Move to…, /page, or drag it onto another page or folder in the sidebar.":"페이지 정리: ‘이동…’이나 /page로 다른 페이지 안에 넣거나, 사이드바에서 다른 페이지·폴더로 끌어다 놓으세요.",
   // ── garden, friends ──
   "🌳 Garden":"🌳 정원","👋 Friends":"👋 친구","👥 Groups":"👥 그룹","Garden":"정원","Your garden":"내 정원","Rest day":"쉬는 날","Resting today ✓":"오늘은 쉬는 날 ✓","Friends & groups":"친구 & 그룹","Sign in to add friends and groups.":"친구와 그룹을 추가하려면 로그인하세요.",
@@ -25045,6 +25559,12 @@ CUP_KO_PAT.unshift(
   [/^Scheduled · (.+)$/, (m,w)=>`일정에 넣었어요 · ${w}`],
   [/^Calendar exported: (\d+) events?, (\d+) tasks?\. Import the \.ics into Google, Apple or Outlook\.$/, (m,e,t)=>`캘린더를 내보냈어요: 일정 ${e}개, 할 일 ${t}개. .ics 파일을 구글, 애플, Outlook에 가져오세요.`]
 );
+
+// ── Wave 3: declutter ──
+Object.assign(CUP_KO, {
+  "With your Claude key:":"Claude 키로:","Past sessions":"지난 세션","Focus reports":"집중 리포트","Something else":"다른 일","Timer":"타이머",
+  "Essentials":"기본","Advanced":"고급","No end":"종료일 없음","Your data":"내 데이터","Account":"계정","Reminders & privacy":"알림 & 개인정보"
+});
 
 </script>
 </body>
