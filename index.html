@@ -7102,6 +7102,20 @@ input[type=date]:disabled, input[type=time]:disabled{ cursor:default; opacity:.5
 .cup-plus-when input[type=date]{ width:132px; } .cup-plus-when input[type=time]{ width:96px; }
 .cup-when-clear{ font-size:calc(12px * var(--cup-fs,1)); color:var(--text2); background:none; border:0; padding:4px 6px; cursor:pointer; }
 
+/* + bar: details before adding; Home “+ Add” */
+.cup-plus-det{ padding:2px 16px 6px; }
+.cup-plus-detbtn{ font:inherit; font-size:calc(13px * var(--cup-fs,1)); color:var(--accent); background:none; border:0; padding:4px 0; cursor:pointer; }
+.cup-plus-det textarea{ display:none; width:100%; margin-top:4px; font:inherit; font-size:calc(14px * var(--cup-fs,1)); line-height:1.45; padding:8px 10px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); resize:vertical; }
+.cup-plus-det.open textarea{ display:block; }
+.cup-plus-det.open .cup-plus-detbtn{ color:var(--text2); cursor:default; }
+.cup-plus-types .cup-plus-more{ color:var(--text2); }
+.cup-home-add{ display:flex; align-items:center; gap:10px; width:100%; margin:4px 0 16px; padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:var(--surface); color:var(--text2); font:inherit; font-size:calc(15px * var(--cup-fs,1)); text-align:left; cursor:text; }
+.cup-home-add:hover{ border-color:var(--accent); color:var(--text); }
+.cup-home-add-plus{ color:var(--accent); font-size:18px; line-height:1; }
+.cup-home-add kbd{ margin-left:auto; font-size:calc(11px * var(--cup-fs,1)); color:var(--text2); border:1px solid var(--border); border-radius:5px; padding:1px 6px; }
+@media (hover: none){ .cup-home-add kbd{ display:none; } }
+@media (max-width: 480px){ .cup-plus-types{ gap:2px; padding:8px 10px 4px; flex-wrap:wrap; overflow:visible; } .cup-plus-types button{ padding:6px 8px; gap:5px; font-size:calc(13px * var(--cup-fs,1)); } }
+
 </style>
 <script>
 /* Immediately apply saved theme + density to avoid flash */
@@ -23526,6 +23540,64 @@ let cupWhenPending=null;
   if(!w) cupWhenPending=null;
   return r; }; }
 
+// ════════════════════════════════════════════════════════════
+//  ADD, IN PLAIN WORDS — To-do · Event · Habit · Note up front, the rest
+//  under More; “Class / project” instead of “In”; details can go in before
+//  you add; and a clear “+ Add” on Home.
+// ════════════════════════════════════════════════════════════
+(function(){
+  const rename={ task:['To-do','“Read chapter 6 by fri 3pm”'], page:['Note','A page to write in: lecture notes, ideas, plans'], note:['Add to a note','Adds a line to a note you already have'],
+    folder:['Class or project','A class, club, job or project to keep things together'] };
+  CUP_PLUS.forEach(x=>{ const r=rename[x[0]]; if(r){ x[1]=r[0]; x[3]=r[1]; } });
+  const order=['task','event','habit','page','note','journal','waiting','application','template','search','folder','import'];
+  CUP_PLUS.sort((a,b)=>{ const ia=order.indexOf(a[0]), ib=order.indexOf(b[0]); return (ia<0?99:ia)-(ib<0?99:ib); });
+})();
+const CUP_PLUS_MAIN=4;
+let cupPlusDetOpen=false;
+function cupPlusDetMount(){
+  const box=document.querySelector('#cupPlus .cup-plus-box'); if(!box || document.getElementById('cupPlusDet')) return;
+  const d=document.createElement('div'); d.id='cupPlusDet'; d.className='cup-plus-det';
+  d.innerHTML=`<button type="button" class="cup-plus-detbtn" onmousedown="event.preventDefault()" onclick="cupPlusDetToggle()">+ Add details</button>
+    <textarea id="cupPlusNotes" rows="3" placeholder="Details, links, steps…" aria-label="Details"></textarea>`;
+  const row=box.querySelector('.cup-plus-row'); box.insertBefore(d, row ? row.nextSibling : null);
+}
+function cupPlusDetToggle(on){ cupPlusDetOpen = on===undefined ? !cupPlusDetOpen : on; cupPlusDetPaint(); if(cupPlusDetOpen) document.getElementById('cupPlusNotes')?.focus(); }
+function cupPlusDetPaint(){
+  const d=document.getElementById('cupPlusDet'); if(!d) return;
+  d.style.display = /^(task|event|habit|waiting|application)$/.test(cupPlusType) ? '' : 'none';
+  d.classList.toggle('open', cupPlusDetOpen);
+  d.querySelector('.cup-plus-detbtn').textContent = cupPlusDetOpen ? 'Details' : '+ Add details';
+}
+{ const _o=cupPlusOpen; cupPlusOpen=function(){ cupPlusDetOpen=false; const r=_o.apply(this,arguments); cupPlusDetMount(); const n=document.getElementById('cupPlusNotes'); if(n) n.value=''; cupPlusDetPaint(); return r; }; }
+{ const _s=cupPlusSync; cupPlusSync=function(){ const r=_s.apply(this,arguments);
+  // four plain choices up front, the rest behind More
+  const bar=document.getElementById('cupPlusTypes');
+  if(bar){ const btns=[...bar.querySelectorAll('button:not(.cup-plus-more)')];
+    btns.forEach((b,i)=>{ b.style.display = (!cupPlusMore && i>=CUP_PLUS_MAIN && !b.classList.contains('on')) ? 'none' : ''; });
+    let m=bar.querySelector('.cup-plus-more');
+    if(btns.length>CUP_PLUS_MAIN && !m){ m=document.createElement('button'); m.type='button'; m.className='cup-plus-more'; m.onmousedown=e=>e.preventDefault(); m.onclick=()=>{ cupPlusMore=!cupPlusMore; cupPlusSync(); }; bar.appendChild(m); }
+    if(m) m.textContent=cupPlusMore?'Fewer':'More…'; }
+  const lbl=document.querySelector('#cupPlus .cup-plus-row .cup-plus-lbl'); if(lbl) lbl.textContent='Class / project';
+  cupPlusDetMount(); cupPlusDetPaint(); return r; }; }
+// details ride along with the When fields onto whatever was just made
+{ const _go=cupPlusGo; cupPlusGo=function(){
+  const notes=(document.getElementById('cupPlusNotes')?.value||'').trim(), ok=/^(task|event|habit|waiting|application)$/.test(cupPlusType);
+  const t0=S.tasks.length, e0=S.events.length;
+  if(notes && ok) cupPlusNotesPending=notes;
+  const r=_go.apply(this, arguments);
+  if(cupPlusNotesPending){ const tk=S.tasks.slice(t0), ev=S.events.slice(e0);
+    if(tk.length||ev.length){ [...tk,...ev].forEach(x=>{ x.notes = x.notes ? x.notes+'\n'+cupPlusNotesPending : cupPlusNotesPending; }); cupPlusNotesPending=''; save(); render(); } }
+  const n=document.getElementById('cupPlusNotes'); if(n) n.value='';
+  return r; }; }
+let cupPlusNotesPending='';
+{ const _add=cupAddItems; cupAddItems=function(items){ if(cupPlusNotesPending && items.length===1){ items[0].notes = items[0].notes ? items[0].notes+'\n'+cupPlusNotesPending : cupPlusNotesPending; cupPlusNotesPending=''; } return _add.apply(this, arguments); }; }
+// Home: one obvious way to add, right under the greeting
+{ const _h=renderHomeHero; renderHomeHero=function(){ const r=_h.apply(this, arguments);
+  const hero=document.querySelector('#page-dashboard .home-hero');
+  if(hero && !document.getElementById('cupHomeAdd')){ const b=document.createElement('button'); b.type='button'; b.id='cupHomeAdd'; b.className='cup-home-add';
+    b.innerHTML=`<span class="cup-home-add-plus">＋</span><span>Add a to-do, event, habit or note</span><kbd>⌘K</kbd>`; b.onclick=()=>cupPlusOpen(); hero.after(b); }
+  return r; }; }
+
 // ════════════════════════════════════════════════════════════════════
 //  PART 7 — Google Calendar, two-way.
 //  Focus Hub → Google: timed tasks, focus sessions and study blocks are
@@ -24224,6 +24296,10 @@ CUP_KO_PAT.unshift(
 );
 Object.assign(CUP_KO, { "Clear date and time":"날짜와 시간 지우기","Date":"날짜","Time":"시간" });
 Object.assign(CUP_KO, { "Your name":"이름" });
+Object.assign(CUP_KO, { "Note":"노트","Add to a note":"노트에 한 줄 추가","Class or project":"수업 또는 프로젝트","Class / project":"수업 / 프로젝트","More…":"더 보기…",
+  "+ Add details":"+ 세부 내용 추가","Details":"세부 내용","Details, links, steps…":"세부 내용, 링크, 단계…","Add a to-do, event, habit or note":"할 일, 일정, 습관, 노트 추가",
+  "A page to write in: lecture notes, ideas, plans":"쓰는 페이지: 강의 노트, 아이디어, 계획","Adds a line to a note you already have":"이미 있는 노트에 한 줄 추가",
+  "A class, club, job or project to keep things together":"관련된 것들을 모아 두는 수업, 동아리, 일, 프로젝트","“Read chapter 6 by fri 3pm”":"“금요일 오후 3시까지 6장 읽기”" });
 
 </script>
 </body>
