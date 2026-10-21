@@ -7030,6 +7030,40 @@ body.cup-nogarden .cup-podium, body.cup-nogarden .cup-league-call{ display:none 
 #page-todo:has(#todoWorkbench[data-mcol="list"]) #cupTaskList{ flex:none; }
 @media (max-width:760px){ .cup-tl{ margin-bottom:calc(110px + env(safe-area-inset-bottom)); } }
 
+/* ── Course pace re-plan ── */
+.cup-pace-replan{ margin-left:auto; }
+/* ── Tasks › No date: one-tap dates ── */
+.cup-tl-sec.nodate .cup-tl-row{ grid-template-columns:18px minmax(0,1fr) auto auto auto 26px; }
+.cup-tl-quick{ display:inline-flex; gap:4px; }
+.cup-tl-quick button{ font-size:calc(11.5px * var(--cup-fs,1)); padding:2px 8px; border:1px solid var(--border); border-radius:99px; color:var(--text2); font-family:inherit; background:none; }
+.cup-tl-quick button:hover{ border-color:var(--accent); color:var(--text); }
+@media (max-width:760px){ .cup-tl-sec.nodate .cup-tl-row{ grid-template-columns:18px minmax(0,1fr) auto; } .cup-tl-quick{ grid-column:2 / -1; } .cup-tl-quick button{ min-height:36px; padding:4px 12px; } }
+/* ── Waiting page ── */
+:root{ --cup-w-wait:#8a93a6; --cup-w-follow:#d9822b; --cup-w-yes:#3fae7a; --cup-w-no:#c25a5a; }
+[data-theme="dark"]{ --cup-w-wait:#9aa3b5; --cup-w-follow:#e8a05a; --cup-w-yes:#4fc28c; --cup-w-no:#d97474; }
+#cupWaitPage{ max-width:1100px; margin:4px auto 40px; }
+.cup-wtop{ display:flex; align-items:flex-end; gap:28px; flex-wrap:wrap; margin-bottom:14px; }
+.cup-wstat{ display:flex; flex-direction:column; } .cup-wstat b{ font-size:28px; font-weight:700; font-variant-numeric:tabular-nums; line-height:1.1; color:var(--text); } .cup-wstat span{ font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); }
+.cup-wfolder{ margin-left:auto; width:auto; }
+.cup-wbar2{ display:flex; gap:2px; height:14px; border-radius:7px; overflow:hidden; margin-bottom:8px; }
+.cup-wbar2 span{ min-width:6px; } .cup-wbar2 span:first-child{ border-radius:7px 0 0 7px; } .cup-wbar2 span:last-child{ border-radius:0 7px 7px 0; }
+.cup-wlegend{ display:flex; flex-wrap:wrap; gap:6px 16px; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text2); margin-bottom:18px; }
+.cup-wlegend i{ display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:6px; vertical-align:middle; } .cup-wlegend b{ color:var(--text); margin-left:2px; }
+.cup-wcols{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; align-items:start; }
+.cup-wcol{ background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:10px; display:flex; flex-direction:column; gap:8px; min-height:120px; }
+.cup-wcol-h{ display:flex; align-items:center; gap:6px; font-size:calc(12.5px * var(--cup-fs,1)); font-weight:650; color:var(--text2); padding:2px 4px 4px; }
+.cup-wcol-h i{ width:8px; height:8px; border-radius:3px; } .cup-wcol-h span{ margin-left:auto; color:var(--text3); font-weight:500; }
+.cup-wcard{ background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:9px 10px; display:flex; flex-direction:column; gap:3px; }
+.cup-wcard-t{ text-align:left; font-family:inherit; font-size:calc(13.5px * var(--cup-fs,1)); color:var(--text); font-weight:550; }
+.cup-wcard-m{ font-size:calc(11.5px * var(--cup-fs,1)); color:var(--text3); }
+.cup-wcard-a{ display:flex; gap:4px; margin-top:5px; flex-wrap:wrap; }
+.cup-wcard-a button{ font-size:calc(11.5px * var(--cup-fs,1)); padding:3px 9px; border:1px solid var(--border); border-radius:8px; color:var(--text2); font-family:inherit; }
+.cup-wcard-a button.y:hover{ border-color:var(--cup-w-yes); color:var(--text); } .cup-wcard-a button.n:hover{ border-color:var(--cup-w-no); color:var(--text); }
+.cup-wempty{ font-size:calc(12px * var(--cup-fs,1)); padding:6px 4px; }
+@media (max-width:900px){ .cup-wcols{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:560px){ .cup-wcols{ grid-template-columns:1fr; } .cup-wcard-a button{ min-height:40px; padding:6px 14px; } #cupWaitPage{ margin-bottom:calc(110px + env(safe-area-inset-bottom)); } }
+#page-waiting{ overflow-y:auto; }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -25203,6 +25237,278 @@ document.addEventListener('click', e=>{
   const row=e.target.closest('.cup-pref, .cup-sess-fch'); if(!row || e.target.closest('input,select,button,textarea,a,label')) return;
   const cbs=row.querySelectorAll('input[type="checkbox"]'); if(cbs.length!==1 || row.querySelector('select,button,textarea,input:not([type="checkbox"])')) return;
   cbs[0].click(); });
+
+// ════════════════════════════════════════════════════════════════════
+//  PART 10 — realistic course pace, “No date” near the top, Waiting page
+// ════════════════════════════════════════════════════════════════════
+const cupT10 = (en, ko) => (typeof cupIsKo==='function' && cupIsKo()) ? ko : en;
+
+// ════════════════════════════════════════════════════════════
+//  1 · COURSE PACE RE-PLAN
+//  Lectures are grouped by the exam that covers them (Midterm 1, Midterm 2,
+//  Final). Each block is spread evenly over the days before its exam, in
+//  order, and each day only takes what fits next to that day's classes,
+//  shifts and other tasks. Prep goes the day before its exam; "mistakes"
+//  review goes the day after. Nothing is ever crammed: if a block can't fit,
+//  the rest flows past the exam at the same daily limit and is flagged.
+// ════════════════════════════════════════════════════════════
+const CUP_EFFORT_MIN = { easy:20, '':40, normal:40, hard:90 };
+const cupEvMins = e => { if(!e.time||!e.endTime||e.allDay) return 0; const a=+e.time.slice(0,2)*60+ +e.time.slice(3,5), b=+e.endTime.slice(0,2)*60+ +e.endTime.slice(3,5); return b>a ? b-a : 24*60-a+b; };
+function cupStepMins(t, p){ return +(t.plan&&t.plan.minutes) || cupPaceMinutes(t) || p.mins || 60; }
+function cupCourseKey(p){ return cupNorm(((p.folder?p.folder.name:p.name)||'').split(' · ')[0]).split(' ')[0] || ''; }
+function cupPaceCheckpoints(p){
+  const key=cupCourseKey(p); if(!key) return [];
+  const seen=new Set(), out=[];
+  (S.events||[]).forEach(e=>{
+    if(!e.date || !/midterm|final|exam|checkpoint|quiz\s*\d/i.test(e.title||'')) return;
+    const hay=cupNorm((e.subject||'')+' '+(e.title||'')); if(!hay.includes(key)) return;
+    if(seen.has(e.date)) return; seen.add(e.date);
+    out.push({ date:e.date, title:e.title, final:/final/i.test(e.title||''), n:+(((e.title||'').match(/midterm\s*(\d)/i)||[])[1]||0) });
+  });
+  out.sort((a,b)=>a.date.localeCompare(b.date));
+  let m=0; out.forEach(c=>{ if(!c.final){ m++; if(!c.n) c.n=m; } });
+  return out;
+}
+// minutes already taken on a day by everything except this course's plan
+function cupDayLoad(ds, skipIds){
+  let mins=0;
+  (typeof cupCalEventsOn==='function' ? cupCalEventsOn(ds) : []).forEach(e=>{ mins+=cupEvMins(e); });
+  let tasks=0;
+  S.tasks.forEach(t=>{
+    if(cupDone(t) || t.archived || skipIds.has(t.id)) return;
+    if(t.isHabit){ if(typeof cupHabitDueToday==='function' && ds===todayStr() && cupHabitDueToday(t)) tasks+=15; return; }
+    const on = t.due===ds || (t.scheduledDates||[]).includes(ds);
+    if(on) tasks+=CUP_EFFORT_MIN[t.effort||'']||40;
+  });
+  return { events:mins, tasks };
+}
+// how many minutes this course can have that day: a share of the free day, minus other work
+function cupCourseCap(ds, phaseCap, skipIds){
+  const L=cupDayLoad(ds, skipIds), free=Math.max(0, 15*60 - L.events);
+  const study=Math.min(240, Math.max(45, Math.round(free*0.4)));
+  return Math.max(0, Math.min(phaseCap, study - L.tasks));
+}
+function cupPaceReplan(p, opts={}){
+  if(!p || p.lead) return null;
+  const today=todayStr(), cps=cupPaceCheckpoints(p);
+  const steps=p.steps.filter(t=>!cupDone(t)).sort((a,b)=>(a.plan.step||0)-(b.plan.step||0));
+  if(!steps.length) return null;
+  const folderId=steps[0].commitId;
+  // exam tasks in the same folder: prep (before) and mistakes review (after)
+  const examTasks=S.tasks.filter(t=>!cupDone(t)&&!t.archived&&!t.isHabit&&!(t.plan&&t.plan.name)&&folderId&&t.commitId===folderId&&/midterm|final|exam/i.test(t.title||''));
+  const skip=new Set([...steps, ...examTasks].map(t=>t.id));
+  const cpFor=t=>{ const n=+(((t.title||'').match(/midterm\s*(\d)/i)||[])[1]||0), fin=/final/i.test(t.title||'');
+    return cps.find(c=>fin?c.final:(n?c.n===n&&!c.final:false)) || cps.find(c=>c.date>=today) || null; };
+  const before=[...steps, ...examTasks].map(t=>[t, t.due||'', [...(t.scheduledDates||[])]]);
+  const load={}; const add=(ds,m)=>{ load[ds]=(load[ds]||0)+m; };
+  const capCache={}; const cap=(ds,pc)=>{ const k=ds+'|'+pc; if(capCache[k]===undefined) capCache[k]=cupCourseCap(ds,pc,skip); return capCache[k]; };
+  const moved=[], late=[];
+  const setDay=(t,ds)=>{ if(t.due!==ds){ moved.push(t); } t.due=ds; t.scheduledDates=[ds]; };
+  // 1) exam tasks first — they anchor the plan
+  examTasks.forEach(t=>{
+    const c=cpFor(t); if(!c) return;
+    const after=/mistake|weak spot|fix|correction|retro|review my/i.test(t.title||'');
+    let ds = after ? cupAddDays(c.date,1) : cupAddDays(c.date,-1);
+    if(!after && c.date<today) return;                     // prep for an exam that's already past: leave it to you
+    if(ds<today) ds=today;
+    setDay(t, ds); add(ds, CUP_EFFORT_MIN[t.effort||'']||60);
+  });
+  // 2) lectures, block by block
+  const blocks={}; let lastB=0;
+  steps.forEach(t=>{ const cd=t.classDate||''; let b=lastB;
+    if(cd){ const i=cps.findIndex(c=>cd<c.date); b = i<0 ? cps.length : i; }       // a lecture belongs to the first exam after the class covers it
+    lastB=b; (blocks[b]=blocks[b]||[]).push(t); });
+  const nB=cps.length;
+  let cursor=today;
+  Object.keys(blocks).map(Number).sort((a,b)=>a-b).forEach(b=>{
+    const list=blocks[b], cp=cps[b]||null;
+    const phaseCap = b===0 ? 120 : (b>=nB-1 ? 75 : 90);      // sprint before the first exam, calmer after, slowest toward the final
+    const prev=b>0&&cps[b-1] ? cupAddDays(cps[b-1].date,1) : today;
+    const start=[cursor, prev, today].sort().pop();         // never before today, never before this block opens
+    const end = cp ? cupAddDays(cp.date,-1) : cupAddDays(start, Math.max(14, list.length*3));
+    const days=[]; for(let d=start; d<=end && days.length<200; d=cupAddDays(d,1)) if(!cps.some(c=>c.date===d)) days.push(d);
+    let di=0;
+    list.forEach((t,i)=>{
+      const m=cupStepMins(t,p);
+      // spread evenly: aim for the i-th share of the window, but never earlier than the last placement
+      const aim = days.length ? Math.floor(i*days.length/list.length) : 0;
+      di=Math.max(di, aim);
+      let placed=null;
+      for(let k=di; k<days.length; k++){ const ds=days[k]; const c0=cap(ds,phaseCap); if((load[ds]||0)+m <= Math.max(c0, (load[ds]||c0<30)?0:m)){ placed=ds; di=k; break; } }
+      if(!placed){                                           // didn't fit before the exam: keep going after it at the same daily limit
+        let ds=days.length?cupAddDays(days[days.length-1],1):start;
+        for(let k=0;k<120;k++,ds=cupAddDays(ds,1)){ if(cps.some(c=>c.date===ds)) continue; const c1=cap(ds,phaseCap); if((load[ds]||0)+m <= Math.max(c1, (load[ds]||c1<30)?0:m)){ placed=ds; break; } }
+        placed=placed||ds; late.push(t);
+      }
+      setDay(t, placed); add(placed, m);
+      if((load[placed]||0)>=cap(placed,phaseCap)) di=Math.max(di, days.indexOf(placed)+1);
+    });
+    if(list.length){ const lastDay=list.map(t=>t.due).sort().pop(); cursor = lastDay>cursor ? lastDay : cursor; }
+  });
+  // summary
+  const word=((((p.folder?p.folder.name:p.name)||'').match(/[A-Za-z]+/)||[''])[0]);
+  const byBlock=cps.map((c,i)=>{ const l=(blocks[i]||[]); if(!l.length) return null;
+    const nm=c.title.replace(/\s*\(.*?\)\s*/g,' ').replace(new RegExp('^\\s*'+word+'\\s*\\d*\\s*(class\\s*)?','i'),'').trim()||c.title;
+    const ok=l.filter(t=>t.due<c.date), over=l.length-ok.length, last=ok.map(t=>t.due).sort().pop();
+    return ok.length ? `${nm}: ${ok.length} ${cupT10('by','→')} ${cupFmt(last)}${over?cupT10(`, ${over} after`,`, ${over}개는 이후`):''}` : `${nm}: ${over} ${cupT10('after (not enough time)','이후 (시간 부족)')}`; }).filter(Boolean);
+  return { name:p.name, label:(p.folder?p.folder.name:p.name).split(' · ')[0], moved:moved.length, late:late.length, summary:byBlock, before };
+}
+function cupPaceReplanAll(manual){
+  const res=cupPacePlans().map(p=>cupPaceReplan(p)).filter(Boolean);
+  cupEnsure(); S.cup.paceFlowed=todayStr(); S.cup.paceReplanV=2;
+  if(!res.length){ if(manual) showToast(cupT10('Nothing to re-plan.','다시 계획할 게 없어요.')); return; }
+  save(); render();
+  const moved=res.reduce((s,r)=>s+r.moved,0), late=res.reduce((s,r)=>s+r.late,0);
+  if(!moved && !manual) return;
+  const msg=res.map(r=>`${r.label}: ${r.summary.join(' · ')||cupT10('spread out','나눠서 배치')}`).join(' — ')
+    + (late?cupT10(` · ${late} won’t fit before the exam at a healthy pace`,` · ${late}개는 무리 없이 시험 전에 끝내기 어려워요`):'');
+  showToast(cupT10(`Re-planned ${moved} lecture${moved===1?'':'s'} · `,`강의 ${moved}개 다시 계획 · `)+msg, cupT10('Undo','되돌리기'), ()=>{
+    res.forEach(r=>r.before.forEach(([t,d,s])=>{ t.due=d; t.scheduledDates=s; })); save(); render(); });
+}
+// replaces the old “roll late lectures 2 a day” reflow: once a day, and once now for the new method
+cupPaceReflow=function(){
+  cupEnsure(); const today=todayStr();
+  if(S.cup.paceFlowed===today && S.cup.paceReplanV===2) return;
+  const anyLate=cupPacePlans().some(p=>p.steps.some(t=>!cupDone(t)&&t.due&&t.due<today));
+  if(S.cup.paceReplanV!==2 || anyLate){ setTimeout(()=>cupPaceReplanAll(false), 400); }
+  else { S.cup.paceFlowed=today; }
+};
+// a “Re-plan” button on each course pace row
+{ const _pr=cupPaceRow; cupPaceRow=function(p, big){ const h=_pr.apply(this,arguments); if(big==='mini' || p.lead) return h;
+    return h.replace('<button class="cup-pace-cog"', `<button class="cup-act cup-pace-replan" onclick="cupPaceReplanAll(true)" title="${cupT10('Spread the remaining lectures realistically before each exam','남은 강의를 시험 전까지 무리 없이 다시 배치')}">${cupT10('Re-plan','다시 계획')}</button><button class="cup-pace-cog"`); }; }
+
+// ════════════════════════════════════════════════════════════
+//  2 · TASKS LIST — “No date” sits near the top with one-tap dates;
+//      Waiting on moves to its own page
+// ════════════════════════════════════════════════════════════
+try{ if(!localStorage.getItem('cup_tl_none_v2')){ cupTLOpen.none=true; localStorage.setItem('cup_tl_none_v2','1'); localStorage.setItem('cup_tl_open',JSON.stringify(cupTLOpen)); } }catch(_){}
+let cupTLNoneAll=false;
+function cupTLSetDate(id, off){
+  const t=S.tasks.find(x=>x.id===id); if(!t) return;
+  const prev=[t.due||'', [...(t.scheduledDates||[])]], ds=cupTSDate(off);
+  t.due=ds; save(); render();
+  showToast(cupT10(`“${t.title}” → ${off===0?'today':off===1?'tomorrow':cupFmt(ds)}`,`“${t.title}” → ${off===0?'오늘':off===1?'내일':cupFmt(ds)}`), cupT10('Undo','되돌리기'), ()=>{ t.due=prev[0]; t.scheduledDates=prev[1]; save(); render(); });
+}
+function cupTLPickDate(id){ cupOpenTaskSheet(id); try{ cupTS.open='due'; cupTSRender(); }catch(_){} }
+{ const _tl=cupRenderTaskList; cupRenderTaskList=function(){
+  const r=_tl.apply(this,arguments);
+  const host=document.getElementById('cupTaskList'), box=host&&host.querySelector('.cup-tl'); if(!box) return r;
+  const secOf=k=>{ const b=box.querySelector(`.cup-tl-h button[onclick="cupTLToggle('${k}')"]`); return b?b.closest('.cup-tl-sec'):null; };
+  // Waiting on lives on its own page now
+  const ws=secOf('waiting'); if(ws) ws.remove();
+  box.querySelectorAll('[onclick*="cupTLOpen.waiting=true"]').forEach(b=>{ b.setAttribute('onclick',"cupWaitOpen()"); });
+  // No date: right under Today (and the folded Overdue line), with Today / Tomorrow / pick
+  const none=secOf('none');
+  if(none){
+    const secs=[...box.querySelectorAll('.cup-tl-sec')], todaySec=secs.find(s=>!s.querySelector('.cup-tl-h button')&&/^(Today|오늘)$/.test((s.querySelector('.cup-tl-h span')?.textContent||'').trim()));
+    const over=box.querySelector('.cup-tl-sec.over'), anchor=(over&&todaySec&&todaySec.compareDocumentPosition(over)&Node.DOCUMENT_POSITION_FOLLOWING)?over:(todaySec||over);
+    if(anchor && anchor.nextElementSibling!==none) anchor.after(none);
+    else if(!anchor){ const first=box.querySelector('.cup-tl-sec:not(.gatefirst)'); if(first && first!==none) first.before(none); }
+    none.classList.add('nodate');
+    const rows=[...none.querySelectorAll('.cup-tl-row')];
+    rows.forEach((row,i)=>{
+      const id=(row.querySelector('.cup-check2')?.getAttribute('onclick')||'').match(/'([^']+)'/)?.[1]; if(!id) return;
+      if(!cupTLNoneAll && i>=8) row.style.display='none';
+      if(row.querySelector('.cup-tl-quick')) return;
+      const q=document.createElement('span'); q.className='cup-tl-quick';
+      q.innerHTML=`<button type="button" onclick="cupTLSetDate('${id}',0)">${cupT10('Today','오늘')}</button><button type="button" onclick="cupTLSetDate('${id}',1)">${cupT10('Tmrw','내일')}</button><button type="button" onclick="cupTLPickDate('${id}')" title="${cupT10('Pick a date','날짜 고르기')}" aria-label="${cupT10('Pick a date','날짜 고르기')}">📅</button>`;
+      const act=row.querySelector('.cup-tl-act'); if(act) act.before(q); else row.appendChild(q);
+    });
+    if(rows.length>8 && !none.querySelector('.cup-tl-more')) none.insertAdjacentHTML('beforeend', `<button type="button" class="cup-more-btn cup-tl-more" onclick="cupTLNoneAll=!cupTLNoneAll;cupRenderTaskList()">${cupTLNoneAll?cupT10('Show fewer','접기'):cupT10(`Show all ${rows.length}`,`${rows.length}개 모두 보기`)}</button>`);
+  }
+  return r; }; }
+
+// ════════════════════════════════════════════════════════════
+//  3 · WAITING PAGE — columns (Waiting · Follow up · Heard yes · Heard no) + a summary chart
+// ════════════════════════════════════════════════════════════
+const CUP_YES=/^(paid|approved|accepted|offer|yes|admitted|got it)/i, CUP_NO=/^(declined|rejected|no reply|no|denied|turned down)/i;
+let cupWaitFolder='';
+function cupWaitItems(){
+  return S.tasks.filter(t=>!t.isHabit && (t.waiting || t.outcome) && (!t.archived || t.outcome || t.resolvedAt) && (!cupWaitFolder || t.commitId===cupWaitFolder));
+}
+function cupWaitCol(t){
+  if(CUP_YES.test(t.outcome||'')) return 'yes';
+  if(CUP_NO.test(t.outcome||'')) return 'no';
+  if(cupDone(t)) return 'yes';                                          // checked off with no outcome = it worked out
+  const nudge=+cupPref('nudgeDays',14)||14, since=t.submitted?-cupDays(t.submitted):0;
+  if((t.decisionBy && cupDays(t.decisionBy)<0) || since>=nudge) return 'follow';
+  return 'wait';
+}
+function cupWaitSet(id, what){
+  const t=S.tasks.find(x=>x.id===id); if(!t) return;
+  const prev={ outcome:t.outcome||'', done:cupDone(t), submitted:t.submitted||'', resolvedAt:t.resolvedAt||0 };
+  if(what==='yes' || what==='no'){ t.outcome = what==='yes' ? 'Approved' : 'Declined'; t.resolvedAt=Date.now(); if(!cupDone(t)) toggleTask(id); }
+  else if(what==='nudge'){ t.submitted=todayStr(); t.nudges=(t.nudges||0)+1; }
+  else if(what==='reopen'){ t.outcome=''; t.resolvedAt=0; t.waiting=true; if(cupDone(t)) toggleTask(id); }
+  save(); render(); cupRenderWaiting();
+  const label = what==='yes'?cupT10('Heard yes','긍정 답변'):what==='no'?cupT10('Heard no','거절'):what==='nudge'?cupT10('Marked as nudged today','오늘 다시 연락함으로 표시'):cupT10('Back to waiting','다시 대기 중');
+  showToast(`${t.title} · ${label}`, cupT10('Undo','되돌리기'), ()=>{ t.outcome=prev.outcome; t.submitted=prev.submitted; t.resolvedAt=prev.resolvedAt; if(cupDone(t)!==prev.done) toggleTask(id); save(); render(); cupRenderWaiting(); });
+}
+function cupWaitOpen(folderId){ cupWaitFolder = typeof folderId==='string' ? folderId : (cupTLFolder&&!cupTLFolder.startsWith('area:')&&cupTLFolder!=='waiting'?cupTLFolder:''); showPage('waiting'); }
+function cupWaitMount(){
+  if(!document.getElementById('page-waiting')){
+    const ref=document.getElementById('page-journal')||document.getElementById('page-todo'); if(!ref) return;
+    const sec=document.createElement('section'); sec.className='page'; sec.id='page-waiting';
+    sec.innerHTML=`<div class="view-header"><div><div class="view-title">${cupT10('Waiting on','답변 대기')}</div><div class="view-sub">${cupT10('Things you sent — applications, emails, forms. Mark how each one turned out.','보낸 것들 — 지원서, 이메일, 신청서. 결과를 표시해요.')}</div></div></div><div id="cupWaitPage"></div>`;
+    ref.after(sec);
+  }
+  const nav=document.querySelector('.sidebar nav, .sidebar .nav');
+  if(nav && !nav.querySelector('.nav-item[data-page="waiting"]')){
+    const j=nav.querySelector('.nav-item[data-page="journal"]')||nav.lastElementChild;
+    const b=document.createElement('button'); b.className='nav-item'; b.dataset.page='waiting'; b.setAttribute('onclick',"cupWaitFolder='';showPage('waiting',this)");
+    b.innerHTML=`<span>⧗</span> ${cupT10('Waiting on','답변 대기')}`; j.after(b);
+  }
+}
+function cupRenderWaiting(){
+  const host=document.getElementById('cupWaitPage'); if(!host) return;
+  const items=cupWaitItems(), cols={ wait:[], follow:[], yes:[], no:[] };
+  items.forEach(t=>cols[cupWaitCol(t)].push(t));
+  const byAge=(a,b)=>(a.submitted||'9').localeCompare(b.submitted||'9');
+  cols.wait.sort(byAge); cols.follow.sort(byAge);
+  const recent=(a,b)=>(b.resolvedAt||b.completedAt||0)-(a.resolvedAt||a.completedAt||0); cols.yes.sort(recent); cols.no.sort(recent);
+  const heard=cols.yes.length+cols.no.length, total=items.length;
+  const days=[...cols.yes,...cols.no].map(t=>t.submitted&&(t.resolvedAt||t.completedAt)?Math.round(((t.resolvedAt||t.completedAt)-cupParse(t.submitted).getTime())/864e5):null).filter(x=>x!==null&&x>=0);
+  const avg=days.length?Math.round(days.reduce((a,b)=>a+b,0)/days.length):null;
+  const C=[['wait',cupT10('Waiting','대기 중'),'var(--cup-w-wait)','⧗'],['follow',cupT10('Follow up','다시 연락'),'var(--cup-w-follow)','↻'],['yes',cupT10('Heard yes','긍정 답변'),'var(--cup-w-yes)','✓'],['no',cupT10('Heard no','거절'),'var(--cup-w-no)','✕']];
+  const bar = total ? `<div class="cup-wbar2" role="img" aria-label="${C.map(([k,l])=>`${l} ${cols[k].length}`).join(', ')}">${C.filter(([k])=>cols[k].length).map(([k,l,c])=>`<span style="flex:${cols[k].length};background:${c}" title="${l}: ${cols[k].length} (${Math.round(cols[k].length/total*100)}%)"></span>`).join('')}</div>
+    <div class="cup-wlegend">${C.map(([k,l,c,ic])=>`<span><i style="background:${c}"></i>${ic} ${l} <b>${cols[k].length}</b></span>`).join('')}</div>` : '';
+  const allFolders=[...new Set(S.tasks.filter(t=>!t.isHabit&&(t.waiting||t.outcome)&&t.commitId).map(t=>t.commitId))].map(cupCommit).filter(Boolean);
+  const card=(t,k)=>{ const c=cupCommit(t.commitId), since=t.submitted?-cupDays(t.submitted):null;
+    const meta=[t.person, c&&c.name, t.amount].filter(Boolean).map(esc).join(' · ');
+    const when = k==='yes'||k==='no' ? (t.outcome?esc(t.outcome):'') + (t.resolvedAt?` · ${cupFmt(cupISO(new Date(t.resolvedAt)))}`:'')
+      : `${t.submitted?cupT10(`sent ${cupFmt(t.submitted)} · ${since}d`,`${cupFmt(t.submitted)} 보냄 · ${since}일`):''}${t.decisionBy?` · ${cupT10('answer by','답변 예정')} ${cupFmt(t.decisionBy)}`:''}`;
+    const acts = k==='yes'||k==='no' ? `<button onclick="cupWaitSet('${t.id}','reopen')">${cupT10('Reopen','다시 대기')}</button>`
+      : `<button class="y" onclick="cupWaitSet('${t.id}','yes')" title="${cupT10('They said yes','긍정 답변')}">✓ ${cupT10('Yes','예')}</button><button class="n" onclick="cupWaitSet('${t.id}','no')" title="${cupT10('They said no','거절')}">✕ ${cupT10('No','아니오')}</button><button onclick="cupWaitSet('${t.id}','nudge')" title="${cupT10('I followed up today','오늘 다시 연락함')}">↻</button>`;
+    return `<div class="cup-wcard"><button class="cup-wcard-t" onclick="editTask('${t.id}')">${esc(t.title)}</button>${meta?`<div class="cup-wcard-m">${meta}</div>`:''}${when?`<div class="cup-wcard-m">${when}</div>`:''}<div class="cup-wcard-a">${acts}</div></div>`; };
+  host.innerHTML=`
+    <div class="cup-wtop">
+      <div class="cup-wstat"><b>${cols.wait.length+cols.follow.length}</b><span>${cupT10('still waiting','대기 중')}</span></div>
+      <div class="cup-wstat"><b>${total?Math.round(heard/total*100):0}%</b><span>${cupT10('heard back','답변 받음')}</span></div>
+      <div class="cup-wstat"><b>${avg===null?'—':avg+cupT10('d','일')}</b><span>${cupT10('avg. time to reply','평균 답변 기간')}</span></div>
+      ${allFolders.length>1?`<select class="cup-wfolder" onchange="cupWaitFolder=this.value;cupRenderWaiting()" aria-label="${cupT10('Folder','폴더')}"><option value="">${cupT10('All folders','모든 폴더')}</option>${allFolders.map(c=>`<option value="${c.id}" ${cupWaitFolder===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>`:''}
+    </div>
+    ${bar}
+    ${total?`<div class="cup-wcols">${C.map(([k,l,c,ic])=>`<section class="cup-wcol"><div class="cup-wcol-h"><i style="background:${c}"></i>${ic} ${l}<span>${cols[k].length}</span></div>${cols[k].slice(0,k==='yes'||k==='no'?12:50).map(t=>card(t,k)).join('')||`<div class="cup-dim cup-wempty">${k==='follow'?cupT10('Nothing to chase.','다시 연락할 것 없음'):'—'}</div>`}${cols[k].length>12&&(k==='yes'||k==='no')?`<div class="cup-dim cup-wempty">+${cols[k].length-12}</div>`:''}</section>`).join('')}</div>`
+      :`<div class="cup-tl-empty">${cupT10('Nothing you’re waiting on. Add one with + → “Waiting on”.','기다리는 게 없어요. + → “답변 대기”로 추가하세요.')}</div>`}
+    <button class="cup-more-btn" onclick="cupPlusOpen('waiting')">+ ${cupT10('Something I sent','보낸 것 추가')}</button>`;
+}
+// open the page from anything that used to filter the task list to “waiting”
+{ const _sb=cupSetBankSel; cupSetBankSel=function(v){ if(v==='waiting' && document.body.classList.contains('cup-lean')){ cupWaitOpen(); return; } return _sb.apply(this,arguments); }; }
+{ const _rc=renderCup; renderCup=function(){ const r=_rc.apply(this,arguments); try{ cupWaitMount(); if(typeof currentPage!=='undefined' && currentPage==='waiting') cupRenderWaiting(); }catch(_){} return r; }; }
+{ const _me=cupOpenMobileMe; cupOpenMobileMe=function(){ const r=_me.apply(this,arguments);
+  try{ const el=document.getElementById('mCupMobMe'); if(!el || el.querySelector('.cup-me-wait')) return r;
+    const n=S.tasks.filter(t=>t.waiting&&!cupDone(t)).length;
+    const rows=[...el.querySelectorAll('.cup-me-row, .cup-me-card')];
+    const ref=rows.find(x=>/Friends|친구/.test(x.textContent)) || rows.find(x=>/Settings|설정/.test(x.textContent));
+    if(!ref) return r;
+    const row=ref.cloneNode(true); row.classList.add('cup-me-wait'); row.classList.remove('main','cup-extra-only');
+    row.setAttribute('onclick',"closeModal('mCupMobMe');cupWaitOpen('')");
+    const ic=row.querySelector('span'), bTag=row.querySelector('b'), em=row.querySelector('em');
+    if(ic) ic.textContent='⧗'; if(bTag) bTag.textContent=cupT10('Waiting on','답변 대기'); if(em) em.textContent=n?cupT10(`${n} open`,`${n}개 대기`):cupT10('Applications & replies','지원·답변');
+    if(/Friends|친구/.test(ref.textContent)) ref.after(row); else ref.before(row);
+  }catch(_){}
+  return r; }; }
+if(document.readyState!=='loading') cupWaitMount(); else document.addEventListener('DOMContentLoaded', cupWaitMount);
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
