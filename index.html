@@ -23488,7 +23488,7 @@ function cupRenderTaskList(){
   const host=document.getElementById('cupTaskList'); if(!host) return;
   const td=todayStr(), d=n=>{ const x=cupParse(td); x.setDate(x.getDate()+n); return cupISO(x); }, tm=d(1), wk=d(7);
   // one lecture per tracked class (the next one), like Next up
-  const open=cupOpenTasks().sort((a,b)=>(cupTLDate(a)||'9999').localeCompare(cupTLDate(b)||'9999')||(a.dueTime||'99').localeCompare(b.dueTime||'99')).filter(cupTLMatch), doneToday=S.tasks.filter(t=>!t.isHabit&&t.completed&&(t.completedAt?cupISO(new Date(t.completedAt))===td:(t.completedDate===td))&&cupTLMatch(t));
+  const open=cupOpenTasks().sort((a,b)=>(cupTLDate(a)||'9999').localeCompare(cupTLDate(b)||'9999')||(a.dueTime||'99').localeCompare(b.dueTime||'99')||((a.plan&&b.plan&&a.plan.name===b.plan.name)?((a.plan.step||0)-(b.plan.step||0)):0)).filter(cupTLMatch), doneToday=S.tasks.filter(t=>!t.isHabit&&t.completed&&(t.completedAt?cupISO(new Date(t.completedAt))===td:(t.completedDate===td))&&cupTLMatch(t));
   const waiting=open.filter(t=>t.waiting), act=open.filter(t=>!t.waiting);
   const over=act.filter(t=>cupIsOverdue(t,td));
   const rest=act.filter(t=>!over.includes(t));
@@ -25509,6 +25509,48 @@ function cupRenderWaiting(){
   }catch(_){}
   return r; }; }
 if(document.readyState!=='loading') cupWaitMount(); else document.addEventListener('DOMContentLoaded', cupWaitMount);
+
+// ════════════════════════════════════════════════════════════
+//  4 · PHYS 122 reset (once, 2026-10-21): every lecture L1–L28 back on the
+//      list, progress = only L3 done (as you said), then re-plan from today.
+// ════════════════════════════════════════════════════════════
+const CUP_PHYS_L=[[1,'Intro & charge','2026-09-30',25],[2,'Charge model','2026-10-02',25],[3,'Coulomb’s law','2026-10-05',25],[4,'Electric field','2026-10-07',25],[5,'Charge distributions','2026-10-09',25],[6,'Motion in a field','2026-10-12',25],[7,'Electric flux','2026-10-14',25],[8,'Gauss’s law','2026-10-16',25],[9,'Electrostatic equilibrium','2026-10-19',25],[10,'Potential energy','2026-10-21',70],[11,'Electric potential','2026-10-23',70],[12,'Potential ↔ field','2026-10-26',70],[13,'Capacitors','2026-10-28',70],[14,'Dielectrics','2026-10-30',70],[15,'Current & resistance','2026-11-02',70],[16,'Magnetic fields','2026-11-04',70],[17,'Ampère’s law','2026-11-06',70],[18,'Magnetic force','2026-11-09',70],[19,'Induced current','2026-11-13',120],[20,'Lenz’s law','2026-11-16',120],[21,'Faraday’s law','2026-11-18',120],[22,'Maxwell’s equations','2026-11-20',120],[23,'Single-loop circuits','2026-11-23',120],[24,'Circuits','2026-11-30',120],[25,'RC circuits & inductors','2026-12-02',120],[26,'LR & LC circuits','2026-12-04',120],[27,'AC circuits I','2026-12-07',120],[28,'AC circuits II','2026-12-09',120]];
+function cupPhysReset(){
+  cupEnsure(); if(S.cup.physReset1) return false;
+  const physStep=t=>t&&t.plan&&/phys/i.test(t.plan.name||'');
+  const steps=S.tasks.filter(physStep);
+  const folder=(steps[0]&&cupCommit(steps[0].commitId)) || cupCommits().find(c=>!c.archived&&/phys\s*122/i.test(c.name||''));
+  if(!steps.length && !folder) return false;                       // not this account
+  const planName=(steps[0]&&steps[0].plan.name)||'PHYS pace';
+  const review=steps.some(t=>/^review:/i.test(t.title||''));
+  const snap=steps.map(t=>[t, JSON.parse(JSON.stringify({completed:!!t.completed, completedAt:t.completedAt||0, archived:!!t.archived, due:t.due||'', scheduledDates:t.scheduledDates||[]}))]);
+  const created=[], restored=[];
+  CUP_PHYS_L.forEach(([n,topic,cd,mins])=>{
+    let t=S.tasks.find(x=>physStep(x)&&+x.plan.step===n) || S.tasks.find(x=>x.id==='p-L'+n);
+    if(!t){ const i=(S.deleted||[]).findIndex(d=>d&&d.item&&physStep(d.item)&&+d.item.plan.step===n);
+      if(i>=0){ t=S.deleted[i].item; S.deleted.splice(i,1); S.tasks.push(t); restored.push(t); } }
+    if(!t){ t=cupMakeTask({ title: review?`Review: L${n} – ${topic}`:`L${n} · ${topic}`, commitId:folder?folder.id:'', area:folder?folder.area:'academics', subject:folder?folder.name:'PHYS 122', priority:'medium' });
+      if(!S.tasks.includes(t)) S.tasks.push(t); created.push(t); }
+    t.plan=Object.assign({ name:planName, of:28 }, t.plan||{}, { step:n }); if(!t.plan.minutes) t.plan.minutes=mins;
+    if(!t.classDate) t.classDate=cd;
+    t.archived=false;
+    const done = n===3;
+    if(!!t.completed!==done){ t.completed=done; if(done) t.completedAt=Date.now(); else delete t.completedAt; }
+  });
+  S.cup.physReset1=todayStr(); S.cup.paceReplanV=0; save();
+  cupPaceReplanAll(false);
+  showToast(cupT10(`PHYS 122 reset: L3 done, 27 to go${created.length?` (${created.length} lecture${created.length===1?'':'s'} were missing and are back)`:''} — re-planned from today.`,`PHYS 122 초기화: L3 완료, 27개 남음 — 오늘부터 다시 계획했어요.`), cupT10('Undo','되돌리기'), ()=>{
+    snap.forEach(([t,s])=>Object.assign(t,s)); S.tasks=S.tasks.filter(t=>!created.includes(t)); delete S.cup.physReset1; save(); render(); });
+  return true;
+}
+// lectures planned for the coming week show under their days (only farther ones fold into “later lectures”)
+{ const _ot=cupOpenTasks; cupOpenTasks=function(){ const base=_ot.apply(this,arguments), ids=new Set(base.map(t=>t.id)), wk=cupTSDate(7);
+    S.tasks.forEach(t=>{ if(!ids.has(t.id) && t.plan && t.plan.name && !t.isHabit && !t.archived && !cupDone(t) && t.due && t.due<=wk) base.push(t); });
+    return base; }; }
+// run once after the account has loaded
+{ let tries=0; const tick=()=>{ tries++; try{ const signedIn=typeof currentUser!=='undefined'&&currentUser; const loaded=!signedIn || (typeof cupKnownRev!=='undefined' && cupKnownRev!==null);
+    if(loaded && S && S.tasks && S.tasks.length && cupPhysReset()) return; }catch(e){ console.warn('PHYS reset', e); } if(tries<40) setTimeout(tick, 1500); };
+  setTimeout(tick, 2500); }
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
