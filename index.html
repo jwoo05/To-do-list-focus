@@ -7254,6 +7254,13 @@ body.cup-lean #calDayTasks .cup-jcal:not(.has){ display:none; }
 /* calm layout: buttons and inputs as round as the cards around them */
 body.cup-lean{ --radius:8px; --radius-sm:6px; --radius-lg:12px; }
 
+/* status badges: a small dot and plain words — no alarm clocks, no filled pills */
+.cup-badge2, .cup-badge2.b-today, .cup-badge2.b-late, .cup-badge2.b-soft{ background:none !important; border:1px solid color-mix(in srgb, currentColor 28%, transparent); padding:1px 9px 1px 8px; gap:6px; font-size:calc(11.5px * var(--cup-fs,1)); font-weight:500; letter-spacing:.01em; }
+.cup-badge2::before{ content:''; width:5px; height:5px; border-radius:50%; background:currentColor; flex:none; }
+.cup-badge2.b-today{ color:color-mix(in srgb, var(--red, #e5484d) 80%, var(--text)); }
+.cup-badge2.b-late{ color:var(--must, #e5484d); }
+.cup-badge2.b-soft{ color:var(--orange, #d9822b); }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -17720,7 +17727,7 @@ function cupBankChips(t){
   let h='';
   if(c && !(cupBankSel==='folder:'+c.id)) h+=`<span class="chip cup-chip" style="--cup-c:${cupSphColor(c.area)}">${esc(c.name)}</span>`;
   else if(!c && t.area && cupBankSel!=='area:'+t.area) h+=`<span class="chip cup-chip" style="--cup-c:${cupSphColor(t.area)}">${esc(CUP_AREA[t.area]?.name||'')}</span>`;
-  if(t.dueTime && !t.waiting) h+=`<span class="chip ${cupPastDue(t)?'chip-must':'chip-due'}">⏰ ${cupT12(t.dueTime)}</span>`;
+  if(t.dueTime && !t.waiting) h+=`<span class="chip ${cupPastDue(t)?'chip-must':'chip-due'}">${cupT12(t.dueTime)}</span>`;
   if(t.waiting) h+=`<span class="chip cup-chip-wait">⧗ Waiting${t.decisionBy?' · '+cupFmt(t.decisionBy):''}</span>`;
   else if(t.appStage) h+=`<span class="chip cup-chip-wait">${CUP_STAGES[t.appStage]||''}</span>`;
   return h;
@@ -17872,9 +17879,9 @@ function cupBadge(x){
   const time = t.dueTime ? ` · ${cupT12(t.dueTime)}` : (t.scheduledTime?` · ${cupT12(t.scheduledTime)}`:'');
   const d=cupDays(t.due);
   if(t.isHabit) return `<span class="cup-badge2 b-habit">↻ Daily${time}</span>`;
-  if(d!==null&&d<0) return cupPref('gentle') ? `<span class="cup-badge2 b-soft">From ${cupFmt(t.due)}</span>` : `<span class="cup-badge2 b-late">⚠ ${-d}d late</span>`;
-  if(d===0 && cupPastDue(t)) return cupPref('gentle') ? `<span class="cup-badge2 b-soft">Was due${time}</span>` : `<span class="cup-badge2 b-late">⚠ Overdue${time}</span>`;
-  if(d===0) return `<span class="cup-badge2 b-today">⏰ Due today${time}</span>`;
+  if(d!==null&&d<0) return cupPref('gentle') ? `<span class="cup-badge2 b-soft">From ${cupFmt(t.due)}</span>` : `<span class="cup-badge2 b-late">${-d}d late</span>`;
+  if(d===0 && cupPastDue(t)) return cupPref('gentle') ? `<span class="cup-badge2 b-soft">Was due${time}</span>` : `<span class="cup-badge2 b-late">Overdue${time}</span>`;
+  if(d===0) return `<span class="cup-badge2 b-today">Due today${time}</span>`;
   if((t.scheduledDates||[]).includes(todayStr())) return `<span class="cup-badge2 b-today">● Today${time}</span>`;
   if(d===1) return `<span class="cup-badge2 b-soon">Tomorrow${time}</span>`;
   if(d!==null) return `<span class="cup-badge2 b-week">${cupParse(t.due).toLocaleDateString(undefined,{weekday:'short'})}${time}</span>`;
@@ -18544,7 +18551,7 @@ function cupImpChips(it){
   const bits=[];
   if(it.kind==='update'){ const c=it.changes; ['title','due','dueTime','status','priority'].forEach(k=>{ if(c[k]!==undefined&&!(k==='title'&&!c.id)) bits.push(`${k==='dueTime'?'time':k} → ${esc(k==='due'?cupFmt(c[k]):k==='dueTime'?cupT12(c[k]):String(c[k]))}`); }); }
   if(it.kind==='event') bits.push(`◷ ${cupFmt(it.due)}${it.start?' · '+cupT12(it.start)+(it.end?'–'+cupT12(it.end):''):''}`);
-  else if(it.due) bits.push(`⏰ ${cupParse(it.due).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}${it.time?' · '+cupT12(it.time):''}`);
+  else if(it.due) bits.push(`${cupParse(it.due).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}${it.time?' · '+cupT12(it.time):''}`);
   if(it.kind==='habit') bits.push('↻ '+(it.weeklyGoal?`${it.weeklyGoal}× a week`:(it.days&&it.days.length&&it.days.length<7?it.days.map(d=>['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d]).join(' '):'daily')));
   if(it.kind==='folder') bits.push(`${CUP_AREA[it.area]?.name||it.area}${it.hours?' · '+it.hours+'h/wk':''}`);
   if(it.kind==='page'){ const par=it.parentRef?it.parentRef.title:it.parentTitle; if(par) bits.push('inside “'+esc(par)+'”'); const n=(it.notes||'').split('\n').filter(Boolean).length; bits.push(n?`${n} line${n>1?'s':''} of text`:'empty page'); }
@@ -18955,7 +18962,7 @@ function cupTSSentence(){
   } else if(s.due){
     const d=cupDays(s.due);
     const when = d===0?'today':d===1?'tomorrow':d<0?`${-d} day${d===-1?'':'s'} ago`:cupParse(s.due).toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});
-    bits.push(`⏰ Due ${when}${s.dueTime?' at '+cupT12(s.dueTime):''}`);
+    bits.push(`Due ${when}${s.dueTime?' at '+cupT12(s.dueTime):''}`);
   } else bits.push('No due date');
   if(c||area) bits.push(`in ${c?c.name:area}`);
   if(s.priority==='MUST') bits.push('must do'); else if(s.priority==='high') bits.push('high priority'); else if(s.priority==='low') bits.push('low priority');
@@ -19003,7 +19010,7 @@ function cupTSRender(){
   host.innerHTML = `
     <input id="cupTSTitle" class="cup-ts-title" placeholder="What do you need to do?" value="${esc(s.title)}" oninput="cupTS.title=this.value" autocomplete="off">
     <div class="cup-rows">
-      ${cupTSRow('due','⏰','When', s.kind==='habit' ? repV : (s.repeat ? `${dueV} · ↻ ${typeof cupRepeatLabel==='function'?cupRepeatLabel(s.repeat):s.repeat}` : dueV), `
+      ${cupTSRow('due','◷','When', s.kind==='habit' ? repV : (s.repeat ? `${dueV} · ↻ ${typeof cupRepeatLabel==='function'?cupRepeatLabel(s.repeat):s.repeat}` : dueV), `
         ${s.kind!=='habit' ? `<div class="cup-ts-chips">${[['', 'No date'],[today,'Today'],[tmw,'Tomorrow'],[fri,'Fri '+cupParse(fri).getDate()],[nwk,'In a week']].map(([v,l])=>chip(s.due===v,l,`cupTS.due='${v}';cupTSRender()`)).join('')}
           ${pick(s.due&&![today,tmw,fri,nwk].includes(s.due),'📅 Other date',s.due,'date','cupTS.due')}</div>
         ${s.due?`<div class="cup-ts-sub">Time</div><div class="cup-ts-chips">${[['','None'],['09:00','9 am'],['12:00','Noon'],['17:00','5 pm'],['23:59','11:59 pm']].map(([v,l])=>chip(s.dueTime===v,l,`cupTS.dueTime='${v}';cupTSRender()`)).join('')}
@@ -26363,7 +26370,7 @@ Object.assign(CUP_KO, {
 });
 CUP_KO_PAT.unshift(
   [/^(?:Good (morning|afternoon|evening|night)|(Late night)),?\s*(.*)$/, (m,t,l,n)=>`${l?'늦은 밤이에요':({ morning:'좋은 아침이에요', afternoon:'안녕하세요', evening:'안녕하세요', night:'편안한 밤 보내세요' })[t]}${n?', '+n+'님':''}`],
-  [/^⏰ Due today(.*)$/, (m,t)=>`⏰ 오늘 마감${t}`], [/^● Today(.*)$/, (m,t)=>`● 오늘${t}`], [/^Tomorrow( · .*)$/, (m,t)=>`내일${t}`], [/^⚠ Overdue(.*)$/, (m,t)=>`⚠ 기한 지남${t}`], [/^⚠ (\d+)d late$/, (m,n)=>`⚠ ${n}일 지연`],
+  [/^(?:⏰ )?Due today(.*)$/, (m,t)=>`오늘 마감${t}`], [/^● Today(.*)$/, (m,t)=>`● 오늘${t}`], [/^Tomorrow( · .*)$/, (m,t)=>`내일${t}`], [/^(?:⚠ )?Overdue(.*)$/, (m,t)=>`기한 지남${t}`], [/^(?:⚠ )?(\d+)d late$/, (m,n)=>`${n}일 지연`],
   [/^↻ Daily(.*)$/, (m,t)=>`↻ 매일${t}`], [/^From (\d+월 \d+일)$/, (m,d)=>`${d}부터`],
   [/^Due in (\d+) days$/, (m,n)=>`${n}일 뒤 마감`], [/^Due (Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)$/, (m,d)=>`${'일월화수목금토'[['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].indexOf(d)]}요일 마감`],
   [/^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)( · .*)?$/, (m,d,t)=>`${'일월화수목금토'[['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(d)]}${t||''}`],
