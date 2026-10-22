@@ -7084,6 +7084,21 @@ button, .btn, .nav-item, .mt-tab, .task-item, .cal-cell, .cal-mini-chip, .chip, 
 button:active, .btn:active, .nav-item:active, .mt-tab:active{ transition-duration:0s !important; }
 .overlay{ -webkit-backdrop-filter:none !important; backdrop-filter:none !important; }
 
+/* end-of-day review: same rows as Home */
+.cup-review{ gap:12px; padding:16px 18px; }
+.cup-rev-sum{ display:grid; gap:8px; font-size:calc(14px * var(--cup-fs,1)); color:var(--text); }
+.cup-rev-bar{ display:block; height:4px; border-radius:99px; background:var(--bg2); overflow:hidden; }
+.cup-rev-bar i{ display:block; height:100%; border-radius:inherit; background:var(--accent); }
+.cup-rev-sec{ display:grid; gap:2px; padding-top:10px; border-top:1px solid var(--border); }
+.cup-rev-st{ display:flex; align-items:center; gap:8px; min-height:28px; font-size:calc(12px * var(--cup-fs,1)); font-weight:600; letter-spacing:.04em; color:var(--text3); }
+.cup-rev-st em{ font-style:normal; font-weight:500; margin-left:4px; }
+.cup-rev-st .cup-hbtn{ margin-left:auto; }
+.cup-rev-late{ color:var(--must, #f26060); }
+.cup-rev-done{ display:flex; flex-wrap:wrap; gap:4px 14px; font-size:calc(14px * var(--cup-fs,1)); }
+.cup-rev-done button{ color:var(--text3); text-decoration:line-through; text-decoration-color:color-mix(in srgb, var(--text3) 50%, transparent); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cup-rev-tmr{ font-size:calc(14px * var(--cup-fs,1)); color:var(--text2); } .cup-rev-tmr button{ color:var(--text); } .cup-rev-tmr b{ font-weight:600; margin-right:4px; font-variant-numeric:tabular-nums; }
+.cup-rev-reflect{ justify-self:start; }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -25715,6 +25730,40 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{}); };
   document.addEventListener('visibilitychange', ()=>{ if(document.hidden){ if(cupUpdReady) go(); } else check(); });
   setInterval(check, 30*60000);
+}
+
+// ════════════════════════════════════════════════════════════
+//  10 · END-OF-DAY REVIEW — same rows as Home: progress, what's left (check it off or
+//  push it to tomorrow), what got done, what tomorrow starts with
+// ════════════════════════════════════════════════════════════
+cupReviewHTML=function(){
+  const td=todayStr(), tm=cupAddDays(td,1);
+  const done=S.tasks.filter(t=>!t.isHabit&&t.completed&&t.completedAt&&cupISO(new Date(t.completedAt))===td);
+  const open=cupTodayTasks().concat(cupOverdueTasks().filter(t=>!cupTodayTasks().includes(t)));
+  const total=done.length+open.length, pct=total?Math.round(done.length/total*100):0;
+  const mins=(S.sessions||[]).filter(x=>x&&x.type==='focus'&&x.date===td).reduce((m,x)=>m+(+x.dur||0),0);
+  const evs=cupCalEventsOn(tm), ev=evs.find(e=>e.time&&!e.allDay)||evs[0], dueT=S.tasks.filter(t=>!cupDone(t)&&!t.isHabit&&(t.due===tm||(t.scheduledDates||[]).includes(tm))).length;
+  const lines=cupJTomorrowLines(td), j=cupJEntry(td);
+  const row=t=>`<div class="cup-todo"><button class="cup-check2" onclick="toggleTask('${t.id}')" aria-label="${cupT10('Done','완료')}"></button><button class="t" onclick="editTask('${t.id}')">${esc(t.title)}</button>${t.due&&t.due<td?`<span class="cup-up-time cup-rev-late">${cupFmt(t.due)}</span>`:''}</div>`;
+  const sum = !total ? cupT10('Nothing was planned for today.','오늘 계획된 일이 없었어요.')
+    : !open.length ? cupT10(`All ${total} done. Nice work.`,`${total}개 모두 완료했어요.`)
+    : cupT10(`${done.length} of ${total} done`,`${total}개 중 ${done.length}개 완료`);
+  const tmr = ev||dueT ? `${ev?`<button type="button" onclick="editEvent('${ev.id}')" data-keep><b>${ev.time&&!ev.allDay?cupTShort(ev.time):cupT10('All day','종일')}</b> ${esc(ev.title)}</button>`:''}${ev&&dueT?'<span class="cup-dim"> · </span>':''}${dueT?`<span class="cup-dim">${cupT10(`${dueT} to-do${dueT===1?'':'s'} due`,`할 일 ${dueT}개`)}</span>`:''}` : `<span class="cup-dim">${cupT10('Nothing planned yet.','아직 계획 없음')}</span>`;
+  return `<div class="cup-rev-h"><b>${cupT10('Today in review','오늘 돌아보기')}</b><button type="button" class="cup-rev-x" onclick="cupReviewHide()" aria-label="${cupT10('Hide until tomorrow','내일까지 숨기기')}" title="${cupT10('Hide until tomorrow','내일까지 숨기기')}">✕</button></div>
+    <div class="cup-rev-sum"><span>${sum}${mins?`<span class="cup-dim"> · ${cupHrs(mins)} ${cupT10('focused','집중')}</span>`:''}</span>${total?`<span class="cup-rev-bar"><i style="width:${pct}%"></i></span>`:''}</div>
+    ${open.length?`<div class="cup-rev-sec"><div class="cup-rev-st"><span>${cupT10('Still open','남은 일')} <em>${open.length}</em></span><button type="button" class="cup-hbtn" onclick="cupRevPush()">${cupT10('Move to tomorrow','내일로 옮기기')}</button></div>
+      ${open.slice(0,5).map(row).join('')}${open.length>5?`<button type="button" class="cup-more-btn" onclick="showPage('todo')">${cupT10(`+ ${open.length-5} more`,`+ ${open.length-5}개 더`)}</button>`:''}</div>`:''}
+    ${done.length?`<div class="cup-rev-sec"><div class="cup-rev-st"><span>${cupT10('Done','완료')} <em>${done.length}</em></span></div><div class="cup-rev-done">${done.slice(0,6).map(t=>`<button type="button" onclick="editTask('${t.id}')" data-keep>✓ ${esc(t.title)}</button>`).join('')}${done.length>6?`<span class="cup-dim">+${done.length-6}</span>`:''}</div></div>`:''}
+    <div class="cup-rev-sec"><div class="cup-rev-st"><span>${cupT10('Tomorrow','내일')}</span></div><div class="cup-rev-tmr">${tmr}</div></div>
+    ${lines.length?`<div class="cup-rev-j"><span>${cupT10(`From your journal: make ${lines.length} task${lines.length===1?'':'s'} for tomorrow?`,`일기에서 내일 할 일 ${lines.length}개를 만들까요?`)}</span><ul>${lines.map(s=>`<li data-keep>${esc(s)}</li>`).join('')}</ul><button type="button" class="btn btn-accent" onclick="cupJTomorrowMake(todayStr())">${cupT10('Add to tomorrow','내일에 추가')}</button></div>`
+      : `<button type="button" class="btn btn-ghost cup-rev-reflect" onclick="cupJOpen(todayStr())">${cupJHas(j)?cupT10('✎ Today’s journal','✎ 오늘 일기'):cupT10('✎ Write tomorrow’s plan','✎ 내일 계획 쓰기')}</button>`}`;
+};
+function cupRevPush(){
+  const td=todayStr(), tm=cupAddDays(td,1), list=cupTodayTasks().concat(cupOverdueTasks()).filter((t,i,a)=>a.indexOf(t)===i);
+  if(!list.length) return; const snap=list.map(t=>[t,t.due||'',[...(t.scheduledDates||[])]]);
+  list.forEach(t=>{ if(t.due&&t.due<=td) t.due=tm; t.scheduledDates=[...(t.scheduledDates||[]).filter(d=>d>td), tm].filter((d,i,a)=>a.indexOf(d)===i); });
+  save(); render();
+  showToast(cupT10(`Moved ${list.length} to tomorrow.`,`${list.length}개를 내일로 옮겼어요.`), cupT10('Undo','되돌리기'), ()=>{ snap.forEach(([t,d,s])=>{ t.due=d; t.scheduledDates=s; }); save(); render(); });
 }
 
 
