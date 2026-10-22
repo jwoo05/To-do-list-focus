@@ -25858,32 +25858,21 @@ function cupRevPush(){
 }
 
 // ════════════════════════════════════════════════════════════
-//  11 · CALENDAR FIRST — Tasks & Calendar opens on the calendar; one switch shows
-//  either your schedule (classes, events) or your tasks, never both crammed in a day
+//  11 · CALENDAR FIRST — one choice, Calendar | Tasks. The calendar grid shows your
+//  schedule (classes, events); the day panel beside it shows that day's events and
+//  to-dos; Tasks is the task list
 // ════════════════════════════════════════════════════════════
 try{ if(!localStorage.getItem('cup_mcol_v2')){ localStorage.setItem('cup_mcol_v2','1'); cupMCol='cal'; localStorage.setItem('cup_mcol','cal'); setTimeout(()=>{ try{ cupSetMCol('cal'); }catch(_){} },0); } }catch(_){}
-try{ calViewMode = localStorage.getItem('cup_calmode')==='tasks' ? 'tasks' : 'events'; }catch(_){ calViewMode='events'; }
-function cupCalMode(m){ calViewMode=m; try{ localStorage.setItem('cup_calmode',m); }catch(_){}
-  try{ renderCalendar(); }catch(_){} try{ if(calLayout!=='month') renderWeekView(); }catch(_){} try{ renderCalDayTasks(); }catch(_){} cupCalModeMount(); }
-function cupCalModeMount(){
-  const tabs=document.getElementById('cupMSeg'), more=tabs&&tabs.querySelector('.cup-w3-more'); if(!more) return;
-  let seg=document.getElementById('cupCalMode');
-  if(!seg){ seg=document.createElement('div'); seg.id='cupCalMode'; seg.className='cup-calmode'; seg.setAttribute('role','tablist'); }
-  if(seg.nextElementSibling!==more) more.before(seg);
-  seg.hidden = cupMCol!=='cal';
-  const m=calViewMode==='tasks'?'tasks':'events';
-  const html=[['events',cupT10('Schedule','일정')],['tasks',cupT10('Tasks','할 일')]].map(([k,l])=>`<button type="button" role="tab" aria-selected="${m===k}" class="${m===k?'on':''}" onclick="cupCalMode('${k}')">${l}</button>`).join('');
-  if(seg._h!==html){ seg.innerHTML=html; seg._h=html; }
-  document.getElementById('calPanel')?.setAttribute('data-calmode', m);
-}
-{ const _rc=renderCalendar; renderCalendar=function(){ if(calViewMode==='both') calViewMode='events'; const r=_rc.apply(this,arguments); try{ cupCalModeMount(); }catch(_){} return r; }; }
-// Calendar is the first tab
+calViewMode='events';
+{ const _rc=renderCalendar; renderCalendar=function(){ calViewMode='events'; return _rc.apply(this,arguments); }; }
+{ const _rd=renderCalDayTasks; renderCalDayTasks=function(){ const m=calViewMode; calViewMode='both'; try{ return _rd.apply(this,arguments); } finally{ calViewMode=m; } }; }
+// Calendar is the first tab; the list tab is called Tasks
 { const _sg=cupW3Seg; cupW3Seg=function(){ const r=_sg.apply(this,arguments);
   const seg=document.getElementById('cupMSeg'), c=seg&&seg.querySelector('.clt-opt[data-mcol="cal"]'), l=seg&&seg.querySelector('.clt-opt[data-mcol="list"]');
   if(c && l && (l.compareDocumentPosition(c) & Node.DOCUMENT_POSITION_FOLLOWING)) l.before(c);
-  try{ cupCalModeMount(); }catch(_){}
+  if(l){ const t=cupT10('Tasks','할 일'); if(l.textContent!==t) l.textContent=t; }
+  document.getElementById('cupCalMode')?.remove();
   return r; }; }
-{ const _sm=cupSetMCol; cupSetMCol=function(){ const r=_sm.apply(this,arguments); try{ cupCalModeMount(); }catch(_){} return r; }; }
 
 // ════════════════════════════════════════════════════════════
 //  12 · GARDEN OFF BY DEFAULT — with “Garden, gems and streaks” off, the garden
