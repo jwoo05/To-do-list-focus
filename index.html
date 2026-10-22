@@ -25700,6 +25700,23 @@ function cupLectureNums(title){
   }catch(_){}
   return r; }; }
 
+// ════════════════════════════════════════════════════════════
+//  9 · UPDATES — a tab left open (or a cached copy) never ran new releases.
+//  Check when you come back; reload quietly while hidden, or offer a button.
+// ════════════════════════════════════════════════════════════
+if('serviceWorker' in navigator){
+  const hadSW=!!navigator.serviceWorker.controller; let cupUpdReady=false, cupUpdLast=0;
+  const go=()=>{ try{ if(typeof flushPendingSave==='function') flushPendingSave(); }catch(_){} setTimeout(()=>location.reload(), 300); };
+  navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+    if(!hadSW || cupUpdReady) return; cupUpdReady=true;
+    if(document.hidden) go(); else showToast(cupT10('A new version is ready.','새 버전이 준비됐어요.'), cupT10('Reload','새로고침'), go);
+  });
+  const check=()=>{ if(Date.now()-cupUpdLast<60000) return; cupUpdLast=Date.now();
+    navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{}); };
+  document.addEventListener('visibilitychange', ()=>{ if(document.hidden){ if(cupUpdReady) go(); } else check(); });
+  setInterval(check, 30*60000);
+}
+
 
 // Korean interface strings. Keys are the exact English text shown on screen.
 Object.assign(CUP_KO, {

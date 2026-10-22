@@ -20,7 +20,7 @@
  * the static shell (HTML/CSS/JS/fonts/icons).
  */
 
-const SHELL_CACHE = 'focus-hub-shell-v45';
+const SHELL_CACHE = 'focus-hub-shell-v46';
 
 // Files that make up the static "app shell". Bump the cache version
 // constant above whenever any of these change to force a re-fetch.
@@ -45,7 +45,7 @@ self.addEventListener('install', (event) => {
       // install (some routes might 404 in dev).
       Promise.all(
         SHELL_FILES.map((url) =>
-          cache.add(url).catch((err) =>
+          cache.add(new Request(url, { cache: 'reload' })).catch((err) =>
             console.warn('[sw] failed to cache', url, err)
           )
         )
@@ -84,6 +84,23 @@ self.addEventListener('fetch', (event) => {
     url.hostname.includes('googleapis') ||
     url.pathname.startsWith('/api/')
   ) return;
+
+  // The page itself: network first, so a new release shows on the next open.
+  // The cached copy is only for when you're offline.
+  if (req.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html') {
+    event.respondWith(
+      fetch(req, { cache: 'no-store' })
+        .then((response) => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const copy = response.clone();
+            caches.open(SHELL_CACHE).then((cache) => cache.put(req, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(req).then((c) => c || caches.match('/index.html')))
+    );
+    return;
+  }
 
   // For everything else: cache-first with background revalidation.
   event.respondWith(
