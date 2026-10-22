@@ -7273,6 +7273,13 @@ body.cup-lean{ --radius:8px; --radius-sm:6px; --radius-lg:12px; }
 .cup-gp-list input[type="checkbox"]{ width:auto; height:auto; margin:0; flex:none; }
 .cup-gp-list label{ justify-content:flex-start; }
 
+/* course pace tone (cup-10.js cupPaceTone): status words + bar fill share one color */
+:root{ --pace-ok:var(--green,#2A6B44); --pace-yel:#86690a; --pace-amb:#A85418; --pace-bad:#B83030; }
+[data-theme="dark"]{ --pace-ok:#4dd49a; --pace-yel:#d9c25a; --pace-amb:#e8994f; --pace-bad:#e57373; }
+.cup-tone-ok{ --pace-c:var(--pace-ok); } .cup-tone-yel{ --pace-c:var(--pace-yel); } .cup-tone-amb{ --pace-c:var(--pace-amb); } .cup-tone-bad{ --pace-c:var(--pace-bad); }
+[class*="cup-tone-"] :is(.cup-pace-even,.cup-pace-behind,.cup-pace-ahead){ color:var(--pace-c); }
+[class*="cup-tone-"] .cup-pace-bar .you{ background:var(--pace-c); }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -26067,6 +26074,16 @@ function cupSetTabs(){
   try{ document.body.classList.toggle('cup-veteran', S.tasks.length>=15);
     document.querySelectorAll('#page-dashboard .cup-hbtn:not(.warn)').forEach(b=>{ if(/cupSetBankSel\('waiting'\)/.test(b.getAttribute('onclick')||'')) b.remove(); }); }catch(_){}
   return r; }; }
+
+// ── course pace: the status words and bar take one color for how you're doing ──
+//    ahead / caught up → green · behind but planned: 1–2 → yellow, 3+ → amber · behind with no plan → red
+function cupPaceTone(p){
+  if(!p.behind) return 'ok';
+  const onPlan=!p.lead && p.steps.every(t=>cupDone(t)||(t.due&&t.due>=todayStr()));
+  return !onPlan ? 'bad' : p.behind<=2 ? 'yel' : 'amb';
+}
+{ const _pr=cupPaceRow; cupPaceRow=function(p, big){ const h=_pr.apply(this,arguments);
+    return h.replace(/^(\s*<div class="cup-pace(?:row|mini))/, `$1 cup-tone-${cupPaceTone(p)}`); }; }
 
 // ════════════════════════════════════════════════════════════════════
 //  PART 11 — Google Calendar, both ways (by choice).
