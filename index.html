@@ -7099,6 +7099,37 @@ button:active, .btn:active, .nav-item:active, .mt-tab:active{ transition-duratio
 .cup-rev-tmr{ font-size:calc(14px * var(--cup-fs,1)); color:var(--text2); } .cup-rev-tmr button{ color:var(--text); } .cup-rev-tmr b{ font-weight:600; margin-right:4px; font-variant-numeric:tabular-nums; }
 .cup-rev-reflect{ justify-self:start; }
 
+/* Tasks list, calmer: tighter sections, quick-date buttons on hover, Must-dos switch in the toolbar */
+.cup-tl-sec{ margin-bottom:12px; }
+.cup-tl-h{ font-size:calc(15.5px * var(--cup-fs,1)); padding-bottom:5px; margin-bottom:2px; }
+.cup-tl-row{ padding:5px 2px; }
+.cup-tl-more{ margin:2px 0 0 28px; }
+.cup-tl-top .cup-gate.compact{ margin:0; flex:0 0 auto; }
+.cup-tl-top .cup-gate.compact .cup-gate-sw{ white-space:nowrap; }
+@media (hover:hover){
+  .cup-tl-sec.nodate .cup-tl-quick{ opacity:0; transition:opacity .12s; }
+  .cup-tl-sec.nodate .cup-tl-row:hover .cup-tl-quick, .cup-tl-sec.nodate .cup-tl-quick:focus-within{ opacity:1; }
+}
+.cup-tl-add{ white-space:nowrap; }
+@media (max-width:1180px){ .cup-tl-add em{ display:none; } }
+@media (max-width:760px){
+  .cup-tl-sec.nodate .cup-tl-row{ display:flex; align-items:center; gap:8px; }
+  .cup-tl-sec.nodate .cup-tl-t{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cup-tl-sec.nodate .cup-tl-meta{ display:none; }
+  .cup-tl-sec.nodate .cup-tl-quick{ display:flex; gap:4px; flex:0 0 auto; }
+  .cup-tl-sec.nodate .cup-tl-quick button{ padding:3px 8px; font-size:calc(12px * var(--cup-fs,1)); min-height:0; }
+  .cup-tl-top{ flex-wrap:wrap; }
+  .cup-tl-top .cup-tl-add{ flex:1 0 100%; }
+  .cup-tl-top .cup-tl-fsel, .cup-tl-top .cup-tl-q{ flex:1 1 0; min-width:0; }
+  .cup-tl-top .cup-gate.compact .cup-gate-sw{ font-size:calc(12px * var(--cup-fs,1)); padding:6px 10px; }
+}
+@media (max-width:760px){
+  .cup-tl-sec.nodate .cup-tl-act{ display:none; }
+  .cup-tl-top .cup-tl-add{ flex:1 1 50%; order:0; }
+  .cup-tl-top .cup-gate.compact{ order:1; }
+  .cup-tl-top .cup-tl-fsel, .cup-tl-top .cup-tl-q{ flex:1 1 calc(50% - 6px); order:2; }
+}
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -23532,10 +23563,12 @@ function cupRenderTaskList(){
   const on=k=>rest.filter(t=>cupTLDate(t)===k);
   const week=[]; for(let i=2;i<=7;i++){ const k=d(i), l=on(k); if(l.length) week.push([k,l]); }
   const later=rest.filter(t=>{ const k=cupTLDate(t); return k && k>wk; }), none=rest.filter(t=>!cupTLDate(t));
-  const sec=(key,title,list,{fold,showDate,extra,cls}={})=>{ if(!list.length) return '';
-    const isOpen=fold?cupTLOpen[key]:true;
+  // long sections show the first few; “Show all” opens the rest (searching shows everything)
+  const sec=(key,title,list,{fold,showDate,extra,cls,cap}={})=>{ if(!list.length) return '';
+    const isOpen=fold?cupTLOpen[key]:true, all=cupTLOpen['all_'+key]||!!cupTLQuery, short=cap&&!all&&list.length>cap+1;
+    const shown=short?list.slice(0,cap):list;
     return `<section class="cup-tl-sec ${cls||''}"><div class="cup-tl-h">${fold?`<button onclick="cupTLToggle('${key}')" aria-expanded="${isOpen}"><span class="cup-fold-chev ${isOpen?'open':''}">›</span>${title}</button>`:`<span>${title}</span>`}<span class="cup-tl-n">${list.length}</span>${extra||''}</div>
-      ${isOpen?list.map(t=>cupTLRow(t,showDate)).join(''):''}</section>`; };
+      ${isOpen?shown.map(t=>cupTLRow(t,showDate)).join('')+(short?`<button type="button" class="cup-more-btn cup-tl-more" onclick="cupTLOpen['all_${key}']=true;cupRenderTaskList()">Show all ${list.length}</button>`:(cap&&cupTLOpen['all_'+key]&&list.length>cap+1&&!cupTLQuery?`<button type="button" class="cup-more-btn cup-tl-more" onclick="cupTLOpen['all_${key}']=false;cupRenderTaskList()">Show fewer</button>`:'')):''}</section>`; };
   const folders=cupActive().filter(c=>!c.parentId).sort(cupByName);
   const html=`<div class="cup-tl">
     <div class="cup-tl-top">
@@ -23544,14 +23577,14 @@ function cupRenderTaskList(){
         <option value="">All folders</option>${folders.map(c=>`<option value="${c.id}" ${cupTLFolder===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
       <input class="cup-tl-q" placeholder="Search" value="${esc(cupTLQuery)}" oninput="if(event.isComposing)return;cupTLQuery=this.value;cupRenderTaskList()" oncompositionend="cupTLQuery=this.value;cupRenderTaskList()" aria-label="Search tasks">
     </div>
-    ${sec('overdue','Overdue',over,{ fold:true, showDate:true, cls:'over', extra:over.length>=3?`<button class="cup-tl-fresh" onclick="cupFreshOpen()">Reschedule overdue</button>`:'' })}
+    ${sec('overdue','Overdue',over,{ fold:true, showDate:true, cls:'over', cap:8, extra:over.length>=3?`<button class="cup-tl-fresh" onclick="cupFreshOpen()">Reschedule overdue</button>`:'' })}
     ${sec('today','Today',on(td))}
-    ${sec('tomorrow','Tomorrow',on(tm))}
-    ${week.map(([k,l])=>sec('d'+k, `${cupWd(k)} <span class="cup-dim">${cupFmt(k)}</span>`, l)).join('')}
-    ${sec('later','Later',later,{ fold:true, showDate:true })}
+    ${sec('tomorrow','Tomorrow',on(tm),{ cap:6 })}
+    ${sec('week','This week',week.flatMap(([k,l])=>l),{ showDate:true, cap:6 })}
+    ${sec('later','Later',later,{ fold:true, showDate:true, cap:10 })}
     ${sec('none','No date',none,{ fold:true })}
     ${sec('waiting','Waiting on',waiting,{ fold:true })}
-    ${sec('done','Done today',doneToday,{ fold:true, cls:'donesec' })}
+    ${sec('done','Done today',doneToday,{ fold:true, cls:'donesec', cap:6 })}
     ${!open.length&&!doneToday.length?`<div class="cup-tl-empty">${cupTLQuery||cupTLFolder?'Nothing matches.':'Nothing to do. Enjoy it ✓'}</div>`:''}
   </div>`;
   if(host.contains(document.activeElement) && document.activeElement.classList.contains('cup-tl-q')){
@@ -23762,6 +23795,7 @@ function cupGateOn(){ return !!cupPref('focusGate',false) && cupGateTasks().leng
 function cupGateToggle(){ cupSetPref('focusGate', !cupPref('focusGate',false)); try{ cupRenderTaskList(); }catch(_){} try{ cupRenderHome(); }catch(_){} }
 function cupGateBar(){
   const on=!!cupPref('focusGate',false), n=cupGateTasks().length;
+  if(!on) return `<div class="cup-gate compact"><button type="button" class="cup-gate-sw" onclick="cupGateToggle()" aria-pressed="false" title="Dim everything else until today’s must-dos are done"><i></i>Must-dos first</button></div>`;
   return `<div class="cup-gate ${on&&n?'locked':''}"><button type="button" class="cup-gate-sw ${on?'on':''}" onclick="cupGateToggle()" aria-pressed="${on}"><i></i>Must-dos first</button>
     <span class="cup-dim">${on?(n?`🔒 Finish ${n} must-do${n===1?'':'s'} to unlock the rest`:'All must-dos done — everything is open'):'Dim everything else until today’s must-dos are done'}</span></div>`;
 }
@@ -23770,7 +23804,9 @@ function cupGateBar(){
   const host=document.getElementById('cupTaskList'); if(!host) return;
   const top=host.querySelector('.cup-tl-top'); if(!top) return;
   let bar=host.querySelector('.cup-gate'); const html=cupGateBar();
-  if(!bar){ top.insertAdjacentHTML('afterend', html); } else if(bar.outerHTML!==html){ bar.outerHTML=html; }
+  const inTop=!cupPref('focusGate',false);
+  if(bar && (bar.parentElement===top)!==inTop){ bar.remove(); bar=null; }
+  if(!bar){ inTop ? top.insertAdjacentHTML('beforeend', html) : top.insertAdjacentHTML('afterend', html); } else if(bar.outerHTML!==html){ bar.outerHTML=html; }
   const gate=cupGateOn(), gt=cupGateTasks(), ids=new Set(gt.map(t=>t.id));
   let first=host.querySelector('.cup-tl-sec.gatefirst'); const fh=gate?`<section class="cup-tl-sec gatefirst"><div class="cup-tl-h"><span>Must do first</span><span class="cup-tl-n">${gt.length}</span></div>${gt.map(t=>cupTLRow(t,true)).join('')}</section>`:'';
   if(first && first.outerHTML!==fh) first.remove(), first=null;
@@ -25445,13 +25481,13 @@ function cupTLPickDate(id){ cupOpenTaskSheet(id); try{ cupTS.open='due'; cupTSRe
     const rows=[...none.querySelectorAll('.cup-tl-row')];
     rows.forEach((row,i)=>{
       const id=(row.querySelector('.cup-check2')?.getAttribute('onclick')||'').match(/'([^']+)'/)?.[1]; if(!id) return;
-      if(!cupTLNoneAll && i>=8) row.style.display='none';
+      if(!cupTLNoneAll && !cupTLQuery && rows.length>6 && i>=5) row.style.display='none';
       if(row.querySelector('.cup-tl-quick')) return;
       const q=document.createElement('span'); q.className='cup-tl-quick';
       q.innerHTML=`<button type="button" onclick="cupTLSetDate('${id}',0)">${cupT10('Today','오늘')}</button><button type="button" onclick="cupTLSetDate('${id}',1)">${cupT10('Tmrw','내일')}</button><button type="button" onclick="cupTLPickDate('${id}')" title="${cupT10('Pick a date','날짜 고르기')}" aria-label="${cupT10('Pick a date','날짜 고르기')}">📅</button>`;
       const act=row.querySelector('.cup-tl-act'); if(act) act.before(q); else row.appendChild(q);
     });
-    if(rows.length>8 && !none.querySelector('.cup-tl-more')) none.insertAdjacentHTML('beforeend', `<button type="button" class="cup-more-btn cup-tl-more" onclick="cupTLNoneAll=!cupTLNoneAll;cupRenderTaskList()">${cupTLNoneAll?cupT10('Show fewer','접기'):cupT10(`Show all ${rows.length}`,`${rows.length}개 모두 보기`)}</button>`);
+    if(rows.length>6 && !cupTLQuery && !none.querySelector('.cup-tl-more')) none.insertAdjacentHTML('beforeend', `<button type="button" class="cup-more-btn cup-tl-more" onclick="cupTLNoneAll=!cupTLNoneAll;cupRenderTaskList()">${cupTLNoneAll?cupT10('Show fewer','접기'):cupT10(`Show all ${rows.length}`,`${rows.length}개 모두 보기`)}</button>`);
   }
   return r; }; }
 
