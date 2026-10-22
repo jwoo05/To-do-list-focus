@@ -7149,6 +7149,33 @@ body.cup-side-min .sidebar .sidebar-logo{ justify-content:center; padding:0 0 8p
 /* open sidebar: no top row at all; collapsed rail: just the » on top */
 body:not(.cup-side-min) .sidebar .sidebar-logo{ display:none; }
 
+/* Rows end flush right: title takes the space, details sit at the edge, hover-only buttons float over the end */
+.cup-tl-row{ display:flex; align-items:center; gap:10px; position:relative; }
+.cup-tl-row > .cup-check2{ flex:none; }
+.cup-tl-row > .cup-tl-t{ flex:1 1 auto; min-width:0; }
+.cup-tl-row > .cup-fc-chip, .cup-tl-row > .cup-tl-meta{ flex:none; }
+.cup-today-list .cup-todo, .cup-todo{ display:flex; align-items:center; gap:10px; position:relative; }
+.cup-todo > .cup-check2{ flex:none; }
+.cup-todo > .t{ flex:1 1 auto; min-width:0; }
+.cup-todo > .cup-fc-chip, .cup-todo > .cup-up-time{ flex:none; }
+@media (hover:hover){
+  .cup-tl-row:hover{ background:var(--bg2); }
+  .cup-tl-row .cup-tl-act, .cup-tl-sec.nodate .cup-tl-quick, .cup-today-list .cup-todo .cup-pin-btn{
+    position:absolute; top:50%; transform:translateY(-50%); right:4px; display:flex; gap:4px; align-items:center;
+    padding-left:14px; background:linear-gradient(to right, transparent, var(--bg2) 14px); opacity:0; pointer-events:none; transition:opacity .12s; }
+  .cup-tl-sec.nodate .cup-tl-quick{ right:40px; }
+  .cup-tl-sec.nodate .cup-tl-row:hover .cup-tl-quick{ background:var(--bg2); }
+  .cup-tl-row:hover .cup-tl-act, .cup-tl-row:hover .cup-tl-quick, .cup-tl-row:focus-within .cup-tl-quick,
+  .cup-today-list .cup-todo:hover .cup-pin-btn, .cup-today-list .cup-pin-btn:focus{ opacity:1; pointer-events:auto; }
+  .cup-tl-row .cup-tl-act button{ opacity:1; }
+  .cup-today-list .cup-todo{ border-radius:8px; } .cup-today-list .cup-todo:hover{ background:var(--bg2); }
+  .cup-today-list .cup-todo .cup-pin-btn{ background:var(--bg2); }
+}
+@media (hover:hover){
+  .cup-tl-row .cup-tl-meta{ transition:opacity .12s; }
+  .cup-tl-sec.nodate .cup-tl-row:hover .cup-tl-meta, .cup-tl-sec.nodate .cup-tl-row:focus-within .cup-tl-meta{ opacity:0; }
+}
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
