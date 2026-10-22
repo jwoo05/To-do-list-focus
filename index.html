@@ -25615,6 +25615,20 @@ let cupPreLoadS=null, cupLoadUid=null;
 if(typeof auth!=='undefined' && auth && auth.signOut){ const _so=auth.signOut.bind(auth); auth.signOut=function(){
   try{ if(typeof flushPendingSave==='function') flushPendingSave(); }catch(_){}
   return _so().then(r=>{ cupWipeLocal(); try{ localStorage.removeItem('cup_owner_uid'); }catch(_){} try{ S=cupBlankState(); cupPreLoadS=null; cupLoadUid=null; render(); }catch(_){} return r; }); }; }
+// a date move made just before the cloud copy (re)loads would be overwritten by it — remember moves and re-apply them once it lands
+let cupMoveQ=[];
+function cupReplayMoves(){ if(!cupMoveQ.length) return; let n=0;
+  cupMoveQ.forEach(m=>{ const t=S.tasks.find(x=>x.id===m.id); if(t && !cupDone(t) && (t.due||'')===m.from){ t.due=m.due; t.scheduledDates=[...m.sched]; n++; } });
+  cupMoveQ=[]; if(n){ save(); render(); } }
+{ const track=fn=>function(){ const b=new Map(S.tasks.map(t=>[t.id,t.due||''])), r=fn.apply(this,arguments), now=Date.now();
+    S.tasks.forEach(t=>{ if(b.has(t.id) && (t.due||'')!==b.get(t.id)){ cupMoveQ=cupMoveQ.filter(m=>m.id!==t.id); cupMoveQ.push({ id:t.id, from:b.get(t.id), due:t.due||'', sched:[...(t.scheduledDates||[])], at:now }); } });
+    cupMoveQ=cupMoveQ.filter(m=>now-m.at<180000); return r; };
+  cupFresh=track(cupFresh); cupTLSetDate=track(cupTLSetDate); cupMoveDue=track(cupMoveDue); }
+{ const _l=loadUserDataFromFirebase; loadUserDataFromFirebase=function(){
+  const pre=S; cupMoveQ=cupMoveQ.filter(m=>{ const t=(pre.tasks||[]).find(x=>x.id===m.id); return t && (t.due||'')===m.due; });   // undone moves don't come back
+  const r=_l.apply(this,arguments);
+  if(cupMoveQ.length){ let k=0; const iv=setInterval(()=>{ if(S!==pre){ clearInterval(iv); cupReplayMoves(); } else if(++k>100) clearInterval(iv); }, 200); }
+  return r; }; }
 
 // ════════════════════════════════════════════════════════════
 //  6 · FIRST GLANCE — a “Start here” card for new accounts; plain empty states
