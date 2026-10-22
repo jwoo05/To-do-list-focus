@@ -20740,17 +20740,19 @@ function cupPaceMinutes(t){ const m=[...String(t.notes||'').matchAll(/≈\s*(\d+
 const cupHrs = m => m>=60 ? `${Math.round(m/60*10)/10}h` : `${m}m`;
 function cupPaceRow(p, big){
   const pc=x=>Math.min(100, x/p.of*100);
+  const onPlan=!p.lead && p.steps.every(t=>cupDone(t)||(t.due&&t.due>=todayStr()));   // every unfinished review has a day ahead
+
   if(big==='mini'){
     const tip = p.behind ? `You ${p.prefix}${p.you} · Class ${p.prefix}${p.cls} · ${cupHrs(p.owe||p.behind*p.mins)} to catch up${p.caught?' · even by '+cupFmt(p.caught):''}` : `You ${p.prefix}${p.you} · Class ${p.prefix}${p.cls}`;
     const last=[...p.steps].reverse().find(cupDone);
     return `<div class="cup-pacemini" title="${esc(tip)}"><button class="cup-pacemini-n" onclick="showPage('compass')" title="Open the Goals page">${esc((p.folder?p.folder.name:p.name).split(' · ')[0])}</button>
       <span class="cup-pace-bar"><i class="you" style="width:${pc(p.you)}%"></i><span class="cls" style="left:${pc(p.cls)}%"></span></span>
-      <span class="${p.behind?'cup-pace-behind':'cup-pace-even'}">${p.behind?`${p.behind} ${p.lead?'to prep':(p.behind===1?'lecture behind':'lectures behind')}`:p.ahead?`${p.ahead} ahead`:'even'}</span>
+      <span class="${p.behind&&!onPlan?'cup-pace-behind':'cup-pace-even'}">${p.behind?(onPlan?`${p.behind} to review · on plan`:`${p.behind} ${p.lead?'to prep':(p.behind===1?'lecture behind':'lectures behind')}`):p.ahead?`${p.ahead} ahead`:'even'}</span>
       ${p.nextStep?`<button class="cup-act" onclick="cupPin('${p.nextStep.id}')" title="Put ${esc(p.nextStep.title)} at the top of Home">Do next</button>`:''}
       ${p.nextStep?`<button class="cup-pace-tick" onclick="toggleTask('${p.nextStep.id}')" title="Mark ${esc(p.nextStep.title)} finished">✓ ${esc(p.prefix)}${p.nextStep.plan.step}</button>`:''}
       ${last?`<button class="cup-act" onclick="cupUndoStep('${last.id}')" title="Un-check ${esc(last.title)} (if you marked it by mistake)">Undo</button>`:''}</div>`;
   }
-  const status = p.behind ? `<b class="cup-pace-behind">${p.behind} ${p.lead?'to prep':(p.behind===1?'lecture behind':'lectures behind')}</b>` : p.ahead ? `<b class="cup-pace-ahead">${p.ahead} ahead</b>` : `<b class="cup-pace-even">Caught up</b>`;
+  const status = p.behind && onPlan ? `<b class="cup-pace-even">${p.behind} to review · on plan</b>` : p.behind ? `<b class="cup-pace-behind">${p.behind} ${p.lead?'to prep':(p.behind===1?'lecture behind':'lectures behind')}</b>` : p.ahead ? `<b class="cup-pace-ahead">${p.ahead} ahead</b>` : `<b class="cup-pace-even">Caught up</b>`;
   const left = p.behind ? `${cupHrs(p.owe||p.behind*p.mins)} to ${p.lead?'prep':'catch up'}${p.caught?` · even by ${cupParse(p.caught).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})} at ${p.perDay}/day`:''}` : `${p.of-p.you} left in the course`;
   return `<div class="cup-pacerow ${big?'big':''}">
     <div class="cup-pacerow-top"><button class="cup-pacerow-name" onclick="${p.folder?`cupSetBankSel('folder:${p.folder.id}')`:''}">${esc(p.folder?p.folder.name:p.name)}</button>${status}
@@ -21317,8 +21319,10 @@ function cupHomeChips(behind){
     ${people.length?`<optgroup label="People & clients">${people.map(p=>`<option value="person:${esc(p)}" ${f==='person:'+p?'selected':''}>${esc(p)}</option>`).join('')}</optgroup>`:''}`;
   const evening=cupNow().getHours()>=18, j=cupJEntry(todayStr()), jHas=cupJHas(j);
   return `<div class="cup-hchips">
-    ${behind?(()=>{ const bp=cupPacePlans().filter(p=>p.behind&&!p.lead); const one=bp.length===1?bp[0]:null;
-      return `<button type="button" class="cup-hbtn warn" onclick="showPage('compass')" title="Class pace — open Goals">${one?`${esc((one.folder?one.folder.name:one.name).split(' · ')[0])} · ${one.behind} lecture${one.behind===1?'':'s'} behind →`:`${bp.length||behind} classes behind →`}</button>`; })():''}
+    ${(()=>{ // warn only when a lecture review is past the day it was planned for, not just because class moved on
+      const td=todayStr(), bp=cupPacePlans().filter(p=>!p.lead).map(p=>({ p, late:p.steps.filter(t=>!cupDone(t)&&t.due&&t.due<td).length })).filter(x=>x.late); if(!bp.length) return '';
+      const one=bp.length===1?bp[0]:null;
+      return `<button type="button" class="cup-hbtn warn" onclick="showPage('compass')" title="Class pace — open Goals">${one?`${esc((one.p.folder?one.p.folder.name:one.p.name).split(' · ')[0])} · ${one.late} review${one.late===1?'':'s'} overdue →`:`${bp.length} classes have overdue reviews →`}</button>`; })()}
     ${wait.length?`<button type="button" class="cup-hbtn" onclick="cupSetBankSel('waiting')" title="Things you sent and are waiting on">Waiting on · ${wait.length}${stale?` · ${stale} to nudge`:''}</button>`:''}
     <button type="button" class="cup-hbtn cup-x-gentle ${cupEnergyLow()?'on':''}" onclick="cupToggleEnergy()" title="Low energy? Hides tasks marked Hard for today">${cupEnergyLow()?'Gentle day on':'Gentle day'}</button>
     ${evening||jHas?`<button type="button" class="cup-hbtn" onclick="cupJOpen(todayStr())">${jHas?'✎ Today’s journal':'✎ Reflect'}</button>`:''}
