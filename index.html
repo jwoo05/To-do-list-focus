@@ -3829,9 +3829,7 @@ button, input, select, textarea { font-family: var(--font-ui); font-synthesis: n
 /* Notion-style weight ramp: 420 body, 540 emphasis, 600 serif display.
    `!important` is unavoidable here — many existing rules used 700/800
    with class-level specificity that beats `body *`. */
-body, body * {
-  font-weight: 420 !important;
-}
+body { font-weight: 420; }
 body h1, body h2, body h3, body h4, body h5, body h6,
 .modal-title, .nav-item, .sec-title, .sub-sec-title, .bank-title, .dash-title,
 .hud-panel-title, .hud-score-val, .hud-stat-num,
@@ -3882,7 +3880,7 @@ strong, b {
 /* Chips: light but readable. chip-time-left has its own rule earlier. */
 .chip { font-weight: 460 !important; }
 /* Buttons: clearly readable, not bold */
-.btn, .btn-sm, .btn-ghost, .btn-primary, button { font-weight: 470 !important; }
+.btn, .btn-sm, .btn-ghost, .btn-primary, button { font-weight: 470; }
 
 /* Calendar — week view */
 .cwk-num, .cwk-num *,
@@ -7240,6 +7238,21 @@ body.cup-lean .sidebar .sidebar-action-btn.variant-danger{ display:none; }
 [data-theme="light"] .cal-mini-chip.cupc.ev-deadline{ color:#b82c2c !important; }
 [data-theme="light"] .cal-mini-chip.cupc.ev-task, [data-theme="light"] .cup-fc-pill.ok, [data-theme="light"] .cup-fc-big, [data-theme="light"] .cup-th-chip.done{ color:#1f6f4a !important; }
 [data-theme="light"] .cal-mini-chip.cupc.ev-habit{ color:#5a3ec8 !important; }
+
+/* Settings tabs */
+#mSettings .cup-set-tabbed .cup-tab-off{ display:none !important; }
+.cup-set-tabs{ position:sticky; top:-1px; z-index:2; display:flex; gap:4px; padding:4px; margin:0 0 6px; border:1px solid var(--border); border-radius:10px; background:var(--bg2); }
+.cup-set-tabs button{ flex:1; padding:7px 6px; border-radius:7px; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text2); white-space:nowrap; }
+.cup-set-tabs button.on{ background:var(--surface, var(--bg)); color:var(--text); box-shadow:0 1px 2px rgba(0,0,0,.2); }
+@media (max-width:420px){ .cup-set-tabs button{ font-size:calc(11.5px * var(--cup-fs,1)); padding:7px 2px; } }
+body.cup-veteran .sidebar .cup-side-empty{ display:none; }
+/* calendar day panel: the journal card shows only on days you wrote something */
+body.cup-lean #calDayTasks .cup-jcal:not(.has){ display:none; }
+/* one style for every small section label */
+.cup-side-head, .cup-next-label, .cup-pile-h, .cup-th-h, .cup-g-h, .cup-dcard h5, .cup-block h5, .cup-j-sec h4, .cup-w h5, .cup-tsec-h, .cup-pref-h, .cup-sess-lbl, .cup-fc-lbl{
+  font-family:var(--font-ui, inherit) !important; font-size:calc(11px * var(--cup-fs,1)) !important; font-weight:600 !important; text-transform:uppercase !important; letter-spacing:.08em !important; color:var(--text3) !important; }
+/* calm layout: buttons and inputs as round as the cards around them */
+body.cup-lean{ --radius:8px; --radius-sm:6px; --radius-lg:12px; }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -22107,7 +22120,7 @@ function cupWelcomeFill(){
     <ul class="cup-tour">
       <li><b>Home</b> shows one thing: your Next up task. <i>Later</i> hides it, <i>Do next</i> chooses another.</li>
       <li><b>+ (or ⌘K)</b> adds anything. Type “call Sam fri 3pm” and pick Task, Event, Page, Habit or Waiting on.</li>
-      <li><b>Tasks &amp; Calendar</b> is one page. Filter chips show or hide events, deadlines and to-dos.</li>
+      <li><b>Tasks &amp; Calendar</b> has two tabs: <i>Calendar</i> shows your schedule, and the day you pick lists its to-dos; <i>Tasks</i> is the full list.</li>
       <li><b>Pages</b> are notes. Type <kbd>/</kbd> on any line for commands, and <i>Organize</i> summarizes a page.</li>
       <li><b>Journal</b> keeps a line a day, with a mood and photos. <b>Goals</b> holds deadlines and progress.</li>
     </ul>`;
@@ -23140,7 +23153,7 @@ function cupOpenMobileMe(){
       <button class="cup-me-card" onclick="cupOpenFriends('friends')"><span>⟡</span><b>Friends</b><em>Weekly league</em></button>
       <button class="cup-me-card cup-extra-only" onclick="closeModal('mCupMobMe');showPage('focus')"><span>◎</span><b>Focus Timer</b><em>Pomodoro session</em></button>
       <button class="cup-me-card cup-extra-only" onclick="closeModal('mCupMobMe');cupShareNewOpen()"><span>↗</span><b>Shared Lists</b><em>Family, club, team</em></button>
-      <button class="cup-me-card cup-extra-only" onclick="closeModal('mCupMobMe');cupOpenLoad()"><span>☕</span><b>Weekly Load</b><em>Capacity planner</em></button>
+      <button class="cup-me-card cup-extra-only" onclick="closeModal('mCupMobMe');cupOpenLoad()"><span>◔</span><b>Weekly Load</b><em>Capacity planner</em></button>
       <button class="cup-me-card cup-extra-only" onclick="closeModal('mCupMobMe');cupOpenCats()"><span>▤</span><b>Categories</b><em>Edit groups & areas</em></button>
       <button class="cup-me-card" onclick="closeModal('mCupMobMe');openModal('mSettings')"><span>⚙</span><b>Settings</b><em>Language, theme & sync</em></button>
     </div>
@@ -23599,7 +23612,7 @@ function cupFCReport(id){
     <div class="modal-header"><span class="modal-title">Session report</span><button class="modal-close" onclick="closeModal('mCupFCR')" aria-label="Close">✕</button></div>
     <div class="modal-body">
       <div class="cup-fcr-top"><div class="cup-w-ring cup-fcr-ring" style="--p:${r.score};--rc:${cupFCColor(r.score)}"><b>${r.score}</b><span>focus</span></div>
-        <div><div class="cup-fcr-title">${esc(r.title)}</div><div class="cup-dim">${cupFmt(cupISO(new Date(r.start)))} · ${cupT12(`${pad(new Date(r.start).getHours())}:${pad(new Date(r.start).getMinutes())}`)} · ${mins} min · ${r.src==='ai'?'checked by Claude':'checked on this device'}</div>
+        <div><div class="cup-fcr-title">${esc(r.title)}</div><div class="cup-dim">${cupFmt(cupISO(new Date(r.start)))} · ${cupT12(`${pad(new Date(r.start).getHours())}:${pad(new Date(r.start).getMinutes())}`)} · ${mins} min · ${r.src==='ai'?cupT10('checked by Claude','Claude가 확인함'):cupT10('checked on this device','이 기기에서 확인함')}</div>
           ${r.goal?`<div class="cup-fcr-goal">Goal: ${esc(r.goal)}</div>`:''}${r.headline?`<div class="cup-fcr-head">${esc(r.headline)}</div>`:''}</div></div>
       <div class="cup-fcr-tl" aria-label="Focus over time">${r.samples.map(x=>`<i style="height:${Math.max(6,x.s)}%;background:${cupFCAct(x.a)[1]}" title="${Math.round(x.t/60)}m · ${x.s} · ${esc(cupFCAct(x.a)[0])}${x.n?' — '+esc(x.n):''}"></i>`).join('')}</div>
       <div class="cup-fcr-mix">${mix.map(([k,c])=>`<span><i style="background:${cupFCAct(k)[1]}"></i>${cupFCAct(k)[0]} <b>${Math.round(c/n*100)}%</b></span>`).join('')}</div>
@@ -25409,7 +25422,7 @@ cupOpenMobileMe=function(){
       </div>
       <div class="cup-me-sec cup-extra-only">${cupW3T('More tools','더 많은 도구')}</div>
       <div class="cup-me-group cup-extra-only">
-        ${row(close+'cupOpenLoad()','☕',cupW3T('Weekly Load','주간 로드'),cupW3T('Capacity planner','주간 여유량 플래너'))}
+        ${row(close+'cupOpenLoad()','◔',cupW3T('Weekly Load','주간 로드'),cupW3T('Capacity planner','주간 여유량 플래너'))}
         ${row(close+'cupOpenCats()','▤',cupW3T('Categories','카테고리'),cupW3T('Edit groups & areas','그룹 및 영역 편집'))}
       </div>
       <div class="cup-me-group cup-me-last">${row(close+"openModal('mSettings')",'⚙',cupW3T('Settings','설정'),cupW3T('Language, theme & sync','언어, 테마 및 동기화'))}</div>
@@ -25997,6 +26010,44 @@ cupRenderCompass=function(){
 };
 { const _om=openModal; openModal=function(id){ if(id==='mAddTask' && document.body.classList.contains('cup-lean') && typeof cupPlusOpen==='function'){ cupPlusOpen('task'); return; } return _om.apply(this,arguments); }; }
 
+// ════════════════════════════════════════════════════════════
+//  15 · SETTINGS IN 4 TABS — General · Appearance · Focus & AI · Data & Account.
+//  Rows keep their places (style.order from cup-9); each tab shows its own rows,
+//  no “Advanced” fold, and the duplicate density / minimal controls are hidden
+// ════════════════════════════════════════════════════════════
+let cupSetTab='general';
+function cupSetTabOf(o){
+  if([11,12,15,920,921,924,925,926,927,955].includes(o)) return 'general';
+  if([13,14,17,18,19,950,952].includes(o)) return 'look';
+  if((o>=40&&o<=53) || [922,923].includes(o) || (o>=960&&o<=964)) return 'focus';
+  if((o>=30&&o<=34) || (o>=60&&o<=72) || o===970) return 'data';
+  if([16,951,953,954].includes(o)) return 'dup';                      // Minimal mode (fights Extra tools), app subtitle (no longer shown), two extra density controls
+  return 'general';
+}
+function cupSetTabs(){
+  const body=document.querySelector('#mSettings .modal-body.cup-w3-set'); if(!body) return;
+  cupW3AdvOpen=true; body.classList.add('cup-adv-open','cup-set-tabbed');
+  const T=[['general',cupT10('General','일반')],['look',cupT10('Appearance','화면')],['focus',cupT10('Focus & AI','집중 & AI')],['data',cupT10('Data & Account','데이터 & 계정')]];
+  let bar=document.getElementById('cupSetTabs');
+  if(!bar){ bar=document.createElement('div'); bar.id='cupSetTabs'; bar.className='cup-set-tabs'; bar.setAttribute('role','tablist'); body.prepend(bar); }
+  bar.style.order=0;
+  const html=T.map(([k,l])=>`<button type="button" role="tab" aria-selected="${cupSetTab===k}" class="${cupSetTab===k?'on':''}" onclick="cupSetTab='${k}';cupSetTabs();document.querySelector('#mSettings .modal-body').scrollTop=0">${l}</button>`).join('');
+  if(bar._h!==html){ bar.innerHTML=html; bar._h=html; }
+  const heads={ cupW3hEss:'general', cupW3hCal:'data', cupW3hKey:'focus', cupW3hRem:'focus', cupW3hData:'data', cupW3hAcct:'data' };
+  const rows=[...body.children, ...(document.getElementById('cupPrefs')?.children||[])];
+  rows.forEach(el=>{ if(el===bar || el.id==='cupPrefs' || el.classList.contains('form-actions')) return;
+    if(el.id==='cupW3Adv'){ el.classList.add('cup-tab-off'); return; }
+    if(el.classList.contains('cup-w3-x')) return;                              // old inline headers stay hidden
+    const tab = heads[el.id] || cupSetTabOf(+el.style.order||800);
+    el.classList.toggle('cup-tab-off', tab!==cupSetTab); });
+}
+{ const _ws=cupW3Settings; cupW3Settings=function(){ const r=_ws.apply(this,arguments); try{ cupSetTabs(); }catch(e){ console.warn(e); } return r; }; }
+// Sidebar hints (“Notes you write show up here…”) only for new accounts; Home's “Waiting on” chip repeats the sidebar link
+{ const _rh=cupRenderHome; cupRenderHome=function(){ const r=_rh.apply(this,arguments);
+  try{ document.body.classList.toggle('cup-veteran', S.tasks.length>=15);
+    document.querySelectorAll('#page-dashboard .cup-hbtn:not(.warn)').forEach(b=>{ if(/cupSetBankSel\('waiting'\)/.test(b.getAttribute('onclick')||'')) b.remove(); }); }catch(_){}
+  return r; }; }
+
 
 // Korean interface strings. Keys are the exact English text shown on screen.
 Object.assign(CUP_KO, {
@@ -26175,7 +26226,7 @@ CUP_KO_PAT.push(
     if(tour){ tour.setAttribute('data-keep','1'); tour.innerHTML=`
       <li><b>홈</b>에는 지금 할 일 하나만 보여요. <i>나중에</i>는 숨기고, <i>지금 하기</i>는 다른 걸 고르게 해줘요.</li>
       <li><b>+ (또는 ⌘K)</b>로 무엇이든 추가해요. “금요일 3시 샘에게 전화”라고 쓰고 할 일, 일정, 페이지, 습관, 답변 대기 중 하나를 고르세요.</li>
-      <li><b>할 일 &amp; 캘린더</b>는 한 페이지예요. 필터 칩으로 일정, 마감, 할 일을 켜고 끌 수 있어요.</li>
+      <li><b>할 일 &amp; 캘린더</b>에는 두 탭이 있어요. <i>캘린더</i>는 일정을 보여주고, 고른 날의 할 일도 함께 나와요. <i>할 일</i>은 전체 목록이에요.</li>
       <li><b>페이지</b>는 메모예요. 아무 줄에서 <kbd>/</kbd>를 누르면 명령이 나오고, <i>정리하기</i>는 페이지를 요약해줘요.</li>
       <li><b>일기</b>는 하루 한 줄, 기분, 사진을 기록해요. <b>목표</b>에는 마감과 진행 상황이 있어요.</li>`; }
   };
