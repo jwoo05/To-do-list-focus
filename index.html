@@ -7184,6 +7184,28 @@ body:not(.cup-side-min) .sidebar .sidebar-logo{ display:none; }
 /* Journal and Goals: one centered column, like Home */
 #page-journal > .view-header, #cupJournalPage, #page-compass > .view-header, #cupCompass{ max-width:760px; margin-left:auto; margin-right:auto; width:100%; box-sizing:border-box; }
 
+/* Waiting on: compact cards, four equal-height columns that scroll inside, header lined up with the board */
+#page-waiting > .view-header{ max-width:1100px; margin-left:auto; margin-right:auto; width:100%; box-sizing:border-box; }
+.cup-wcols{ align-items:stretch; }
+.cup-wcol{ max-height:max(360px, calc(100vh - 330px)); overflow-y:auto; overscroll-behavior:contain; gap:6px; }
+.cup-wcol-h{ position:sticky; top:-10px; z-index:1; background:var(--bg2); margin:-10px -10px 0; padding:12px 14px 8px; }
+.cup-wcard{ position:relative; padding:8px 10px; display:block; }
+.cup-wcard .cup-wcard-t{ font-size:calc(13.5px * var(--cup-fs,1)); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:block; max-width:100%; text-align:left; }
+.cup-wcard .cup-wcard-m{ display:inline; font-size:calc(12px * var(--cup-fs,1)); }
+.cup-wcard .cup-wcard-m + .cup-wcard-m::before{ content:' · '; }
+@media (hover:hover){
+  .cup-wcard .cup-wcard-a{ position:absolute; right:6px; top:50%; transform:translateY(-50%); margin:0; padding-left:16px;
+    background:linear-gradient(to right, transparent, var(--bg) 16px); opacity:0; pointer-events:none; transition:opacity .12s; }
+  .cup-wcard:hover .cup-wcard-a, .cup-wcard:focus-within .cup-wcard-a{ opacity:1; pointer-events:auto; }
+}
+@media (max-width:560px){ .cup-wcol{ max-height:none; overflow:visible; } .cup-wcol-h{ position:static; } }
+@media (hover:hover){
+  .cup-wcard .cup-wcard-a{ top:auto; bottom:4px; transform:none; left:8px; right:auto; padding-left:0; background:none; }
+  .cup-wcard .cup-wcard-a button{ padding:1px 8px; background:var(--bg); }
+  .cup-wcard .cup-wcard-m{ transition:opacity .12s; }
+  .cup-wcard:hover .cup-wcard-m, .cup-wcard:focus-within .cup-wcard-m{ opacity:0; }
+}
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
