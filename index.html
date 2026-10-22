@@ -21436,7 +21436,7 @@ function cupWLongPress(host){ host.querySelectorAll('.cup-w').forEach(el=>{ let 
 // ════════════════════════════════════════════════════════════════════
 
 // ── Preferences (S.cup.prefs) ──
-const CUP_PREF_DEFAULT = { extras:false, gentle:true, gardenOn:true, minimal:false, easyRead:false, dayEnd:0, hideMeetings:false };
+const CUP_PREF_DEFAULT = { extras:false, gentle:true, gardenOn:false, minimal:false, easyRead:false, dayEnd:0, hideMeetings:false };
 function cupPref(k, d){ cupEnsure(); const p=S.cup.prefs||{}; return p[k]===undefined ? (d!==undefined?d:CUP_PREF_DEFAULT[k]) : p[k]; }
 function cupSetPref(k, v){ cupEnsure(); S.cup.prefs=Object.assign({}, S.cup.prefs||{}, {[k]:v}); save(); cupApplyPrefs(); render(); try{ cupPrefsRender(); }catch(_){} }
 const CUP_FS = { compact:1, normal:1.1, spacious:1.25 };
@@ -25842,6 +25842,19 @@ function cupCalModeMount(){
   try{ cupCalModeMount(); }catch(_){}
   return r; }; }
 { const _sm=cupSetMCol; cupSetMCol=function(){ const r=_sm.apply(this,arguments); try{ cupCalModeMount(); }catch(_){} return r; }; }
+
+// ════════════════════════════════════════════════════════════
+//  12 · GARDEN OFF BY DEFAULT — with “Garden, gems and streaks” off, the garden
+//  widget and Home block are gone too (your layout is kept for if you turn it back on)
+// ════════════════════════════════════════════════════════════
+const cupGardenStash={};
+function cupGardenSync(){ const on=!!cupPref('gardenOn');
+  [['w',typeof CUP_WIDGETS!=='undefined'?CUP_WIDGETS:null],['b',typeof CUP_BLOCKS!=='undefined'?CUP_BLOCKS:null]].forEach(([k,obj])=>{ if(!obj) return;
+    if(!on && obj.garden){ cupGardenStash[k]=obj.garden; delete obj.garden; }
+    else if(on && !obj.garden && cupGardenStash[k]){ obj.garden=cupGardenStash[k]; } }); }
+cupGardenSync();
+{ const _r=render; render=function(){ try{ cupGardenSync(); }catch(_){} return _r.apply(this,arguments); }; }
+{ const _sp=cupSetPref; cupSetPref=function(k){ const r=_sp.apply(this,arguments); if(k==='gardenOn'){ try{ cupGardenSync(); render(); }catch(_){} } return r; }; }
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
