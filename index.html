@@ -7261,6 +7261,18 @@ body.cup-lean{ --radius:8px; --radius-sm:6px; --radius-lg:12px; }
 .cup-badge2.b-late{ color:var(--must, #e5484d); }
 .cup-badge2.b-soft{ color:var(--orange, #d9822b); }
 
+/* Google Calendar: which calendars to read */
+.cup-gp-list{ display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:6px 14px; padding:2px 2px 12px; }
+.cup-gp-list label{ display:flex; align-items:center; gap:8px; font-size:calc(13px * var(--cup-fs,1)); font-weight:450; text-transform:none; letter-spacing:0; color:var(--text); cursor:pointer; }
+.cup-gp-list i{ width:10px; height:10px; border-radius:3px; flex:none; }
+.cup-gp-list em{ font-style:normal; font-size:calc(11.5px * var(--cup-fs,1)); color:var(--text3); }
+.cup-pref.cup-gp-dir{ flex-wrap:wrap; }
+.cup-pref.cup-gp-dir > span:first-child{ flex:1 1 100%; }
+.cup-pref.cup-gp-dir .cup-seg{ display:flex; width:100%; margin-top:8px; }
+.cup-pref.cup-gp-dir .cup-seg button{ flex:1; white-space:nowrap; }
+.cup-gp-list input[type="checkbox"]{ width:auto; height:auto; margin:0; flex:none; }
+.cup-gp-list label{ justify-content:flex-start; }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -24209,7 +24221,8 @@ function cupGcLoadGis(){
     s.onload=()=>ok(); s.onerror=()=>{ cupGcGisP=null; no(new Error('Couldn’t reach Google')); }; document.head.appendChild(s); });
   return cupGcGisP;
 }
-const cupGcScopes = () => cupGc().cal==='primary' ? [CUP_GC_SCOPE_APP, CUP_GC_SCOPE_EV] : [CUP_GC_SCOPE_APP];
+const cupGcScopes = () => { const s=cupGc().cal==='primary' ? [CUP_GC_SCOPE_APP, CUP_GC_SCOPE_EV] : [CUP_GC_SCOPE_APP];
+  return typeof cupGcMoreScopes==='function' ? [...new Set(s.concat(cupGcMoreScopes()))] : s; };   // reading Google calendars (cup-11) asks for more
 // Must start inside a tap: Google opens a small window (it closes by itself once you’ve agreed before).
 function cupGcAuth(prompt){
   return new Promise((ok,no)=>{
@@ -24454,7 +24467,7 @@ let cupGcAsk='';   // '' | 'disconnect'
 function cupGcDisconnect(removeEvents){
   const g=cupGc();
   if(removeEvents){ if(!cupGcHasTok()){ showToast('Sign in again first, then remove.'); cupGcResume(); return; }
-    g.what={ tasks:false, focus:false, blocks:false }; cupGcMassOk=true; cupGcAsk='';
+    g.what={ tasks:false, focus:false, blocks:false, events:false }; cupGcMassOk=true; cupGcAsk='';
     cupGcRun().then(()=>{ if(Object.keys(g.ev).length){ showToast('Some events couldn’t be removed yet — try again when online.'); return; } cupGcOff(); showToast('Disconnected. Focus Hub events were removed from Google.'); });
     return; }
   cupGcOff(); showToast('Disconnected. Events already on Google stay there.');
@@ -26054,6 +26067,214 @@ function cupSetTabs(){
   try{ document.body.classList.toggle('cup-veteran', S.tasks.length>=15);
     document.querySelectorAll('#page-dashboard .cup-hbtn:not(.warn)').forEach(b=>{ if(/cupSetBankSel\('waiting'\)/.test(b.getAttribute('onclick')||'')) b.remove(); }); }catch(_){}
   return r; }; }
+
+// ════════════════════════════════════════════════════════════════════
+//  PART 11 — Google Calendar, both ways (by choice).
+//  Direction (Settings → Google Calendar):
+//    'push' — Focus Hub → Google (cup-7: timed tasks, focus sessions, study blocks)
+//    'pull' — Google → Focus Hub: your Google calendars show here, read-only
+//    'both' — both, and an edit or delete here goes back to Google; events you
+//             add in Focus Hub go to Google too
+//  Pulled events live in S.events with e.gcal = { cal, id }. For each one we keep
+//  a hash of what Google last said (g.pin[id]); if the local copy no longer
+//  matches, you changed it here, and in 'both' mode that change is sent first.
+//  Each pass reads 90 days back and 180 days ahead.
+// ════════════════════════════════════════════════════════════════════
+
+const CUP_GP_READ = 'https://www.googleapis.com/auth/calendar.readonly';
+const CUP_GP_BACK = 90, CUP_GP_AHEAD = 180;
+
+function cupGp(){ const g=cupGc(); if(!['push','pull','both'].includes(g.dir)) g.dir='push'; if(g.what.events===undefined) g.what.events=true;
+  if(!g.pin || typeof g.pin!=='object') g.pin={}; if(!g.pcals || typeof g.pcals!=='object') g.pcals={}; return g; }
+const cupGpReads = () => cupGp().dir!=='push';
+function cupGcMoreScopes(){ const d=cupGp().dir; return d==='pull' ? [CUP_GP_READ] : d==='both' ? [CUP_GP_READ, CUP_GC_SCOPE_EV] : []; }
+
+// ── Google event ⇄ Focus Hub event ──
+const cupGpLocalId = (cal, id) => 'g_'+cupGcHash(cal)+'_'+id;
+const cupGpHM = d => String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+const cupGpText = html => String(html||'').replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').trim();
+function cupGpFromGoogle(ev, cal){
+  if(!ev || ev.status==='cancelled' || !ev.start) return null;
+  const allDay=!!ev.start.date; let date, endDate, time='', endTime='';
+  if(allDay){ date=ev.start.date; endDate=ev.end&&ev.end.date ? cupAddDays(ev.end.date,-1) : date; if(endDate<date) endDate=date; }
+  else { const s=new Date(ev.start.dateTime), en=new Date((ev.end&&ev.end.dateTime)||ev.start.dateTime); if(isNaN(s)) return null;
+    date=cupISO(s); endDate=cupISO(en); time=cupGpHM(s); endTime=cupGpHM(en); }
+  return { id:cupGpLocalId(cal.id, ev.id), title:ev.summary||'(No title)', date, endDate, noEndDate:false, time, endTime, allDay,
+    recurrence:'none', recurrenceDays:[], type:'event', subject:'', location:ev.location||'', notes:cupGpText(ev.description),
+    color:cal.color||'', icsUid:'', sourceId:'', gcal:{ cal:cal.id, id:ev.id } };
+}
+const cupGpFields = e => ({ t:e.title||'', d:e.date||'', de:e.endDate||'', s:e.time||'', se:e.endTime||'', a:!!e.allDay, l:e.location||'' });
+const cupGpHashOf = e => cupGcHash(cupGpFields(e))+'.'+cupGcHash(e.notes||'');
+function cupGpToGoogle(e, notesChanged){
+  const b={ summary:e.title||'(No title)', location:e.location||'' };
+  if(notesChanged) b.description=e.notes||'';
+  if(e.allDay || !e.time){ b.start={ date:e.date }; b.end={ date:cupAddDays(e.endDate&&e.endDate>=e.date?e.endDate:e.date, 1) }; }
+  else { const s=timeStrToMinutes(e.time); let en=timeStrToMinutes(e.endTime); const ed=e.endDate&&e.endDate>=e.date?e.endDate:e.date;
+    if(en===null || (ed===e.date && en<=s)) en=s+60; b.start=cupGcDT(e.date,s); b.end=cupGcDT(ed,en); }
+  return b;
+}
+
+// ── your Google calendars ──
+async function cupGpCalendars(){
+  const g=cupGp(), out={}; let page='';
+  do { const j=await cupGcApi('GET', '/users/me/calendarList?maxResults=250'+(page?'&pageToken='+encodeURIComponent(page):''));
+    (j&&j.items||[]).forEach(c=>{ if(!c || !c.id || c.deleted) return;
+      const old=g.pcals[c.id];
+      out[c.id]={ name:c.summaryOverride||c.summary||c.id, color:c.backgroundColor||'', write:/owner|writer/.test(c.accessRole||''),
+        on: old ? old.on : !(c.id===g.calId || /#holiday@|#contacts@|addressbook#/.test(c.id)) }; });
+    page=j&&j.nextPageToken; } while(page);
+  if(g.calId && out[g.calId]) out[g.calId].on=false;                       // the Focus Hub calendar is ours already
+  g.pcals=out; return out;
+}
+async function cupGpEvents(calId){
+  const now=new Date(), a=new Date(now), b=new Date(now); a.setDate(a.getDate()-CUP_GP_BACK); b.setDate(b.getDate()+CUP_GP_AHEAD);
+  const items=[]; let page='';
+  do { const q='?singleEvents=true&showDeleted=false&maxResults=2500&timeMin='+encodeURIComponent(a.toISOString())+'&timeMax='+encodeURIComponent(b.toISOString())+(page?'&pageToken='+encodeURIComponent(page):'');
+    const j=await cupGcApi('GET', cupGcEvPath(calId)+q); (j&&j.items||[]).forEach(x=>items.push(x)); page=j&&j.nextPageToken; } while(page && items.length<5000);
+  return items.filter(x=>!(x.extendedProperties&&x.extendedProperties.private&&x.extendedProperties.private.focusHub==='1') && !/^fhub[0-9a-f]+/.test(x.id||''));
+}
+
+// ── what you changed here on Google-calendar events (two-way only) ──
+function cupGpLocalChanges(){
+  const g=cupGp(), byId={}, edits=[], dels=[];
+  cupGcArr(S.events).forEach(e=>{ if(e && e.gcal && e.id) byId[e.id]=e; });
+  for(const id in g.pin){ const p=g.pin[id], e=byId[id];
+    if(!e){ dels.push({ id, p }); continue; }
+    const h=cupGpHashOf(e); if(h!==p.h) edits.push({ id, e, p, notesChanged:h.split('.')[1]!==String(p.h).split('.')[1] }); }
+  return { edits, dels };
+}
+
+let cupGpBusy=false, cupGpLast=0;
+const cupGpInfo={ n:0, err:'', hold:0 };
+async function cupGpRun(force){
+  const g=cupGp(); if(!g.on || !cupGpReads() || cupGpBusy) return;
+  if(!force && Date.now()-cupGpLast<60000) return;
+  if(!cupGcHasTok()){ try{ await cupGcEnsureTok(); }catch(_){} if(!cupGcHasTok()) return; }
+  if(navigator.onLine===false) return;
+  cupGpBusy=true; cupGpLast=Date.now(); let changed=false;
+  try{
+    const cals=await cupGpCalendars();
+    // 1 · two-way: send your edits and deletes first, so the read below already has them
+    const keep=new Set();
+    if(g.dir==='both'){
+      const { edits, dels }=cupGpLocalChanges();
+      cupGpInfo.hold = dels.length>10 && dels.length>Object.keys(g.pin).length*0.5 ? dels.length : 0;   // never empty a calendar by accident
+      for(const x of edits){ const c=cals[x.p.c];
+        if(!c || !c.write){ continue; }                                         // read-only calendar: Google's version wins below
+        try{ await cupGcApi('PATCH', cupGcEvPath(x.p.c, x.p.g), cupGpToGoogle(x.e, x.notesChanged)); changed=true; }
+        catch(e){ if(!e.status){ keep.add(x.id); } else console.warn('[gcal] edit', e); } }
+      if(!cupGpInfo.hold) for(const x of dels){ const c=cals[x.p.c];
+        try{ if(c && c.write) await cupGcDel(x.p.c, x.p.g); delete g.pin[x.id]; changed=true; }
+        catch(e){ if(!e.status) keep.add(x.id); else { delete g.pin[x.id]; console.warn('[gcal] delete', e); } } }
+    }
+    // 2 · read every calendar you picked
+    const fresh={}, read=new Set();
+    for(const id in cals){ if(!cals[id].on) continue;
+      try{ (await cupGpEvents(id)).forEach(ev=>{ const e=cupGpFromGoogle(ev, Object.assign({ id }, cals[id])); if(e) fresh[e.id]=e; }); read.add(id); }
+      catch(e){ if(!e.status) throw e; console.warn('[gcal] read', id, e); } }
+    // 3 · merge: Google's copy replaces ours, except changes still waiting to go up
+    const evs=cupGcArr(S.events), next=[];
+    evs.forEach(e=>{ if(!e || !e.gcal){ next.push(e); return; }
+      if(keep.has(e.id)){ next.push(e); delete fresh[e.id]; return; }
+      if(!cals[e.gcal.cal] || !cals[e.gcal.cal].on){ delete g.pin[e.id]; changed=true; return; }   // calendar turned off or gone
+      if(!read.has(e.gcal.cal)){ next.push(e); delete fresh[e.id]; return; }                        // couldn't read it this time: keep what we had
+      const f=fresh[e.id];
+      if(!f){ delete g.pin[e.id]; changed=true; return; }                                           // deleted on Google
+      delete fresh[e.id];
+      if(cupGpHashOf(f)!==cupGpHashOf(e) || e.color!==f.color){ Object.assign(e, f); changed=true; }
+      g.pin[e.id]={ h:cupGpHashOf(e), c:e.gcal.cal, g:e.gcal.id }; next.push(e); });
+    Object.values(fresh).forEach(f=>{ next.push(f); g.pin[f.id]={ h:cupGpHashOf(f), c:f.gcal.cal, g:f.gcal.id }; changed=true; });
+    for(const id in g.pin){ if(!next.some(e=>e&&e.id===id) && !keep.has(id) && g.dir!=='both') delete g.pin[id]; }
+    if(changed){ S.events=next; }
+    cupGpLinksDedupe();
+    cupGpInfo.n=next.filter(e=>e&&e.gcal).length; cupGpInfo.err=''; g.plast=Date.now();
+    cupGcSaveQuiet(); render();
+  }catch(e){
+    if(e.status===401 || e.status===403){ cupGcSetTok({ t:'', exp:0, cid:'' }); cupGcInfo.state='auth'; cupGpInfo.err='auth'; }
+    else cupGpInfo.err=e.message||'offline';
+  }finally{ cupGpBusy=false; try{ cupGcRender(); }catch(_){} }
+}
+
+// a calendar you now read directly doesn't also need its calendar link (no doubles)
+function cupGpLinksDedupe(){
+  const g=cupGp(), f=cupCalShow(); f.off=f.off||{};
+  (S.icalSources||[]).forEach(s=>{ if(!s || !s.url) return;
+    const u=decodeURIComponent(String(s.url));
+    const covered=cupGpReads() && Object.keys(g.pcals).some(id=>g.pcals[id].on && u.includes(id));
+    if(covered && !s.gpDup){ s.gpDup=true; s.gpWasAuto=s.autoSync; s.autoSync=false; f.off[s.id]=true; }
+    else if(!covered && s.gpDup){ delete s.gpDup; s.autoSync=s.gpWasAuto; delete s.gpWasAuto; delete f.off[s.id]; } });
+}
+
+// ── push side: in “both”, events you add here go to Google too; in “pull”, nothing is sent ──
+{ const _w=cupGcWant; cupGcWant=function(){ const out=_w.apply(this,arguments), g=cupGp();
+    if(g.dir==='both' && g.what.events!==false){ const since=g.since||todayStr();
+      cupGcArr(S.events).forEach(e=>{
+        if(!e || !e.id || e.gcal || e.sourceId || e.icsUid || e.type==='focus_block' || !e.date) return;
+        if(e.date<since && !(e.recurrence && e.recurrence!=='none')) return;
+        const s=timeStrToMinutes(e.time), rec=(e.recurrence||'').toLowerCase();
+        if(s===null){ out[cupGcId('e:'+e.id)]={ k:'event', r:e.id, body:{ summary:e.title||'Event', start:{ date:e.date }, end:{ date:cupAddDays(e.endDate&&e.endDate>=e.date?e.endDate:e.date,1) } } }; return; }
+        let en=timeStrToMinutes(e.endTime); if(en===null || en<=s) en=s+60;
+        if(rec && rec!=='none'){ const r=cupGcBlockRule(e, since, s); if(r) out[cupGcId('er:'+e.id)]={ k:'event', r:e.id, body:{ summary:e.title||'Event', start:cupGcDT(r.start,s), end:cupGcDT(r.start,en), recurrence:r.recurrence } }; return; }
+        out[cupGcId('e:'+e.id)]={ k:'event', r:e.id, body:{ summary:e.title||'Event', start:cupGcDT(e.date,s), end:cupGcDT(e.date,en), location:e.location||undefined } }; });
+    }
+    return out; }; }
+{ const _r=cupGcRun; cupGcRun=async function(){
+    const g=cupGp(); if(!g.on) return;
+    if(g.dir!=='pull') await _r.apply(this,arguments);
+    return cupGpRun(); }; }
+
+// ── choosing ──
+function cupGcSetDir(d){
+  const g=cupGp(); if(g.dir===d) return; const was=g.dir; g.dir=d; cupGpLast=0;
+  if(d==='push'){ S.events=cupGcArr(S.events).filter(e=>!(e&&e.gcal)); g.pin={}; cupGpLinksDedupe(); }   // stop reading: take Google's copies back out
+  save(); cupGcRender();
+  const have=new Set(String(g.gs||'').split(' '));
+  if(g.on && cupGcScopes().some(x=>!have.has(x))) cupGcResume();          // reading needs one more “Allow” from Google
+  if(was==='push' && d!=='push' && !g.on) showToast(cupT10('Now tap Connect.','이제 연결을 누르세요.'));
+}
+function cupGpToggleCal(id){ const g=cupGp(), c=g.pcals[id]; if(!c) return; c.on=!c.on; save(); cupGcRender(); cupGpRun(true); }
+{ const _off=cupGcOff; cupGcOff=function(){ const g=cupGp(); S.events=cupGcArr(S.events).filter(e=>!(e&&e.gcal)); g.pin={}; g.pcals={}; cupGpLinksDedupe(); return _off.apply(this,arguments); }; }
+
+// ── Settings → Google Calendar: direction first, then (when reading) which calendars ──
+{ const _gr=cupGcRender; cupGcRender=function(){ const r=_gr.apply(this,arguments);
+  try{ const box=document.getElementById('cupGc'); if(!box) return r; const g=cupGp();
+    const seg=[['push',cupT10('To Google','Google로')],['pull',cupT10('From Google','Google에서')],['both',cupT10('Both ways','양방향')]]
+      .map(([k,l])=>`<button type="button" class="${g.dir===k?'on':''}" aria-pressed="${g.dir===k}" onclick="cupGcSetDir('${k}')">${l}</button>`).join('');
+    const say={ push:cupT10('Focus Hub puts timed tasks, focus sessions and study blocks on Google. Your Google calendars don’t come in.','시간이 정해진 할 일, 집중 세션, 공부 블록을 Google에 보내요. Google 일정은 가져오지 않아요.'),
+      pull:cupT10('Your Google calendars show here, read-only. Nothing is sent to Google.','Google 캘린더가 여기 보여요(읽기 전용). Google로는 아무것도 보내지 않아요.'),
+      both:cupT10('Google events show here; edit or delete them here and Google changes too. What you add here goes to Google.','Google 일정이 여기 보이고, 여기서 고치거나 지우면 Google에도 반영돼요. 여기서 추가한 것도 Google로 가요.') }[g.dir];
+    const dirRow=`<div class="cup-pref cup-gp-dir"><span><b>${cupT10('Sync direction','동기화 방향')}</b><em>${say}</em></span><span class="cup-seg">${seg}</span></div>`;
+    const cals=Object.entries(g.pcals);
+    const calRow = g.on && g.dir!=='push' ? `<div class="cup-pref cup-gp-cals"><span><b>${cupT10('Google calendars shown here','여기 보일 Google 캘린더')}</b><em>${cupGpInfo.err==='auth'?cupT10('Sign in again to read them.','다시 로그인해야 읽을 수 있어요.'):cals.length?cupT10(`${cupGpInfo.n} events · read ${cupGcAgo(g.plast)}`,`일정 ${cupGpInfo.n}개 · ${cupGcAgo(g.plast)} 읽음`):cupT10('Reading your calendars…','캘린더를 읽는 중…')}</em></span></div>
+      ${cals.length?`<div class="cup-gp-list">${cals.map(([id,c])=>`<label><input type="checkbox" ${c.on?'checked':''} onchange="cupGpToggleCal('${esc(id).replace(/'/g,'&#39;')}')"><i style="background:${esc(c.color||'var(--accent)')}"></i>${esc(c.name)}${c.write||g.dir!=='both'?'':` <em>${cupT10('read-only','읽기 전용')}</em>`}</label>`).join('')}</div>`:''}` : '';
+    const anchor=box.querySelector('.cup-pref'); if(!anchor) return r;
+    anchor.insertAdjacentHTML(g.on?'afterend':'beforebegin', dirRow);       // connected: under the status line; not yet: choose before Connect
+    if(calRow) box.querySelector('.cup-gp-dir').insertAdjacentHTML('afterend', calRow);
+    if(g.on && g.dir==='both'){ const seg2=[...box.querySelectorAll('.cup-seg')].find(x=>x.querySelector('[onclick*="cupGcSetWhat"]'));
+      if(seg2 && !seg2.querySelector('[onclick*="\'events\'"]')) seg2.insertAdjacentHTML('beforeend', `<button type="button" class="${g.what.events!==false?'on':''}" aria-pressed="${g.what.events!==false}" onclick="cupGcSetWhat('events')">${cupT10('Events I add','내가 추가한 일정')}</button>`); }
+    if(g.on && g.dir==='pull'){ box.querySelectorAll('.cup-pref').forEach(p=>{ if(p.querySelector('[onclick*="cupGcSetWhat"],[onchange*="cupGcSetCal"]')) p.remove(); }); }
+    const note=box.querySelector('.cup-pref-note'); if(note && g.dir!=='push') note.textContent = g.dir==='both'
+      ? cupT10('Edits and deletes here go back to Google within a minute. Calendars you can only view stay read-only.','여기서 고치거나 지우면 1분 안에 Google에 반영돼요. 보기 권한만 있는 캘린더는 읽기 전용이에요.')
+      : cupT10('Google events here are copies: change them in Google. Calendar links for the same calendars are paused, so nothing shows twice.','여기 보이는 Google 일정은 사본이에요. Google에서 고치세요. 같은 캘린더의 링크는 잠시 멈춰서 두 번 보이지 않아요.');
+  }catch(e){ console.warn('[gcal] two-way settings', e); }
+  return r; }; }
+
+// read-only Google events: say so in the event editor instead of letting edits vanish
+{ const _ee=typeof editEvent==='function' ? editEvent : null;
+  if(_ee) editEvent=function(id){ const e=cupGcArr(S.events).find(x=>x&&x.id===id), g=cupGp();
+    const r=_ee.apply(this,arguments);
+    if(e && e.gcal && (g.dir==='pull' || (g.pcals[e.gcal.cal] && !g.pcals[e.gcal.cal].write)))
+      setTimeout(()=>showToast(cupT10('This is a Google Calendar event — change it in Google.','Google 캘린더 일정이에요. Google에서 고치세요.')), 200);
+    return r; }; }
+
+// keep reading in the background
+document.addEventListener('visibilitychange', ()=>{ try{ if(document.visibilityState==='visible' && cupGp().on && cupGpReads()) cupGpRun(); }catch(_){} });
+setInterval(()=>{ try{ if(cupGp().on && cupGpReads()) cupGpRun(); }catch(_){} }, 5*60000);
+
+// remember which permissions Google gave, so switching direction only asks again when it must
+{ const _a=cupGcAuth; cupGcAuth=function(){ const sc=cupGcScopes(); return _a.apply(this,arguments).then(v=>{ cupGp().gs=sc.join(' '); cupGcSaveQuiet(); cupGpLast=0; setTimeout(()=>cupGpRun(true),300); return v; }); }; }
+// “Disconnect and remove events” also takes back events you added here
+{ const _d=cupGcDisconnect; cupGcDisconnect=function(remove){ if(remove){ cupGp().what.events=false; } return _d.apply(this,arguments); }; }
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
