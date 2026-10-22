@@ -2731,7 +2731,7 @@ label {
 }
 
 /* ── Phones only (touch, width ≤ 640px) ── */
-@media (hover: none) and (pointer: coarse) and (max-width: 640px) {
+@media (hover: none) and (pointer: coarse) and (max-width: 760px) {
   :root {
     --sidebar-w: 0px;
     --hud-h: 0px;
@@ -3330,7 +3330,7 @@ label {
 .dash-task-time { font-variant-numeric: tabular-nums; }
 
 /* On mobile: tighten and keep this panel as the visual centerpiece */
-@media (hover: none) and (pointer: coarse) and (max-width: 640px) {
+@media (hover: none) and (pointer: coarse) and (max-width: 760px) {
   .dash-today-tasks { padding: 14px 14px 12px; }
   .dash-today-list { max-height: none; }
   .dash-task-row { padding: 10px 12px; }
@@ -3785,7 +3785,7 @@ label {
 }
 
 /* Mobile: tighten the week view (smaller fonts, smaller hour rows). */
-@media (hover: none) and (pointer: coarse) and (max-width: 640px) {
+@media (hover: none) and (pointer: coarse) and (max-width: 760px) {
   .cal-week-wrap { height: calc(100dvh - 220px); min-height: 0; }
   .cal-week-dayhead,
   .cal-week-allday,
@@ -5509,7 +5509,7 @@ strong, b {
 #todoWorkbench:not([data-mcol="all"]) .resize-grip,
 #todoWorkbench:not([data-mcol="all"]) .col-strip,
 #todoWorkbench:not([data-mcol="all"]) .collapse-toggle{ display:none !important; }
-@media (hover: none) and (pointer: coarse) and (max-width: 640px){
+@media (hover: none) and (pointer: coarse) and (max-width: 760px){
   .cup-mseg{ width:100%; }
   .cup-mseg .clt-opt{ flex:1; padding:0 6px; }
   .cup-mseg .clt-opt[data-mcol="all"]{ display:none; }
@@ -6946,7 +6946,7 @@ html[lang="ko"] .cup-note-body li[data-task]:not(.done)::after{ content:'할 일
 #cupMSeg .cup-w3-cl:not(.active){ display:none !important; }
 #cupMSeg .cup-w3-more{ margin-left:auto; }
 .cup-w3-menu{ width:290px; } .cup-w3-menu button b{ font-size:calc(14px * var(--cup-fs,1)); font-weight:500; color:var(--text); } .cup-w3-menu button span{ font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text2); }
-@media (hover:none) and (pointer:coarse) and (max-width:640px){ #cupMSeg .clt-opt{ flex:1; } #cupMSeg .cup-w3-more{ flex:0 0 auto; margin-left:0; padding-left:10px; padding-right:4px; } }
+@media (hover:none) and (pointer:coarse) and (max-width:760px){ #cupMSeg .clt-opt{ flex:1; } #cupMSeg .cup-w3-more{ flex:0 0 auto; margin-left:0; padding-left:10px; padding-right:4px; } }
 
 /* calendar: week and day views fill the column on a laptop (the day drawer isn't needed; the grid shows it) */
 #workbenchCalendar.cup-cal-tall{ display:flex !important; flex-direction:column; }
@@ -7205,6 +7205,41 @@ body:not(.cup-side-min) .sidebar .sidebar-logo{ display:none; }
   .cup-wcard .cup-wcard-m{ transition:opacity .12s; }
   .cup-wcard:hover .cup-wcard-m, .cup-wcard:focus-within .cup-wcard-m{ opacity:0; }
 }
+
+/* ── Handoff spec fixes (2026-10-22) ── */
+/* phone: bigger check circles (the hit area was already ~44px), task-sheet quick actions, no nested scroll, Later as a bottom sheet */
+@media (max-width:760px){
+  .cup-check2{ width:22px; height:22px; flex:none; }
+  .cup-flist{ max-height:none; overflow-y:visible; }
+  .cup-ts-chip{ min-height:36px; }
+  .cup-later-menu{ position:fixed !important; left:12px !important; right:12px !important; top:auto !important; bottom:calc(74px + env(safe-area-inset-bottom, 0px)) !important; width:auto !important; z-index:3200; border-radius:16px; padding:10px; }
+  .cup-later-menu button{ min-height:44px; }
+}
+.cup-ts-qact{ display:flex; gap:6px; flex-wrap:wrap; margin:8px 0 4px; }
+.cup-ts-qbtn{ padding:6px 12px; min-height:34px; border-radius:999px; border:1px solid var(--border); background:var(--bg2); font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text2); }
+.cup-ts-qbtn.primary{ background:var(--accent); border-color:var(--accent); color:#fff; }
+.cup-ts-qbtn:hover{ color:var(--text); }
+/* desktop: the sidebar has “+ New”, so no floating + button; log out lives in Settings, not next to ⚙ */
+@media (min-width:761px){ body.cup-lean .cup-plus-fab, body.cup-lean #cupPlusFab{ display:none !important; } }
+body.cup-lean .sidebar .sidebar-action-btn.variant-danger{ display:none; }
+/* Goals: secondary sections fold under “More” */
+.cup-more-sec{ grid-column:1 / -1; margin-top:4px; }
+.cup-more-sec > summary{ cursor:pointer; font-size:calc(13px * var(--cup-fs,1)); color:var(--text3); padding:8px 2px; list-style:none; }
+.cup-more-sec > summary::before{ content:'› '; display:inline-block; transition:transform .12s; }
+.cup-more-sec[open] > summary::before{ transform:rotate(90deg); }
+/* your own words in normal type, not all-caps code font */
+.cup-goal-t, .cup-pr, .cup-pr input, .cup-dl-head{ font-family:var(--font-ui, inherit); }
+.cup-pr input{ text-transform:none; letter-spacing:0; }
+.cup-dl-head{ text-decoration:none; }
+/* Korean times fit */
+.cup-sched-row{ grid-template-columns:minmax(68px, auto) 8px 1fr; }
+.cup-row-l{ width:auto; min-width:96px; }
+.cup-sr{ grid-template-columns:minmax(68px, auto) 1fr; }
+/* light mode: readable status colours */
+[data-theme="light"] .cal-mini-chip.cupc.ev-class, [data-theme="light"] .cup-fc-pill.warn, [data-theme="light"] .cup-chip.warn{ color:#b85014 !important; }
+[data-theme="light"] .cal-mini-chip.cupc.ev-deadline{ color:#b82c2c !important; }
+[data-theme="light"] .cal-mini-chip.cupc.ev-task, [data-theme="light"] .cup-fc-pill.ok, [data-theme="light"] .cup-fc-big, [data-theme="light"] .cup-th-chip.done{ color:#1f6f4a !important; }
+[data-theme="light"] .cal-mini-chip.cupc.ev-habit{ color:#5a3ec8 !important; }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -7864,7 +7899,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <span>✎</span> Journal
       </button>
       <button class="nav-item" data-page="friends" onclick="showPage('friends',this)">
-        <span>👥</span> Friends
+        <span>⟡</span> Friends
       </button>
     </nav>
     <div class="cup-side-extras" id="cupSideExtras" aria-label="Upcoming and recent pages"></div>
@@ -17333,7 +17368,7 @@ const CUP_DOW = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const CUP_SEED = null;
 
 let cupBankSel = '';           // '' | 'waiting' | 'apps' | 'area:<key>' | 'folder:<id>'
-let cupSideOpen = ['clubs','academics'];
+let cupSideOpen = [];
 try { const s=JSON.parse(localStorage.getItem('cup_ui')||'{}'); cupBankSel=s.sel||''; if(Array.isArray(s.open)) cupSideOpen=s.open; } catch(_) {}
 function cupPersist(){ try { localStorage.setItem('cup_ui', JSON.stringify({sel:cupBankSel, open:cupSideOpen})); } catch(_) {} }
 
@@ -20279,7 +20314,7 @@ function cupDeadlinesHTML(){
     + (list.length?list.map(t=>{ const d=cupDays(t.due), late=cupPastDue(t);
       return `<div class="cup-dl"><button class="cup-check2" onclick="toggleTask('${t.id}')" aria-label="Done"></button><button class="t" onclick="editTask('${t.id}')">${esc(t.title)}${cupCommit(t.commitId)?`<span class="cup-dl-f">${esc(cupCommit(t.commitId).name.split(' · ')[0])}</span>`:''}</button>
         <span class="cup-dl-date ${late?'cup-late':d<=1?'soon':''}">${d===0?'Today':d===1?'Tomorrow':d<0?`${-d}d late`:cupParse(t.due).toLocaleDateString(undefined,{month:'short',day:'numeric'})}${t.dueTime?' · '+cupT12(t.dueTime):''}</span></div>`; }).join('')
-      : '<div class="cup-dim" style="padding:6px 0">No deadlines in the next two weeks.</div>')
+      : '<div class="cup-dim" style="padding:6px 0">No deadlines coming up.</div>')
     + `<button class="cup-more-btn" onclick="cupOpenTaskSheet(null,{due:'${cupTSDate(1)}'})">+ Add a deadline</button>`;
 }
 // Goals: title + current / target (numbers or money)
@@ -23084,7 +23119,7 @@ function cupOpenMobilePages(){
     <div class="modal-header"><span class="modal-title">Pages & Folders</span>
       <button class="btn btn-accent" style="margin-left:auto;margin-right:8px" onclick="closeModal('mCupMobPages');cupNewNote('','',true)">+ New page</button>
       <button class="modal-close" onclick="closeModal('mCupMobPages')" aria-label="Close">✕</button></div>
-    <div class="modal-body" onclick="if(event.target.closest('button'))setTimeout(()=>closeModal('mCupMobPages'),80)"><div class="cup-side-extras">${extras}</div><div class="cup-side">${tree}</div></div>
+    <div class="modal-body" onclick="const b=event.target.closest('button');if(b&&!b.matches('.cup-chev,.cup-fold-chev,.cup-arch-head button,[data-keep]'))setTimeout(()=>closeModal('mCupMobPages'),80)"><div class="cup-side-extras">${extras}</div><div class="cup-side">${tree}</div></div>
   </div>`;
   if(typeof cupKoWalk==='function' && typeof cupLang==='function' && cupLang()==='ko') cupKoWalk(el);
   openModal('mCupMobPages');
@@ -23102,7 +23137,7 @@ function cupOpenMobileMe(){
       <button class="cup-me-card" onclick="closeModal('mCupMobMe');cupJOpen(todayStr())"><span>✎</span><b>Journal</b><em>Daily reflection & mood</em></button>
       <button class="cup-me-card" onclick="closeModal('mCupMobMe');showPage('compass')"><span>◇</span><b>Goals & Pace</b><em>Deadlines & class pace</em></button>
       <button class="cup-me-card" onclick="closeModal('mCupMobMe');cupOpenGarden('garden')"><span>${(i=>i==='·'?'🌱':i)(cupTreeIcon(g.today.pts,g.species))}</span><b>Garden</b><em>${g.streak}d streak · 💎 ${g.gems}</em></button>
-      <button class="cup-me-card" onclick="cupOpenFriends('friends')"><span>👥</span><b>Friends</b><em>Weekly league</em></button>
+      <button class="cup-me-card" onclick="cupOpenFriends('friends')"><span>⟡</span><b>Friends</b><em>Weekly league</em></button>
       <button class="cup-me-card cup-extra-only" onclick="closeModal('mCupMobMe');showPage('focus')"><span>◎</span><b>Focus Timer</b><em>Pomodoro session</em></button>
       <button class="cup-me-card cup-extra-only" onclick="closeModal('mCupMobMe');cupShareNewOpen()"><span>↗</span><b>Shared Lists</b><em>Family, club, team</em></button>
       <button class="cup-me-card cup-extra-only" onclick="closeModal('mCupMobMe');cupOpenLoad()"><span>☕</span><b>Weekly Load</b><em>Capacity planner</em></button>
@@ -25369,7 +25404,7 @@ cupOpenMobileMe=function(){
       <div class="cup-me-sec">${cupW3T('Together','함께')}</div>
       <div class="cup-me-group">
         ${garden?row(close+"cupOpenGarden('garden')",(i=>i==='·'?'🌱':i)(cupTreeIcon(g.today.pts,g.species)),cupW3T('Garden','가든'),`${g.streak}d streak · 💎 ${g.gems}`):''}
-        ${row("cupOpenFriends('friends')",'👥',cupW3T('Friends','친구'),garden?cupW3T('Weekly league','주간 리그'):cupW3T('Study together, quietly','조용히 함께 공부해요'))}
+        ${row("cupOpenFriends('friends')",'⟡',cupW3T('Friends','친구'),garden?cupW3T('Weekly league','주간 리그'):cupW3T('Study together, quietly','조용히 함께 공부해요'))}
         ${row(close+'cupShareNewOpen()','↗',cupW3T('Shared Lists','공유 목록'),cupW3T('Family, club, team','가족, 동아리, 팀'),'cup-extra-only')}
       </div>
       <div class="cup-me-sec cup-extra-only">${cupW3T('More tools','더 많은 도구')}</div>
@@ -25925,6 +25960,43 @@ function cupSideBottomMount(){
 try{ cupSideBottomMount(); }catch(_){}
 document.addEventListener('DOMContentLoaded', ()=>{ try{ cupSideBottomMount(); }catch(_){} });
 
+// ════════════════════════════════════════════════════════════
+//  14 · HANDOFF SPEC FIXES (2026-10-22) — phone: folder › keeps the sheet open and
+//  updates it; task sheet gets Start focus · Do next · Done; Goals shows 3 main
+//  sections with the rest under “More”; the old add-task modal routes to the new one
+// ════════════════════════════════════════════════════════════
+{ const _ts=cupToggleSide; cupToggleSide=function(){ const r=_ts.apply(this,arguments);
+  const mob=document.querySelector('#mCupMobPages .cup-side'), tree=document.getElementById('cupSideTree');
+  if(mob && tree){ mob.innerHTML=tree.innerHTML; if(typeof cupKoWalk==='function' && cupIsKo()) cupKoWalk(mob); }
+  return r; }; }
+{ const _tr=cupTSRender; cupTSRender=function(){ const r=_tr.apply(this,arguments);
+  try{ const id=cupTS&&cupTS.id, t=id&&S.tasks.find(x=>x.id===id), title=document.getElementById('cupTSTitle');
+    const old=document.querySelector('#mCupTask .cup-ts-qact');
+    if(!t || cupDone(t) || t.isHabit || !title){ if(old) old.remove(); return r; }
+    if(!old){ const q=document.createElement('div'); q.className='cup-ts-qact';
+      q.innerHTML=`<button type="button" class="cup-ts-qbtn primary" onclick="closeModal('mCupTask');cupSessionOpen('${id}')">◎ ${cupT10('Start focus','집중 시작')}</button>`
+        +`<button type="button" class="cup-ts-qbtn" onclick="cupPin('${id}');closeModal('mCupTask')">↑ ${cupT10('Do next','다음 할 일로')}</button>`
+        +`<button type="button" class="cup-ts-qbtn" onclick="closeModal('mCupTask');toggleTask('${id}')">✓ ${cupT10('Done','완료')}</button>`;
+      (title.closest('.cup-ts-head, .cup-ts-top')||title).after(q); }
+  }catch(_){}
+  return r; }; }
+cupRenderCompass=function(){
+  const host=document.getElementById('cupCompass'); if(!host) return;
+  if(host.contains(document.activeElement) && document.activeElement.tagName==='INPUT') return;
+  const paces=cupPacePlans(), dd=+cupPref('deadlineDays',30)||30;
+  const sec=(ic,title,body,wide)=>`<section class="cup-block ${wide?'wide':''}"><h5><span class="cup-bic">${cupIc(ic)}</span>${title}</h5>${body}</section>`;
+  const open=!!(S.cup&&S.cup.goalsMoreOpen);
+  const html=`<div class="cup-compass">
+    ${sec('goal',cupT10('Goals','목표'),cupGoalsHTML(),true)}
+    ${sec('cal',cupT10(`Deadlines · next ${dd===365?'year':dd===14?'2 weeks':dd+' days'}`,`마감일 · 앞으로 ${dd===365?'1년':dd+'일'}`),cupDeadlinesHTML(),true)}
+    ${sec('week',cupT10('Course pace','수업 진도'),(paces.map(p=>cupPaceRow(p,true)).join('')||`<div class="cup-dim">${cupT10('No courses tracked yet.','추적 중인 수업이 없어요.')}</div>`)+(cupMode().track||paces.length?`<button class="cup-more-btn" onclick="cupPaceOpen()">+ ${cupT10('Track a course','수업 추가')}</button>`:''),true)}
+    <details class="cup-more-sec" ${open?'open':''} ontoggle="cupEnsure();S.cup.goalsMoreOpen=this.open;save()"><summary>${cupT10('More — principles, hours by folder, finished lately','더보기 — 원칙, 폴더별 시간, 최근 완료')}</summary>
+      <div class="cup-compass">${sec('quote',cupT10('Principles','원칙'),cupPrinciplesHTML())}${sec('week',cupT10('Hours by folder','폴더별 시간'),cupTimeReportHTML(),true)}${sec('check',cupT10('Finished lately','최근 완료'),cupFinishedHTML(),true)}</div></details>
+  </div>`;
+  if(host._last!==html){ host.innerHTML=html; host._last=html; }
+};
+{ const _om=openModal; openModal=function(id){ if(id==='mAddTask' && document.body.classList.contains('cup-lean') && typeof cupPlusOpen==='function'){ cupPlusOpen('task'); return; } return _om.apply(this,arguments); }; }
+
 
 // Korean interface strings. Keys are the exact English text shown on screen.
 Object.assign(CUP_KO, {
@@ -26266,7 +26338,7 @@ Object.assign(CUP_KO, {
   "Now":"지금","Next":"다음","Open or start this event’s notes page":"이 일정의 노트 페이지 열기 또는 시작","Open this folder":"이 폴더 열기",
   "Focused":"집중함","Schedule":"일정 잡기","Unschedule":"일정 빼기","Unscheduled.":"일정에서 뺐어요.","Open page":"페이지 열기","In your tasks":"할 일 목록에 있어요",
   "Coming up":"다가오는 일정","Fewer":"줄이기",
-  "Today in review":"오늘 돌아보기","Still open":"남은 일","Hide until tomorrow":"내일까지 숨기기",
+  "Today in review":"오늘 돌아보기","No deadlines coming up.":"다가오는 마감일이 없어요.","Date":"날짜","Task":"할 일","Still open":"남은 일","Hide until tomorrow":"내일까지 숨기기",
   "Add to tomorrow":"내일 할 일로 추가","✎ Reflect: what will you do tomorrow?":"✎ 돌아보기: 내일은 무엇을 할까요?","Hide review":"돌아보기 숨기기","◐ Review today":"◐ 오늘 돌아보기",
   "Make tasks":"할 일 만들기","✎ Today’s journal":"✎ 오늘의 일기","From your journal (“Tomorrow I will…”)":"일기 “내일은…”에서"
 });
