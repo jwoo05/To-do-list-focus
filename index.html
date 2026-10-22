@@ -7142,6 +7142,11 @@ button:active, .btn:active, .nav-item:active, .mt-tab:active{ transition-duratio
 /* Friends: one centered column, header included */
 #page-friends > .view-header, #page-friends .cup-friends-page{ max-width:680px; margin-left:auto; margin-right:auto; width:100%; }
 
+/* sidebar: no brand block — just the collapse button in a slim row */
+.sidebar .sidebar-logo{ min-height:0; padding:0 0 6px; margin:0; border:0; justify-content:flex-end; }
+.sidebar .sidebar-logo .logo-mark, .sidebar .sidebar-logo > div:not(.logo-mark){ display:none; }
+body.cup-side-min .sidebar .sidebar-logo{ justify-content:center; padding:0 0 8px; }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
