@@ -7064,6 +7064,19 @@ body.cup-nogarden .cup-podium, body.cup-nogarden .cup-league-call{ display:none 
 @media (max-width:560px){ .cup-wcols{ grid-template-columns:1fr; } .cup-wcard-a button{ min-height:40px; padding:6px 14px; } #cupWaitPage{ margin-bottom:calc(110px + env(safe-area-inset-bottom)); } }
 #page-waiting{ overflow-y:auto; }
 
+/* ── First glance ── */
+.cup-guide{ border:1px solid color-mix(in srgb, var(--accent) 40%, var(--border)); background:color-mix(in srgb, var(--accent) 7%, var(--bg2)); border-radius:16px; padding:16px 18px; margin:0 0 14px; display:flex; flex-direction:column; gap:12px; }
+.cup-guide-h{ display:flex; align-items:baseline; gap:10px; } .cup-guide-h b{ font-family:'Source Serif 4',Georgia,serif; font-size:20px; } .cup-guide-h span{ font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text3); }
+.cup-guide-s{ display:flex; gap:12px; align-items:flex-start; }
+.cup-guide-s b{ display:block; font-size:calc(15px * var(--cup-fs,1)); } .cup-guide-s em{ display:block; font-style:normal; font-size:calc(13px * var(--cup-fs,1)); color:var(--text2); margin:2px 0 8px; }
+.cup-guide-n{ flex:none; width:28px; height:28px; border-radius:50%; display:grid; place-items:center; font-weight:700; font-size:calc(14px * var(--cup-fs,1)); background:var(--accent); color:#fff; }
+.cup-guide-s.done{ opacity:.55; } .cup-guide-s.done .cup-guide-n{ background:var(--green,#3fae7a); }
+.cup-guide-s.done b{ text-decoration:line-through; }
+.cup-guide-x{ align-self:flex-start; }
+.cup-next-actions .cup-icon-btn{ width:auto; padding:0 12px; }
+.cup-plus-fab{ width:auto; padding:0 18px 0 14px; border-radius:999px; display:inline-flex; gap:6px; align-items:center; }
+.cup-fab-l{ font-size:calc(15px * var(--cup-fs,1)); font-weight:600; }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -9352,11 +9365,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <button type="button" class="btn btn-ghost cup-imp-copy" onclick="cupCopyClaudePrompt(this)">Copy prompt for Claude</button></div></div>
         </div>
         <textarea id="cupImportText" class="cup-imp-text" spellcheck="false" oninput="cupImportInput()"
-          placeholder="# INFO 380&#10;Group Project 2 draft  Oct 15 3pm  !must&#10;Read Ch 6 by Tue 8:30am&#10;&#10;# Personal life&#10;Call Fidelity&#10;* Stretch daily&#10;@ Career fair  Oct 22 11am-3pm"></textarea>
+          placeholder="# BIO 101&#10;Group Project 2 draft  Oct 15 3pm  !must&#10;Read Ch 6 by Tue 8:30am&#10;&#10;# Personal life&#10;Call the bank&#10;* Stretch daily&#10;@ Career fair  Oct 22 11am-3pm"></textarea>
         <details class="cup-imp-help" open>
           <summary>Format for typing it yourself <button type="button" class="cup-imp-ex" onclick="event.preventDefault();cupImportExample()">Insert example</button></summary>
           <table>
-            <tr><td><code># INFO 380</code></td><td>Folder — the lines under it go there. New name = new folder.</td></tr>
+            <tr><td><code># BIO 101</code></td><td>Folder — the lines under it go there. New name = new folder.</td></tr>
             <tr><td><code>Draft  Oct 15 3pm</code></td><td>Task with due date + time. Also <code>10/15</code>, <code>by Fri</code>, <code>tomorrow</code>.</td></tr>
             <tr><td><code>!must</code> <code>!high</code> <code>!low</code></td><td>Priority</td></tr>
             <tr><td><code>~ Sandbox  sent Oct 12</code></td><td>Submitted, waiting to hear back</td></tr>
@@ -17622,8 +17635,8 @@ function cupRenderSideTree(){
       <button class="cup-restore" onclick="cupArchiveFolder('${c.id}',false)" title="Restore ${esc(c.name)}" aria-label="Restore ${esc(c.name)}">↺</button></div>`).join(''):''}` : '';
   const catLink = `<button class="cup-side-cats" onclick="cupOpenCats()">✎ Edit categories</button>`;
   const loose=cupNotesLoose();
-  const pagesSec = `<div class="cup-side-head cup-pages-head" ondragover="cupPgOver(event)" ondragleave="cupPgLeave(event)" ondrop="cupPgDrop(event,'')"><span>Pages</span><span><button onclick="cupNewNote('')" title="New page" aria-label="New page">+</button></span></div>
-    ${loose.length?cupSidePages(loose,0):'<div class="cup-side-empty">Pages you don’t file yet live here. Drag one onto a folder or another page.</div>'}
+  const pagesSec = `<div class="cup-side-head cup-pages-head" ondragover="cupPgOver(event)" ondragleave="cupPgLeave(event)" ondrop="cupPgDrop(event,'')"><span>Notes</span><span><button onclick="cupNewNote('')" title="New note" aria-label="New note">+</button></span></div>
+    ${loose.length?cupSidePages(loose,0):'<div class="cup-side-empty">Notes you write show up here. Press + to start one.</div>'}
     ${(n=>n?`<button class="cup-side-hid" onclick="cupToggleSide('__hid')">${cupSideOpen.includes('__hid')?'Hide':'Show'} ${n} hidden page${n>1?'s':''}</button>`:'')(cupNotes().filter(x=>x.hidden).length)}`;
   const html = `<div class="cup-side-newrow"><button class="cup-side-new" onclick="cupPlusOpen()">${cupIc('plus')}<span>New</span><kbd>⌘K</kbd></button><button class="cup-side-search" onclick="cupPlusOpen('search')" title="Search everything (⌘/)" aria-label="Search">${cupIc('search')}</button></div>${pagesSec}${typeof cupSharedSideHTML==='function'?cupSharedSideHTML():''}<div class="cup-side-head" style="margin-top:10px"><span>Folders</span><span><button onclick="cupOpenImport()" title="Import many at once" aria-label="Import">⇪</button><button onclick="cupOpenFolder(null)" title="New folder" aria-label="New folder">+</button></span></div>${rows||'<div class="cup-side-empty">Add a folder for each class, club or project.</div>'}${pile}${catLink}`;
   if(host._last!==html){ host.innerHTML=html; host._last=html; }
@@ -17769,14 +17782,14 @@ function cupRenderHome(){
   const L=cupLoad();
   let html;
   if(!first){
-    html=`<div class="cup-next-top"><span class="cup-next-label">Next up</span></div><div class="cup-next-title">Nothing waiting for you ✓</div>`;
+    html=`<div class="cup-next-top"><span class="cup-next-label">Do this next</span></div><div class="cup-next-title">Nothing waiting for you ✓</div>`;
   } else {
     const t=first.t, c=cupCommit(t.commitId);
     const folder=c?c.name:(CUP_AREA[t.area]?.name||t.subject||'');
     const notes=(t.notes||'').trim();
     const subs=t.subtasks||[], subDone=subs.filter(s=>s.done).length;
     const hasMore=!!(notes||t.link||subs.length);
-    html=`<div class="cup-next-top"><span class="cup-next-label">Next up</span><span style="display:inline-flex;align-items:center;gap:8px;margin-left:auto">${first.pinned?`<button class="cup-pinbadge" onclick="cupPin('')" title="Go back to showing the most urgent task">Your pick · ✕</button>`:cupBadge(first)}</span></div>
+    html=`<div class="cup-next-top"><span class="cup-next-label">Do this next</span><span style="display:inline-flex;align-items:center;gap:8px;margin-left:auto">${first.pinned?`<button class="cup-pinbadge" onclick="cupPin('')" title="Go back to showing the most urgent task">Your pick · ✕</button>`:cupBadge(first)}</span></div>
       <div class="cup-next-folder">${folder?`<span class="cup-sw" style="background:${cupSphColor(t.area)}"></span>${esc(folder)}`:''}${t.appStage?` · ${CUP_STAGES[t.appStage]}`:''}</div>
       <div class="cup-next-title">${esc(t.title)}</div>
       ${t.location?`<a class="cup-place" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(t.location)}" target="_blank" rel="noopener">${cupIc('pin')}${esc(t.location)}</a>`:''}
@@ -17787,9 +17800,9 @@ function cupRenderHome(){
         ${t.link?`<a class="cup-link" href="${esc(t.link)}" target="_blank" rel="noopener">Open link ↗</a>`:''}</div>`:''}
       <div class="cup-next-actions">
         <button class="btn btn-accent" onclick="startPomoTask('${t.id}')" title="Start a focus session">◎ Focus</button>
-        <button class="cup-icon-btn" onclick="toggleTask('${t.id}')" title="Done" aria-label="Mark done">✓</button>
+        <button class="cup-icon-btn" onclick="toggleTask('${t.id}')" title="Done" aria-label="Mark done">✓ Done</button>
         <button class="cup-icon-btn cup-later" onclick="cupLaterMenu('${t.id}',this)" title="Not now: hide it for a while, or move it">Later ▾</button>
-        <button class="cup-icon-btn" onclick="editTask('${t.id}')" title="Edit" aria-label="Edit">✎</button>
+        <button class="cup-icon-btn" onclick="editTask('${t.id}')" title="Edit" aria-label="Edit">✎ Edit</button>
       </div>
 `;
   }
@@ -18136,7 +18149,7 @@ fetchIcal = async function(){
 //  Accepts quick lines you type yourself, or the JSON reply from Claude
 //  (via "Copy prompt for Claude"). Nothing changes until you tap Apply.
 // ════════════════════════════════════════════════════════════
-const CUP_IMPORT_EXAMPLE = `# INFO 380
+const CUP_IMPORT_EXAMPLE = `# BIO 101
 Group Project 2 draft  Oct 15 3pm  !must
 Read Ch 6 by Tue 8:30am
 ~ Peer review wk 3  sent Oct 13
@@ -18144,11 +18157,11 @@ Read Ch 6 by Tue 8:30am
 > Process improvement: measure, then change
 > [ ] Ask about the case study
 
-# Clubs › Synaptech
-Borrow Cyton board  next Mon
+# Clubs › Robotics Club
+Order robot parts  next Mon
 
 # Personal life
-Call Fidelity  !low
+Call the bank  !low
 * Stretch 10 min daily
 @ Career fair  Oct 22 11am-3pm  // bring resume`;
 
@@ -18164,7 +18177,7 @@ function cupOpenImport(){
 function cupImportInput(){ clearTimeout(cupImportTimer); cupImportTimer=setTimeout(cupRenderImportPreview,250); }
 function cupImportExample(){ const ta=document.getElementById('cupImportText'); ta.value=cupMode().example||CUP_IMPORT_EXAMPLE; cupRenderImportPreview(); ta.focus(); }
 
-// ── matching folders by name ("INFO 380", "Gym", "Clubs › Synaptech") ──
+// ── matching folders by name ("BIO 101", "Gym", "Clubs › Robotics Club") ──
 const cupNorm = s => String(s||'').toLowerCase().replace(/[^a-z0-9가-힣]+/g,'');
 function cupMatchFolder(name){
   if(!name) return null;
@@ -18175,7 +18188,7 @@ function cupMatchFolder(name){
   return cs.find(c=>cupNorm(c.name)===key) || cs.find(c=>cupNorm(c.name).startsWith(key)) || cs.find(c=>cupNorm(c.name).includes(key))
       || cs.find(c=>key.includes(cupNorm(c.name)) && cupNorm(c.name).length>=3) || null;
 }
-// A heading can name a folder ("INFO 380"), an area ("Personal life"), or something new
+// A heading can name a folder ("BIO 101"), an area ("Personal life"), or something new
 function cupResolveFolder(name){
   const n=String(name||'').trim(); if(!n) return null;
   const parts=n.split(/›|>|\//).map(x=>x.trim()).filter(Boolean);
@@ -18233,7 +18246,7 @@ function cupParseLines(text){
     if(pre){ kind={'~':'waiting','*':'habit','@':'event','^':'task'}[pre[1]]; line=line.slice(pre[0].length); }
     const word=line.match(/^(waiting|habit|event)\s*:\s*/i);
     if(word){ kind=word[1].toLowerCase(); line=line.slice(word[0].length); }
-    // inline folder: "[INFO 380] Read Ch 6"
+    // inline folder: "[BIO 101] Read Ch 6"
     let f=folder;
     const inl=line.match(/^\[([^\]]+)\]\s*/);
     if(inl){ f=cupResolveFolder(inl[1]); line=line.slice(inl[0].length); }
@@ -18948,7 +18961,7 @@ function cupCatsUse(area){ return { folders:cupCommits().filter(c=>c.area===area
 function cupOpenCats(){ cupCatsEditable(); cupCatsRender(); openModal('mCupCats'); }
 function cupCatsRender(){
   const host=document.getElementById('cupCatsBody'); if(!host) return;
-  host.innerHTML = `<p class="cup-explain">Groups hold areas; areas hold your folders. For example: <b>Community</b> → <b>Clubs</b> → <b>Synaptech</b>.</p>`
+  host.innerHTML = `<p class="cup-explain">Groups hold areas; areas hold your folders. For example: <b>Community</b> → <b>Clubs</b> → <b>Robotics Club</b>.</p>`
    + S.cup.groups.map((g,gi)=>{
       const areas=S.cup.areas.filter(a=>a.group===g.key);
       return `<div class="cup-cat-group" style="--gc:${g.color}">
@@ -19084,7 +19097,7 @@ function cupOpenNote(id, isNew){
   if(area&&CUP_AREA[area]) bits.push(`<button onclick="cupNoteGoFolder('area:${area}')">${esc(CUP_AREA[area].name)}</button>`);
   if(c) bits.push(`<button onclick="cupNoteGoFolder('folder:${c.id}')">${esc(c.name)}</button>`);
   cupNoteChain(n).forEach(p=>bits.push(`<button onclick="cupOpenNote('${p.id}')">${esc(p.title||'Untitled')}</button>`));
-  document.getElementById('cupNoteCrumbs').innerHTML = bits.length ? bits.join('<span class="cup-crumb-sep">/</span>') : '<span>Pages</span>';
+  document.getElementById('cupNoteCrumbs').innerHTML = bits.length ? bits.join('<span class="cup-crumb-sep">/</span>') : '<span>Notes</span>';
   document.getElementById('cupNoteTitle').value = n.title||'';
   const body=document.getElementById('cupNoteBody');
   body.innerHTML = cupCleanHTML(n.html) || '<p><br></p>';
@@ -20086,7 +20099,7 @@ function cupSocialHTML(tab){
     ${gs.map(([gid,g])=>cupGroupCard(gid,g)).join('')}
     <div class="cup-gnew"><div class="cup-g-h">${gs.length?'Start another group':'Start a group'}</div>
       <div class="cup-gkinds">${CUP_GROUP_KINDS.map(([k,ic,n,d])=>`<button type="button" class="cup-gkind ${cupNewGroupKind===k?'on':''}" onclick="cupNewGroupKind='${k}';cupRenderFriendsPage()"><span>${ic}</span><b>${n}</b><em>${d}</em></button>`).join('')}</div>
-      <div class="cup-soc-row"><div class="cup-fnew"><input placeholder="Name it (e.g. ${cupNewGroupKind==='qt'?'Thursday small group':cupNewGroupKind==='gym'?'IMA crew':'INFO 330 squad'}) — Enter" onkeydown="if(event.key==='Enter'){cupCreateGroup(this.value);this.value=''}"></div>
+      <div class="cup-soc-row"><div class="cup-fnew"><input placeholder="Name it (e.g. ${cupNewGroupKind==='qt'?'Thursday small group':cupNewGroupKind==='gym'?'Gym crew':'Bio study group'}) — Enter" onkeydown="if(event.key==='Enter'){cupCreateGroup(this.value);this.value=''}"></div>
       <div class="cup-fnew"><input placeholder="Or join with a code — Enter" onkeydown="if(event.key==='Enter'){cupJoinGroup(this.value);this.value=''}"></div></div></div>
     ${cupShareSettingsHTML()}`;
 }
@@ -20297,7 +20310,7 @@ function cupRenderSideExtras(){
 // ════════════════════════════════════════════════════════════
 const CUP_PLUS = [
   // id, label, icon, hint
-  ['task','Task','check','“INFO 380 reading due fri 3pm”'],
+  ['task','Task','check','“Lab report due fri 3pm”'],
   ['page','Page','page','A new page to write in'],
   ['note','Quick note','note','Adds a line to a page'],
   ['journal','Journal','spark','Today’s journal — a thought, a win, a feeling'],
@@ -20312,7 +20325,7 @@ function cupPlusMount(){
   if(document.getElementById('cupPlus')) return;
   const fab=document.createElement('button');
   fab.id='cupPlusFab'; fab.className='cup-plus-fab'; fab.setAttribute('aria-label','Add anything (⌘K)'); fab.title='Add anything · ⌘K';
-  fab.innerHTML=cupIc('plus'); fab.onclick=()=>cupPlusOpen();
+  fab.innerHTML=cupIc('plus')+'<span class="cup-fab-l">Add</span>'; fab.onclick=()=>cupPlusOpen();
   document.body.appendChild(fab);
   const el=document.createElement('div');
   el.id='cupPlus'; el.className='cup-plus'; el.setAttribute('role','dialog'); el.setAttribute('aria-label','Add');
@@ -21702,14 +21715,14 @@ function cupHomeControls(){
     ${wait.length?`<button type="button" class="cup-hbtn" onclick="cupSetBankSel('waiting')" title="Things you sent and are waiting on">Waiting on · ${wait.length}${stale?` · ${stale} to nudge`:''}</button>`:''}
     ${showF?`<select class="cup-hf" onchange="cupSetHomeFilter(this.value)" aria-label="Focus Home on">${opts}</select>`:''}
     <button type="button" class="cup-hbtn ${cupEnergyLow()?'on':''}" onclick="cupToggleEnergy()" title="Low energy? Hides tasks marked Hard for today">${cupEnergyLow()?'Gentle day on':'Gentle day'}</button>
-    ${late>=3?`<button type="button" class="cup-hbtn" onclick="cupFreshOpen()" title="Reset everything that slipped">Fresh start · ${late} carried over</button>`:''}
+    ${late>=3?`<button type="button" class="cup-hbtn" onclick="cupFreshOpen()" title="Reset everything that slipped">Reschedule overdue · ${late}</button>`:''}
   </div>`;
 }
 function cupFreshOpen(){
   let el=document.getElementById('mCupFresh');
   if(!el){ el=document.createElement('div'); el.className='overlay'; el.id='mCupFresh'; document.body.appendChild(el); }
   const late=cupLateTasks().sort((a,b)=>a.due.localeCompare(b.due)), old=late.filter(t=>cupDays(t.due)<=-14).length;
-  el.innerHTML=`<div class="modal cup-pace-modal"><div class="modal-header"><span class="modal-title">Fresh start</span><button class="modal-close" onclick="closeModal('mCupFresh')" aria-label="Close">✕</button></div>
+  el.innerHTML=`<div class="modal cup-pace-modal"><div class="modal-header"><span class="modal-title">Reschedule overdue tasks</span><button class="modal-close" onclick="closeModal('mCupFresh')" aria-label="Close">✕</button></div>
     <div class="modal-body"><p class="cup-org-sub">${late.length} things slipped past their date. That’s normal. Pick how to reset them. Nothing is deleted.</p>
     <div class="cup-org-ways">
       <button class="cup-org-way main" onclick="cupFresh('spread')"><b>Spread them over the next 7 days</b><span>At most 3 a day, oldest first, so tomorrow isn’t a pile.</span></button>
@@ -21855,7 +21868,7 @@ setInterval(cupReminderTick, 30000); setTimeout(cupReminderTick, 4000);
 const CUP_COL = { a:'var(--accent)', b:'var(--orange)', c:'var(--purple)', d:'var(--green)', e:'#B83030', f:'#1F7A8C' };
 const CUP_MODES = {
   school:{ name:'School', blurb:'Classes, assignments, exams, clubs', track:true, app:false,
-    filt:{ classes:'Classes', assign:'Assignments', due:'Deadlines' }, goalName:'Assignment', goalSteps:'Read\nDraft\nReview\nSubmit', goalHint:'Read 20 books 0/20', example:'# INFO 380\nGroup Project 2 draft  Oct 15 3pm  !must\nRead Ch 6 by Tue 8:30am\n~ Peer review wk 3  sent Oct 13\n+ Lecture 6 notes\n> Process improvement: measure, then change\n\n# Personal life\nCall the bank  !low\n* Stretch 10 min daily\n@ Career fair  Oct 22 11am-3pm  // bring resume',
+    filt:{ classes:'Classes', assign:'Assignments', due:'Deadlines' }, goalName:'Assignment', goalSteps:'Read\nDraft\nReview\nSubmit', goalHint:'Read 20 books 0/20', example:'# BIO 101\nGroup Project 2 draft  Oct 15 3pm  !must\nRead Ch 6 by Tue 8:30am\n~ Peer review wk 3  sent Oct 13\n+ Lecture 6 notes\n> Process improvement: measure, then change\n\n# Personal life\nCall the bank  !low\n* Stretch 10 min daily\n@ Career fair  Oct 22 11am-3pm  // bring resume',
     groups:null, areas:null, templates:['Study for an exam','Paper or essay','Lab report'] },
   work:{ name:'Work', blurb:'Projects, meetings, deadlines', track:false, app:false,
     filt:{ classes:'Recurring', assign:'Deliverables', due:'Deadlines' }, goalName:'Deliverable', goalSteps:'Scope\nDraft\nReview\nShip', goalHint:'Ship 4 features 0/4', example:'# Q4 launch\nDraft launch plan  Oct 15 3pm  !must\nReview budget with Sam  Fri\n~ Legal sign-off  sent Oct 13\n+ Planning meeting notes\n> Decision: move launch to Nov 4\n\n# Admin\nSubmit expenses  !low\n@ Team offsite  Oct 22 9am-4pm  // bring laptop',
@@ -22911,7 +22924,7 @@ function cupUpgradeMobileNav(){
     </button>
     <button class="mt-tab" data-page="pages" onclick="cupOpenMobilePages(this)">
       <span class="mt-tab-glyph">▤</span>
-      <span class="mt-tab-label">Pages</span>
+      <span class="mt-tab-label">Notes</span>
     </button>
     <button class="mt-tab" data-page="me" onclick="cupOpenMobileMe(this)">
       <span class="mt-tab-glyph">☺</span>
@@ -23502,12 +23515,12 @@ function cupRenderTaskList(){
   const folders=cupActive().filter(c=>!c.parentId).sort(cupByName);
   const html=`<div class="cup-tl">
     <div class="cup-tl-top">
-      <button class="cup-tl-add" onclick="cupPlusOpen('task')"><span>+</span>Add a task<em>try “PHYS lab fri 3pm”</em></button>
+      <button class="cup-tl-add" onclick="cupPlusOpen('task')"><span>+</span>Add a task<em>try “Lab report fri 3pm”</em></button>
       <select class="cup-tl-fsel ${cupTLFolder?'on':''}" onchange="cupTLFolder=this.value;try{localStorage.setItem('cup_tl_folder',this.value)}catch(_){};cupRenderTaskList()" aria-label="Folder">
         <option value="">All folders</option>${folders.map(c=>`<option value="${c.id}" ${cupTLFolder===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
       <input class="cup-tl-q" placeholder="Search" value="${esc(cupTLQuery)}" oninput="if(event.isComposing)return;cupTLQuery=this.value;cupRenderTaskList()" oncompositionend="cupTLQuery=this.value;cupRenderTaskList()" aria-label="Search tasks">
     </div>
-    ${sec('overdue','Overdue',over,{ fold:true, showDate:true, cls:'over', extra:over.length>=3?`<button class="cup-tl-fresh" onclick="cupFreshOpen()">Fresh start</button>`:'' })}
+    ${sec('overdue','Overdue',over,{ fold:true, showDate:true, cls:'over', extra:over.length>=3?`<button class="cup-tl-fresh" onclick="cupFreshOpen()">Reschedule overdue</button>`:'' })}
     ${sec('today','Today',on(td))}
     ${sec('tomorrow','Tomorrow',on(tm))}
     ${week.map(([k,l])=>sec('d'+k, `${cupWd(k)} <span class="cup-dim">${cupFmt(k)}</span>`, l)).join('')}
@@ -23725,7 +23738,7 @@ function cupGateOn(){ return !!cupPref('focusGate',false) && cupGateTasks().leng
 function cupGateToggle(){ cupSetPref('focusGate', !cupPref('focusGate',false)); try{ cupRenderTaskList(); }catch(_){} try{ cupRenderHome(); }catch(_){} }
 function cupGateBar(){
   const on=!!cupPref('focusGate',false), n=cupGateTasks().length;
-  return `<div class="cup-gate ${on&&n?'locked':''}"><button type="button" class="cup-gate-sw ${on?'on':''}" onclick="cupGateToggle()" aria-pressed="${on}"><i></i>Focus gate</button>
+  return `<div class="cup-gate ${on&&n?'locked':''}"><button type="button" class="cup-gate-sw ${on?'on':''}" onclick="cupGateToggle()" aria-pressed="${on}"><i></i>Must-dos first</button>
     <span class="cup-dim">${on?(n?`🔒 Finish ${n} must-do${n===1?'':'s'} to unlock the rest`:'All must-dos done — everything is open'):'Dim everything else until today’s must-dos are done'}</span></div>`;
 }
 // List view: must-dos first, the rest dimmed while the gate holds
@@ -24795,7 +24808,7 @@ cupTLFolderHead=function(host){
     html+=`<span class="cup-hub-stats"><span>${open.length-wait.length} open</span>${wait.length?`<button type="button" onclick="cupTLOpen.waiting=true;cupRenderTaskList();setTimeout(()=>[...document.querySelectorAll('#cupTaskList .cup-tl-h')].find(x=>/Waiting|대기/.test(x.textContent))?.scrollIntoView({block:'center'}),40)">${wait.length} waiting</button>`:''}<span>${cupHrs(mins)} focus this week</span></span>`;
     html+=`<button class="cup-tl-fclear" onclick="cupTLClear()">✕ All tasks</button></div>`;
     const pages=cupNotes().filter(n=>!n.hidden&&!n.parentId&&fs.has(n.commitId)).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)), shown=cupHubAllPages?pages:pages.slice(0,6);
-    html+=`<div class="cup-hub-row"><span class="cup-hub-k">Pages</span>${shown.map(n=>`<button class="cup-tl-page" onclick="cupOpenNote('${n.id}')">${cupIc('page')}<span data-keep>${esc(n.title||'Untitled')}</span></button>`).join('')}${pages.length>6?`<button class="cup-hub-more" onclick="cupHubAllPages=!cupHubAllPages;cupRenderTaskList()">${cupHubAllPages?'Fewer':`+${pages.length-6} more`}</button>`:''}<button class="cup-hub-more" onclick="cupNewNote('folder:${id}','',true)">+ New page</button></div>`;
+    html+=`<div class="cup-hub-row"><span class="cup-hub-k">Notes</span>${shown.map(n=>`<button class="cup-tl-page" onclick="cupOpenNote('${n.id}')">${cupIc('page')}<span data-keep>${esc(n.title||'Untitled')}</span></button>`).join('')}${pages.length>6?`<button class="cup-hub-more" onclick="cupHubAllPages=!cupHubAllPages;cupRenderTaskList()">${cupHubAllPages?'Fewer':`+${pages.length-6} more`}</button>`:''}<button class="cup-hub-more" onclick="cupNewNote('folder:${id}','',true)">+ New page</button></div>`;
     const td=todayStr(), hm=cupClk(cupNow()), evs=[];
     for(let i=0;i<7&&evs.length<4;i++){ const ds=cupAddDays(td,i); cupCalEventsOn(ds).forEach(e=>{ if(evs.length>=4 || (i===0&&e.time&&!e.allDay&&(e.endTime||e.time)<hm)) return; const c=cupEvFolder(e); if(c&&fs.has(c.id)) evs.push({ e, ds }); }); }
     if(evs.length) html+=`<div class="cup-hub-row"><span class="cup-hub-k">Coming up</span>${evs.map(({e,ds})=>`<button class="cup-hub-ev" onclick="editEvent('${e.id}')" style="--c:${esc(e.color||'var(--accent)')}"><i></i><span>${cupW2Day(ds)||'Today'}</span> <span>${e.time&&!e.allDay?cupTShort(e.time):'All day'}</span> <span data-keep>${esc(e.title)}</span></button>`).join('')}</div>`;
@@ -25523,6 +25536,7 @@ function cupPhysReset(){
     if(physFolder&&t.commitId===physFolder.id){ const m=(t.title||'').match(/\bL(\d{1,2})\b/); if(m&&+m[1]>=1&&+m[1]<=28&&!/midterm|final|exam/i.test(t.title)) return +m[1]; }
     return 0; };
   const steps=S.tasks.filter(t=>stepOf(t));
+  if(!S.tasks.some(t=>/^p-L\d+$/.test(t.id||'')) && !(S.deleted||[]).some(d=>d&&d.item&&/^p-L\d+$/.test(d.item.id||''))) return false;   // only the account this plan was made for
   if(!steps.length && !physFolder) return false;                    // not this account
   const planName=((steps.find(t=>t.plan&&t.plan.name)||{}).plan||{}).name||'PHYS pace';
   const folder=physFolder || cupCommit((steps[0]||{}).commitId);
@@ -25564,6 +25578,67 @@ function cupPhysReset(){
     if(S && S.tasks && S.tasks.length && cupPhysReset()) return; }catch(e){ console.warn('PHYS reset', e); } if(tries<40) setTimeout(tick, 1500); };
   setTimeout(tick, 2500); }
 
+// ════════════════════════════════════════════════════════════
+//  5 · ACCOUNT ISOLATION — one person's data never shows in, or saves into,
+//      someone else's account on the same browser.
+// ════════════════════════════════════════════════════════════
+const CUP_KEEP_LOCAL=new Set(['cup_lang']);                 // device preferences that aren't personal
+function cupWipeLocal(){
+  try{ const ks=[]; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k && (k===KEY || (k.startsWith('cup_') && !CUP_KEEP_LOCAL.has(k)))) ks.push(k); } ks.forEach(k=>localStorage.removeItem(k)); }catch(_){}
+  try{ cupAiKeyMem=''; }catch(_){}
+  try{ cupSocial.friends={}; cupSocial.requests={}; cupSocial.groups={}; cupSocial.profiles={}; cupSocial.cheers={}; cupSocial.sent={}; }catch(_){}
+  try{ if(typeof cupFCSess!=='undefined' && cupFCSess) cupFCEnd(false); }catch(_){}
+}
+function cupBlankState(){ try{ return normalizeState(JSON.parse(JSON.stringify(DEF))); }catch(_){ return JSON.parse(JSON.stringify(DEF)); } }
+let cupPreLoadS=null, cupLoadUid=null;
+{ const _load=loadUserDataFromFirebase; loadUserDataFromFirebase=function(){
+  try{ if(typeof currentUser!=='undefined' && currentUser){
+    let owner=''; try{ owner=localStorage.getItem('cup_owner_uid')||''; }catch(_){}
+    if(owner && owner!==currentUser.uid){ cupWipeLocal(); S=cupBlankState(); try{ render(); }catch(_){} }   // someone else used this browser before
+    try{ localStorage.setItem('cup_owner_uid', currentUser.uid); }catch(_){}
+    cupPreLoadS=S; cupLoadUid=currentUser.uid; } }catch(_){}
+  return _load.apply(this,arguments); }; }
+// until this account's cloud copy has arrived, nothing on screen is written to it
+{ const _save=saveUserDataToFirebase; saveUserDataToFirebase=function(){
+  if(typeof currentUser!=='undefined' && currentUser && cupLoadUid===currentUser.uid && S===cupPreLoadS){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(_){} return; }
+  return _save.apply(this,arguments); }; }
+// logging out leaves nothing personal behind (tasks, notes, Claude key, friends)
+if(typeof auth!=='undefined' && auth && auth.signOut){ const _so=auth.signOut.bind(auth); auth.signOut=function(){
+  try{ if(typeof flushPendingSave==='function') flushPendingSave(); }catch(_){}
+  return _so().then(r=>{ cupWipeLocal(); try{ localStorage.removeItem('cup_owner_uid'); }catch(_){} try{ S=cupBlankState(); cupPreLoadS=null; cupLoadUid=null; render(); }catch(_){} return r; }); }; }
+
+// ════════════════════════════════════════════════════════════
+//  6 · FIRST GLANCE — a “Start here” card for new accounts; plain empty states
+// ════════════════════════════════════════════════════════════
+function cupGuideState(){
+  const own=S.tasks.filter(t=>!t.isHabit && !/^p-|^n-|^s-|^i-/.test(t.id||''));
+  return { add: own.length>0, folder: cupCommits().some(c=>!c.archived), tick: S.tasks.some(t=>!t.isHabit && t.completed) };
+}
+function cupGuideHTML(){
+  cupEnsure(); if(S.cup.guideDone) return '';
+  const st=cupGuideState(); if(st.add&&st.folder&&st.tick) return '';
+  if(S.tasks.length>=15 && !S.cup.guideForce) return '';                       // established accounts don't need it
+  const step=(done,n,title,hint,btn)=>`<div class="cup-guide-s ${done?'done':''}"><span class="cup-guide-n">${done?'✓':n}</span><div><b>${title}</b><em>${hint}</em>${!done&&btn?btn:''}</div></div>`;
+  return `<section class="cup-guide" aria-label="${cupT10('Start here','여기서 시작')}">
+    <div class="cup-guide-h"><b>${cupT10('Start here','여기서 시작')}</b><span>${cupT10('3 steps and you’re set','3단계면 준비 끝')}</span></div>
+    ${step(st.add,1,cupT10('Write down something you need to do','해야 할 일을 하나 적어 보세요'),cupT10('Type it the way you’d say it, like “Lab report Friday 3pm”.','말하듯이 적으면 돼요. 예: “금요일 3시 실험 보고서”'),`<button class="btn btn-accent" onclick="cupPlusOpen('task')">${cupT10('+ Add a task','+ 할 일 추가')}</button>`)}
+    ${step(st.folder,2,cupT10('Make a folder for each class, job or club','수업·일·동아리마다 폴더를 만드세요'),(innerWidth<=760 ? cupT10('Folders keep things apart. Find them under Notes at the bottom.','폴더로 나눠 두면 정리돼요. 아래쪽 노트 탭에 있어요.') : cupT10('Folders keep things apart. You’ll see them on the left.','폴더로 나눠 두면 정리돼요. 왼쪽에 보여요.')),`<button class="btn btn-ghost" onclick="cupOpenFolder(null)">${cupT10('+ New folder','+ 새 폴더')}</button>`)}
+    ${step(st.tick,3,cupT10('Tick the circle when it’s done','끝나면 동그라미를 눌러요'),cupT10('That’s it. Today’s list is on Home; everything else is in Tasks.','끝! 오늘 할 일은 홈에, 나머지는 할 일 탭에 있어요.'),'')}
+    <button class="cup-more-btn cup-guide-x" onclick="cupEnsure();S.cup.guideDone=true;save();render()">${cupT10('Got it — hide this','알겠어요 — 숨기기')}</button>
+  </section>`;
+}
+{ const _h=cupRenderHome; cupRenderHome=function(){ const r=_h.apply(this,arguments);
+  try{ const next=document.getElementById('cupNextUp'); if(!next) return r;
+    let g=document.getElementById('cupGuide'); const html=cupGuideHTML();
+    if(!html){ if(g) g.remove(); return r; }
+    if(!g){ g=document.createElement('div'); g.id='cupGuide'; next.parentElement.insertBefore(g, next); }
+    if(g._last!==html){ g.innerHTML=html; g._last=html; } }catch(_){}
+  return r; }; }
+// an empty list explains what to do
+{ const _tl=cupRenderTaskList; cupRenderTaskList=function(){ const r=_tl.apply(this,arguments);
+  try{ const e=document.querySelector('#cupTaskList .cup-tl-empty'); if(e && !S.tasks.some(t=>!t.isHabit)) e.textContent=cupT10('Nothing here yet. Press + Add (bottom right) to write down something you need to do.','아직 아무것도 없어요. 오른쪽 아래 + 추가를 눌러 할 일을 적어 보세요.'); }catch(_){}
+  return r; }; }
+
 
 // Korean interface strings. Keys are the exact English text shown on screen.
 Object.assign(CUP_KO, {
@@ -25588,7 +25663,7 @@ Object.assign(CUP_KO, {
   "Group focus":"그룹 집중 시간","Goal reached together 🎉":"함께 목표를 달성했어요 🎉","Leave":"나가기",
   "When":"언제","Where & status":"폴더 & 상태","⧗ Waiting on reply":"⧗ 답변 대기 중","Every day (habit)":"매일 (습관)",
   "Or on specific days (habit)":"또는 특정 요일마다 (습관)",
-  "Shared Lists":"공유 목록","Weekly Load":"주간 로드","Friends":"친구","👥 Friends":"👥 친구","Friends & groups →":"친구 & 그룹 →","Garden":"가든","Study together, quietly. Friends and groups see only your name, trees, streak and focus minutes.":"조용히 함께 공부해요. 친구와 그룹에는 이름, 나무, 연속 일수, 집중 시간만 보여요.","Extra tools":"추가 도구","Shows the S/M/L and shortcut buttons, the Focus page, Upcoming in the sidebar, Home blocks, Prep, Gentle day and the Home filter.":"S/M/L·단축키 버튼, 집중 페이지, 사이드바의 다가오는 일정, 홈 블록, 준비, 가벼운 날, 홈 필터를 보여줘요.","Your meadow":"나의 정원","Invite a friend":"친구 초대","Your code":"내 코드","Copy":"복사","Friend’s code — Enter":"친구 코드 — Enter","Cheers for you":"받은 응원","Manage friends":"친구 관리","Remove":"삭제","What friends see":"친구에게 보이는 것","Share these habits as check-ins":"이 습관을 체크인으로 공유","Friends see only ✓ or nothing for each day.":"친구에게는 날마다 ✓ 표시만 보여요.","Pause sharing":"공유 일시정지","Turn off friends":"친구 기능 끄기","Grow your trees side by side":"나무를 나란히 키워요","A shared meadow":"함께하는 정원","See everyone’s tree for today":"모두의 오늘 나무를 봐요","QT check-ins":"큐티 체크인","Your small group ticks quiet time together":"소그룹이 함께 큐티를 체크해요","Cheers":"응원","One tap to cheer a friend on":"한 번 눌러 친구를 응원해요","Focus together":"함께 집중","Join when a friend starts studying":"친구가 공부를 시작하면 함께해요","No rankings. Only what you choose is shared, never your tasks or notes.":"순위는 없어요. 고른 것만 공유되고, 할 일이나 노트는 절대 공유되지 않아요.","Turn on friends":"친구 기능 켜기","Small group":"소그룹","Gym buddies":"운동 메이트","Study squad":"스터디","Club or team":"동아리 · 팀","QT check-ins — everyone ticks their quiet time":"큐티 체크인 — 모두 큐티를 체크해요","Workout check-ins together":"함께 운동 체크인","Focus hours toward one weekly goal":"주간 목표를 향한 집중 시간","Focus hours and tasks done together":"함께한 집중 시간과 완료한 일","Start a group":"그룹 만들기","Start another group":"그룹 하나 더 만들기","Or join with a code — Enter":"또는 코드로 참여 — Enter","resting":"쉬는 중","Gym buddy":"운동 메이트","Friend":"친구","This week’s league":"이번 주 리그","ends in":"종료까지","Change":"변경","Save":"저장","Cancel":"취소","Pick a username so friends can add you":"친구가 추가할 수 있도록 사용자 이름을 정하세요","New username":"새 사용자 이름","Available ✓":"사용 가능 ✓","Taken — try another":"이미 사용 중 — 다른 이름을 써 보세요","Checking…":"확인 중…","That’s you":"지금 내 이름이에요","3–20 letters, numbers, _ or .":"영문 소문자·숫자·_·. 3–20자","Add a friend — @username":"친구 추가 — @사용자이름","Copy mine":"내 것 복사","Your league starts with one friend":"친구 한 명이면 리그가 시작돼요","1 pt per focus minute · 20 per task done · 10 per check-in · resets every week":"집중 1분 1점 · 완료한 일 20점 · 체크인 10점 · 매주 초기화","Join":"함께하기","+ Add widget":"+ 위젯 추가","Edit widgets":"위젯 편집","Done":"완료","Add a widget":"위젯 추가","Study":"공부","Plan":"계획","Together":"함께","Life":"생활","Course pace":"수업 진도","Exam countdown":"시험 카운트다운","Deadlines":"마감","Focus today":"오늘 집중","Time left":"남은 시간","This week":"이번 주","Waiting on":"답변 대기","Goals":"목표","Friends league":"친구 리그","Garden":"가든","Journal":"일기","Habits":"습관","Recent pages":"최근 페이지","Principles":"원칙","How many lectures behind each class is":"수업별로 몇 강 밀렸는지","Days until the next midterm, final or big deadline":"다음 중간·기말고사나 큰 마감까지 남은 날","Everything due soon":"곧 마감되는 모든 것","Minutes focused today toward your goal":"오늘 목표 대비 집중 시간","Day, week and term remaining":"오늘·이번 주·학기 남은 시간","Your next events and classes":"다음 일정과 수업","The week at a glance and your load":"한눈에 보는 이번 주와 부담","Things you sent and are waiting to hear back on":"보내고 답을 기다리는 것","Your goals and how far along they are":"목표와 진행 상황","Your rank this week and who’s close":"이번 주 내 순위와 가까운 친구","Today’s tree, streak and gems":"오늘의 나무, 연속 기록, 보석","Today’s reflection and your streak":"오늘의 기록과 연속 일수","Tick today’s habits":"오늘 습관 체크","Notes you edited lately":"최근 수정한 노트","The rules you want to live by":"지키고 싶은 원칙","+ Add":"+ 추가","Start a weekly league":"주간 리그 시작","Race friends on focus minutes and tasks.":"집중 시간과 완료한 일로 친구와 겨뤄요.","Add a friend to start":"친구를 추가해 시작하세요","How was today?":"오늘 어땠나요?","A line or two is enough":"한두 줄이면 충분해요","◎ Start a session":"◎ 세션 시작","Track a class to see how many lectures behind you are.":"수업을 추적하면 몇 강 밀렸는지 볼 수 있어요.","Every widget is already on Home.":"모든 위젯이 이미 홈에 있어요.","Schedule":"일정","To do today":"오늘 할 일","Show less":"접기","All day":"종일","now":"지금","Start a session":"세션 시작","Working on":"작업 중","What does done look like?":"어떻게 되면 끝인가요?","Focus check":"집중 체크","Scores how focused you are and gives advice afterwards":"얼마나 집중했는지 점수를 매기고 끝나면 조언해요","Camera":"카메라","Screen":"화면","Mic":"마이크","On this device":"이 기기에서만","◎ Start session":"◎ 세션 시작","Session report":"세션 리포트","Advice for next time":"다음을 위한 조언","Minute by minute":"분 단위 기록","Earlier sessions on this task":"이 할 일의 이전 세션","Pause":"일시정지","Resume":"다시 시작","End":"끝내기","Delete":"삭제","On task":"집중 중","On phone":"휴대폰 사용","Off-task screen":"관련 없는 화면","Talking":"대화 중","Moving around":"움직이는 중","Zoning out":"멍때림","Away":"자리 비움","Reading / thinking":"읽기 / 생각","Focus scores":"집중 점수","Your last study sessions, scored":"최근 공부 세션 점수","Start a checked session":"집중 체크 세션 시작","Get a focus score and advice after each study block":"공부가 끝날 때마다 점수와 조언을 받아요","First check in a moment…":"곧 첫 체크를 해요…","What are you working on?":"무엇을 하나요?","List":"목록","Add a task":"할 일 추가","All folders":"모든 폴더","Search":"검색","Overdue":"지난 일","Today":"오늘","Tomorrow":"내일","Later":"나중","No date":"날짜 없음","Done today":"오늘 완료","Fresh start":"새 출발","Nothing matches.":"일치하는 항목이 없어요.","Nothing to do. Enjoy it ✓":"할 일이 없어요. 즐기세요 ✓","Home":"홈","Tasks":"할 일","Weekly league":"주간 리그","Now":"지금","Not started":"시작 전","Done":"완료","A weekly league with friends — race on focus time, tasks and QT check-ins. Only scores are shared, never your tasks or notes.":"친구와 주간 리그 — 집중 시간, 완료한 일, 큐티 체크인으로 겨뤄요. 점수만 공유되고 할 일이나 노트는 공유되지 않아요.","1 pt per focus minute · 10 per task (up to 25) · 10 per check-in · resets every week":"집중 1분 1점 · 완료한 일 10점(최대 25개) · 체크인 10점 · 매주 초기화","try “PHYS lab fri 3pm”":"예: “금 3시 물리 랩”","Add your Claude key in Settings":"설정에서 Claude 키를 추가하세요","Movement, sound and face only · free · nothing leaves your computer":"움직임·소리·얼굴만 · 무료 · 컴퓨터 밖으로 나가지 않아요","Understands what you’re doing · ≈ 2¢ per 25 min":"무엇을 하는지 이해해요 · 25분에 약 2센트","Show less":"접기","Must do first":"필수 먼저","Focus gate":"집중 잠금","Dim everything else until today’s must-dos are done":"오늘의 필수 일을 끝낼 때까지 나머지를 흐리게 해요","All must-dos done — everything is open":"필수 일을 모두 끝냈어요 — 모두 열렸어요","Add widget":"위젯 추가","Add widgets to Home":"홈에 위젯 추가","Arrange widgets":"위젯 정렬","Home widgets":"홈 위젯","Tap to add or remove. Changes show on Home right away.":"눌러서 추가하거나 빼요. 홈에 바로 반영돼요.","✓ On Home · Remove":"✓ 홈에 있음 · 빼기","Remove from Home":"홈에서 빼기","Custom repeat":"직접 반복 설정","Every N days, weeks or months. When you finish it, the next one is created with a new due date.":"N일·N주·N개월마다 반복해요. 완료하면 새 마감일로 다음 항목이 만들어져요.",
+  "Shared Lists":"공유 목록","Weekly Load":"주간 로드","Friends":"친구","👥 Friends":"👥 친구","Friends & groups →":"친구 & 그룹 →","Garden":"가든","Study together, quietly. Friends and groups see only your name, trees, streak and focus minutes.":"조용히 함께 공부해요. 친구와 그룹에는 이름, 나무, 연속 일수, 집중 시간만 보여요.","Extra tools":"추가 도구","Shows the S/M/L and shortcut buttons, the Focus page, Upcoming in the sidebar, Home blocks, Prep, Gentle day and the Home filter.":"S/M/L·단축키 버튼, 집중 페이지, 사이드바의 다가오는 일정, 홈 블록, 준비, 가벼운 날, 홈 필터를 보여줘요.","Your meadow":"나의 정원","Invite a friend":"친구 초대","Your code":"내 코드","Copy":"복사","Friend’s code — Enter":"친구 코드 — Enter","Cheers for you":"받은 응원","Manage friends":"친구 관리","Remove":"삭제","What friends see":"친구에게 보이는 것","Share these habits as check-ins":"이 습관을 체크인으로 공유","Friends see only ✓ or nothing for each day.":"친구에게는 날마다 ✓ 표시만 보여요.","Pause sharing":"공유 일시정지","Turn off friends":"친구 기능 끄기","Grow your trees side by side":"나무를 나란히 키워요","A shared meadow":"함께하는 정원","See everyone’s tree for today":"모두의 오늘 나무를 봐요","QT check-ins":"큐티 체크인","Your small group ticks quiet time together":"소그룹이 함께 큐티를 체크해요","Cheers":"응원","One tap to cheer a friend on":"한 번 눌러 친구를 응원해요","Focus together":"함께 집중","Join when a friend starts studying":"친구가 공부를 시작하면 함께해요","No rankings. Only what you choose is shared, never your tasks or notes.":"순위는 없어요. 고른 것만 공유되고, 할 일이나 노트는 절대 공유되지 않아요.","Turn on friends":"친구 기능 켜기","Small group":"소그룹","Gym buddies":"운동 메이트","Study squad":"스터디","Club or team":"동아리 · 팀","QT check-ins — everyone ticks their quiet time":"큐티 체크인 — 모두 큐티를 체크해요","Workout check-ins together":"함께 운동 체크인","Focus hours toward one weekly goal":"주간 목표를 향한 집중 시간","Focus hours and tasks done together":"함께한 집중 시간과 완료한 일","Start a group":"그룹 만들기","Start another group":"그룹 하나 더 만들기","Or join with a code — Enter":"또는 코드로 참여 — Enter","resting":"쉬는 중","Gym buddy":"운동 메이트","Friend":"친구","This week’s league":"이번 주 리그","ends in":"종료까지","Change":"변경","Save":"저장","Cancel":"취소","Pick a username so friends can add you":"친구가 추가할 수 있도록 사용자 이름을 정하세요","New username":"새 사용자 이름","Available ✓":"사용 가능 ✓","Taken — try another":"이미 사용 중 — 다른 이름을 써 보세요","Checking…":"확인 중…","That’s you":"지금 내 이름이에요","3–20 letters, numbers, _ or .":"영문 소문자·숫자·_·. 3–20자","Add a friend — @username":"친구 추가 — @사용자이름","Copy mine":"내 것 복사","Your league starts with one friend":"친구 한 명이면 리그가 시작돼요","1 pt per focus minute · 20 per task done · 10 per check-in · resets every week":"집중 1분 1점 · 완료한 일 20점 · 체크인 10점 · 매주 초기화","Join":"함께하기","+ Add widget":"+ 위젯 추가","Edit widgets":"위젯 편집","Done":"완료","Add a widget":"위젯 추가","Study":"공부","Plan":"계획","Together":"함께","Life":"생활","Course pace":"수업 진도","Exam countdown":"시험 카운트다운","Deadlines":"마감","Focus today":"오늘 집중","Time left":"남은 시간","This week":"이번 주","Waiting on":"답변 대기","Goals":"목표","Friends league":"친구 리그","Garden":"가든","Journal":"일기","Habits":"습관","Recent pages":"최근 페이지","Principles":"원칙","How many lectures behind each class is":"수업별로 몇 강 밀렸는지","Days until the next midterm, final or big deadline":"다음 중간·기말고사나 큰 마감까지 남은 날","Everything due soon":"곧 마감되는 모든 것","Minutes focused today toward your goal":"오늘 목표 대비 집중 시간","Day, week and term remaining":"오늘·이번 주·학기 남은 시간","Your next events and classes":"다음 일정과 수업","The week at a glance and your load":"한눈에 보는 이번 주와 부담","Things you sent and are waiting to hear back on":"보내고 답을 기다리는 것","Your goals and how far along they are":"목표와 진행 상황","Your rank this week and who’s close":"이번 주 내 순위와 가까운 친구","Today’s tree, streak and gems":"오늘의 나무, 연속 기록, 보석","Today’s reflection and your streak":"오늘의 기록과 연속 일수","Tick today’s habits":"오늘 습관 체크","Notes you edited lately":"최근 수정한 노트","The rules you want to live by":"지키고 싶은 원칙","+ Add":"+ 추가","Start a weekly league":"주간 리그 시작","Race friends on focus minutes and tasks.":"집중 시간과 완료한 일로 친구와 겨뤄요.","Add a friend to start":"친구를 추가해 시작하세요","How was today?":"오늘 어땠나요?","A line or two is enough":"한두 줄이면 충분해요","◎ Start a session":"◎ 세션 시작","Track a class to see how many lectures behind you are.":"수업을 추적하면 몇 강 밀렸는지 볼 수 있어요.","Every widget is already on Home.":"모든 위젯이 이미 홈에 있어요.","Schedule":"일정","To do today":"오늘 할 일","Show less":"접기","All day":"종일","now":"지금","Start a session":"세션 시작","Working on":"작업 중","What does done look like?":"어떻게 되면 끝인가요?","Focus check":"집중 체크","Scores how focused you are and gives advice afterwards":"얼마나 집중했는지 점수를 매기고 끝나면 조언해요","Camera":"카메라","Screen":"화면","Mic":"마이크","On this device":"이 기기에서만","◎ Start session":"◎ 세션 시작","Session report":"세션 리포트","Advice for next time":"다음을 위한 조언","Minute by minute":"분 단위 기록","Earlier sessions on this task":"이 할 일의 이전 세션","Pause":"일시정지","Resume":"다시 시작","End":"끝내기","Delete":"삭제","On task":"집중 중","On phone":"휴대폰 사용","Off-task screen":"관련 없는 화면","Talking":"대화 중","Moving around":"움직이는 중","Zoning out":"멍때림","Away":"자리 비움","Reading / thinking":"읽기 / 생각","Focus scores":"집중 점수","Your last study sessions, scored":"최근 공부 세션 점수","Start a checked session":"집중 체크 세션 시작","Get a focus score and advice after each study block":"공부가 끝날 때마다 점수와 조언을 받아요","First check in a moment…":"곧 첫 체크를 해요…","What are you working on?":"무엇을 하나요?","List":"목록","Add a task":"할 일 추가","All folders":"모든 폴더","Search":"검색","Overdue":"지난 일","Today":"오늘","Tomorrow":"내일","Later":"나중","No date":"날짜 없음","Done today":"오늘 완료","Fresh start":"새 출발","Nothing matches.":"일치하는 항목이 없어요.","Nothing to do. Enjoy it ✓":"할 일이 없어요. 즐기세요 ✓","Home":"홈","Tasks":"할 일","Weekly league":"주간 리그","Now":"지금","Not started":"시작 전","Done":"완료","A weekly league with friends — race on focus time, tasks and QT check-ins. Only scores are shared, never your tasks or notes.":"친구와 주간 리그 — 집중 시간, 완료한 일, 큐티 체크인으로 겨뤄요. 점수만 공유되고 할 일이나 노트는 공유되지 않아요.","1 pt per focus minute · 10 per task (up to 25) · 10 per check-in · resets every week":"집중 1분 1점 · 완료한 일 10점(최대 25개) · 체크인 10점 · 매주 초기화","try “Lab report fri 3pm”":"예: “금 3시 실험 보고서”","Add your Claude key in Settings":"설정에서 Claude 키를 추가하세요","Movement, sound and face only · free · nothing leaves your computer":"움직임·소리·얼굴만 · 무료 · 컴퓨터 밖으로 나가지 않아요","Understands what you’re doing · ≈ 2¢ per 25 min":"무엇을 하는지 이해해요 · 25분에 약 2센트","Show less":"접기","Must do first":"필수 먼저","Focus gate":"집중 잠금","Dim everything else until today’s must-dos are done":"오늘의 필수 일을 끝낼 때까지 나머지를 흐리게 해요","All must-dos done — everything is open":"필수 일을 모두 끝냈어요 — 모두 열렸어요","Add widget":"위젯 추가","Add widgets to Home":"홈에 위젯 추가","Arrange widgets":"위젯 정렬","Home widgets":"홈 위젯","Tap to add or remove. Changes show on Home right away.":"눌러서 추가하거나 빼요. 홈에 바로 반영돼요.","✓ On Home · Remove":"✓ 홈에 있음 · 빼기","Remove from Home":"홈에서 빼기","Do this next":"지금 할 일","✓ Done":"✓ 완료","✎ Edit":"✎ 수정","Notes":"노트","New note":"새 노트","Must-dos first":"필수 먼저","Reschedule overdue":"밀린 일 다시 잡기","Reschedule overdue tasks":"밀린 일 다시 잡기","Start here":"여기서 시작","3 steps and you’re set":"3단계면 준비 끝","Write down something you need to do":"해야 할 일을 하나 적어 보세요","Type it the way you’d say it, like “Lab report Friday 3pm”.":"말하듯이 적으면 돼요. 예: “금요일 3시 실험 보고서”","+ Add a task":"+ 할 일 추가","Make a folder for each class, job or club":"수업·일·동아리마다 폴더를 만드세요","Folders keep things apart. You’ll see them on the left.":"폴더로 나눠 두면 정리돼요. 왼쪽에 보여요.","+ New folder":"+ 새 폴더","Tick the circle when it’s done":"끝나면 동그라미를 눌러요","That’s it. Today’s list is on Home; everything else is in Tasks.":"끝! 오늘 할 일은 홈에, 나머지는 할 일 탭에 있어요.","Got it — hide this":"알겠어요 — 숨기기","Nothing here yet. Press + Add (bottom right) to write down something you need to do.":"아직 아무것도 없어요. 오른쪽 아래 + 추가를 눌러 할 일을 적어 보세요.","Notes you write show up here. Press + to start one.":"쓴 노트가 여기에 보여요. +를 눌러 시작하세요.","Custom repeat":"직접 반복 설정","Every N days, weeks or months. When you finish it, the next one is created with a new due date.":"N일·N주·N개월마다 반복해요. 완료하면 새 마감일로 다음 항목이 만들어져요.",
   "▸ More options (priority, steps, work date, reminders, files…)":"▸ 추가 옵션 (우선순위, 단계, 작업일, 알림, 파일…)",
   "▾ Fewer options":"▾ 옵션 접기",
   // ── navigation & shell ──
@@ -25617,7 +25692,7 @@ Object.assign(CUP_KO, {
   "Write about this day":"이 날에 대해 쓰기","Journal ·":"일기 ·","Selected Date":"선택한 날짜","No tasks or tests":"할 일이나 시험이 없어요","Drag to resize the calendar":"끌어서 캘린더 크기 조절","Drag to resize the all-day strip":"끌어서 종일 영역 크기 조절",
   // ── + bar ──
   "Task":"할 일","Page":"페이지","Quick note":"빠른 메모","Event":"일정","Habit":"습관","Folder":"폴더","Import many":"여러 개 가져오기","From template":"템플릿으로","Application":"지원서","Template":"템플릿",
-  "“INFO 380 reading due fri 3pm”":"“INFO 380 읽기 금요일 3pm까지”","A new page to write in":"글을 쓸 새 페이지","Adds a line to a page":"페이지에 한 줄 추가","Today’s journal — a thought, a win, a feeling":"오늘의 일기 — 생각, 성취, 감정","“Coffee chat oct 19 10am”":"“커피챗 10월 19일 오전 10시”","“Gym mon wed fri 7am”":"“운동 월수금 오전 7시”",
+  "“Lab report due fri 3pm”":"“실험 보고서 금요일 3pm까지”","A new page to write in":"글을 쓸 새 페이지","Adds a line to a page":"페이지에 한 줄 추가","Today’s journal — a thought, a win, a feeling":"오늘의 일기 — 생각, 성취, 감정","“Coffee chat oct 19 10am”":"“커피챗 10월 19일 오전 10시”","“Gym mon wed fri 7am”":"“운동 월수금 오전 7시”",
   "Something you sent and are waiting to hear back on":"보내고 답을 기다리는 일","A class, club or project":"수업, 동아리, 프로젝트","Paste a whole list at once":"목록을 한 번에 붙여넣기","A checklist: shoot, video, interview prep…":"체크리스트: 촬영, 영상, 면접 준비…","Everything: tasks, pages, journal, events":"전체: 할 일, 페이지, 일기, 일정",
   "What do you want to add?":"무엇을 추가할까요?","Search tasks, pages, journal, events…":"할 일, 페이지, 일기, 일정 검색…","Paste or type many lines…":"여러 줄을 붙여넣거나 입력하세요…","In":"위치","Add":"추가","add":"추가","change type":"유형 변경","close":"닫기","Enter":"Enter","Tab":"Tab","Esc":"Esc","Voice typing":"음성 입력",
   "Type two or more letters.":"두 글자 이상 입력하세요.","Nothing found.":"찾은 게 없어요.","No folder":"폴더 없음","Pages (not filed)":"페이지 (정리 안 됨)","Inbox page":"받은 메모 페이지","Inside a page":"페이지 안에",
@@ -25930,6 +26005,7 @@ Object.assign(CUP_KO, {
   "With your Claude key:":"Claude 키로:","Past sessions":"지난 세션","Focus reports":"집중 리포트","Something else":"다른 일","Timer":"타이머",
   "Essentials":"기본","Advanced":"고급","No end":"종료일 없음","Your data":"내 데이터","Account":"계정","Reminders & privacy":"알림 & 개인정보"
 });
+CUP_KO_PAT.push([/^Reschedule overdue · (\d+)$/, (m,n)=>`밀린 일 다시 잡기 · ${n}`]);
 
 </script>
 </body>
