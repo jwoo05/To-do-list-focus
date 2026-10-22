@@ -7077,6 +7077,13 @@ body.cup-nogarden .cup-podium, body.cup-nogarden .cup-league-call{ display:none 
 .cup-plus-fab{ width:auto; padding:0 18px 0 14px; border-radius:999px; display:inline-flex; gap:6px; align-items:center; }
 .cup-fab-l{ font-size:calc(15px * var(--cup-fs,1)); font-weight:600; }
 
+/* ── Responsiveness: no tap flash, no accidental text selection, no 300 ms tap delay, calm transitions ── */
+html{ -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+button, .btn, .nav-item, .mt-tab, .cup-tl-row, .cup-todo, .cal-cell, .cal-mini-chip, .cup-hchip, .cup-hbtn, .cup-chip, .cup-ts-chip, .cup-w h5, .cup-wcard, .task-item, .cup-me-row, .cup-side-head, .cup-tsec-h, .cup-tl-h, .clt-opt{ -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+button, .btn, .nav-item, .mt-tab, .task-item, .cal-cell, .cal-mini-chip, .chip, .cup-hbtn, .cup-ts-chip, .clt-opt{ transition-property:background-color, border-color, color, opacity, box-shadow !important; transition-duration:.12s !important; }
+button:active, .btn:active, .nav-item:active, .mt-tab:active{ transition-duration:0s !important; }
+.overlay{ -webkit-backdrop-filter:none !important; backdrop-filter:none !important; }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -25637,6 +25644,44 @@ function cupGuideHTML(){
 // an empty list explains what to do
 { const _tl=cupRenderTaskList; cupRenderTaskList=function(){ const r=_tl.apply(this,arguments);
   try{ const e=document.querySelector('#cupTaskList .cup-tl-empty'); if(e && !S.tasks.some(t=>!t.isHabit)) e.textContent=cupT10('Nothing here yet. Press + Add (bottom right) to write down something you need to do.','아직 아무것도 없어요. 오른쪽 아래 + 추가를 눌러 할 일을 적어 보세요.'); }catch(_){}
+  return r; }; }
+
+// ════════════════════════════════════════════════════════════
+//  7 · SPEED — “Do this next” is worked out once per change, not 17× per redraw
+// ════════════════════════════════════════════════════════════
+let cupDataGen=0;
+{ const _sv=save; save=function(){ cupDataGen++; return _sv.apply(this,arguments); }; }
+{ const _q=cupNextQueue; let key='', val=null;
+  cupNextQueue=function(){ const k=cupDataGen+'|'+S.tasks.length+'|'+todayStr()+'|'+((S.cup&&S.cup.pinNext)||'')+'|'+JSON.stringify((S.cup&&S.cup.later)||{})+'|'+((S.cup&&S.cup.homeFilter)||'')+'|'+(typeof cupEnergyLow==='function'&&cupEnergyLow()?1:0);
+    if(k===key && val) return val.slice();
+    val=_q.apply(this,arguments); key=k; return val.slice(); }; }
+// any direct change to tasks outside save() (e.g. toggles) also refreshes the cache
+{ const _tt=toggleTask; toggleTask=function(){ cupDataGen++; return _tt.apply(this,arguments); }; }
+
+// ════════════════════════════════════════════════════════════
+//  8 · COURSE PACE ↔ ASSIGNMENTS — finishing “L3 assignment” checks off L3
+// ════════════════════════════════════════════════════════════
+function cupLectureNums(title){
+  const s=String(title||''), out=new Set();
+  (s.match(/\bL\s?(\d{1,2})\b/gi)||[]).forEach(m=>out.add(+m.replace(/\D/g,'')));
+  (s.match(/\blecture\s*(\d{1,2})\b/gi)||[]).forEach(m=>out.add(+m.replace(/\D/g,'')));
+  (s.match(/(\d{1,2})\s*강/g)||[]).forEach(m=>out.add(+m.replace(/\D/g,'')));
+  return [...out].filter(n=>n>=1&&n<=60);
+}
+{ const _tt=toggleTask; toggleTask=function(id){
+  const t=S.tasks.find(x=>x.id===id), was=t?cupDone(t):true;
+  const r=_tt.apply(this,arguments);
+  try{
+    if(t && !was && cupDone(t) && !(t.plan&&t.plan.name) && !t.isHabit && t.commitId){
+      const nums=cupLectureNums(t.title); if(!nums.length) return r;
+      const steps=S.tasks.filter(x=>x.plan&&x.plan.name&&x.commitId===t.commitId&&nums.includes(+x.plan.step)&&!cupDone(x));
+      if(!steps.length) return r;
+      steps.forEach(x=>{ x.completed=true; x.completedAt=Date.now(); });
+      cupDataGen++; save(); render();
+      const lbl=steps.map(x=>'L'+x.plan.step).join(', ');
+      showToast(cupT10(`Also checked off ${lbl} in course pace.`,`수업 진도에서 ${lbl}도 완료로 표시했어요.`), cupT10('Undo','되돌리기'), ()=>{ steps.forEach(x=>{ x.completed=false; delete x.completedAt; }); cupDataGen++; save(); render(); });
+    }
+  }catch(_){}
   return r; }; }
 
 
