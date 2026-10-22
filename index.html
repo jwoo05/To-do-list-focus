@@ -7175,6 +7175,11 @@ body:not(.cup-side-min) .sidebar .sidebar-logo{ display:none; }
   .cup-tl-row .cup-tl-meta{ transition:opacity .12s; }
   .cup-tl-sec.nodate .cup-tl-row:hover .cup-tl-meta, .cup-tl-sec.nodate .cup-tl-row:focus-within .cup-tl-meta{ opacity:0; }
 }
+/* Home “To do today”: Do next sits just left of the time/chip, never on top of them */
+@media (hover:hover){
+  .cup-today-list .cup-todo .cup-pin-btn{ position:static; transform:none; padding:2px 8px; background:none; order:1; flex:none; }
+  .cup-today-list .cup-todo > .cup-fc-chip, .cup-today-list .cup-todo > .cup-up-time{ order:2; }
+}
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
