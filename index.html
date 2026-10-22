@@ -7130,6 +7130,15 @@ button:active, .btn:active, .nav-item:active, .mt-tab:active{ transition-duratio
   .cup-tl-top .cup-tl-fsel, .cup-tl-top .cup-tl-q{ flex:1 1 calc(50% - 6px); order:2; }
 }
 
+/* Calendar: Schedule / Tasks switch */
+.cup-calmode{ display:inline-flex; padding:2px; gap:2px; border:1px solid var(--border); border-radius:9px; background:var(--bg2); margin-left:8px; }
+.cup-calmode button{ padding:4px 12px; border-radius:7px; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text2); }
+.cup-calmode button.on{ background:var(--bg1, var(--bg)); color:var(--text); box-shadow:0 1px 2px rgba(0,0,0,.25); }
+.cup-calmode button:not(.on):hover{ color:var(--text); }
+#cupMSeg .cup-calmode{ margin-left:auto; align-self:center; }
+#cupMSeg .cup-calmode[hidden]{ display:none; }
+#cupMSeg .cup-calmode:not([hidden]) + .cup-w3-more{ margin-left:10px; }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -25801,6 +25810,34 @@ function cupRevPush(){
   save(); render();
   showToast(cupT10(`Moved ${list.length} to tomorrow.`,`${list.length}개를 내일로 옮겼어요.`), cupT10('Undo','되돌리기'), ()=>{ snap.forEach(([t,d,s])=>{ t.due=d; t.scheduledDates=s; }); save(); render(); });
 }
+
+// ════════════════════════════════════════════════════════════
+//  11 · CALENDAR FIRST — Tasks & Calendar opens on the calendar; one switch shows
+//  either your schedule (classes, events) or your tasks, never both crammed in a day
+// ════════════════════════════════════════════════════════════
+try{ if(!localStorage.getItem('cup_mcol_v2')){ localStorage.setItem('cup_mcol_v2','1'); cupMCol='cal'; localStorage.setItem('cup_mcol','cal'); setTimeout(()=>{ try{ cupSetMCol('cal'); }catch(_){} },0); } }catch(_){}
+try{ calViewMode = localStorage.getItem('cup_calmode')==='tasks' ? 'tasks' : 'events'; }catch(_){ calViewMode='events'; }
+function cupCalMode(m){ calViewMode=m; try{ localStorage.setItem('cup_calmode',m); }catch(_){}
+  try{ renderCalendar(); }catch(_){} try{ if(calLayout!=='month') renderWeekView(); }catch(_){} try{ renderCalDayTasks(); }catch(_){} cupCalModeMount(); }
+function cupCalModeMount(){
+  const tabs=document.getElementById('cupMSeg'), more=tabs&&tabs.querySelector('.cup-w3-more'); if(!more) return;
+  let seg=document.getElementById('cupCalMode');
+  if(!seg){ seg=document.createElement('div'); seg.id='cupCalMode'; seg.className='cup-calmode'; seg.setAttribute('role','tablist'); }
+  if(seg.nextElementSibling!==more) more.before(seg);
+  seg.hidden = cupMCol!=='cal';
+  const m=calViewMode==='tasks'?'tasks':'events';
+  const html=[['events',cupT10('Schedule','일정')],['tasks',cupT10('Tasks','할 일')]].map(([k,l])=>`<button type="button" role="tab" aria-selected="${m===k}" class="${m===k?'on':''}" onclick="cupCalMode('${k}')">${l}</button>`).join('');
+  if(seg._h!==html){ seg.innerHTML=html; seg._h=html; }
+  document.getElementById('calPanel')?.setAttribute('data-calmode', m);
+}
+{ const _rc=renderCalendar; renderCalendar=function(){ if(calViewMode==='both') calViewMode='events'; const r=_rc.apply(this,arguments); try{ cupCalModeMount(); }catch(_){} return r; }; }
+// Calendar is the first tab
+{ const _sg=cupW3Seg; cupW3Seg=function(){ const r=_sg.apply(this,arguments);
+  const seg=document.getElementById('cupMSeg'), c=seg&&seg.querySelector('.clt-opt[data-mcol="cal"]'), l=seg&&seg.querySelector('.clt-opt[data-mcol="list"]');
+  if(c && l && (l.compareDocumentPosition(c) & Node.DOCUMENT_POSITION_FOLLOWING)) l.before(c);
+  try{ cupCalModeMount(); }catch(_){}
+  return r; }; }
+{ const _sm=cupSetMCol; cupSetMCol=function(){ const r=_sm.apply(this,arguments); try{ cupCalModeMount(); }catch(_){} return r; }; }
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
