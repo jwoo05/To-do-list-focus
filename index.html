@@ -7364,6 +7364,41 @@ body.cup-on-pomo #cupSessBar{ display:none !important; }
   #page-todo .cal-toolbar-row #cupGcChip + .cup-calf-btn{ margin-left:6px !important; }
 }
 
+/* ── Habits: dots, rate against your goal, and your why ── */
+.cup-hb{ display:grid; gap:2px; }
+.cup-hb-sum{ display:grid; gap:7px; padding:2px 2px 12px; }
+.cup-hb-sl{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+.cup-hb-sl b{ font-family:'Source Serif 4',Georgia,serif; font-size:24px; font-weight:600; font-variant-numeric:tabular-nums; }
+.cup-hb-sl span{ font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text3); }
+.cup-hb-sl em{ margin-left:auto; font-style:normal; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text3); }
+.cup-hb-goal{ font-size:calc(11.5px * var(--cup-fs,1)); padding:2px 9px; border:1px solid var(--border); border-radius:999px; color:var(--text2); }
+.cup-hb-goal:hover{ color:var(--text); border-color:var(--text3); }
+.cup-hb-bar{ position:relative; height:5px; border-radius:99px; background:var(--bg2); overflow:visible; }
+.cup-hb-bar i{ display:block; height:100%; border-radius:inherit; background:var(--text3); transition:width .4s; }
+.cup-hb-bar.hit i{ background:var(--pace-ok, var(--green, #4dd49a)); }
+.cup-hb-bar u{ position:absolute; top:-3px; width:2px; height:11px; margin-left:-1px; background:var(--text2); border-radius:2px; opacity:.7; text-decoration:none; }
+.cup-hb-row{ display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:0 12px; padding:7px 2px; border-top:1px solid color-mix(in srgb, var(--border) 55%, transparent); }
+.cup-hb-main{ display:flex; align-items:center; gap:10px; min-width:0; text-align:left; font-size:calc(14px * var(--cup-fs,1)); padding:2px 0; }
+.cup-hb-t{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cup-hb-row.d .cup-hb-t{ color:var(--text3); }
+.cup-hb-st{ display:flex; align-items:center; gap:10px; }
+.cup-hb-n{ font-size:calc(11.5px * var(--cup-fs,1)); color:var(--text3); font-variant-numeric:tabular-nums; min-width:24px; text-align:right; }
+.cup-hb-rate{ font-size:calc(12.5px * var(--cup-fs,1)); font-weight:600; min-width:38px; text-align:right; font-variant-numeric:tabular-nums; color:var(--text2); }
+.cup-hb-rate.ok{ color:var(--pace-ok, var(--green, #4dd49a)); } .cup-hb-rate.dim{ color:var(--text3); font-weight:500; }
+.cup-hb-dots{ display:inline-flex; gap:4px; }
+.cup-hb-dots i{ width:8px; height:8px; border-radius:50%; box-sizing:border-box; border:1.5px solid transparent; }
+.cup-hb-dots i.d{ background:var(--pace-ok, var(--green, #4dd49a)); border-color:var(--pace-ok, var(--green, #4dd49a)); }
+.cup-hb-dots i.m{ border-color:color-mix(in srgb, var(--text3) 80%, transparent); }
+.cup-hb-dots i.t{ border-color:var(--accent); }
+.cup-hb-dots i.f{ border-color:color-mix(in srgb, var(--text3) 35%, transparent); }
+.cup-hb-dots i.x{ background:color-mix(in srgb, var(--text3) 25%, transparent); width:4px; height:4px; margin:2px; }
+.cup-hb-w{ grid-column:1 / -1; padding:0 0 0 30px; min-width:0; }
+.cup-hb-why{ display:block; max-width:100%; text-align:left; font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-style:italic; padding:1px 0; }
+.cup-hb-why:hover{ color:var(--text2); }
+.cup-hb-why.add{ font-style:normal; opacity:.65; }
+.cup-hb-why-in{ width:100%; font-size:calc(12.5px * var(--cup-fs,1)); padding:4px 8px; }
+@media (max-width:760px){ .cup-hb-row{ padding:9px 2px; } .cup-hb-main{ min-height:36px; font-size:calc(15px * var(--cup-fs,1)); } .cup-hb-st{ gap:8px; } .cup-hb-n{ display:none; } }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -26670,6 +26705,85 @@ setInterval(()=>{ try{
   if(page==='focus' && window.event && window.event.isTrusted && !(cupPomoLive()||cupFCSess)) return _sp.call(this,'pomo');
   return _sp.apply(this,arguments); }; }
 if(document.readyState!=='loading') cupPomoMount(); else document.addEventListener('DOMContentLoaded', cupPomoMount);
+
+// ════════════════════════════════════════════════════════════════════
+//  PART 13 — Habits you can feel: this week's dots, a completion rate against your own goal,
+//  and one line of “why” on each habit, so the reason is in front of you when you tick it.
+//    S.cup.habitGoal          the % you aim for each week (default 80)
+//    task.why                 one reason per habit
+//  The rate is done ÷ planned so far this week (days after today don't count against you);
+//  “N× a week” habits are pro-rated across the week.
+// ════════════════════════════════════════════════════════════════════
+
+let cupHbEdit='';
+const cupHbGoal = () => { const g=+((S.cup||{}).habitGoal); return g>=10&&g<=100 ? g : 80; };
+
+function cupHbWeek(t){
+  const ws=cupWeekStart(), td=todayStr(), days=[];
+  for(let i=0;i<7;i++){ const d=new Date(ws); d.setDate(d.getDate()+i); const ds=cupISO(d), dow=d.getDay();
+    const planned = !t.weeklyGoal && !t.altOf && (t.scheduledDays||[]).includes(dow) && (!t.habitStart||ds>=t.habitStart) && (!t.habitEnd||ds<=t.habitEnd);
+    days.push({ ds, planned, done:!!(t.completedDates&&t.completedDates[ds]), past:ds<td, today:ds===td, future:ds>td }); }
+  const count=days.filter(d=>d.past || d.done);                    // today only counts once it's ticked — never against you mid-day
+  const elapsed=count.length, done=days.filter(d=>d.done).length;
+  let plan, got;
+  if(t.weeklyGoal){ plan=elapsed?Math.max(1, Math.min(t.weeklyGoal, Math.round(t.weeklyGoal*elapsed/7))):0; got=Math.min(done, plan); }
+  else { const p=days.filter(d=>d.planned && (d.past || d.done)); plan=p.length; got=p.filter(d=>d.done).length; }
+  return { days, done, plan, got, pct: plan ? Math.round(got/plan*100) : null };
+}
+function cupHbDots(w){
+  return `<span class="cup-hb-dots" aria-hidden="true">${w.days.map(d=>`<i class="${d.done?'d':d.planned?(d.future?'f':d.today?'t':'m'):'x'} ${d.today?'now':''}" title="${esc(cupWd(d.ds))}${d.done?' ✓':''}"></i>`).join('')}</span>`;
+}
+function cupHbSummary(){
+  const hab=S.tasks.filter(t=>t.isHabit&&!t.archived); let plan=0, got=0;
+  hab.forEach(t=>{ const w=cupHbWeek(t); plan+=w.plan; got+=w.got; });
+  const pct=plan?Math.round(got/plan*100):null, goal=cupHbGoal();
+  return { pct, goal, plan, got, n:hab.length };
+}
+
+function cupHabitsHTML(){
+  const td=todayStr();
+  const hab=S.tasks.filter(t=>t.isHabit&&!t.archived&&cupHabitDueToday(t)).sort((a,b)=>(a.scheduledTime||'12:00').localeCompare(b.scheduledTime||'12:00'));
+  if(!hab.length) return `<div class="cup-dim">${cupT10('No habits due today.','오늘 할 습관이 없어요.')}</div>`;
+  const sm=cupHbSummary(), hit=sm.pct!==null && sm.pct>=sm.goal, doneN=hab.filter(cupHabitDoneToday).length;
+  const head=`<div class="cup-hb-sum">
+    <div class="cup-hb-sl"><b>${sm.pct===null?'—':sm.pct+'%'}</b><span>${cupT10('this week','이번 주')}</span><button type="button" class="cup-hb-goal" onclick="cupHbGoalMenu(this)" title="${cupT10('Change your weekly goal','주간 목표 바꾸기')}">${cupT10('goal','목표')} ${sm.goal}% ▾</button>
+      <em>${doneN===hab.length?cupT10('All done today ✓','오늘 다 했어요 ✓'):cupT10(`${doneN} of ${hab.length} today`,`오늘 ${doneN}/${hab.length}`)}</em></div>
+    <div class="cup-hb-bar ${hit?'hit':''}" role="img" aria-label="${cupT10('Habit rate this week','이번 주 습관 달성률')} ${sm.pct||0}%, ${cupT10('goal','목표')} ${sm.goal}%"><i style="width:${Math.min(100,sm.pct||0)}%"></i><u style="left:${sm.goal}%"></u></div>
+  </div>`;
+  const rows=hab.map(t=>{ const d=cupHabitDoneToday(t), w=cupHbWeek(t), editing=cupHbEdit===t.id;
+    const rate = w.pct!==null ? `<span class="cup-hb-rate ${w.pct>=sm.goal?'ok':''}">${w.pct}%</span>` : `<span class="cup-hb-rate dim">${cupWeekCount(t)}</span>`;
+    const count = t.weeklyGoal ? `${cupWeekCount(t)}/${t.weeklyGoal}` : (w.plan?`${w.got}/${w.plan}`:'');
+    const why = editing
+      ? `<input id="cupHbWhyIn" class="cup-hb-why-in" maxlength="120" placeholder="${cupT10('Why do you do this? One line.','이걸 왜 하나요? 한 줄로.')}" value="${esc(t.why||'')}" onkeydown="if(event.key==='Enter'){cupHbWhy('${t.id}',this.value)}else if(event.key==='Escape'){cupHbEdit='';cupRenderHome()}" onblur="cupHbWhy('${t.id}',this.value)">`
+      : t.why ? `<button type="button" class="cup-hb-why" onclick="cupHbEditWhy('${t.id}')" title="${cupT10('Edit your why','이유 고치기')}">${esc(t.why)}</button>`
+      : `<button type="button" class="cup-hb-why add" onclick="cupHbEditWhy('${t.id}')">＋ ${cupT10('Your why','이유 적기')}</button>`;
+    return `<div class="cup-hb-row ${d?'d':''}">
+      <button type="button" class="cup-hb-main" onclick="toggleTask('${t.id}','${td}')" title="${d?cupT10('Done — tap to undo','완료 — 눌러서 취소'):cupT10('Tap when done','끝나면 누르세요')}">
+        <span class="cup-hcheck ${d?'d':''}"></span><span class="cup-hb-t">${esc(t.title)}</span>${t.scheduledTime&&!d?`<span class="cup-dim">${cupT12(t.scheduledTime)}</span>`:''}</button>
+      <span class="cup-hb-st">${cupHbDots(w)}<span class="cup-hb-n">${count}</span>${rate}</span>
+      <div class="cup-hb-w">${why}</div>
+    </div>`; }).join('');
+  return `<div class="cup-hb">${head}${rows}</div>`;
+}
+function cupHbEditWhy(id){ cupHbEdit=id; cupRenderHome(); setTimeout(()=>{ const i=document.getElementById('cupHbWhyIn'); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } },30); }
+function cupHbWhy(id, v){
+  if(cupHbEdit!==id) return; cupHbEdit=''; v=String(v||'').trim().slice(0,120);
+  const t=S.tasks.find(x=>x.id===id); if(t && (t.why||'')!==v){ if(v) t.why=v; else delete t.why; save(); }
+  cupRenderHome();
+}
+function cupHbGoalMenu(btn){
+  document.getElementById('cupHbMenu')?.remove();
+  const g=cupHbGoal(), m=document.createElement('div'); m.id='cupHbMenu'; m.className='cup-later-menu'; m.setAttribute('role','menu');
+  m.innerHTML=`<div class="cup-lm-h">${cupT10('Weekly goal','주간 목표')}</div>`+[60,70,80,90,100].map(p=>`<button type="button" role="menuitem" onclick="cupHbSetGoal(${p})"><b>${p}%${p===g?' ✓':''}</b><span>${p===100?cupT10('Every planned day','계획한 모든 날'):p>=90?cupT10('Very strict','아주 엄격하게'):p===80?cupT10('Solid, with room for a miss','든든하게, 한두 번은 괜찮게'):p===70?cupT10('Relaxed','여유 있게'):cupT10('Gentle','부담 없이')}</span></button>`).join('');
+  document.body.appendChild(m); const r=btn.getBoundingClientRect();
+  m.style.top=Math.min(r.bottom+6, innerHeight-m.offsetHeight-80)+'px'; m.style.left=Math.max(12, Math.min(r.left, innerWidth-m.offsetWidth-12))+'px';
+  setTimeout(()=>document.addEventListener('click', function f(ev){ if(!m.contains(ev.target)){ m.remove(); document.removeEventListener('click', f); } }), 0);
+}
+function cupHbSetGoal(p){ cupEnsure(); S.cup.habitGoal=p; document.getElementById('cupHbMenu')?.remove(); save(); cupRenderHome(); }
+
+// the Home widget / block lists captured the old function; point them at this one
+try{ if(typeof CUP_WIDGETS!=='undefined' && CUP_WIDGETS.habits) CUP_WIDGETS.habits[5]=cupHabitsHTML; }catch(_){}
+try{ if(typeof CUP_BLOCKS!=='undefined' && CUP_BLOCKS.habits) CUP_BLOCKS.habits[2]=cupHabitsHTML; }catch(_){}
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
