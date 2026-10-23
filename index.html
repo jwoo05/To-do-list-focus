@@ -7299,6 +7299,71 @@ body.cup-side-min .sidebar .sidebar-logo .logo-mark{ display:none; }
 .sidebar .sidebar-actions .sidebar-action-btn{ width:34px !important; height:34px !important; border:1px solid var(--border) !important; border-radius:8px !important; background:transparent; }
 .sidebar .sidebar-actions .sidebar-action-btn:hover{ background:var(--bg2); color:var(--text) !important; }
 
+/* sidebar: the toggle and the icons never move between open and collapsed */
+.sidebar{ padding:14px 13px !important; }
+body.cup-side-min .sidebar{ padding:14px 13px !important; width:58px; }
+.sidebar .sidebar-logo, body.cup-side-min .sidebar .sidebar-logo{ display:flex !important; justify-content:flex-start !important; align-items:center; height:32px; min-height:32px; padding:0 !important; margin:0 0 8px !important; gap:0 !important; flex-direction:row !important; }
+.sidebar .sidebar-logo .cup-side-toggle, body.cup-side-min .sidebar .sidebar-logo .cup-side-toggle{ margin:0 !important; }
+#cupSideToggle2{ display:none !important; }
+.sidebar .nav-item{ min-height:40px; }
+body.cup-side-min .sidebar .nav-item, .sidebar .nav-item{ min-height:40px !important; height:40px; box-sizing:border-box; }
+.sidebar .nav{ gap:1px; }
+
+/* ── Focus: pomodoro plan ── */
+#page-pomo > .view-header, #page-pomo .cup-pm{ max-width:960px; margin-left:auto; margin-right:auto; width:100%; box-sizing:border-box; }
+.cup-pm-timer{ display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap; padding:20px 24px; border:1px solid var(--border); border-radius:16px; background:var(--bg1, transparent); margin-bottom:16px; }
+.cup-pm-timer.live{ border-color:color-mix(in srgb, var(--accent) 45%, var(--border)); }
+.cup-pm-tl{ flex:1 1 280px; min-width:0; }
+.cup-pm-k{ font-size:calc(12px * var(--cup-fs,1)); letter-spacing:.06em; text-transform:uppercase; color:var(--text3); font-weight:600; }
+.cup-pm-time{ font-family:'Source Serif 4',Georgia,serif; font-size:64px; line-height:1.05; font-variant-numeric:tabular-nums; margin:4px 0 2px; letter-spacing:-.01em; }
+.cup-pm-now{ font-size:calc(14.5px * var(--cup-fs,1)); color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cup-pm-bar{ height:3px; border-radius:99px; background:var(--bg2); margin-top:12px; overflow:hidden; } .cup-pm-bar i{ display:block; height:100%; background:var(--accent); border-radius:inherit; transition:width .4s linear; }
+.cup-pm-ctl{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.cup-pm-ctl .btn-accent{ min-height:44px; padding:0 22px; font-size:calc(14.5px * var(--cup-fs,1)); }
+.cup-pm-preset{ display:flex; align-items:center; gap:6px; margin-left:6px; font-size:calc(12.5px * var(--cup-fs,1)); } .cup-pm-preset select{ max-width:160px; }
+.cup-pm-cols{ display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr); gap:16px; align-items:start; }
+.cup-pm-col{ border:1px solid var(--border); border-radius:14px; padding:12px; display:grid; gap:8px; background:var(--bg1, transparent); min-height:120px; }
+.cup-pm-col.cup-pm-over{ border-color:var(--accent); background:color-mix(in srgb, var(--accent) 5%, transparent); }
+.cup-pm-h{ display:flex; align-items:center; gap:8px; padding:2px 4px 4px; font-size:calc(13.5px * var(--cup-fs,1)); } .cup-pm-h em{ font-style:normal; color:var(--text3); font-size:calc(12.5px * var(--cup-fs,1)); }
+.cup-pm-hb{ margin-left:auto; display:flex; gap:6px; } .cup-pm-q{ margin-left:auto; max-width:170px; min-width:0; flex:1; font-size:calc(13px * var(--cup-fs,1)); padding:5px 10px; }
+.cup-pm-slot{ border:1px solid var(--border); border-radius:12px; padding:8px 10px 6px; display:grid; gap:2px; background:var(--bg); transition:border-color .12s, background .12s; }
+.cup-pm-slot.next{ border-color:color-mix(in srgb, var(--accent) 40%, var(--border)); }
+.cup-pm-slot.now{ border-color:var(--accent); }
+.cup-pm-slot.done{ opacity:.6; }
+.cup-pm-slot.cup-pm-over{ border-color:var(--accent); background:color-mix(in srgb, var(--accent) 7%, var(--bg)); }
+.cup-pm-sh{ display:flex; align-items:center; gap:8px; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text3); min-height:26px; } .cup-pm-sh b{ color:var(--text); font-size:calc(13.5px * var(--cup-fs,1)); } .cup-pm-sh i{ font-style:normal; margin-left:auto; color:var(--accent); font-size:calc(12px * var(--cup-fs,1)); }
+.cup-pm-sh .cup-pm-x{ margin-left:0; }
+.cup-pm-drop{ border:1px dashed var(--border); border-radius:9px; padding:10px; text-align:center; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text3); }
+.cup-pm-task{ display:flex; align-items:center; gap:10px; padding:6px 4px; border-radius:8px; cursor:grab; } .cup-pm-task:hover{ background:var(--bg2); } .cup-pm-task.dragging{ opacity:.4; }
+.cup-pm-task.done .cup-pm-t{ color:var(--text3); text-decoration:line-through; }
+.cup-pm-grip{ color:var(--text3); font-size:calc(13px * var(--cup-fs,1)); width:16px; text-align:center; flex:none; opacity:.6; }
+.cup-pm-t{ flex:1 1 auto; min-width:0; text-align:left; font-size:calc(13.5px * var(--cup-fs,1)); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cup-pm-m{ flex:none; font-size:calc(11.5px * var(--cup-fs,1)); color:var(--text3); max-width:44%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .cup-pm-m.late{ color:var(--orange, #d9822b); }
+.cup-pm-x, .cup-pm-add{ flex:none; width:26px; height:26px; border-radius:7px; color:var(--text3); display:grid; place-items:center; font-size:calc(13px * var(--cup-fs,1)); } .cup-pm-x:hover, .cup-pm-add:hover{ background:var(--bg3, var(--bg2)); color:var(--text); }
+.cup-pm-add{ border:1px solid var(--border); font-size:calc(15px * var(--cup-fs,1)); }
+.cup-pm-sec{ font-size:calc(11px * var(--cup-fs,1)); font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); padding:8px 4px 2px; } .cup-pm-sec em{ font-style:normal; font-weight:500; margin-left:4px; }
+.cup-pm-empty{ padding:14px 6px; font-size:calc(13px * var(--cup-fs,1)); }
+.cup-pm-link{ justify-self:start; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text3); padding:4px 4px; } .cup-pm-link:hover{ color:var(--text); }
+.cup-plan-menu{ width:240px; } .cup-plan-menu button:disabled{ opacity:.4; }
+body.cup-pm-dragging .cup-pm-task:not(.dragging){ cursor:copy; }
+@media (max-width:760px){
+  .cup-pm-cols{ grid-template-columns:1fr; }
+  .cup-pm-time{ font-size:52px; }
+  .cup-pm-timer{ padding:16px; } .cup-pm-ctl .btn-accent{ flex:1 1 auto; }
+  .cup-pm-task{ min-height:44px; } .cup-pm-x, .cup-pm-add{ width:34px; height:34px; }
+}
+body.cup-on-pomo #cupSessBar{ display:none !important; }
+#cupGcChip.cup-gc-chip{ margin-left:6px; }
+#cupGcChip.warn{ border-color:var(--orange, #d9822b); color:var(--orange, #d9822b); }
+.cup-gc-off em{ max-width:46ch; }
+/* the Google chip sits to the left of Filter (both are pinned to the right of the month bar) */
+#page-todo .cal-nav #cupGcChip{ position:absolute; right:140px; top:50%; transform:translateY(-50%); width:auto; flex:none; margin:0; white-space:nowrap; }
+@media (max-width:760px){ #page-todo .cal-nav #cupGcChip, #page-todo .cal-toolbar-row #cupGcChip{ position:static; transform:none; margin:0 0 0 6px; } }
+@media (max-width:760px){
+  #page-todo .cal-toolbar-row #cupGcChip{ margin:0 0 0 auto !important; flex:none; }
+  #page-todo .cal-toolbar-row #cupGcChip + .cup-calf-btn{ margin-left:6px !important; }
+}
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -26337,6 +26402,274 @@ setInterval(()=>{ try{ if(cupGp().on && cupGpReads()) cupGpRun(); }catch(_){} },
 { const _a=cupGcAuth; cupGcAuth=function(){ const sc=cupGcScopes(); return _a.apply(this,arguments).then(v=>{ cupGp().gs=sc.join(' '); cupGcSaveQuiet(); cupGpLast=0; setTimeout(()=>cupGpRun(true),300); return v; }); }; }
 // “Disconnect and remove events” also takes back events you added here
 { const _d=cupGcDisconnect; cupGcDisconnect=function(remove){ if(remove){ cupGp().what.events=false; } return _d.apply(this,arguments); }; }
+
+// ════════════════════════════════════════════════════════════
+//  Findable and honest: a “Google” chip on the calendar, and a clear message when Google
+//  isn't switched on for this app yet (before, Connect just sat there greyed out)
+// ════════════════════════════════════════════════════════════
+const cupGcReady = () => !!cupGcClientId();
+function cupGcWord(){ const g=cupGp(); if(!g.on) return cupT10('Google','Google'); return g.dir==='both'?cupT10('Google · both ways','Google · 양방향'):g.dir==='pull'?cupT10('Google · from','Google · 가져오기'):cupT10('Google · to','Google · 보내기'); }
+function cupGcOpenSettings(){
+  openModal('mSettings'); try{ cupPrefsRender(); }catch(_){}
+  setTimeout(()=>{ try{ cupSetTab='data'; cupSetTabs(); document.getElementById('cupGc')?.scrollIntoView({ block:'center' }); }catch(_){} }, 350);
+}
+function cupGcChip(){
+  const nav=document.querySelector('#calPanel .cal-nav'), filt=document.querySelector('#calPanel .cup-calf-btn'); if(!nav || !filt) return;
+  let b=document.getElementById('cupGcChip');
+  if(!b){ b=document.createElement('button'); b.type='button'; b.id='cupGcChip'; b.className='cup-calf-btn cup-gc-chip'; b.onclick=cupGcOpenSettings; }
+  const g=cupGp(), err=cupGcInfo.state==='auth' || cupGpInfo.err==='auth';
+  b.classList.toggle('on', !!g.on && !err); b.classList.toggle('warn', !!g.on && err);
+  const t=(g.on?(err?'! ':'● '):'')+'Google'; if(b.textContent!==t) b.textContent=t;
+  b.title = (g.on?cupGcWord()+' — ':'') + (!cupGcReady() ? cupT10('Sync with Google Calendar — needs a one-time setup','Google 캘린더 동기화 — 한 번 설정이 필요해요')
+    : g.on ? (err?cupT10('Google needs you to sign in again','Google에 다시 로그인이 필요해요'):cupT10('Google Calendar sync is on','Google 캘린더 동기화 켜짐')) : cupT10('Sync with Google Calendar','Google 캘린더 동기화'));
+  if(filt.previousSibling!==b || b.parentElement!==filt.parentElement) filt.before(b);
+  b.style.right = (innerWidth>760 && filt.offsetWidth) ? (74+filt.offsetWidth+6)+'px' : '';   // sits just left of Filter, whatever Filter says
+}
+{ const _rc=renderCalendar; renderCalendar=function(){ const r=_rc.apply(this,arguments); try{ cupGcChip(); }catch(_){} return r; }; }
+{ const _cb=cupCalfBtn; cupCalfBtn=function(){ const r=_cb.apply(this,arguments); try{ cupGcChip(); }catch(_){} return r; }; }
+{ const _gr2=cupGcRender; cupGcRender=function(){ const r=_gr2.apply(this,arguments); try{ cupGcChip();
+    const box=document.getElementById('cupGc'); if(!box || cupGp().on || cupGcReady()) return r;
+    const btn=[...box.querySelectorAll('button')].find(b=>/cupGcConnect/.test(b.getAttribute('onclick')||'')); const row=btn&&btn.closest('.cup-pref');
+    if(row && !box.querySelector('.cup-gc-off')){
+      const n=document.createElement('div'); n.className='cup-pref cup-gc-off';
+      n.innerHTML=`<span><b>${cupT10('Not switched on yet','아직 켜져 있지 않아요')}</b><em>${cupT10('Google Calendar sync needs a one-time setup by whoever runs this app (about 15 minutes, in Google Cloud and Vercel). Your choice above is saved and applies as soon as it’s on.','Google 캘린더 동기화는 이 앱을 운영하는 사람이 한 번 설정해야 해요(Google Cloud와 Vercel에서 약 15분). 위에서 고른 방향은 저장돼서, 켜지면 바로 적용돼요.')}</em></span><button type="button" class="btn btn-ghost" onclick="cupGcRecheck()">${cupT10('Check again','다시 확인')}</button>`;
+      row.after(n); }
+  }catch(e){ console.warn('[gcal] off note', e); } return r; }; }
+async function cupGcRecheck(){ cupGcSrvP=null; cupGcSrv=null; const s=await cupGcSrvLoad(); cupGcRender();
+  showToast(s&&s.enabled?cupT10('Google sync is on — tap Connect.','Google 동기화가 켜졌어요. 연결을 누르세요.'):cupT10('Still not switched on.','아직 꺼져 있어요.')); }
+
+// ════════════════════════════════════════════════════════════════════
+//  PART 12 — Focus: a Pomodoro timer with a plan.
+//  Today is a list of pomodoros (#1, #2, #3 …). Drag a task from “To do” into a
+//  pomodoro (or tap ＋ on it and pick a number). Start runs the timer on that
+//  pomodoro's first open task; when the focus block ends it is ticked off and the
+//  next pomodoro loads its own tasks. The timer itself is the existing one
+//  (pomoState / startPomoTask / the floating session bar) — this page only drives it.
+//  Plan data: S.cup.pomoPlan = { date, slots:[[taskId,…],…], done:[bool,…], active }
+// ════════════════════════════════════════════════════════════════════
+
+let cupPlanDrag=null, cupPmQuery='', cupPmAllLater=false, cupPmSig='', cupPmViaSheet=false;
+
+function cupPlan(){
+  cupEnsure(); const td=todayStr(); let p=S.cup.pomoPlan;
+  if(!p || p.date!==td || !Array.isArray(p.slots)){
+    const n=Math.max(1, Math.min(12, (typeof getPomoConfig==='function'?getPomoConfig().cycles:4)||4));
+    p=S.cup.pomoPlan={ date:td, slots:Array.from({length:n},()=>[]), done:[], active:false };
+  }
+  if(!Array.isArray(p.done)) p.done=[];
+  const live=new Set(S.tasks.map(t=>t.id));
+  p.slots=p.slots.map(s=>(Array.isArray(s)?s:[]).filter(id=>live.has(id)));      // deleted tasks drop out
+  return p;
+}
+const cupPlanCur = p => { const i=p.slots.findIndex((_,k)=>!p.done[k]); return i<0 ? p.slots.length : i; };
+const cupPlanTaskOf = (p,i) => { const id=(p.slots[i]||[]).find(id=>{ const t=S.tasks.find(x=>x.id===id); return t && !cupDone(t); }); return id ? S.tasks.find(x=>x.id===id) : null; };
+const cupPlanPlanned = p => new Set(p.slots.flat());
+function cupPlanSyncCycles(p){ try{ S.settings.pomo.cycles=Math.max(1,Math.min(12,p.slots.length)); }catch(_){} }   // the timer counts the same number of pomodoros
+
+// ── changing the plan ──
+function cupPlanMove(id, from, to){
+  const p=cupPlan();
+  p.slots=p.slots.map((s,k)=>(k===to?s:s.filter(x=>x!==id)));                   // a task lives in one pomodoro at most
+  if(to>=0){ if(!p.slots[to]) return; if(!p.slots[to].includes(id)) p.slots[to].push(id); if(p.done[to] && from!==to){ p.done[to]=false; } }
+  save(); cupRenderPomo();
+}
+function cupPlanAddSlot(){ const p=cupPlan(); if(p.slots.length>=12){ showToast(cupT10('12 pomodoros is the most for one day.','하루 최대 12개예요.')); return; } p.slots.push([]); cupPlanSyncCycles(p); save(); cupRenderPomo(); }
+function cupPlanDropSlot(i){ const p=cupPlan(); if(i<0||i>=p.slots.length||p.slots[i].length) return; if(p.slots.length<=1) return; if(p.done[i]) return; p.slots.splice(i,1); p.done.splice(i,1); cupPlanSyncCycles(p); save(); cupRenderPomo(); }
+function cupPlanClear(){ const p=cupPlan(); if(cupPomoLive()){ showToast(cupT10('End the timer first.','먼저 타이머를 끝내세요.')); return; } const snap=JSON.stringify(p);
+  p.slots=p.slots.map(()=>[]); p.done=[]; p.active=false; save(); cupRenderPomo();
+  showToast(cupT10('Plan cleared.','계획을 비웠어요.'), cupT10('Undo','되돌리기'), ()=>{ S.cup.pomoPlan=JSON.parse(snap); save(); cupRenderPomo(); }); }
+function cupPlanFill(){
+  const p=cupPlan(), used=cupPlanPlanned(p), pool=cupPmPool().filter(t=>!used.has(t.id));
+  let n=0; p.slots.forEach((s,i)=>{ if(!s.length && !p.done[i] && pool.length){ s.push(pool.shift().id); n++; } });
+  if(!n){ showToast(cupT10('Nothing to fill — every open pomodoro has a task, or there’s nothing left to do.','채울 게 없어요.')); return; }
+  save(); cupRenderPomo();
+}
+
+// drag and drop (a task row carries its id; a pomodoro card or the To-do list takes it)
+function cupPlanDragStart(e, id, from){ cupPlanDrag={ id, from }; try{ e.dataTransfer.setData('text/plain', id); e.dataTransfer.effectAllowed='move'; }catch(_){} e.currentTarget.classList.add('dragging'); document.body.classList.add('cup-pm-dragging'); }
+function cupPlanDragEnd(){ cupPlanDrag=null; document.body.classList.remove('cup-pm-dragging'); document.querySelectorAll('.cup-pm-over, .dragging').forEach(x=>x.classList.remove('cup-pm-over','dragging')); }
+function cupPlanOver(e){ if(!cupPlanDrag) return; e.preventDefault(); e.currentTarget.classList.add('cup-pm-over'); }
+function cupPlanLeave(e){ e.currentTarget.classList.remove('cup-pm-over'); }
+function cupPlanDrop(e, to){ e.preventDefault(); const d=cupPlanDrag; cupPlanDragEnd(); if(!d) return; if(d.from===to) return; cupPlanMove(d.id, d.from, to); }
+
+// tap instead of drag (phones): ＋ on a task opens a list of pomodoros
+function cupPlanPick(btn, id){
+  document.getElementById('cupPlanMenu')?.remove();
+  const p=cupPlan(), m=document.createElement('div'); m.id='cupPlanMenu'; m.className='cup-later-menu cup-plan-menu'; m.setAttribute('role','menu');
+  m.innerHTML=`<div class="cup-lm-h">${cupT10('Put it in…','어느 포모도로에?')}</div>`+p.slots.map((s,i)=>`<button type="button" role="menuitem" ${p.done[i]?'disabled':''} onclick="cupPlanMove('${id}',-1,${i});document.getElementById('cupPlanMenu')?.remove()"><b>${cupT10('Pomodoro','포모도로')} ${i+1}</b><span>${p.done[i]?cupT10('done','완료'):s.length?cupT10(`${s.length} task${s.length===1?'':'s'}`,`할 일 ${s.length}개`):cupT10('empty','비어 있음')}</span></button>`).join('');
+  document.body.appendChild(m); const r=btn.getBoundingClientRect();
+  m.style.top=Math.min(r.bottom+6, innerHeight-m.offsetHeight-80)+'px'; m.style.left=Math.max(12, Math.min(r.left-180, innerWidth-m.offsetWidth-12))+'px';
+  setTimeout(()=>document.addEventListener('click', function f(ev){ if(!m.contains(ev.target)){ m.remove(); document.removeEventListener('click', f); } }), 0);
+}
+
+// ── the timer, driven by the plan ──
+function cupPlanApplyTask(){
+  const p=cupPlan(), t=cupPlanTaskOf(p, cupPlanCur(p));
+  currentPomoTask=t||null; const h=document.getElementById('hudTask'); if(h) h.textContent=t?t.title:'';
+  try{ updatePomoGoalBanner(); }catch(_){}
+}
+function cupPlanStart(){
+  const p=cupPlan(); if(cupPlanCur(p)>=p.slots.length){ p.slots.push([]); cupPlanSyncCycles(p); }
+  cupPlanSyncCycles(p);
+  const t=cupPlanTaskOf(p, cupPlanCur(p)); p.active=true; save();
+  if(t) startPomoTask(t.id);
+  else { currentPomoTask=null; const h=document.getElementById('hudTask'); if(h) h.textContent=''; resetPomo(); setTimeout(togglePomo,100); }
+  setTimeout(cupRenderPomo, 250);
+}
+function cupPlanMain(){
+  const live=cupPomoLive(), ph=live?(pomoState.phase||''):'';
+  if(!live){ cupPlanStart(); return; }
+  if(ph==='focus' && !pomoState.running && !pomoState.elapsed){ if(cupPlan().active) cupPlanApplyTask(); togglePomo(); setTimeout(cupRenderPomo,150); return; }   // next pomodoro, after a break
+  cupW3BarMain(); setTimeout(cupRenderPomo,150);
+}
+{ const _b=startBreakPhase; startBreakPhase=function(){
+    const was=typeof pomoState!=='undefined' && ['focus','focusOver'].includes(pomoState.phase), p=S.cup&&S.cup.pomoPlan;
+    const r=_b.apply(this,arguments);
+    try{ if(was && p && p.active && p.date===todayStr()){ const i=cupPlanCur(p); if(i<p.slots.length){ p.done[i]=true; save(); } setTimeout(cupRenderPomo,100); } }catch(_){}
+    return r; }; }
+{ const _n=startNextFocusPhase; startNextFocusPhase=function(){
+    const r=_n.apply(this,arguments);
+    try{ const p=S.cup&&S.cup.pomoPlan; if(p && p.active && p.date===todayStr() && !pomoState.sessionEnded){ cupPlanApplyTask(); } setTimeout(cupRenderPomo,100); }catch(_){}
+    return r; }; }
+{ const _e=endSession; endSession=function(){ const r=_e.apply(this,arguments); try{ const p=S.cup&&S.cup.pomoPlan; if(p) p.active=false; save(); setTimeout(cupRenderPomo,150); }catch(_){} return r; }; }
+{ const _s=cupSessionStart; cupSessionStart=async function(){ const want=cupPmViaSheet; cupPmViaSheet=false; const r=await _s.apply(this,arguments); if(want){ const p=cupPlan(); p.active=true; save(); } return r; }; }
+function cupPlanViaSheet(){ const p=cupPlan(), t=cupPlanTaskOf(p, cupPlanCur(p)); cupPmViaSheet=true; cupSessionOpen(t?t.id:''); }
+
+// ── what you can drag in ──
+function cupPmPool(){
+  const td=todayStr(), q=cupPmQuery.trim().toLowerCase();
+  const list=cupOpenTasks().filter(t=>!t.isHabit && !t.waiting && !cupDone(t) && (!q || (t.title||'').toLowerCase().includes(q) || ((cupCommit(t.commitId)||{}).name||'').toLowerCase().includes(q)));
+  const key=t=>(cupIsToday(t,td)?'0':cupIsOverdue(t,td)?'1':'2')+(t.due||'9999')+(t.dueTime||'99');
+  return list.sort((a,b)=>key(a).localeCompare(key(b)));
+}
+function cupPmRow(t, from, opts={}){
+  const c=cupCommit(t.commitId), done=cupDone(t), td=todayStr(), late=cupIsOverdue(t,td);
+  const when = t.due ? (t.due===td?cupT10('Today','오늘'):late?cupFmt(t.due):cupFmt(t.due)) : '';
+  return `<div class="cup-pm-task ${done?'done':''}" draggable="true" ondragstart="cupPlanDragStart(event,'${t.id}',${from})" ondragend="cupPlanDragEnd()">
+    ${from>=0?`<button type="button" class="cup-check2 ${done?'d':''}" onclick="toggleTask('${t.id}')" aria-label="${cupT10('Done','완료')}"></button>`:`<span class="cup-pm-grip" aria-hidden="true">⠿</span>`}
+    <button type="button" class="cup-pm-t" onclick="editTask('${t.id}')">${esc(t.title)}</button>
+    <span class="cup-pm-m ${late&&!done?'late':''}">${c?esc(c.name.split(' · ')[0])+(when?' · ':''):''}${when}</span>
+    ${from>=0?`<button type="button" class="cup-pm-x" onclick="cupPlanMove('${t.id}',${from},-1)" aria-label="${cupT10('Remove from this pomodoro','이 포모도로에서 빼기')}" title="${cupT10('Back to To do','할 일로 되돌리기')}">✕</button>`
+      :`<button type="button" class="cup-pm-add" onclick="cupPlanPick(this,'${t.id}')" aria-label="${cupT10('Put in a pomodoro','포모도로에 넣기')}" title="${cupT10('Put in a pomodoro','포모도로에 넣기')}">＋</button>`}
+  </div>`;
+}
+function cupRenderPomoPool(){
+  const host=document.getElementById('cupPmPool'); if(!host) return;
+  const p=cupPlan(), used=cupPlanPlanned(p), td=todayStr(), all=cupPmPool().filter(t=>!used.has(t.id));
+  const today=all.filter(t=>cupIsToday(t,td)), over=all.filter(t=>cupIsOverdue(t,td)), later=all.filter(t=>!cupIsToday(t,td)&&!cupIsOverdue(t,td));
+  const sec=(label,list)=>list.length?`<div class="cup-pm-sec">${label} <em>${list.length}</em></div>${list.map(t=>cupPmRow(t,-1)).join('')}`:'';
+  const shownLater=cupPmAllLater||cupPmQuery?later:later.slice(0,8);
+  host.innerHTML = (sec(cupT10('Today','오늘'),today)+sec(cupT10('Overdue','밀린 일'),over)+sec(cupT10('Coming up','다가오는 일'),shownLater)
+    + (later.length>shownLater.length?`<button type="button" class="cup-more-btn" onclick="cupPmAllLater=true;cupRenderPomoPool()">${cupT10(`Show all ${later.length}`,`${later.length}개 모두 보기`)}</button>`:''))
+    || `<div class="cup-dim cup-pm-empty">${cupPmQuery?cupT10('Nothing matches.','맞는 게 없어요.'):cupT10('Everything open is already in a pomodoro. 🎉','남은 일이 모두 포모도로에 들어 있어요.')}</div>`;
+}
+
+// ── page ──
+function cupPomoMount(){
+  if(!document.getElementById('page-pomo')){
+    const ref=document.getElementById('page-todo')||document.getElementById('page-dashboard'); if(!ref) return;
+    const sec=document.createElement('section'); sec.className='page'; sec.id='page-pomo';
+    sec.innerHTML=`<div class="view-header"><div><div class="view-title">${cupT10('Focus','집중')}</div><div class="view-sub">${cupT10('Plan today in pomodoros: drag a task into #1, #2, #3… then press Start.','오늘을 포모도로로 계획해요. 할 일을 #1, #2, #3…에 끌어다 놓고 시작을 누르세요.')}</div></div></div><div id="cupPomoPage" class="cup-pm"></div>`;
+    ref.after(sec);
+  }
+  const nav=document.querySelector('.sidebar nav, .sidebar .nav');
+  if(nav && !nav.querySelector('.nav-item[data-page="pomo"]')){
+    const j=nav.querySelector('.nav-item[data-page="todo"]')||nav.firstElementChild;
+    const b=document.createElement('button'); b.className='nav-item'; b.dataset.page='pomo'; b.setAttribute('onclick',"showPage('pomo',this)");
+    b.innerHTML=`<span>◎</span> ${cupT10('Focus','집중')}`; j.after(b);
+  }
+}
+function cupPomoOpen(){ showPage('pomo'); }
+function cupPmTime(){
+  const live=cupPomoLive(), pr=getPomoConfig();
+  const txt=live?(document.getElementById('hudTime')?.textContent||''):'';
+  return /\d/.test(txt) ? txt : String(pr.focus).padStart(2,'0')+':00';
+}
+function cupPmState(){
+  const live=cupPomoLive(), ph=live?(pomoState.phase||''):'', over=/Over$/.test(ph), brk=/break/i.test(ph), run=live&&!!pomoState.running, p=cupPlan(), cur=cupPlanCur(p);
+  const fresh=live && ph==='focus' && !run && !pomoState.elapsed;
+  const k=(p.active||!live) ? Math.min(cur+1, p.slots.length) : (pomoState.cycles||0)+1;
+  let label, tone='';
+  if(!live || fresh) label=cupT10(`Start pomodoro ${k}`,`포모도로 ${k} 시작`);
+  else if(over) label = ph==='focusOver' ? cupT10('Take a break','휴식하기') : cupT10('Next pomodoro','다음 포모도로');
+  else label = run ? cupT10('Pause','일시정지') : cupT10('Resume','계속');
+  const phase = !live ? '' : over ? (ph==='focusOver'?cupT10('Time’s up','시간 됐어요'):cupT10('Break’s over','휴식 끝')) : brk ? cupT10('Break','휴식') : run ? cupT10('Focus','집중') : fresh ? '' : cupT10('Paused','일시정지');
+  const total = ph==='focus'||ph==='calibrationFocus' ? pomoState.plannedFocus : brk && !over ? pomoState.plannedBreak : 0;
+  const pct = live && total ? Math.min(100, Math.round((pomoState.elapsed||0)/total*100)) : over ? 100 : 0;
+  return { live, ph, over, brk, run, fresh, k, label, phase, pct, p, cur };
+}
+function cupRenderPomo(force){
+  const host=document.getElementById('cupPomoPage'); if(!host) return;
+  if(!force && (cupPlanDrag || document.activeElement===document.getElementById('cupPmQ'))) return;
+  const s=cupPmState(), p=s.p, pr=getPomoConfig(), td=todayStr();
+  const nowTask = s.live ? (currentPomoTask&&currentPomoTask.title) : (cupPlanTaskOf(p,s.cur)||{}).title;
+  const preset=(S.settings.pomo&&S.settings.pomo.presetMode)||'classic';
+  const totalDone=p.done.filter(Boolean).length;
+  const slots=p.slots.map((ids,i)=>{
+    const isDone=!!p.done[i], isNow=i===s.cur && s.live && p.active && !s.brk && !s.fresh, isNext=i===s.cur && !isNow && !isDone;
+    const tasks=ids.map(id=>S.tasks.find(t=>t.id===id)).filter(Boolean);
+    return `<div class="cup-pm-slot ${isDone?'done':''} ${isNow?'now':''} ${isNext?'next':''}" ondragover="cupPlanOver(event)" ondragleave="cupPlanLeave(event)" ondrop="cupPlanDrop(event,${i})">
+      <div class="cup-pm-sh"><b>#${i+1}</b><span>${pr.focus} ${cupT10('min','분')}</span><i>${isDone?'✓ '+cupT10('done','완료'):isNow?'● '+cupT10('now','진행 중'):isNext?cupT10('next','다음'):''}</i>
+        ${!tasks.length&&!isDone&&p.slots.length>1?`<button type="button" class="cup-pm-x" onclick="cupPlanDropSlot(${i})" aria-label="${cupT10('Remove this pomodoro','이 포모도로 지우기')}" title="${cupT10('Remove this pomodoro','이 포모도로 지우기')}">✕</button>`:''}</div>
+      ${tasks.length?tasks.map(t=>cupPmRow(t,i)).join(''):`<div class="cup-pm-drop">${cupT10('Drag a task here','할 일을 여기로 끌어다 놓으세요')}</div>`}
+    </div>`; }).join('');
+  host.innerHTML=`
+    <div class="cup-pm-timer ${s.live?'live':''}">
+      <div class="cup-pm-tl">
+        <div class="cup-pm-k">${cupT10('Pomodoro','포모도로')} ${s.k} / ${p.slots.length}${s.phase?` · ${esc(s.phase)}`:''}</div>
+        <div class="cup-pm-time" id="cupPmTime">${esc(cupPmTime())}</div>
+        <div class="cup-pm-now" id="cupPmNow">${nowTask?esc(nowTask):`<span class="cup-dim">${cupT10('No task — a free focus block','할 일 없음 — 자유 집중')}</span>`}</div>
+        <div class="cup-pm-bar"><i id="cupPmBar" style="width:${s.pct}%"></i></div>
+      </div>
+      <div class="cup-pm-ctl">
+        <button type="button" class="btn btn-accent" id="cupPmMain" onclick="cupPlanMain()">${s.label}</button>
+        ${s.live?`<button type="button" class="btn btn-ghost" onclick="cupSessEnd();setTimeout(cupRenderPomo,200)">${cupT10('End','종료')}</button>`:''}
+        <label class="cup-pm-preset"><span class="cup-dim">${cupT10('Timer','타이머')}</span><select onchange="cupW3Preset(this.value);cupRenderPomo(true)" aria-label="${cupT10('Timer','타이머')}" ${s.live?'disabled':''}>${CUP_W3_PRESETS.map(([v,en,ko])=>`<option value="${v}" ${preset===v?'selected':''}>${cupT10(en,ko)}</option>`).join('')}</select></label>
+      </div>
+    </div>
+    <div class="cup-pm-cols">
+      <section class="cup-pm-col">
+        <div class="cup-pm-h"><b>${cupT10('Today’s pomodoros','오늘의 포모도로')}</b><em>${totalDone}/${p.slots.length}</em>
+          <span class="cup-pm-hb"><button type="button" class="cup-hbtn" onclick="cupPlanFill()">${cupT10('Fill for me','자동 채우기')}</button><button type="button" class="cup-hbtn" onclick="cupPlanClear()">${cupT10('Clear','비우기')}</button></span></div>
+        ${slots}
+        <button type="button" class="cup-more-btn" onclick="cupPlanAddSlot()">+ ${cupT10('Add a pomodoro','포모도로 추가')}</button>
+        <button type="button" class="cup-pm-link" onclick="cupPlanViaSheet()">${cupT10('Start with Focus check…','집중 체크와 함께 시작…')}</button>
+      </section>
+      <section class="cup-pm-col" ondragover="cupPlanOver(event)" ondragleave="cupPlanLeave(event)" ondrop="cupPlanDrop(event,-1)">
+        <div class="cup-pm-h"><b>${cupT10('To do','할 일')}</b><input id="cupPmQ" class="cup-pm-q" placeholder="${cupT10('Find a task…','할 일 찾기…')}" value="${esc(cupPmQuery)}" oninput="if(event.isComposing)return;cupPmQuery=this.value;cupRenderPomoPool()" oncompositionend="cupPmQuery=this.value;cupRenderPomoPool()" aria-label="${cupT10('Find a task','할 일 찾기')}"></div>
+        <div id="cupPmPool"></div>
+      </section>
+    </div>`;
+  cupRenderPomoPool(); cupPmSig=cupPmSigNow();
+  if(typeof cupIsKo==='function' && cupIsKo() && typeof cupKoWalk==='function') cupKoWalk(host);
+}
+function cupPmSigNow(){ const s=cupPmState(); return [s.live,s.ph,s.run,s.k,s.label,(S.cup.pomoPlan||{}).done+'', JSON.stringify((S.cup.pomoPlan||{}).slots)].join('|'); }
+// keep the clock and bar moving without redrawing the lists
+setInterval(()=>{ try{
+  document.body.classList.toggle('cup-on-pomo', typeof currentPage!=='undefined' && currentPage==='pomo');
+  if(typeof currentPage==='undefined' || currentPage!=='pomo' || !document.getElementById('cupPomoPage')) return;
+  if(cupPmSigNow()!==cupPmSig){ cupRenderPomo(); return; }
+  const s=cupPmState(), t=document.getElementById('cupPmTime'); if(t){ const v=cupPmTime(); if(t.textContent!==v) t.textContent=v; }
+  const b=document.getElementById('cupPmBar'); if(b) b.style.width=s.pct+'%';
+}catch(_){} }, 500);
+
+{ const _rc=renderCup; renderCup=function(){ const r=_rc.apply(this,arguments); try{ cupPomoMount(); const on=typeof currentPage!=='undefined' && currentPage==='pomo'; document.body.classList.toggle('cup-on-pomo', on); if(on) cupRenderPomo(); }catch(_){} return r; }; }
+{ const _me=cupOpenMobileMe; cupOpenMobileMe=function(){ const r=_me.apply(this,arguments);
+  try{ const el=document.getElementById('mCupMobMe'); if(!el || el.querySelector('.cup-me-pomo')) return r;
+    const rows=[...el.querySelectorAll('.cup-me-row, .cup-me-card')], ref=rows.find(x=>/Waiting|답변/.test(x.textContent)) || rows.find(x=>/Friends|친구/.test(x.textContent)) || rows.find(x=>/Settings|설정/.test(x.textContent));
+    if(!ref) return r;
+    const row=ref.cloneNode(true); row.classList.add('cup-me-pomo'); row.classList.remove('main','cup-extra-only','cup-me-wait');
+    row.setAttribute('onclick',"closeModal('mCupMobMe');cupPomoOpen()");
+    const ic=row.querySelector('span'), bt=row.querySelector('b'), em=row.querySelector('em');
+    if(ic) ic.textContent='◎'; if(bt) bt.textContent=cupT10('Focus','집중'); if(em) em.textContent=cupT10('Pomodoro plan','포모도로 계획');
+    ref.before(row);
+  }catch(_){}
+  return r; }; }
+// the old “Focus” entry points open the plan page (the quick “◎ Focus” on a task still opens the session sheet)
+{ const _sp=showPage; showPage=function(page, el){
+  if(page==='focus' && window.event && window.event.isTrusted && !(cupPomoLive()||cupFCSess)) return _sp.call(this,'pomo');
+  return _sp.apply(this,arguments); }; }
+if(document.readyState!=='loading') cupPomoMount(); else document.addEventListener('DOMContentLoaded', cupPomoMount);
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
