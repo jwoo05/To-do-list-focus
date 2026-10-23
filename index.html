@@ -7392,12 +7392,37 @@ body.cup-on-pomo #cupSessBar{ display:none !important; }
 .cup-hb-dots i.t{ border-color:var(--accent); }
 .cup-hb-dots i.f{ border-color:color-mix(in srgb, var(--text3) 35%, transparent); }
 .cup-hb-dots i.x{ background:color-mix(in srgb, var(--text3) 25%, transparent); width:4px; height:4px; margin:2px; }
-.cup-hb-w{ grid-column:1 / -1; padding:0 0 0 30px; min-width:0; }
-.cup-hb-why{ display:block; max-width:100%; text-align:left; font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-style:italic; padding:1px 0; }
-.cup-hb-why:hover{ color:var(--text2); }
-.cup-hb-why.add{ font-style:normal; opacity:.65; }
-.cup-hb-why-in{ width:100%; font-size:calc(12.5px * var(--cup-fs,1)); padding:4px 8px; }
+.cup-hb-w{ grid-column:1 / -1; padding:0 0 0 30px; min-width:0; display:grid; gap:2px; }
+.cup-hb-why{ display:block; max-width:100%; text-align:left; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-style:italic; padding:1px 0; }
+.cup-hb-why:hover{ color:var(--text); }
+.cup-hb-info{ font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); display:flex; flex-wrap:wrap; gap:0 6px; } .cup-hb-info i{ font-style:normal; opacity:.6; }
+.cup-hb-nudge{ font-size:calc(12px * var(--cup-fs,1)); color:var(--orange, #d9822b); padding:2px 0; }
+.cup-hb-plan{ justify-self:start; font-size:calc(11.5px * var(--cup-fs,1)); color:var(--text3); padding:2px 0; text-align:left; } .cup-hb-plan:hover{ color:var(--text); } .cup-hb-plan em{ font-style:normal; opacity:.8; }
+.cup-hb-plan.add{ opacity:.7; }
+/* closed: one calm line */
+.cup-hb.closed{ margin:0; }
+.cup-hb-line{ width:100%; display:flex; align-items:center; gap:10px; padding:6px 2px; font-size:calc(13.5px * var(--cup-fs,1)); text-align:left; color:var(--text2); border-radius:8px; }
+.cup-hb-line:hover{ color:var(--text); }
+.cup-hb-line b{ font-weight:600; color:var(--text); }
+.cup-hb-ldots{ display:inline-flex; gap:4px; } .cup-hb-ldots i{ width:8px; height:8px; border-radius:50%; border:1.5px solid color-mix(in srgb, var(--text3) 70%, transparent); box-sizing:border-box; } .cup-hb-ldots i.d{ background:var(--pace-ok, var(--green, #4dd49a)); border-color:var(--pace-ok, var(--green, #4dd49a)); }
+.cup-hb-lt{ font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text3); }
+.cup-hb-lp{ margin-left:auto; font-size:calc(12.5px * var(--cup-fs,1)); font-weight:600; color:var(--text2); font-variant-numeric:tabular-nums; } .cup-hb-lp.ok{ color:var(--pace-ok, var(--green, #4dd49a)); }
+.cup-hb-line.all .cup-hb-lt{ color:var(--pace-ok, var(--green, #4dd49a)); }
+.cup-hb.open .cup-hb-line{ margin-bottom:6px; }
+/* the plan sheet */
+.cup-hbm{ max-width:480px; width:calc(100vw - 32px); }
+.cup-hbm .modal-body{ display:grid; gap:6px; }
+.cup-hbm-l{ font-size:calc(12.5px * var(--cup-fs,1)); font-weight:600; color:var(--text2); margin-top:8px; }
+.cup-hbm input{ width:100%; box-sizing:border-box; padding:9px 12px; font-size:calc(14.5px * var(--cup-fs,1)); }
+.cup-hbm-note{ margin-top:14px; padding:12px 14px; border-radius:12px; background:var(--bg2); font-size:calc(12.5px * var(--cup-fs,1)); line-height:1.6; color:var(--text2); } .cup-hbm-note p{ margin:0 0 6px; } .cup-hbm-note p:last-child{ margin:0; }
 @media (max-width:760px){ .cup-hb-row{ padding:9px 2px; } .cup-hb-main{ min-height:36px; font-size:calc(15px * var(--cup-fs,1)); } .cup-hb-st{ gap:8px; } .cup-hb-n{ display:none; } }
+
+/* Settings: Journal prompts — a roomy full-width box, not a squeezed corner */
+.cup-pref.cup-pref-stack{ flex-direction:column; align-items:stretch; gap:10px; }
+.cup-pref-stack .cup-prompts-ta{ width:100%; max-width:none; box-sizing:border-box; min-height:150px; padding:12px 14px; font-size:calc(14.5px * var(--cup-fs,1)); line-height:1.85; border-radius:10px; resize:vertical; background:var(--bg); }
+.cup-pref-stack .cup-prompts-reset{ align-self:flex-start; padding:4px 2px; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text3); text-decoration:underline; text-underline-offset:3px; }
+.cup-pref-stack .cup-prompts-reset:hover{ color:var(--text); }
+.cup-hbm .modal-footer{ display:flex; justify-content:flex-end; gap:8px; padding:12px 18px 16px; }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -21746,10 +21771,11 @@ function cupPrefsRender(){
     ${tog('hideMeetings','Hide meeting notes in the sidebar','Pages titled “meeting”, “minutes” or “회의” stay out of the sidebar list. They’re still in their folder and in search.')}
     <div class="cup-pref"><span><b>Refresh calendar links every</b><em>Also when you reopen the app. Google, Outlook and Canvas links are read-only here.</em></span>
       <select onchange="cupSetPref('syncMinutes',+this.value)">${[[15,'15 min'],[30,'30 min'],[60,'1 hour'],[180,'3 hours']].map(([m,l])=>`<option value="${m}" ${(+cupPref('syncMinutes',180)||180)===m?'selected':''}>${l}</option>`).join('')}</select></div>
-    <div class="cup-pref" style="align-items:flex-start"><span><b>Journal prompts</b><em>One per line. Empty = a blank page. Your earlier answers are kept.</em></span>
-      <span style="flex:1;max-width:260px;display:flex;flex-direction:column;gap:4px"><textarea rows="5" onchange="cupSetPrompts(this.value)" aria-label="Journal prompts">${esc(cupPrompts().map(p=>p[1]).join('\n'))}</textarea><button type="button" class="btn btn-ghost" onclick="cupSetPrompts(null)">Reset to the five defaults</button></span></div>
+    <div class="cup-pref cup-pref-stack"><span><b>Journal prompts</b><em>One question per line. Empty = a blank page. Your earlier answers are kept.</em></span>
+      <textarea class="cup-prompts-ta" rows="6" onchange="cupSetPrompts(this.value)" aria-label="Journal prompts" spellcheck="false">${esc(cupPrompts().map(p=>p[1]).join('\n'))}</textarea>
+      <button type="button" class="cup-prompts-reset" onclick="cupSetPrompts(null)">Back to the five defaults</button></div>
     <div class="cup-pref"><span><b>Language</b><em>Menus and buttons. Your own notes and tasks are never translated.</em></span>
-      <select onchange="cupSetLang(this.value)" aria-label="Language">${[['','English'],['ko','한국어']].map(([v,l])=>`<option value="${v}" ${(cupPref('lang','')||'')===v?'selected':''}>${l}</option>`).join('')}</select></div>
+      <select onchange="cupSetLang(this.value)" aria-label="Language">${[['','English'],['ko','한국어']].map(([v,l])=>`<option value="${v}" ${(cupLang()==='ko'?'ko':'')===v?'selected':''}>${l}</option>`).join('')}</select></div>
     <div class="cup-pref-h">Reminders</div>
     <div class="cup-pref"><span><b>Alerts</b><em>${notif==='granted'?'On. Alerts show while Focus Hub is open in a tab or installed as an app. They can’t reach a closed phone yet.':notif==='denied'?'Blocked in your browser settings.':notif==='unsupported'?'This browser can’t show alerts.':'Off. Alerts show while Focus Hub is open in a tab or installed as an app. They can’t reach a closed phone yet.'}</em></span>
       ${notif==='default'?`<button type="button" class="btn btn-accent" onclick="cupAskNotify()">Turn on</button>`:''}</div>
@@ -23192,9 +23218,9 @@ function cupEventNotes(id, ds){
   let parent=rep ? notes.find(p=>p.evSeries===series) : null, made=false;
   if(!parent){
     let c=cupEvFolder(e);
-    if(!c){ const f=rep ? cupEvMakeFolder(String(e.title||'Event').trim().slice(0,40), cupEvArea(e)) : cupEvMakeFolder(cupPref('lang','')==='ko'?'회의 & 일정':'Meetings & events', cupEvArea({})); c=f.c; made=f.made; }
+    if(!c){ const f=rep ? cupEvMakeFolder(String(e.title||'Event').trim().slice(0,40), cupEvArea(e)) : cupEvMakeFolder(cupLang()==='ko'?'회의 & 일정':'Meetings & events', cupEvArea({})); c=f.c; made=f.made; }
     if(rep){ parent=cupNewNote('folder:'+c.id, `${e.title} notes`, false); parent.evSeries=series;
-      parent.html=cupCleanHTML(cupPref('lang','')==='ko'?`<p>“${esc(e.title)}”마다 페이지가 하나씩 생겨요. 일정의 노트를 열면 새로 시작해요.</p>`:`<p>One page for each “${esc(e.title)}”. Open the event’s Notes to start a new one.</p>`); }
+      parent.html=cupCleanHTML(cupLang()==='ko'?`<p>“${esc(e.title)}”마다 페이지가 하나씩 생겨요. 일정의 노트를 열면 새로 시작해요.</p>`:`<p>One page for each “${esc(e.title)}”. Open the event’s Notes to start a new one.</p>`); }
     else n=cupNewNote('folder:'+c.id, `${e.title} · ${cupFmt(ds)}`, false);
   }
   if(rep) n=cupNewNote('page:'+parent.id, `${e.title} · ${cupFmt(ds)}`, false);
@@ -23317,12 +23343,18 @@ else document.addEventListener('DOMContentLoaded', cupUpgradeMobileNav);
 // ════════════════════════════════════════════════════════════════════
 const CUP_KO = {};           // "English text" → "한국어"  (filled in cup-ko.js)
 const CUP_KO_PAT = [];       // [regex, (…groups)=>text] for strings with numbers, dates or names
-const cupLang = () => { try{ return (S&&S.cup&&S.cup.prefs&&S.cup.prefs.lang)||localStorage.getItem('cup_lang')||''; }catch(_){ return ''; } };
+// this device's choice wins (a cloud copy that is a moment behind can't undo it); a new device falls back to the account's copy
+const cupLang = () => { try{ const ls=localStorage.getItem('cup_lang'); if(ls==='ko'||ls==='en') return ls==='ko'?'ko':''; const p=S&&S.cup&&S.cup.prefs&&S.cup.prefs.lang; return p==='ko'?'ko':''; }catch(_){ return ''; } };
 function cupSetLang(v){
-  cupEnsure(); S.cup.prefs=Object.assign({}, S.cup.prefs||{}, { lang:v }); try{ localStorage.setItem('cup_lang', v); }catch(_){}
+  v = v==='ko' ? 'ko' : 'en';
+  try{ localStorage.setItem('cup_lang', v); }catch(_){}
+  cupEnsure(); S.cup.prefs=Object.assign({}, S.cup.prefs||{}, { lang:v });
   save(); try{ if(typeof flushPendingSave==='function') flushPendingSave(); }catch(_){}
-  setTimeout(()=>location.reload(), 500);
+  setTimeout(()=>location.reload(), 900);
 }
+// after the account's data has loaded, make its saved copy agree with this device
+function cupLangReconcile(){ try{ const ls=localStorage.getItem('cup_lang'); if(!ls || typeof currentUser==='undefined') return; cupEnsure(); if((S.cup.prefs||{}).lang!==ls){ S.cup.prefs=Object.assign({}, S.cup.prefs||{}, { lang:ls }); save(); } }catch(_){} }
+setTimeout(cupLangReconcile, 3500); setTimeout(cupLangReconcile, 9000);
 const cupTrCache=new Map();
 function cupTr(str){
   if(cupTrCache.has(str)) return cupTrCache.get(str);
@@ -26163,7 +26195,8 @@ cupRenderCompass=function(){
 // ════════════════════════════════════════════════════════════
 let cupSetTab='general';
 function cupSetTabOf(o){
-  if([11,12,15,920,921,924,925,926,927,955].includes(o)) return 'general';
+  if(o===955) return cupPref('extras') ? 'general' : 'dup';                  // “bank → calendar drops” only exists in the classic board (Extra tools)
+  if([11,12,15,920,921,924,925,926,927].includes(o)) return 'general';
   if([13,14,17,18,19,950,952].includes(o)) return 'look';
   if((o>=40&&o<=53) || [922,923].includes(o) || (o>=960&&o<=964)) return 'focus';
   if((o>=30&&o<=34) || (o>=60&&o<=72) || o===970) return 'data';
@@ -26707,22 +26740,38 @@ setInterval(()=>{ try{
 if(document.readyState!=='loading') cupPomoMount(); else document.addEventListener('DOMContentLoaded', cupPomoMount);
 
 // ════════════════════════════════════════════════════════════════════
-//  PART 13 — Habits you can feel: this week's dots, a completion rate against your own goal,
-//  and one line of “why” on each habit, so the reason is in front of you when you tick it.
-//    S.cup.habitGoal          the % you aim for each week (default 80)
-//    task.why                 one reason per habit
-//  The rate is done ÷ planned so far this week (days after today don't count against you);
-//  “N× a week” habits are pro-rated across the week.
+//  PART 13 — Habits built on what the research says works, kept calm on Home.
+//
+//  Home shows ONE line (tap to open): “Habits ●●○○○ 2 of 5 · 48%”. Open, each habit has:
+//    · this week's dots and its rate          (feedback you can see)
+//    · why                                    (the reason, in front of you when you tick)
+//    · cue — “After I … I will …”             (implementation intention, Gollwitzer)
+//    · smallest version for hard days         (tiny habits / 2-minute rule, Fogg & Clear)
+//    · never miss twice                       (one miss is fine; Lally 2009 — a missed day doesn't reset anything)
+//    · day count toward ~66                   (median days a habit takes to feel automatic, Lally 2009)
+//  Data on the habit task: why, cue, tiny.   Weekly goal: S.cup.habitGoal (default 80).
 // ════════════════════════════════════════════════════════════════════
 
-let cupHbEdit='';
+const CUP_HB_DAYS=66;
 const cupHbGoal = () => { const g=+((S.cup||{}).habitGoal); return g>=10&&g<=100 ? g : 80; };
+const cupHbTotal = t => Object.keys(t.completedDates||{}).filter(k=>t.completedDates[k]).length;
 
+function cupHbPlannedOn(t, ds){
+  const dow=cupParse(ds).getDay();
+  return !t.weeklyGoal && !t.altOf && (t.scheduledDays||[]).includes(dow) && (!t.habitStart||ds>=t.habitStart) && (!t.habitEnd||ds<=t.habitEnd);
+}
+// planned days missed in a row, going back from yesterday (stops at the first one you did)
+function cupHbMisses(t){
+  if(t.weeklyGoal || t.altOf) return 0;
+  const td=todayStr(); let n=0, seen=0;
+  for(let i=1;i<=21 && seen<7;i++){ const ds=cupAddDays(td,-i); if(t.habitStart && ds<t.habitStart) break; if(!cupHbPlannedOn(t,ds)) continue; seen++;
+    if(t.completedDates&&t.completedDates[ds]) break; n++; }
+  return n;
+}
 function cupHbWeek(t){
   const ws=cupWeekStart(), td=todayStr(), days=[];
-  for(let i=0;i<7;i++){ const d=new Date(ws); d.setDate(d.getDate()+i); const ds=cupISO(d), dow=d.getDay();
-    const planned = !t.weeklyGoal && !t.altOf && (t.scheduledDays||[]).includes(dow) && (!t.habitStart||ds>=t.habitStart) && (!t.habitEnd||ds<=t.habitEnd);
-    days.push({ ds, planned, done:!!(t.completedDates&&t.completedDates[ds]), past:ds<td, today:ds===td, future:ds>td }); }
+  for(let i=0;i<7;i++){ const d=new Date(ws); d.setDate(d.getDate()+i); const ds=cupISO(d);
+    days.push({ ds, planned:cupHbPlannedOn(t,ds), done:!!(t.completedDates&&t.completedDates[ds]), past:ds<td, today:ds===td, future:ds>td }); }
   const count=days.filter(d=>d.past || d.done);                    // today only counts once it's ticked — never against you mid-day
   const elapsed=count.length, done=days.filter(d=>d.done).length;
   let plan, got;
@@ -26736,41 +26785,88 @@ function cupHbDots(w){
 function cupHbSummary(){
   const hab=S.tasks.filter(t=>t.isHabit&&!t.archived); let plan=0, got=0;
   hab.forEach(t=>{ const w=cupHbWeek(t); plan+=w.plan; got+=w.got; });
-  const pct=plan?Math.round(got/plan*100):null, goal=cupHbGoal();
-  return { pct, goal, plan, got, n:hab.length };
+  return { pct:plan?Math.round(got/plan*100):null, goal:cupHbGoal(), plan, got, n:hab.length };
 }
 
+// ── one line when closed, the full list when open ──
+function cupHbToggle(){ cupHabitsOpen=!cupHabitsOpen; try{ localStorage.setItem('cup_habits_open', cupHabitsOpen?'1':'0'); }catch(_){} cupRenderHome(); }
 function cupHabitsHTML(){
   const td=todayStr();
   const hab=S.tasks.filter(t=>t.isHabit&&!t.archived&&cupHabitDueToday(t)).sort((a,b)=>(a.scheduledTime||'12:00').localeCompare(b.scheduledTime||'12:00'));
   if(!hab.length) return `<div class="cup-dim">${cupT10('No habits due today.','오늘 할 습관이 없어요.')}</div>`;
-  const sm=cupHbSummary(), hit=sm.pct!==null && sm.pct>=sm.goal, doneN=hab.filter(cupHabitDoneToday).length;
+  const sm=cupHbSummary(), hit=sm.pct!==null && sm.pct>=sm.goal, doneN=hab.filter(cupHabitDoneToday).length, open=!!cupHabitsOpen;
+  const dots=hab.map(t=>`<i class="${cupHabitDoneToday(t)?'d':''}"></i>`).join('');
+  const line=`<button type="button" class="cup-hb-line ${doneN===hab.length?'all':''}" onclick="cupHbToggle()" aria-expanded="${open}">
+      <span class="cup-fold-chev ${open?'open':''}">›</span><b>${cupT10('Habits','습관')}</b><span class="cup-hb-ldots" aria-hidden="true">${dots}</span>
+      <span class="cup-hb-lt">${doneN===hab.length?cupT10('all done today ✓','오늘 다 했어요 ✓'):cupT10(`${doneN} of ${hab.length} today`,`오늘 ${doneN}/${hab.length}`)}</span>
+      ${sm.pct!==null?`<span class="cup-hb-lp ${hit?'ok':''}">${sm.pct}%</span>`:''}</button>`;
+  if(!open) return `<div class="cup-hb closed">${line}</div>`;
   const head=`<div class="cup-hb-sum">
-    <div class="cup-hb-sl"><b>${sm.pct===null?'—':sm.pct+'%'}</b><span>${cupT10('this week','이번 주')}</span><button type="button" class="cup-hb-goal" onclick="cupHbGoalMenu(this)" title="${cupT10('Change your weekly goal','주간 목표 바꾸기')}">${cupT10('goal','목표')} ${sm.goal}% ▾</button>
-      <em>${doneN===hab.length?cupT10('All done today ✓','오늘 다 했어요 ✓'):cupT10(`${doneN} of ${hab.length} today`,`오늘 ${doneN}/${hab.length}`)}</em></div>
-    <div class="cup-hb-bar ${hit?'hit':''}" role="img" aria-label="${cupT10('Habit rate this week','이번 주 습관 달성률')} ${sm.pct||0}%, ${cupT10('goal','목표')} ${sm.goal}%"><i style="width:${Math.min(100,sm.pct||0)}%"></i><u style="left:${sm.goal}%"></u></div>
-  </div>`;
-  const rows=hab.map(t=>{ const d=cupHabitDoneToday(t), w=cupHbWeek(t), editing=cupHbEdit===t.id;
+    <div class="cup-hb-sl"><b>${sm.pct===null?'—':sm.pct+'%'}</b><span>${cupT10('this week','이번 주')}</span><button type="button" class="cup-hb-goal" onclick="cupHbGoalMenu(this)" title="${cupT10('Change your weekly goal','주간 목표 바꾸기')}">${cupT10('goal','목표')} ${sm.goal}% ▾</button></div>
+    <div class="cup-hb-bar ${hit?'hit':''}" role="img" aria-label="${cupT10('Habit rate this week','이번 주 습관 달성률')} ${sm.pct||0}%, ${cupT10('goal','목표')} ${sm.goal}%"><i style="width:${Math.min(100,sm.pct||0)}%"></i><u style="left:${sm.goal}%"></u></div></div>`;
+  const rows=hab.map(t=>{ const d=cupHabitDoneToday(t), w=cupHbWeek(t), miss=d?0:cupHbMisses(t);
     const rate = w.pct!==null ? `<span class="cup-hb-rate ${w.pct>=sm.goal?'ok':''}">${w.pct}%</span>` : `<span class="cup-hb-rate dim">${cupWeekCount(t)}</span>`;
     const count = t.weeklyGoal ? `${cupWeekCount(t)}/${t.weeklyGoal}` : (w.plan?`${w.got}/${w.plan}`:'');
-    const why = editing
-      ? `<input id="cupHbWhyIn" class="cup-hb-why-in" maxlength="120" placeholder="${cupT10('Why do you do this? One line.','이걸 왜 하나요? 한 줄로.')}" value="${esc(t.why||'')}" onkeydown="if(event.key==='Enter'){cupHbWhy('${t.id}',this.value)}else if(event.key==='Escape'){cupHbEdit='';cupRenderHome()}" onblur="cupHbWhy('${t.id}',this.value)">`
-      : t.why ? `<button type="button" class="cup-hb-why" onclick="cupHbEditWhy('${t.id}')" title="${cupT10('Edit your why','이유 고치기')}">${esc(t.why)}</button>`
-      : `<button type="button" class="cup-hb-why add" onclick="cupHbEditWhy('${t.id}')">＋ ${cupT10('Your why','이유 적기')}</button>`;
+    const total=cupHbTotal(t);
+    let nudge='';
+    const fresh = !total;                                            // nothing logged yet: it's new, not “missed”
+    if(fresh) nudge='';
+    else if(miss===1) nudge=cupT10('Missed last time — no big deal. Just don’t miss twice.','지난번엔 쉬었어요 — 괜찮아요. 이틀 연속만 쉬지 마세요.');
+    else if(miss>=2) nudge=miss>=5 ? cupT10(`It’s been a few days — restart tiny today${t.tiny?`: ${t.tiny}`:' (even 2 minutes counts)'}.`,`며칠 쉬었어요 — 오늘은 아주 작게 다시 시작해요${t.tiny?`: ${t.tiny}`:' (2분이면 충분해요)'}.`)
+      : cupT10(`Missed ${miss} in a row — start tiny today${t.tiny?`: ${t.tiny}`:' (even 2 minutes counts)'}.`,`${miss}번 연속 쉬었어요 — 오늘은 아주 작게 시작해요${t.tiny?`: ${t.tiny}`:' (2분이면 충분해요)'}.`);
+    else if(t.weeklyGoal && !d && total && !cupWeekCount(t) && cupDaysIntoWeek()>=3) nudge=cupT10('Nothing yet this week — a small one today keeps it alive.','이번 주 아직 없어요 — 오늘 작게라도 하면 이어져요.');
+    const info=[ t.cue?`<span class="cup-hb-cue">${esc(t.cue)}</span>`:'', t.tiny?`<span>${cupT10('Tiny version','작은 버전')}: ${esc(t.tiny)}</span>`:'' ].filter(Boolean).join('<i>·</i>');
+    const made = t.why||t.cue||t.tiny;
     return `<div class="cup-hb-row ${d?'d':''}">
-      <button type="button" class="cup-hb-main" onclick="toggleTask('${t.id}','${td}')" title="${d?cupT10('Done — tap to undo','완료 — 눌러서 취소'):cupT10('Tap when done','끝나면 누르세요')}">
+      <button type="button" class="cup-hb-main" onclick="cupHbTick('${t.id}')" title="${d?cupT10('Done — tap to undo','완료 — 눌러서 취소'):cupT10('Tap when done','끝나면 누르세요')}">
         <span class="cup-hcheck ${d?'d':''}"></span><span class="cup-hb-t">${esc(t.title)}</span>${t.scheduledTime&&!d?`<span class="cup-dim">${cupT12(t.scheduledTime)}</span>`:''}</button>
       <span class="cup-hb-st">${cupHbDots(w)}<span class="cup-hb-n">${count}</span>${rate}</span>
-      <div class="cup-hb-w">${why}</div>
-    </div>`; }).join('');
-  return `<div class="cup-hb">${head}${rows}</div>`;
+      <div class="cup-hb-w">
+        ${t.why?`<button type="button" class="cup-hb-why" onclick="cupHbPlan('${t.id}')" title="${cupT10('Edit your plan for this habit','이 습관 계획 고치기')}">${esc(t.why)}</button>`:''}
+        ${info?`<div class="cup-hb-info">${info}</div>`:''}
+        ${nudge?`<div class="cup-hb-nudge">${nudge}</div>`:''}
+        <button type="button" class="cup-hb-plan ${made?'':'add'}" onclick="cupHbPlan('${t.id}')">${made?`✎ ${cupT10('Edit','고치기')}`:`＋ ${cupT10('Make it stick — your why, cue and tiny version','잘 이어가기 — 이유, 신호, 작은 버전')}`}${total?` <em>· ${cupT10(`day ${Math.min(total,CUP_HB_DAYS)} of ~${CUP_HB_DAYS}`,`${Math.min(total,CUP_HB_DAYS)}일째 / 약 ${CUP_HB_DAYS}일`)}</em>`:''}</button>
+      </div></div>`; }).join('');
+  return `<div class="cup-hb open">${line}${head}${rows}</div>`;
 }
-function cupHbEditWhy(id){ cupHbEdit=id; cupRenderHome(); setTimeout(()=>{ const i=document.getElementById('cupHbWhyIn'); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } },30); }
-function cupHbWhy(id, v){
-  if(cupHbEdit!==id) return; cupHbEdit=''; v=String(v||'').trim().slice(0,120);
-  const t=S.tasks.find(x=>x.id===id); if(t && (t.why||'')!==v){ if(v) t.why=v; else delete t.why; save(); }
-  cupRenderHome();
+const cupDaysIntoWeek = () => { const ws=cupWeekStart(); return Math.round((cupParse(todayStr())-ws)/864e5)+1; };
+
+// ticking a habit: a short celebration (Fogg: celebrate right away) with your count
+function cupHbTick(id){
+  const t=S.tasks.find(x=>x.id===id); if(!t) return; const was=cupHabitDoneToday(t);
+  toggleTask(id, todayStr());
+  if(!was){ const n=cupHbTotal(S.tasks.find(x=>x.id===id)||t);
+    setTimeout(()=>showToast(cupT10(`✓ ${t.title} — ${n} ${n===1?'day':'days'} so far`,`✓ ${t.title} — 지금까지 ${n}일`)),120); }
 }
+
+// ── the plan sheet: why · cue · tiny version ──
+function cupHbPlan(id){
+  const t=S.tasks.find(x=>x.id===id); if(!t) return;
+  let el=document.getElementById('mCupHabit');
+  if(!el){ el=document.createElement('div'); el.className='overlay'; el.id='mCupHabit'; document.body.appendChild(el); }
+  const total=cupHbTotal(t), miss=cupHbMisses(t);
+  el.innerHTML=`<div class="modal cup-hbm"><div class="modal-header"><span class="modal-title">${esc(t.title)}</span><button class="modal-close" onclick="closeModal('mCupHabit')" aria-label="Close">✕</button></div>
+    <div class="modal-body">
+      <label class="cup-hbm-l" for="cupHbmWhy">${cupT10('Why do you do this?','이걸 왜 하나요?')}</label>
+      <input id="cupHbmWhy" maxlength="120" placeholder="${cupT10('One line — the reason you’d tell a friend','한 줄로 — 친구에게 말할 이유')}" value="${esc(t.why||'')}">
+      <label class="cup-hbm-l" for="cupHbmCue">${cupT10('After… (your cue)','…하고 나서 (신호)')}</label>
+      <input id="cupHbmCue" maxlength="120" placeholder="${cupT10('After I pour my morning coffee, I…','아침 커피를 따르고 나면, 나는…')}" value="${esc(t.cue||'')}">
+      <label class="cup-hbm-l" for="cupHbmTiny">${cupT10('Smallest version, for hard days','힘든 날을 위한 가장 작은 버전')}</label>
+      <input id="cupHbmTiny" maxlength="120" placeholder="${cupT10('e.g. Read one page · put on my shoes','예: 한 쪽만 읽기 · 신발만 신기')}" value="${esc(t.tiny||'')}">
+      <div class="cup-hbm-note"><p><b>${cupT10('What helps','도움이 되는 것')}</b></p>
+        <p>${cupT10('Attach it to something you already do (the cue). Make it so small you can’t say no (the tiny version). Missing one day doesn’t reset anything — what matters is not missing twice. On average it takes about 66 days to feel automatic.','이미 하는 일에 붙이세요(신호). 거절할 수 없을 만큼 작게 만드세요(작은 버전). 하루 쉬어도 아무것도 초기화되지 않아요 — 이틀 연속만 쉬지 않으면 돼요. 몸에 배기까지 평균 약 66일이 걸려요.')}</p>
+        <p class="cup-dim">${cupT10(`${total} day${total===1?'':'s'} so far${miss?` · missed ${miss} in a row`:''}.`,`지금까지 ${total}일${miss?` · ${miss}번 연속 쉼`:''}.`)}</p></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('mCupHabit')">${cupT10('Cancel','취소')}</button><button class="btn btn-accent" onclick="cupHbPlanSave('${t.id}')">${cupT10('Save','저장')}</button></div></div>`;
+  openModal('mCupHabit'); setTimeout(()=>document.getElementById('cupHbmWhy')?.focus(),80);
+  el.querySelectorAll('input').forEach(i=>i.onkeydown=e=>{ if(e.key==='Enter') cupHbPlanSave(id); });
+}
+function cupHbPlanSave(id){
+  const t=S.tasks.find(x=>x.id===id); if(!t) return;
+  [['why','cupHbmWhy'],['cue','cupHbmCue'],['tiny','cupHbmTiny']].forEach(([k,i])=>{ const v=(document.getElementById(i)?.value||'').trim().slice(0,120); if(v) t[k]=v; else delete t[k]; });
+  closeModal('mCupHabit'); save(); cupRenderHome();
+}
+
 function cupHbGoalMenu(btn){
   document.getElementById('cupHbMenu')?.remove();
   const g=cupHbGoal(), m=document.createElement('div'); m.id='cupHbMenu'; m.className='cup-later-menu'; m.setAttribute('role','menu');
@@ -27153,6 +27249,30 @@ Object.assign(CUP_KO, {
 });
 CUP_KO_PAT.push([/^Reschedule overdue · (\d+)$/, (m,n)=>`밀린 일 다시 잡기 · ${n}`]);
 CUP_KO_PAT.push([/^Moved (\d+) tasks? over the next days\.$/,(m,n)=>`밀린 일 ${n}개를 며칠에 나눴어요.`],[/^Moved (\d+) tasks? to today\.$/,(m,n)=>`밀린 일 ${n}개를 오늘로 옮겼어요.`],[/^Moved (\d+) tasks? to No date\.$/,(m,n)=>`${n}개의 날짜를 지웠어요.`]);
+
+// ── round 5: what was still English on screen ──
+Object.assign(CUP_KO, {
+  "Calendar Drag-Drop":"캘린더로 끌어놓기",
+  "Ask \"task or event?\" on bank → calendar drops":"보관함 → 캘린더로 끌어놓을 때 “할 일인가요, 일정인가요?” 묻기",
+  "Off: dropped items always become tasks. On: prompt each drop.":"끄면 끌어놓은 항목은 항상 할 일이 돼요. 켜면 놓을 때마다 물어봐요.",
+  "⏻ Log out":"⏻ 로그아웃", "Log out":"로그아웃",
+  "Search tasks":"할 일 검색", "Mark done":"완료로 표시", "Back to the five defaults":"기본 다섯 개로 되돌리기",
+  "One question per line. Empty = a blank page. Your earlier answers are kept.":"한 줄에 질문 하나. 비우면 빈 페이지예요. 이전 답은 그대로 남아요.",
+  "Your key stays in this browser only — it isn’t saved to your account and only goes to Anthropic. Usage is billed to your own Anthropic account. Get a key at":"키는 이 브라우저에만 저장돼요. 내 계정에는 저장되지 않고 Anthropic에만 전달돼요. 사용료는 내 Anthropic 계정으로 청구돼요. 키는",
+  ", and set a monthly spend limit there.":"에서 받고, 월 사용 한도도 거기서 정하세요.",
+  "console.anthropic.com → API keys":"console.anthropic.com → API keys",
+  "Claude Opus 5.5 — most accurate · ≈ $0.06 per import":"Claude Opus 5.5 — 가장 정확 · 가져오기 1회 약 $0.06",
+  "Claude Sonnet 5.5 — balanced · ≈ $0.03 per import":"Claude Sonnet 5.5 — 균형형 · 가져오기 1회 약 $0.03",
+  "Claude Haiku 5.5 — cheapest · ≈ $0.002 per import":"Claude Haiku 5.5 — 가장 저렴 · 가져오기 1회 약 $0.002",
+  "Navy":"남색", "Forest":"숲 초록", "Rust":"적갈색", "Plum":"자두색", "Crimson":"진홍색", "Slate":"청회색",
+  "e.g. Finish Q1–Q3 of the problem set":"예: 문제 1~3번 끝내기",
+  "+ New goal — e.g. Read 20 books 0/20":"+ 새 목표 — 예: 책 20권 읽기 0/20",
+  "Google":"Google", "Both ways":"양방향", "To Google":"Google로", "From Google":"Google에서",
+  "Habits":"습관", "Details":"자세히", "Hide":"접기"
+});
+// “9:30a” / “10:20p” on calendar chips
+CUP_KO_PAT.push([/^(\d{1,2}(?::\d{2})?)a$/, (m,t)=>`오전 ${t}`], [/^(\d{1,2}(?::\d{2})?)p$/, (m,t)=>`오후 ${t}`]);
+Object.assign(CUP_KO, { "Habits today":"오늘의 습관" });
 
 </script>
 </body>
