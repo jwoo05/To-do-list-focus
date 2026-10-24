@@ -26945,7 +26945,7 @@ function cupMoney(){
   if(typeof m.cash!=='number') m.cash=+m.cash||0; if(m.cur!=='KRW') m.cur='USD';
   m.cards=m.cards.filter(Boolean); m.items=m.items.filter(Boolean); return m;
 }
-function cupMnFmt(n){ const m=cupMoney(); n=+n||0; try{ return new Intl.NumberFormat(m.cur==='KRW'?'ko-KR':'en-US',{ style:'currency', currency:m.cur, maximumFractionDigits:m.cur==='KRW'?0:2, minimumFractionDigits:0 }).format(n); }catch(_){ return (m.cur==='KRW'?'₩':'$')+n; } }
+function cupMnFmt(n){ const m=cupMoney(); n=+n||0; try{ return new Intl.NumberFormat(m.cur==='KRW'?'ko-KR':'en-US',{ style:'currency', currency:m.cur, maximumFractionDigits:m.cur==='KRW'?0:2, minimumFractionDigits:(m.cur==='KRW'||Number.isInteger(n))?0:2 }).format(n); }catch(_){ return (m.cur==='KRW'?'₩':'$')+n; } }
 const cupMnNum = v => { const n=parseFloat(String(v==null?'':v).replace(/[^0-9.\-]/g,'')); return isFinite(n)?n:0; };
 const cupMnHas = v => v!==undefined && v!==null && v!=='' && isFinite(+v);
 
@@ -26965,7 +26965,8 @@ function cupMnUpcoming(days){
   m.items.forEach(it=>{ if(it.done || !it.date) return; if(it.date>lim) return;
     if(it.kind==='debt'){ if(!(+it.min>0)) return; out.push({ k:'debt', id:it.id, date:it.date, label:it.label, amount:-(+it.min), item:it, late:it.date<td }); }
     else out.push({ k:it.kind, id:it.id, date:it.date, label:it.label, amount:(it.kind==='in'?1:-1)*(+it.amount||0), item:it, late:it.date<td, card:it.cardId }); });
-  m.cards.forEach(c=>{ const ds=cupMnCardDue(c); if(ds && ds<=lim) out.push({ k:'card', id:c.id, date:ds, label:c.name, amount:cupMnHas(c.stmt)?-(+c.stmt):null, card:c.id, c, late:false }); });
+  m.cards.forEach(c=>{ const ds=cupMnCardDue(c); if(cupMnHas(c.stmt) && +c.stmt<=0) return;                // statement already paid / nothing owed: nothing to do
+    if(ds && ds<=lim) out.push({ k:'card', id:c.id, date:ds, label:c.name, amount:cupMnHas(c.stmt)?-(+c.stmt):null, card:c.id, c, late:false }); });
   return out.sort((a,b)=>a.date.localeCompare(b.date));
 }
 function cupMnPick(cat){
@@ -27009,7 +27010,7 @@ function cupRenderMoney(){
     const act = u.k==='card' ? `cupMnPaidCard('${u.id}','${u.date}')` : `cupMnDone('${u.id}')`;
     const label = u.k==='card' ? cupT10(`${u.label} — statement due`,`${u.label} — 결제일`) : esc(u.label);
     return `<div class="cup-mn-row ${u.late?'late':''}"><button type="button" class="cup-check2" onclick="${act}" aria-label="${u.amount>0?cupT10('Received','받음'):cupT10('Paid','냄')}" title="${u.amount>0?cupT10('Mark received','받았어요'):cupT10('Mark paid','냈어요')}"></button>
-      <button type="button" class="cup-mn-t" onclick="${u.k==='card'?`cupMnCardSheet('${u.id}')`:`cupMnItemSheet('${u.id}')`}">${u.k==='card'?esc(label):label}${c&&u.k!=='card'?` <em>· ${esc(c.name)}</em>`:''}</button>
+      <button type="button" class="cup-mn-t" onclick="${u.k==='card'?`cupMnCardSheet('${u.id}')`:`cupMnItemSheet('${u.id}')`}">${u.k==='card'?esc(label):label}${c&&u.k!=='card'?` <em>· ${esc(c.name)}</em>`:''}${u.k==='card'&&u.c&&cupMnHas(u.c.min)?` <em>· ${cupT10('min','최소')} ${cupMnFmt(u.c.min)}</em>`:''}</button>
       <span class="cup-mn-d ${u.late?'late':''}">${cupMnWhen(u.date)}</span><span class="cup-mn-a ${u.amount>0?'in':''}">${u.amount===null?'<span class="cup-dim">—</span>':(u.amount>0?'+':'−')+cupMnFmt(Math.abs(u.amount))}</span></div>`; }).join('');
   const cats=CUP_MN_CATS.map(([k])=>{ const p=cupMnPick(k); return `<div class="cup-mn-cat"><span>${cupMnCat(k)}</span><b>${p.length?p.map(c=>esc(c.name)).join(' / '):`<em class="cup-dim">${cupT10('—','—')}</em>`}</b></div>`; }).join('');
   const cardRows=m.cards.map(c=>{ const due=cupMnCardDue(c), isCredit=c.type!=='debit';
@@ -27017,8 +27018,8 @@ function cupRenderMoney(){
     return `<button type="button" class="cup-mn-card" onclick="cupMnCardSheet('${c.id}')">
       <span class="cup-mn-cn"><b>${esc(c.name)}</b><i class="cup-mn-role ${c.role}">${cupMnRole(c.role)}</i></span>
       <span class="cup-mn-cm">${bits||`<span class="cup-dim">${isCredit?cupT10('Credit card','신용카드'):cupT10('Debit / bank card','체크 / 은행 카드')}</span>`}</span>
-      <span class="cup-mn-cd">${isCredit&&c.closeDay?`${cupT10('closes','마감')} ${cupFmt(cupMnDayDate(c.closeDay))}`:''}${isCredit&&due?` · ${cupT10('pay by','결제')} <b>${cupFmt(due)}</b>${c.autopay?` · ${cupT10('autopay','자동결제')}`:''}`:''}</span>
-      <span class="cup-mn-cb">${cupMnHas(c.balance)?`${isCredit?cupT10('owe','잔액'):cupT10('balance','잔고')} ${cupMnFmt(c.balance)}`:''}${isCredit&&cupMnHas(c.stmt)?` · ${cupT10('statement','청구액')} ${cupMnFmt(c.stmt)}`:''}</span></button>`; }).join('');
+      <span class="cup-mn-cd">${isCredit&&c.closeDay?`${cupT10('closes','마감')} ${cupFmt(cupMnDayDate(c.closeDay))}`:''}${isCredit&&due&&!(cupMnHas(c.stmt)&&+c.stmt<=0)?` · ${cupT10('pay by','결제')} <b>${cupFmt(due)}</b>${cupMnHas(c.min)?` (${cupT10('min','최소')} ${cupMnFmt(c.min)})`:''}${c.autopay?` · ${cupT10('autopay','자동결제')}`:''}`:isCredit&&cupMnHas(c.stmt)&&+c.stmt<=0?` · ✓ ${cupT10('statement paid','이번 명세서 납부 완료')}`:''}</span>
+      <span class="cup-mn-cb">${cupMnHas(c.balance)?`${isCredit?cupT10('owe','잔액'):cupT10('balance','잔고')} ${cupMnFmt(c.balance)}`:''}${isCredit&&cupMnHas(c.stmt)&&+c.stmt>0?` · ${cupT10('statement','청구액')} ${cupMnFmt(c.stmt)}`:''}${isCredit&&+c.limit>0&&cupMnHas(c.balance)?` · ${Math.round((+c.balance||0)/+c.limit*100)}% ${cupT10('of','/')} ${cupMnFmt(c.limit)} ${cupT10('limit','한도')}`:''}</span></button>`; }).join('');
   const debtRows=debts.map(i=>`<div class="cup-mn-row"><span class="cup-mn-dot"></span><button type="button" class="cup-mn-t" onclick="cupMnItemSheet('${i.id}')">${esc(i.label)}${+i.min>0?` <em>· ${cupMnFmt(i.min)}/${cupT10('mo','월')}</em>`:''}${i.date?` <em>· ${cupT10('next','다음')} ${cupFmt(i.date)}</em>`:''}</button><span class="cup-mn-a">${cupMnFmt(i.amount)}</span></div>`).join('');
   host.innerHTML=`
     <div class="cup-mn-stats">${stat(cupMnFmt(avail),cupT10('available (cash + debit)','쓸 수 있는 돈 (현금 + 체크)'))}${stat(cupMnFmt(dueSoon),cupT10('due in 14 days','14일 안에 낼 돈'),dueSoon>avail&&avail>=0?'warn':'')}${stat(cupMnFmt(inSoon),cupT10('coming in, 14 days','14일 안에 들어올 돈'),'in')}${stat(cupMnFmt(credit+debtSum),cupT10('owed (cards + debt)','갚을 돈 (카드 + 빚)'))}</div>
@@ -27064,6 +27065,8 @@ function cupMnCardSheet(id){
       <div class="cup-mn-two"><div><label class="cup-hbm-l" for="cmC">${cupT10('Statement closes (day of month)','명세서 마감일 (매월 몇 일)')}</label><input id="cmC" type="number" min="1" max="31" inputmode="numeric" placeholder="28" value="${num(c&&c.closeDay)}"></div>
         <div><label class="cup-hbm-l" for="cmD">${cupT10('Payment due (day of month)','결제일 (매월 몇 일)')}</label><input id="cmD" type="number" min="1" max="31" inputmode="numeric" placeholder="22" value="${num(c&&c.dueDay)}"></div></div>
       <div class="cup-mn-two"><div><label class="cup-hbm-l" for="cmS">${cupT10('Statement balance (due)','이번 청구액')}</label><input id="cmS" inputmode="decimal" placeholder="0" value="${num(c&&c.stmt)}"></div>
+        <div><label class="cup-hbm-l" for="cmM">${cupT10('Minimum payment','최소 결제액')}</label><input id="cmM" inputmode="decimal" placeholder="0" value="${num(c&&c.min)}"></div></div>
+      <div class="cup-mn-two"><div><label class="cup-hbm-l" for="cmL">${cupT10('Credit limit','한도')}</label><input id="cmL" inputmode="decimal" placeholder="0" value="${num(c&&c.limit)}"></div>
         <label class="cup-mn-chk"><input id="cmA" type="checkbox" ${c&&c.autopay?'checked':''}> ${cupT10('Autopay is on','자동결제 켜짐')}</label></div></div>
     <label class="cup-hbm-l" for="cmB">${cupT10('Current balance (owed on a credit card, or money in a debit account)','현재 잔액 (신용카드는 갚을 돈, 체크는 계좌 잔고)')}</label><input id="cmB" inputmode="decimal" placeholder="0" value="${num(c&&c.balance)}">`,
     `${c?`<button class="btn btn-ghost cup-mn-del" onclick="cupMnCardDel('${c.id}')">${cupT10('Delete','삭제')}</button>`:''}<button class="btn btn-ghost" onclick="closeModal('mCupMnCard')">${cupT10('Cancel','취소')}</button><button class="btn btn-accent" onclick="cupMnCardSave('${c?c.id:''}')">${cupT10('Save','저장')}</button>`);
@@ -27075,8 +27078,8 @@ function cupMnCardSave(id){
   let c=id?m.cards.find(x=>x.id===id):null; if(!c){ c={ id:uid() }; m.cards.push(c); }
   const day=v=>{ const n=Math.round(cupMnNum(v)); return n>=1&&n<=31?n:''; };
   Object.assign(c,{ name, type:g('cmT').value==='debit'?'debit':'credit', role:g('cmR').value, best:[...cupMnBest], reward:(g('cmW').value||'').trim().slice(0,60),
-    closeDay:day(g('cmC')?.value), dueDay:day(g('cmD')?.value), autopay:!!g('cmA')?.checked, balance:(g('cmB').value||'').trim()===''?'':cupMnNum(g('cmB').value), stmt:(g('cmS')?.value||'').trim()===''?'':cupMnNum(g('cmS').value) });
-  if(c.type==='debit'){ c.closeDay=''; c.dueDay=''; c.stmt=''; c.autopay=false; }
+    closeDay:day(g('cmC')?.value), dueDay:day(g('cmD')?.value), autopay:!!g('cmA')?.checked, balance:(g('cmB').value||'').trim()===''?'':cupMnNum(g('cmB').value), stmt:(g('cmS')?.value||'').trim()===''?'':cupMnNum(g('cmS').value), min:(g('cmM')?.value||'').trim()===''?'':cupMnNum(g('cmM').value), limit:(g('cmL')?.value||'').trim()===''?'':cupMnNum(g('cmL').value) });
+  if(c.type==='debit'){ c.closeDay=''; c.dueDay=''; c.stmt=''; c.min=''; c.limit=''; c.autopay=false; }
   closeModal('mCupMnCard'); save(); cupRenderMoney();
 }
 function cupMnCardDel(id){ const m=cupMoney(), i=m.cards.findIndex(x=>x.id===id); if(i<0) return; const c=m.cards[i]; m.cards.splice(i,1); closeModal('mCupMnCard'); save(); cupRenderMoney();
