@@ -26334,6 +26334,20 @@ function cupRailPrep(){
 try{ cupRailPrep(); }catch(_){}
 document.addEventListener('DOMContentLoaded', ()=>{ try{ cupRailPrep(); }catch(_){} });
 
+// ── 16 · moving a due date also moves the day it was scheduled on ──
+// Several places (edit form, quick dates, bulk change) set only `due`. A task whose scheduled day matched its old due date
+// then stayed on today's list. Whenever a due date changes, a scheduled day that equalled the old one follows it.
+const cupDueSnap=new Map();
+function cupDueSync(){
+  (S.tasks||[]).forEach(t=>{ if(!t || t.isHabit) return;
+    const now=t.due||'', had=cupDueSnap.get(t.id);
+    if(had!==undefined && had!==now && had){ const sd=t.scheduledDates||[];
+      if(sd.includes(had)){ const next=sd.filter(d=>d!==had); if(now && !next.includes(now)) next.push(now); t.scheduledDates=next; } }
+    cupDueSnap.set(t.id, now); });
+}
+{ const _sv=save; save=function(){ try{ cupDueSync(); }catch(_){} return _sv.apply(this,arguments); }; }
+try{ cupDueSync(); }catch(_){}
+
 // ════════════════════════════════════════════════════════════════════
 //  PART 11 — Google Calendar, both ways (by choice).
 //  Direction (Settings → Google Calendar):
