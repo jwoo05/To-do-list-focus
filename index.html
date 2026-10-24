@@ -7494,6 +7494,15 @@ body.cup-on-pomo #cupSessBar{ display:none !important; }
 .cup-mn-cm{ font-size:calc(11.5px * var(--cup-fs,1)); color:var(--text3); line-height:1.4; }
 @media (max-width:760px){ .cup-mn-cards{ grid-template-columns:minmax(0,1fr); } .cup-mn-hero{ padding:14px; } .cup-mn-hr{ width:100%; justify-content:space-between; } }
 
+/* Can I fit it? */
+.cup-fit-tabs{ display:flex; gap:6px; margin-bottom:6px; } .cup-fit-tabs button{ padding:5px 14px; border:1px solid var(--border); border-radius:99px; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text2); } .cup-fit-tabs button.on{ border-color:var(--accent); color:var(--text); background:color-mix(in srgb, var(--accent) 12%, transparent); }
+.cup-fit-out{ margin-top:14px; display:grid; gap:10px; }
+.cup-fit-v{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; border:1px solid var(--border); border-left:4px solid var(--text3); border-radius:12px; padding:12px 14px; } .cup-fit-v b{ font-family:'Source Serif 4',Georgia,serif; font-size:18px; } .cup-fit-v span{ font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text3); }
+.cup-fit-v.yes{ border-left-color:var(--pace-ok, var(--green,#4dd49a)); } .cup-fit-v.tight{ border-left-color:var(--orange,#d9822b); } .cup-fit-v.no, .cup-fit-v.busy{ border-left-color:var(--must,#e5484d); }
+.cup-fit-why{ margin:0; padding-left:18px; display:grid; gap:5px; font-size:calc(13px * var(--cup-fs,1)); color:var(--text2); line-height:1.5; }
+.cup-fit-alt{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text3); } .cup-fit-alt button{ padding:4px 12px; border:1px solid var(--border); border-radius:99px; color:var(--text); } .cup-fit-alt button:hover{ border-color:var(--accent); }
+.cup-mnm input[type=time]{ width:100%; box-sizing:border-box; padding:9px 12px; font-size:calc(14.5px * var(--cup-fs,1)); }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -27189,6 +27198,112 @@ function cupMnItemDel(id){ const m=cupMoney(), i=m.items.findIndex(x=>x.id===id)
         h=h.replace('<div class="cup-hchips">','<div class="cup-hchips">'+chip); } } }catch(_){}
   return h; }; }
 if(document.readyState!=='loading') cupMoneyMount(); else document.addEventListener('DOMContentLoaded', cupMoneyMount);
+
+// ════════════════════════════════════════════════════════════════════
+//  PART 15 — “Can I fit it?”  Ask whether there's room for something (a hangout, a trip) on a given day,
+//  weighed against what's due by then and any exam coming up — and block focus time on the calendar.
+//  Nothing is added until you press Add to calendar. Estimates use each task's Effort (Easy 20 · Normal 40 · Hard 90 min).
+// ════════════════════════════════════════════════════════════════════
+const CUP_FIT_DAY=360;                 // focus-able minutes in a normal day, before events
+let cupFit={ tab:'hang', title:'', date:'', from:'18:00', to:'20:00', imp:'nice', poms:4 };
+const cupFitMin = t => { const p=String(t||'0:0').split(':').map(Number); return (p[0]||0)*60+(p[1]||0); };
+const cupFitHM = n => `${String(Math.floor(n/60)%24).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`;
+const cupFitEff = t => CUP_EFFORT_MIN[t.effort||'']||40;
+function cupFitNextFri(){ let i=0; while(cupParse(cupTSDate(i)).getDay()!==5) i++; return cupTSDate(i); }
+function cupFitBusy(ds){
+  const out=[];
+  cupCalEventsOn(ds).forEach(e=>{ if(e.allDay||!e.time) return; const s=cupFitMin(e.time); let en=e.endTime?cupFitMin(e.endTime):s+60; if(en<=s) en=s+60; out.push({s,e:en,title:e.title}); });
+  S.tasks.forEach(t=>{ if(cupDone(t)||t.isHabit||!t.scheduledTime) return; if(!(t.due===ds||(t.scheduledDates||[]).includes(ds))) return; const s=cupFitMin(t.scheduledTime); out.push({s,e:s+cupFitEff(t),title:t.title}); });
+  return out.sort((a,b)=>a.s-b.s);
+}
+function cupFitGaps(ds, len){ // free stretches of at least `len` minutes between 8:00 and 22:00
+  const busy=cupFitBusy(ds); let from=8*60; if(ds===todayStr()){ const n=cupNow(); from=Math.max(from, Math.ceil((n.getHours()*60+n.getMinutes())/30)*30); }
+  const out=[]; let cur=from;
+  busy.concat([{s:22*60,e:22*60}]).forEach(b=>{ if(b.s-cur>=len) out.push({ s:cur, e:b.s }); cur=Math.max(cur,b.e); });
+  return out;
+}
+// what's still owed by `ds` against the time you have to do it
+function cupFitLoad(ds, take){ // take = minutes on `ds` the new thing uses
+  const td=todayStr(), n=cupNow(); let cap=0;
+  for(let d=td; d<=ds; d=cupAddDays(d,1)){
+    let c=CUP_FIT_DAY - cupFitBusy(d).reduce((a,b)=>a+(b.e-b.s),0);
+    if(d===td){ c=Math.min(c, Math.max(0,(22*60-(n.getHours()*60+n.getMinutes()))*0.6)); }
+    cap+=Math.max(0,c); }
+  cap-=take||0;
+  const tasks=S.tasks.filter(t=>!cupDone(t)&&!t.isHabit&&!t.waiting&&t.due&&t.due<=ds).sort((a,b)=>a.due.localeCompare(b.due));
+  const exams=S.events.filter(e=>e.type==='test' && e.date>ds && e.date<=cupAddDays(ds,7));
+  const demand=tasks.reduce((a,t)=>a+cupFitEff(t),0)+exams.length*120;
+  return { cap, demand, slack:cap-demand, tasks, exams };
+}
+function cupFitVerdict(slack, imp){
+  const need = imp==='must'?-1e9 : imp==='matters'?0 : 60, tight = imp==='must'?-1e9 : imp==='matters'?-60 : 0;
+  return slack>=need ? 'yes' : slack>=tight ? 'tight' : 'no';
+}
+const cupFitH = m => { m=Math.round(Math.abs(m)); const h=Math.floor(m/60), r=m%60; return h?(r?`${h}h ${r}m`:`${h}h`):`${r}m`; };
+
+function cupFitOpen(tab){
+  cupFit.tab=tab||cupFit.tab||'hang'; if(!cupFit.date||cupFit.date<todayStr()) cupFit.date=cupFitNextFri();
+  const body=`<div class="cup-fit-tabs"><button type="button" id="cfTabH" onclick="cupFitTab('hang')">${cupT10('Hang out / plans','약속 · 일정')}</button><button type="button" id="cfTabF" onclick="cupFitTab('focus')">${cupT10('Block focus time','집중 시간 잡기')}</button></div>
+    <div id="cfHang"><label class="cup-hbm-l" for="cfTitle">${cupT10('What is it?','무슨 일정인가요?')}</label><input id="cfTitle" maxlength="60" placeholder="${cupT10('e.g. Dinner with Min','예: 민이랑 저녁')}" value="${esc(cupFit.title)}" oninput="cupFitRun()">
+      <div class="cup-mn-two"><div><label class="cup-hbm-l" for="cfImp">${cupT10('How important?','얼마나 중요한가요?')}</label><select id="cfImp" onchange="cupFitRun()"><option value="nice" ${cupFit.imp==='nice'?'selected':''}>${cupT10('Nice to have','되면 좋고')}</option><option value="matters" ${cupFit.imp==='matters'?'selected':''}>${cupT10('Matters to me','나한테 중요')}</option><option value="must" ${cupFit.imp==='must'?'selected':''}>${cupT10('I’m doing it','꼭 할 거예요')}</option></select></div>
+        <div><label class="cup-hbm-l" for="cfDate">${cupT10('Day','날짜')}</label><input id="cfDate" type="date" value="${cupFit.date}" onchange="cupFitRun()"></div></div>
+      <div class="cup-mn-two"><div><label class="cup-hbm-l" for="cfFrom">${cupT10('From','시작')}</label><input id="cfFrom" type="time" value="${cupFit.from}" onchange="cupFitRun()"></div><div><label class="cup-hbm-l" for="cfTo">${cupT10('To','끝')}</label><input id="cfTo" type="time" value="${cupFit.to}" onchange="cupFitRun()"></div></div></div>
+    <div id="cfFocus" hidden><div class="cup-mn-two"><div><label class="cup-hbm-l" for="cfDate2">${cupT10('Day','날짜')}</label><input id="cfDate2" type="date" value="${cupFit.date}" onchange="cupFitRun()"></div><div><label class="cup-hbm-l" for="cfPoms">${cupT10('Pomodoros (25 min each)','뽀모도로 (각 25분)')}</label><select id="cfPoms" onchange="cupFitRun()">${[1,2,3,4,5,6,8].map(n=>`<option value="${n}" ${cupFit.poms===n?'selected':''}>${n} × 25 (${cupFitH(n*25+(n-1)*5)})</option>`).join('')}</select></div></div></div>
+    <div id="cupFitOut" class="cup-fit-out"></div>`;
+  cupMnModal('mCupFit', cupT10('Can I fit it?','시간 될까?'), body, `<button class="btn btn-ghost" onclick="closeModal('mCupFit')">${cupT10('Close','닫기')}</button><button class="btn btn-accent" id="cfAdd" onclick="cupFitAdd()">${cupT10('Add to calendar','캘린더에 추가')}</button>`);
+  cupFitTab(cupFit.tab);
+}
+function cupFitTab(t){ cupFit.tab=t; const g=i=>document.getElementById(i); if(!g('cfHang')) return;
+  g('cfHang').hidden=t!=='hang'; g('cfFocus').hidden=t!=='focus'; g('cfTabH').classList.toggle('on',t==='hang'); g('cfTabF').classList.toggle('on',t==='focus'); cupFitRun(); }
+function cupFitRead(){ const g=i=>document.getElementById(i), f=cupFit;
+  if(f.tab==='hang'){ f.title=(g('cfTitle')?.value||'').trim(); f.imp=g('cfImp')?.value||'nice'; f.date=g('cfDate')?.value||f.date; f.from=g('cfFrom')?.value||f.from; f.to=g('cfTo')?.value||f.to; }
+  else { f.date=g('cfDate2')?.value||f.date; f.poms=+(g('cfPoms')?.value)||4; } }
+let cupFitPlan=null;
+function cupFitRun(){
+  const out=document.getElementById('cupFitOut'); if(!out) return; cupFitRead(); const f=cupFit, ds=f.date, g=i=>document.getElementById(i);
+  if(!ds){ out.innerHTML=''; return; }
+  let s,e,len;
+  if(f.tab==='hang'){ s=cupFitMin(f.from); e=cupFitMin(f.to); if(e<=s) e=s+60; len=e-s; }
+  else { len=f.poms*25+(f.poms-1)*5; const gaps=cupFitGaps(ds,len); const best=gaps.length?gaps[0]:null; s=best?best.s:9*60; e=s+len; }
+  const clash=cupFitBusy(ds).filter(b=>b.s<e && b.e>s), load=cupFitLoad(ds, len);
+  const imp=f.tab==='hang'?f.imp:'matters', v=clash.length?'busy':cupFitVerdict(load.slack, imp);
+  const label=({yes:cupT10('Yes — it fits','네, 가능해요'),tight:cupT10('Tight — doable','빠듯하지만 가능'),no:cupT10('Better not','이번엔 어려워요'),busy:cupT10('You’re busy then','그 시간엔 일정이 있어요')})[v];
+  const why=[];
+  if(clash.length) why.push(cupT10(`Already booked: ${clash.map(b=>`${esc(b.title)} (${cupT12(cupFitHM(b.s))})`).join(', ')}.`,`이미 일정이 있어요: ${clash.map(b=>`${esc(b.title)} (${cupT12(cupFitHM(b.s))})`).join(', ')}.`));
+  const due=load.tasks, ex=load.exams;
+  why.push(cupT10(`${due.length} task${due.length===1?'':'s'} due by ${cupFmt(ds)} need about ${cupFitH(load.demand-ex.length*120)}${ex.length?`, plus prep for ${esc(ex[0].title)}${ex.length>1?` +${ex.length-1}`:''} within a week after`:''}. You have about ${cupFitH(Math.max(0,load.cap))} of focus time before then${f.tab==='hang'?' once this is taken out':''}.`,
+    cmpKo(load,ds)));
+  if(v!=='yes' && v!=='busy' && due.length) why.push(cupT10(`Do these first: ${due.slice(0,3).map(t=>esc(t.title)).join(' · ')}${due.length>3?' …':''}.`,`먼저 할 일: ${due.slice(0,3).map(t=>esc(t.title)).join(' · ')}${due.length>3?' …':''}.`));
+  if(v==='no'||v==='tight') why.push(cupT10(`${load.slack<0?`Short by about ${cupFitH(load.slack)}`:`Only ${cupFitH(load.slack)} to spare`}.${f.tab==='hang'&&f.imp==='nice'?' Pick “Matters to me” if you’d still rather go.':''}`,`${load.slack<0?`약 ${cupFitH(load.slack)} 부족해요`:`여유가 ${cupFitH(load.slack)}뿐이에요`}.`));
+  // other days that would work
+  let alt='';
+  if(v!=='yes'){ const opts=[]; for(let i=0;i<14 && opts.length<3;i++){ const d=cupTSDate(i); if(d===ds) continue;
+      const mine=f.tab==='hang'?[s,e]:null; let ss=s, ee=e;
+      if(!mine){ const gp=cupFitGaps(d,len)[0]; if(!gp) continue; ss=gp.s; ee=ss+len; }
+      if(cupFitBusy(d).some(b=>b.s<ee&&b.e>ss)) continue;
+      const L=cupFitLoad(d,len); if(cupFitVerdict(L.slack, imp)==='yes') opts.push({d,ss,ee}); }
+    if(opts.length) alt=`<div class="cup-fit-alt"><span>${cupT10('Would work:','이날은 가능해요:')}</span>${opts.map(o=>`<button type="button" onclick="cupFitUse('${o.d}',${o.ss})">${cupFmt(o.d)} · ${cupT12(cupFitHM(o.ss))}</button>`).join('')}</div>`; }
+  cupFitPlan={ s, e, ds, v };
+  out.innerHTML=`<div class="cup-fit-v ${v}"><b>${label}</b><span>${f.tab==='hang'?`${cupFmt(ds)} · ${cupT12(cupFitHM(s))}–${cupT12(cupFitHM(e))}`:`${cupFmt(ds)} · ${cupT12(cupFitHM(s))}–${cupT12(cupFitHM(e))} ${cupT10('(first free stretch)','(가장 이른 빈 시간)')}`}</span></div><ul class="cup-fit-why">${why.map(w=>`<li>${w}</li>`).join('')}</ul>${alt}`;
+  const b=g('cfAdd'); if(b){ b.disabled=(f.tab==='hang'&&!f.title)||(f.tab==='focus'&&!cupFitGaps(ds,len).length); }
+  if(typeof cupIsKo==='function' && cupIsKo() && typeof cupKoWalk==='function') cupKoWalk(out);
+}
+function cmpKo(L,ds){ return `${cupFmt(ds)}까지 할 일 ${L.tasks.length}개에 약 ${cupFitH(L.demand-L.exams.length*120)}이 필요해요${L.exams.length?` (그 뒤 일주일 안의 시험 준비 포함)`:''}. 그 전까지 쓸 수 있는 집중 시간은 약 ${cupFitH(Math.max(0,L.cap))}예요.`; }
+function cupFitUse(ds, s){ cupFit.date=ds; if(cupFit.tab==='hang'){ const len=cupFitMin(cupFit.to)-cupFitMin(cupFit.from); cupFit.from=cupFitHM(s); cupFit.to=cupFitHM(s+(len>0?len:120)); }
+  cupFitOpen(cupFit.tab); }
+function cupFitAdd(){
+  cupFitRun(); const p=cupFitPlan, f=cupFit; if(!p) return;
+  const title=f.tab==='hang'?f.title:cupT10(`Focus · ${f.poms}×25`,`집중 · ${f.poms}×25`), type=f.tab==='hang'?'personal':'event';
+  S.events.push({ id:uid(), title, date:p.ds, endDate:p.ds, noEndDate:false, time:cupFitHM(p.s), endTime:cupFitHM(p.e), allDay:false, recurrence:'none', recurrenceDays:[], subject:'', location:'', notes:f.tab==='focus'?cupT10('Focus block — set up the pomodoros on the Focus page.','집중 시간 — 집중 페이지에서 뽀모도로를 정하세요.'):'', reminder:'none', type, color:eventColorForType(type) });
+  if(f.tab==='hang') f.title='';
+  closeModal('mCupFit'); save(); render(); showToast(cupT10(`Added “${title}” to ${cupFmt(p.ds)}.`,`“${title}”을(를) ${cupFmt(p.ds)}에 추가했어요.`));
+}
+// entry points: a chip on Home, and ⌘/Ctrl+Shift+F
+{ const _hc=cupHomeChips; cupHomeChips=function(){ let h=_hc.apply(this,arguments);
+  try{ const chip=`<button type="button" class="cup-hbtn" onclick="cupFitOpen('hang')" title="${cupT10('Check if you have time for plans','약속할 시간이 되는지 확인')}">${cupT10('Can I fit…?','시간 될까?')}</button>`;
+    h=h.replace('<div class="cup-hchips">','<div class="cup-hchips">'+chip); }catch(_){}
+  return h; }; }
+document.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.shiftKey&&(e.key==='F'||e.key==='f')&&!/INPUT|TEXTAREA|SELECT/.test((e.target||{}).tagName||'')){ e.preventDefault(); cupFitOpen('hang'); } });
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
