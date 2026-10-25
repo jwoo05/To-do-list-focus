@@ -7554,6 +7554,8 @@ body.cup-on-pomo #cupSessBar{ display:none !important; }
 .sidebar-actions:has(#themeBtn){ justify-content:flex-end; }
 @media (hover:hover){ .cup-pm-pool .cup-pm-add, #cupPmPool .cup-pm-add{ opacity:0; transition:opacity .12s; } #cupPmPool .cup-pm-task:hover .cup-pm-add, #cupPmPool .cup-pm-add:focus-visible{ opacity:1; } }
 #themeBtn{ font-size:0 !important; line-height:0 !important; color:var(--text2); } #themeBtn::before{ font-size:calc(15px * var(--cup-fs,1)) !important; line-height:1 !important; } .cup-todo[hidden]{ display:none !important; }
+.cup-pl-auto{ display:flex; align-items:center; gap:14px; border:1px solid var(--accent); border-radius:12px; padding:12px 14px; margin-bottom:10px; cursor:pointer; background:color-mix(in srgb, var(--accent) 6%, transparent); }
+.cup-pl-auto span{ flex:1; display:grid; gap:2px; } .cup-pl-auto b{ font-size:calc(14px * var(--cup-fs,1)); } .cup-pl-auto em{ font-style:normal; font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); line-height:1.45; } .cup-pl-auto input{ width:18px; height:18px; flex:none; }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -22762,7 +22764,7 @@ function cupAgendaMount(){
 }
 function cupCalfBtn(){
   const nav=document.querySelector('#calPanel .cal-nav'); if(!nav) return;
-  let b=document.querySelector('#calPanel .cup-calf-btn');
+  let b=document.querySelector('#calPanel .cup-calf-btn:not(.cup-gc-chip)');
   if(!b){ b=document.createElement('button'); b.type='button'; b.className='cup-calf-btn'; b.textContent='Filter';
     b.onclick=()=>{ document.body.classList.toggle('cup-calf-open'); try{ cupRenderCalFilters(); }catch(_){} requestAnimationFrame(cupFitMonth); }; }
   // phone: it sits at the end of the Month · Week · Day · Agenda row, not on a line of its own
@@ -26627,7 +26629,7 @@ function cupGcOpenSettings(){
   setTimeout(()=>{ try{ cupSetTab='data'; cupSetTabs(); document.getElementById('cupGc')?.scrollIntoView({ block:'center' }); }catch(_){} }, 350);
 }
 function cupGcChip(){
-  const nav=document.querySelector('#calPanel .cal-nav'), filt=document.querySelector('#calPanel .cup-calf-btn'); if(!nav || !filt) return;
+  const nav=document.querySelector('#calPanel .cal-nav'), filt=document.querySelector('#calPanel .cup-calf-btn:not(.cup-gc-chip)'); if(!nav || !filt) return;
   let b=document.getElementById('cupGcChip');
   if(!b){ b=document.createElement('button'); b.type='button'; b.id='cupGcChip'; b.className='cup-calf-btn cup-gc-chip'; b.onclick=cupGcOpenSettings; }
   const g=cupGp(), err=cupGcInfo.state==='auth' || cupGpInfo.err==='auth';
@@ -27272,7 +27274,7 @@ const cupFitEff = t => CUP_EFFORT_MIN[t.effort||'']||40;
 function cupFitNextFri(){ let i=0; while(cupParse(cupTSDate(i)).getDay()!==5) i++; return cupTSDate(i); }
 function cupFitBusy(ds){
   const out=[];
-  cupCalEventsOn(ds).forEach(e=>{ if(e.allDay||!e.time) return; const s=cupFitMin(e.time); let en=e.endTime?cupFitMin(e.endTime):s+60; if(en<=s) en=s+60; out.push({s,e:en,title:e.title}); });
+  cupCalEventsOn(ds).forEach(e=>{ if(e.allDay||!e.time||e.auto) return;   /* auto blocks move around whatever you add */ const s=cupFitMin(e.time); let en=e.endTime?cupFitMin(e.endTime):s+60; if(en<=s) en=s+60; out.push({s,e:en,title:e.title}); });
   S.tasks.forEach(t=>{ if(cupDone(t)||t.isHabit||!t.scheduledTime) return; if(!(t.due===ds||(t.scheduledDates||[]).includes(ds))) return; const s=cupFitMin(t.scheduledTime); out.push({s,e:s+cupFitEff(t),title:t.title}); });
   return out.sort((a,b)=>a.s-b.s);
 }
@@ -27425,7 +27427,7 @@ function cupPlnBuild(nDays){
     while(left>0 && guard++<30){ let ok=false;
       const order=days.slice(0,lastIdx+1).map((d,i)=>[d,i]).filter(([d])=>P.over||d.units<d.cap).sort((a,b)=>a[0].units-b[0].units||a[1]-b[1]);
       for(const [d] of order){ let chunk=Math.min(left,4,P.over?4:d.cap-d.units);
-        while(chunk>=1){ const len=chunk*foc+(chunk-1)*brk; if(put(d,len,`${cupT10('Study','공부')} · ${t.title}`,'work',[t.id],chunk,9*60,22*60)){ d.units+=chunk; left-=chunk; ok=true; break; } chunk--; }
+        while(chunk>=1){ const len=chunk*foc+(chunk-1)*brk; if(put(d,len,t.title,'work',[t.id],chunk,9*60,22*60)){ d.units+=chunk; left-=chunk; ok=true; break; } chunk--; }
         if(ok) break; }
       if(!ok) break; }
     if(left>0) skipped.push({ t, left }); });
@@ -27509,7 +27511,8 @@ function cupPlanApply(){
 // Home chip: plan my week — and “rate today” in the evening
 { const _hc=cupHomeChips; cupHomeChips=function(){ let h=_hc.apply(this,arguments);
   try{ const P=cupPln(), late=cupNow().getHours()>=20 && !P.log[todayStr()];
-    const chip=`<button type="button" class="cup-hbtn ${late?'warn':''}" onclick="cupPlanOpen()">${late?cupT10('Rate today · plan week','오늘 평가 · 주간 계획'):cupT10('Plan my week','주간 계획')}</button>`;
+    if(P.auto && !late) return h;
+    const chip=`<button type="button" class="cup-hbtn ${late?'warn':''}" onclick="cupPlanOpen()">${late?cupT10('Rate today','오늘 평가'):cupT10('Plan my week','주간 계획')}</button>`;
     h=h.replace('<div class="cup-hchips">','<div class="cup-hchips">'+chip); }catch(_){}
   return h; }; }
 
@@ -27637,6 +27640,71 @@ function cupHomeDedup(){
   box.querySelectorAll('.cup-todo').forEach(r=>{ r.style.display=(first && r.innerHTML.includes(`'${first.id}'`))?'none':''; });
 }
 { const _rh=cupRenderHome; cupRenderHome=function(){ const r=_rh.apply(this,arguments); try{ cupHomeDedup(); }catch(_){} return r; }; }
+
+// ════════════════════════════════════════════════════════════════════
+//  PART 19 — Auto-schedule: the calendar fills itself from your to-do list and keeps re-adjusting.
+//  The to-do list stays its own list. With Auto on, every change (a new task, a finished one, a moved deadline, a new event,
+//  a block whose time passed undone) re-plans today → +6 days by your priority order and urgency, inside your daily limit.
+//  Blocks get stable ids, so only what actually changed moves (and Google sees few changes). Blocks for finished work stay as history.
+// ════════════════════════════════════════════════════════════════════
+const cupAutoOn = () => !!cupPln().auto;
+const cupAutoId = b => 'auto_'+cupGcHash([b.cat,(b.ids||[])[0]||'',b.ds,b.s]);
+let cupAutoSig='', cupAutoT=0, cupAutoBusy=false, cupAutoInfo={ skipped:0, ask:0 };
+function cupAutoSync(){
+  const R=cupPlnBuild(7), td=todayStr(), n=cupNow(), nowM=n.getHours()*60+n.getMinutes(), want=new Map(); let ch=0;
+  R.days.forEach(d=>d.blocks.forEach(b=>want.set(cupAutoId(b),b)));
+  for(let i=S.events.length-1;i>=0;i--){ const e=S.events[i]; if(!e.auto || e.date<td) continue;
+    if(e.date===td && cupFitMin(e.endTime)<=nowM){ const tid=(e.taskIds||[])[0], t=tid&&S.tasks.find(x=>x.id===tid); if(!tid || (t&&cupDone(t))) continue; }   // history stays; a missed block moves
+    const b=want.get(e.id); if(b){ if(e.title!==b.title){ e.title=b.title; ch++; } want.delete(e.id); continue; }
+    S.events.splice(i,1); ch++; }
+  want.forEach((b,id)=>{ ch++; S.events.push({ id, auto:true, cat:b.cat, taskIds:b.ids||[], title:b.title, date:b.ds, endDate:b.ds, noEndDate:false, time:cupFitHM(b.s), endTime:cupFitHM(b.e), allDay:false, recurrence:'none', recurrenceDays:[], subject:'', location:'', notes:'', reminder:'none', type:b.cat==='work'?'focus_block':'personal', color:CUP_CAT_COL[b.cat] }); });
+  try{ const slots=[]; R.days[0].blocks.filter(b=>b.cat==='work').forEach(b=>{ for(let i=0;i<b.units;i++) slots.push([b.ids[0]]); });
+    const p=cupPlan(); if(slots.length && !p.done.some(Boolean) && !(typeof cupPomoLive==='function'&&cupPomoLive()) && JSON.stringify(p.slots)!==JSON.stringify(slots.slice(0,12))){ p.slots=slots.slice(0,12); p.done=[]; p.active=false; cupPlanSyncCycles(p); S.settings.pomo.focus=R.foc; S.settings.pomo.shortBreak=R.brk; ch++; } }catch(_){}
+  cupAutoInfo={ skipped:R.skipped.length, ask:R.ask.length };
+  return ch;
+}
+function cupAutoKey(){ const P=cupPln(), n=cupNow();
+  return JSON.stringify([todayStr(), Math.floor((n.getHours()*60+n.getMinutes())/30), P.cap, P.focus, P.over, P.wake, P.bed, P.tg, typeof cupEnergyLow==='function'&&cupEnergyLow(),
+    S.tasks.map(t=>[t.id,t.due,t.priority,t.effort,t.completed,t.archived,t.waiting,t.cat,t.scheduledTime,t.title,(t.scheduledDates||[]).join(),t.isHabit?(t.scheduledDays||[]).join():0]),
+    S.events.filter(e=>!e.auto).map(e=>[e.id,e.date,e.time,e.endTime,e.recurrence,e.allDay])]); }
+function cupAutoRun(){
+  if(cupAutoBusy || !cupAutoOn()) return; const k=cupAutoKey(); if(k===cupAutoSig) return;
+  cupAutoBusy=true; try{ cupAutoSig=k; if(cupAutoSync()){ save(); render(); } }catch(e){ console.warn('[auto]',e); } finally{ cupAutoBusy=false; }
+}
+function cupAutoKick(){ clearTimeout(cupAutoT); cupAutoT=setTimeout(cupAutoRun,1200); }
+{ const _sv=save; save=function(){ const r=_sv.apply(this,arguments); if(!cupAutoBusy) cupAutoKick(); return r; }; }
+setInterval(cupAutoRun, 5*60*1000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) cupAutoKick(); });
+function cupAutoSet(on){
+  const P=cupPln(); P.auto=!!on; cupAutoSig='';
+  if(on){ cupAutoBusy=true; try{ cupAutoSync(); }finally{ cupAutoBusy=false; } showToast(cupT10('Auto-schedule is on — your calendar now fills itself from your to-dos.','자동 일정이 켜졌어요 — 할 일로 캘린더가 알아서 채워져요.')); }
+  else { cupPlanClearAuto(); showToast(cupT10('Auto-schedule is off. Its blocks were removed.','자동 일정을 껐어요. 블록을 지웠어요.')); }
+  save(); render(); cupPlanRender();
+}
+// calendar toolbar: “Auto” chip next to Google
+function cupAutoChip(){
+  const gc=document.getElementById('cupGcChip'), filt=document.querySelector('#calPanel .cup-calf-btn:not(.cup-gc-chip)'); if(!filt) return;
+  let b=document.getElementById('cupAutoChip');
+  if(!b){ b=document.createElement('button'); b.type='button'; b.id='cupAutoChip'; b.className='cup-calf-btn cup-gc-chip'; b.onclick=()=>cupPlanOpen(); }
+  const on=cupAutoOn(), issues=on?(cupAutoInfo.skipped+cupAutoInfo.ask):0;
+  const t=(on?(issues?'! ':'● '):'')+cupT10('Auto','자동'); if(b.textContent!==t) b.textContent=t;
+  b.classList.toggle('on', on && !issues); b.classList.toggle('warn', !!issues);
+  b.title=!on?cupT10('Let the calendar schedule your to-dos by priority','우선순위대로 할 일을 캘린더에 자동 배치'):issues?cupT10(`${cupAutoInfo.skipped?cupAutoInfo.skipped+' don’t fit · ':''}${cupAutoInfo.ask?cupAutoInfo.ask+' need a category':''} — tap to see`,`${cupAutoInfo.skipped?cupAutoInfo.skipped+'개 자리 없음 · ':''}${cupAutoInfo.ask?cupAutoInfo.ask+'개 분류 필요':''}`):cupT10('Auto-schedule is on','자동 일정 켜짐');
+  const ref=gc||filt; if(b.nextSibling!==ref) ref.before(b);
+  b.style.right=(innerWidth>760 && filt.offsetWidth) ? (74+filt.offsetWidth+6+(gc?gc.offsetWidth+6:0))+'px' : '';
+}
+{ const _rc=renderCalendar; renderCalendar=function(){ const r=_rc.apply(this,arguments); try{ cupAutoChip(); }catch(_){} return r; }; }
+{ const _rc=renderCup; renderCup=function(){ const r=_rc.apply(this,arguments); try{ cupAutoKick(); cupAutoChip(); }catch(_){} return r; }; }
+// the sheet: a switch on top; with Auto on there's nothing to “apply”
+{ const _po=cupPlanOpen; cupPlanOpen=function(){ const r=_po.apply(this,arguments);
+  try{ const el=document.getElementById('mCupPlan'); el.querySelector('.modal-title').textContent=cupT10('Auto-schedule','자동 일정');
+    const f=el.querySelector('.modal-footer'); if(cupAutoOn()) f.innerHTML=`<button class="btn btn-accent" onclick="closeModal('mCupPlan')">${cupT10('Done','완료')}</button>`; }catch(_){} return r; }; }
+{ const _pr=cupPlanRender; cupPlanRender=function(){ const r=_pr.apply(this,arguments);
+  try{ const host=document.getElementById('cupPlanBody'); if(!host) return r; const on=cupAutoOn();
+    const row=document.createElement('label'); row.className='cup-pl-auto';
+    row.innerHTML=`<span><b>${cupT10('Schedule my to-dos automatically','할 일을 자동으로 일정에 넣기')}</b><em>${on?cupT10('On — the calendar re-plans itself whenever something changes.','켜짐 — 무언가 바뀌면 캘린더가 알아서 다시 계획해요.'):cupT10('Places each to-do on your calendar by priority and urgency, within your daily limit, and keeps it up to date.','우선순위와 마감에 맞춰 하루 한도 안에서 할 일을 캘린더에 넣고 계속 맞춰요.')}</em></span><input type="checkbox" ${on?'checked':''} onchange="cupAutoSet(this.checked)">`;
+    host.prepend(row);
+    const f=document.querySelector('#mCupPlan .modal-footer'); if(f) f.innerHTML=on?`<button class="btn btn-accent" onclick="closeModal('mCupPlan')">${cupT10('Done','완료')}</button>`:`<button class="btn btn-ghost" onclick="closeModal('mCupPlan')">${cupT10('Close','닫기')}</button><button class="btn btn-accent" onclick="cupPlanApply()">${cupT10('Put it on my calendar once','한 번만 캘린더에 넣기')}</button>`;
+  }catch(_){} return r; }; }
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
