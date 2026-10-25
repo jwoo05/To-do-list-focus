@@ -28325,6 +28325,27 @@ function cupFreeSave(){
 { const _ab2=cupAutoBanner; cupAutoBanner=function(){ const r=_ab2.apply(this,arguments); try{ const b=document.getElementById('cupAutoBar'); if(b && !b.querySelector('.cup-free-go')){ const x=document.createElement('span'); x.className='cup-free-go'; x.setAttribute('role','button'); x.textContent=cupT10('+ Keep time free','+ 시간 비우기'); x.onclick=ev=>{ ev.stopPropagation(); cupFreeOpen(typeof calSelectedDate!=='undefined'&&calSelectedDate||todayStr()); }; b.insertBefore(x, b.querySelector('.cup-auto-go')); } }catch(_){} return r; }; }
 { const _pr4=cupPlanRender; cupPlanRender=function(){ const r=_pr4.apply(this,arguments); try{ const host=document.getElementById('cupPlanBody'), ask=host&&host.querySelector('.cup-pl-fit'); if(ask && !host.querySelector('.cup-pl-free')) ask.insertAdjacentHTML('afterend',`<button type="button" class="cup-pl-ask cup-pl-fit cup-pl-free" onclick="closeModal('mCupPlan');cupFreeOpen()">${cupT10('Keep a stretch of time free','시간 비워두기')} →</button>`); }catch(_){} return r; }; }
 
+// ── Two-way calendar: your own events go to Google too (hangouts, commutes, kept-free time, all-day, repeating).
+//    Not sent: class times from folders and calendar-link imports (they already live in a calendar), and events that came from Google.
+{ const _gw=cupGcWant; cupGcWant=function(){ const out=_gw.apply(this,arguments);
+  try{ const g=cupGc(), w=g.what||{}, since=g.since||todayStr(); if(!w.events) return out;
+    const put=(key,e,body)=>{ out[cupGcId(key)]={ k:'event', r:e.id, body:Object.assign({ summary:e.title||'Event' }, e.location?{ location:e.location }:{}, body) }; };
+    cupGcArr(S.events).forEach(e=>{
+      if(!e || !e.id || e.type==='focus_block' || e.auto || e.sourceId || e.icsUid || e.gcal || e.cupFolder || !e.date) return;
+      const rec=(e.recurrence||'').toLowerCase(), repeats=rec && rec!=='none';
+      if(e.allDay || !e.time){ if(e.date<since && !repeats) return; put('e:'+e.id, e, { start:{ date:e.date }, end:{ date:cupAddDays(e.endDate&&e.endDate>e.date?e.endDate:e.date,1) } }); return; }
+      const s=timeStrToMinutes(e.time); if(s===null) return; let en=timeStrToMinutes(e.endTime); if(en===null||en<=s) en=s+60;
+      if(repeats){ const r=cupGcBlockRule(e, since, s); if(r) put('er:'+e.id, e, { start:cupGcDT(r.start,s), end:cupGcDT(r.start,en), recurrence:r.recurrence }); return; }
+      if(e.date<since) return; put('e:'+e.id, e, Object.assign({ start:cupGcDT(e.date,s), end:cupGcDT(e.date,en) }, e.free?{ transparency:'transparent' }:{}));
+    }); }catch(err){ console.warn('[gcal events]',err); }
+  return out; }; }
+
+// ── Calendar links: anything with a start time comes in as an event (a commitment), never a to-do — only Canvas assignment deadlines stay to-dos
+{ const _ci=classifyImportedItem; classifyImportedItem=function(ev){ const r=_ci.apply(this,arguments);
+  try{ if(r && r.kind==='task' && ev && ev.startTime){ const text=[ev.summary,ev.description,ev.url,ev.location].filter(Boolean).join(' ').toLowerCase();
+      if(!/canvas|instructure|assignment_group|assignments\/|submissions?/.test(text)) return { kind:'event', type:'event' }; } }catch(_){}
+  return r; }; }
+
 
 // Korean interface strings. Keys are the exact English text shown on screen.
 Object.assign(CUP_KO, {
