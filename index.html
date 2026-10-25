@@ -7503,6 +7503,26 @@ body.cup-on-pomo #cupSessBar{ display:none !important; }
 .cup-fit-alt{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text3); } .cup-fit-alt button{ padding:4px 12px; border:1px solid var(--border); border-radius:99px; color:var(--text); } .cup-fit-alt button:hover{ border-color:var(--accent); }
 .cup-mnm input[type=time]{ width:100%; box-sizing:border-box; padding:9px 12px; font-size:calc(14.5px * var(--cup-fs,1)); }
 
+/* Plan my week */
+.cup-pl-cal{ display:flex; align-items:center; justify-content:space-between; gap:12px; border:1px solid var(--border); border-radius:12px; padding:10px 14px; margin-bottom:10px; } .cup-pl-cal b{ display:block; font-size:calc(14px * var(--cup-fs,1)); } .cup-pl-cal span{ font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text3); }
+.cup-pl-step{ display:flex; gap:6px; } .cup-pl-step button{ width:32px; height:32px; border:1px solid var(--border); border-radius:50%; font-size:calc(16px * var(--cup-fs,1)); } .cup-pl-step button:hover{ border-color:var(--accent); }
+.cup-pl-sec{ border:1px solid var(--border); border-radius:12px; padding:10px 14px; margin-bottom:10px; display:grid; gap:8px; } .cup-pl-sec > b{ font-size:calc(13.5px * var(--cup-fs,1)); } .cup-pl-sec.warn{ border-color:color-mix(in srgb, var(--orange,#d9822b) 55%, var(--border)); }
+.cup-pl-rate{ display:grid; grid-template-columns:repeat(10, minmax(0,1fr)); gap:4px; } .cup-pl-rate button{ padding:7px 0; border:1px solid var(--border); border-radius:8px; font-size:calc(13px * var(--cup-fs,1)); } .cup-pl-rate button:hover{ border-color:var(--accent); } .cup-pl-rate button.on{ border-color:var(--accent); background:color-mix(in srgb, var(--accent) 16%, transparent); }
+.cup-pl-hint{ font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); line-height:1.45; }
+.cup-pl-ask{ width:100%; text-align:left; border:1px solid var(--accent); border-radius:12px; padding:10px 14px; margin-bottom:10px; font-size:calc(13px * var(--cup-fs,1)); color:var(--text); background:color-mix(in srgb, var(--accent) 8%, transparent); }
+.cup-pl-sk{ display:flex; justify-content:space-between; gap:10px; font-size:calc(13px * var(--cup-fs,1)); } .cup-pl-sk em{ font-style:normal; color:var(--text3); font-size:calc(12px * var(--cup-fs,1)); }
+.cup-pl-days{ display:grid; gap:8px; }
+.cup-pl-day{ border:1px solid var(--border); border-radius:12px; padding:8px 12px; display:grid; gap:4px; }
+.cup-pl-dh{ display:flex; align-items:center; gap:10px; font-size:calc(13.5px * var(--cup-fs,1)); } .cup-pl-dh em{ margin-left:auto; font-style:normal; font-size:calc(11.5px * var(--cup-fs,1)); color:var(--text3); }
+.cup-pl-bar{ flex:1; max-width:120px; height:5px; border-radius:99px; background:color-mix(in srgb, var(--border) 70%, transparent); overflow:hidden; } .cup-pl-bar i{ display:block; height:100%; background:var(--pace-ok, var(--green,#4dd49a)); border-radius:99px; } .cup-pl-bar i.mid{ background:var(--orange,#d9822b); } .cup-pl-bar i.full{ background:var(--must,#e5484d); }
+.cup-pl-b{ display:flex; align-items:center; gap:8px; font-size:calc(12.5px * var(--cup-fs,1)); } .cup-pl-b i{ width:8px; height:8px; border-radius:50%; flex:none; } .cup-pl-b span{ width:58px; flex:none; color:var(--text3); font-variant-numeric:tabular-nums; } .cup-pl-b b{ font-weight:500; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .cup-pl-b b em{ font-style:normal; color:var(--text3); font-size:calc(11.5px * var(--cup-fs,1)); } .cup-pl-b.fixed b{ color:var(--text2); }
+.cup-pl-empty{ font-size:calc(12px * var(--cup-fs,1)); }
+.cup-pl-over{ margin-top:10px; }
+.cup-pl-set{ margin-top:8px; } .cup-pl-set summary{ cursor:pointer; font-size:calc(13px * var(--cup-fs,1)); color:var(--text2); padding:6px 0; }
+.cup-pl-tg{ display:flex; gap:14px; flex-wrap:wrap; margin:8px 0; font-size:calc(13px * var(--cup-fs,1)); } .cup-pl-tg label{ display:flex; align-items:center; gap:6px; } .cup-pl-tg em{ font-style:normal; color:var(--text3); font-size:calc(12px * var(--cup-fs,1)); } .cup-pl-tg select{ padding:4px 8px; }
+.cup-pl-q{ padding:8px 0; border-top:1px solid color-mix(in srgb, var(--border) 55%, transparent); display:grid; gap:6px; } .cup-pl-q > b{ font-size:calc(13.5px * var(--cup-fs,1)); font-weight:550; }
+@media (max-width:760px){ .cup-pl-rate button{ padding:9px 0; } }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -27304,6 +27324,157 @@ function cupFitAdd(){
     h=h.replace('<div class="cup-hchips">','<div class="cup-hchips">'+chip); }catch(_){}
   return h; }; }
 document.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.shiftKey&&(e.key==='F'||e.key==='f')&&!/INPUT|TEXTAREA|SELECT/.test((e.target||{}).tagName||'')){ e.preventDefault(); cupFitOpen('hang'); } });
+
+// ════════════════════════════════════════════════════════════════════
+//  PART 16 — Plan my week: an automatic planner that places everything by YOUR priority order, keeps the day within
+//  what you can carry, and learns that limit from a 1–10 check-in each evening.
+//    S.cup.plan = { wake, bed, cap (study min/day), focus (pomodoro min, 0 = follow the timer), over, tg:{gf,workout,friends}, log:{date:{score,planned,done}} }
+//    task.cat = 'commit'|'habit'|'work'|'gf'|'workout'|'friends'   (asked once when it can't be guessed)
+//  Rule-based and private: nothing is sent anywhere. Blocks it creates are marked auto:true so a re-plan replaces them and never touches your own events.
+// ════════════════════════════════════════════════════════════════════
+const CUP_CATS=[['commit','Commitments','약속 · 의무'],['habit','Habits','습관'],['work','School & career','학업 · 커리어'],['gf','Girlfriend','여자친구'],['workout','Workout','운동'],['friends','Friends','친구']];
+const CUP_CAT_COL={ commit:'#5A4A88', habit:'#2A6B44', work:'#2C4A8B', gf:'#B8527A', workout:'#A85418', friends:'#4A7A8B' };
+const cupCatName = k => { const c=CUP_CATS.find(x=>x[0]===k); return c?cupT10(c[1],c[2]):k; };
+const CUP_RX={ commit:/QT|말씀|묵상|교회|예배|church|알바|shift|meeting|미팅|면담|interview|office hours|출근/i, gf:/여자친구|여친|girlfriend|\bgf\b|데이트|date night/i, workout:/운동|헬스|러닝|gym|workout|\brun\b|\barm\b|\bcore\b|lift/i, friends:/친구|friend|hang ?out|밥약|brunch|dinner with/i };
+
+function cupPln(){ cupEnsure(); let P=S.cup.plan; if(!P||typeof P!=='object') P=S.cup.plan={};
+  const D={ wake:'07:00', bed:'23:30', cap:240, focus:0, over:false, lastUp:'', lastFocusUp:'' };
+  Object.keys(D).forEach(k=>{ if(P[k]===undefined) P[k]=D[k]; });
+  if(!P.tg||typeof P.tg!=='object') P.tg={ gf:2, workout:3, friends:1 }; if(!P.log||typeof P.log!=='object') P.log={}; return P; }
+const cupPlnFocus = () => { const P=cupPln(); return P.focus||Math.max(10,Math.min(60,Math.round((typeof getPomoConfig==='function'?getPomoConfig().focus:25)||25))); };
+
+// which of your six kinds a task is — null means “ask me”
+function cupCatOf(t){
+  if(t.cat && CUP_CATS.some(c=>c[0]===t.cat)) return t.cat;
+  const txt=`${t.title||''} ${t.subject||''}`;
+  if(t.isHabit) return CUP_RX.commit.test(txt)?'commit':'habit';
+  for(const k of ['commit','gf','workout','friends']) if(CUP_RX[k].test(txt)) return k;
+  if(/^(Classes|Internships|Competitions|Work)\b/i.test(t.subject||'') || /\b[A-Z]{2,5} ?\d{3}\b/.test(txt) || /essay|assignment|homework|exam|study|resume|과제|공부|시험|이력서|리포트|paper|reading/i.test(txt)) return 'work';
+  if(/^Church/i.test(t.subject||'')) return 'commit';
+  return null;
+}
+
+// ── the day's blocks you can't move: events, timed tasks, timed habits ──
+function cupPlnBusy(ds){
+  const out=[], dow=cupParse(ds).getDay();
+  cupCalEventsOn(ds).forEach(e=>{ if(e.auto||e.allDay||!e.time) return; const s=cupFitMin(e.time); let en=e.endTime?cupFitMin(e.endTime):s+60; if(en<=s) en=s+60; out.push({s,e:en,title:e.title,cat:'commit'}); });
+  S.tasks.forEach(t=>{ if(t.archived||!t.scheduledTime) return; if(!t.isHabit && cupDone(t)) return;
+    const on=t.isHabit?((t.scheduledDays||[]).includes(dow)&&(!t.habitStart||t.habitStart<=ds)&&(!t.habitEnd||t.habitEnd>=ds)):(t.due===ds||(t.scheduledDates||[]).includes(ds)); if(!on) return;
+    const s=cupFitMin(t.scheduledTime); out.push({s,e:s+(t.isHabit?20:cupFitEff(t)),title:t.title,cat:cupCatOf(t)||'commit'}); });
+  return out;
+}
+function cupPlnGaps(ds, busy, len, minStart, maxEnd){
+  const P=cupPln(), wake=cupFitMin(P.wake), bed=cupFitMin(P.bed); let from=wake;
+  if(ds===todayStr()){ const n=cupNow(); from=Math.max(from, Math.ceil((n.getHours()*60+n.getMinutes()+10)/15)*15); }
+  const bs=busy.slice().sort((a,b)=>a.s-b.s), gaps=[]; let cur=from;
+  bs.forEach(b=>{ if(b.s>cur) gaps.push({s:cur,e:Math.min(b.s,bed)}); cur=Math.max(cur,b.e); }); if(bed>cur) gaps.push({s:cur,e:bed});
+  return gaps.map(g=>({s:Math.max(g.s,minStart||0),e:Math.min(g.e,maxEnd||1440)})).filter(g=>g.e-g.s>=len);
+}
+
+// ── the planner ──
+function cupPlnBuild(nDays){
+  const P=cupPln(), td=todayStr(), foc=cupPlnFocus(), brk=Math.max(3,Math.round(foc/5)), capU=Math.max(1,Math.floor(P.cap/foc));
+  const days=Array.from({length:nDays||7},(_,i)=>{ const ds=cupAddDays(td,i); return { ds, busy:cupPlnBusy(ds), blocks:[], units:0 }; });
+  const ask=[], work=[], skipped=[];
+  S.tasks.forEach(t=>{ if(cupDone(t)||t.isHabit||t.waiting) return; const c=cupCatOf(t); if(!c){ ask.push(t); return; } if(c==='work') work.push(t); });
+  const pri={high:0,medium:1,low:2};
+  const horizon=cupAddDays(td,(nDays||7)-1+2);
+  const todo=work.filter(t=>t.due && t.due<=horizon).sort((a,b)=>(a.due<td?td:a.due).localeCompare(b.due<td?td:b.due) || (pri[a.priority]??1)-(pri[b.priority]??1));
+  const undated=work.filter(t=>!t.due).length, far=work.filter(t=>t.due && t.due>horizon).length;
+  const put=(day,len,title,cat,ids,units,minStart,maxEnd)=>{ const g=cupPlnGaps(day.ds,day.busy,len,minStart,maxEnd)[0]; if(!g) return false;
+    const b={ ds:day.ds, s:g.s, e:g.s+len, title, cat, ids, units:units||0 }; day.busy.push({s:b.s,e:b.e+brk}); day.blocks.push(b); return true; };
+  todo.forEach(t=>{ let left=Math.ceil(cupFitEff(t)/foc);
+    const lastIdx=t.due<td?Math.min(days.length-1,2):Math.max(0,Math.min(days.length-1,days.findIndex(d=>d.ds===t.due)<0?days.length-1:days.findIndex(d=>d.ds===t.due)));
+    let guard=0;
+    while(left>0 && guard++<30){ let ok=false;
+      const order=days.slice(0,lastIdx+1).map((d,i)=>[d,i]).filter(([d])=>P.over||d.units<capU).sort((a,b)=>a[0].units-b[0].units||a[1]-b[1]);
+      for(const [d] of order){ let chunk=Math.min(left,4,P.over?4:capU-d.units);
+        while(chunk>=1){ const len=chunk*foc+(chunk-1)*brk; if(put(d,len,`${cupT10('Study','공부')} · ${t.title}`,'work',[t.id],chunk,9*60,22*60)){ d.units+=chunk; left-=chunk; ok=true; break; } chunk--; }
+        if(ok) break; }
+      if(!ok) break; }
+    if(left>0) skipped.push({ t, left }); });
+  // wishes, in your order — only on days with room and no big test tomorrow
+  const hasTestNext=ds=>S.events.some(e=>e.type==='test' && e.date===cupAddDays(ds,1));
+  const wishes=[['gf',P.tg.gf,120,17*60,23*60],['workout',P.tg.workout,45,7*60,20*60+30],['friends',P.tg.friends,120,17*60,23*60]], noRoom=[];
+  wishes.forEach(([cat,n,len,minStart,maxEnd])=>{ let placed=0;
+    for(let k=0;k<(+n||0);k++){ const cand=days.filter(d=>d.units<=capU*0.9 && !(cat!=='workout'&&hasTestNext(d.ds)) && !d.blocks.some(b=>b.cat===cat)).sort((a,b)=>(a.units+a.blocks.length)-(b.units+b.blocks.length)||a.ds.localeCompare(b.ds));
+      let ok=false; for(const d of cand){ if(put(d,len,({gf:cupT10('Time with her','여자친구와'),workout:cupT10('Workout','운동'),friends:cupT10('Friends','친구')})[cat],cat,[],0,minStart,maxEnd)){ ok=true; break; } }
+      if(ok) placed++; }
+    if(placed<(+n||0)) noRoom.push([cat,(+n||0)-placed]); });
+  days.forEach(d=>d.blocks.sort((a,b)=>a.s-b.s));
+  return { days, skipped, ask, foc, brk, capU, undated, far, noRoom };
+}
+
+// ── the sheet ──
+const cupPlHM=m=>cupT12(cupFitHM(m));
+function cupPlanOpen(){ cupMnModal('mCupPlan', cupT10('Plan my week','이번 주 계획'), '<div id="cupPlanBody"></div>', `<button class="btn btn-ghost" onclick="cupPlanRemove()">${cupT10('Remove auto plan','자동 계획 지우기')}</button><button class="btn btn-ghost" onclick="closeModal('mCupPlan')">${cupT10('Close','닫기')}</button><button class="btn btn-accent" onclick="cupPlanApply()">${cupT10('Put it on my calendar','캘린더에 넣기')}</button>`); cupPlanRender(); }
+function cupPlanRender(){
+  const host=document.getElementById('cupPlanBody'); if(!host) return; const P=cupPln(), R=cupPlnBuild(7), td=todayStr(), logged=P.log[td];
+  const capH=cupFitH(P.cap), rows=R.days.map(d=>{ const wm=d.units*R.foc, pct=Math.min(100,Math.round(wm/Math.max(1,P.cap)*100));
+    const fixed=d.busy.filter(b=>!d.blocks.some(x=>x.s===b.s&&x.e+R.brk===b.e)).slice().sort((a,b)=>a.s-b.s);
+    const items=fixed.map(b=>({s:b.s,html:`<div class="cup-pl-b fixed"><i style="background:${CUP_CAT_COL[b.cat]||'#888'}"></i><span>${cupPlHM(b.s)}</span><b>${esc(b.title)}</b></div>`}))
+      .concat(d.blocks.map(b=>({s:b.s,html:`<div class="cup-pl-b"><i style="background:${CUP_CAT_COL[b.cat]}"></i><span>${cupPlHM(b.s)}</span><b>${esc(b.title)}${b.units>1?` <em>${b.units}×${R.foc}m</em>`:''}</b></div>`}))).sort((a,b)=>a.s-b.s);
+    return `<div class="cup-pl-day"><div class="cup-pl-dh"><b>${d.ds===td?cupT10('Today','오늘'):cupFmt(d.ds)}</b><span class="cup-pl-bar" title="${cupFitH(wm)} / ${capH}"><i class="${pct>=100?'full':pct>=70?'mid':''}" style="width:${Math.max(pct,3)}%"></i></span><em>${cupFitH(wm)} ${cupT10('study','공부')}</em></div>${items.map(x=>x.html).join('')||`<div class="cup-dim cup-pl-empty">${cupT10('Free','여유')}</div>`}</div>`; }).join('');
+  const sk=R.skipped.length?`<section class="cup-pl-sec warn"><b>${cupT10('Doesn’t fit without overloading you','무리하지 않으면 안 들어가요')}</b>${R.skipped.map(s=>`<div class="cup-pl-sk"><span>${esc(s.t.title)}</span><em>${s.t.due?cupT10('due','마감')+' '+cupFmt(s.t.due):''} · ${cupT10(`${s.left} pomodoro${s.left>1?'s':''} left`,`${s.left}뽀모도로 남음`)}</em></div>`).join('')}
+      <div class="cup-pl-hint">${cupT10('Move something, push a date, or turn on override below.','하나를 미루거나, 마감을 옮기거나, 아래 “무리해서 넣기”를 켜세요.')}</div></section>`:'';
+  const ask=R.ask.length?`<button type="button" class="cup-pl-ask" onclick="cupPlanAsk()">${cupT10(`${R.ask.length} task${R.ask.length>1?'s':''} need a category — tap to sort`,`분류가 필요한 할 일 ${R.ask.length}개 — 눌러서 정리`)} →</button>`:'';
+  const nr=R.noRoom.length?`<div class="cup-pl-hint">${R.noRoom.map(([c,n])=>`${cupCatName(c)} ×${n}`).join(' · ')} — ${cupT10('no room this week','이번 주는 자리가 없어요')}</div>`:'';
+  host.innerHTML=`
+    <section class="cup-pl-cal"><div><b>${cupT10('Your capacity','내 용량')}</b><span>${cupT10(`${capH} of study a day · ${R.foc}-minute pomodoros`,`하루 공부 ${capH} · 뽀모도로 ${R.foc}분`)}</span></div>
+      <div class="cup-pl-step"><button type="button" onclick="cupPlanCap(-30)" aria-label="less">−</button><button type="button" onclick="cupPlanCap(30)" aria-label="more">+</button></div></section>
+    <section class="cup-pl-sec"><b>${logged?cupT10(`Today felt ${logged.score}/10`,`오늘 ${logged.score}/10`):cupT10('How was today? (1 drained · 10 great)','오늘 어땠나요? (1 지침 · 10 최고)')}</b>
+      <div class="cup-pl-rate">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="${logged&&logged.score===n?'on':''}" onclick="cupPlanRate(${n})">${n}</button>`).join('')}</div>
+      <div class="cup-pl-hint">${cupT10('Each evening’s number nudges tomorrow’s limit — down when it was too much, up slowly when it felt easy.','저녁마다 숫자로 내일의 한도를 조절해요. 힘들었으면 줄이고, 여유로우면 천천히 늘려요.')}</div></section>
+    ${ask}${sk}${nr}
+    <div class="cup-pl-days">${rows}</div>
+    <label class="cup-mn-chk cup-pl-over"><input type="checkbox" ${P.over?'checked':''} onchange="cupPlanSet('over',this.checked)"> ${cupT10('Let me overload a day (override)','무리해서 넣기 (한도 무시)')}</label>
+    <details class="cup-pl-set"><summary>${cupT10('Sleep & weekly wishes','수면 · 주간 바람')}</summary>
+      <div class="cup-mn-two"><div><label class="cup-hbm-l">${cupT10('Wake up','기상')}</label><input type="time" value="${P.wake}" onchange="cupPlanSet('wake',this.value)"></div><div><label class="cup-hbm-l">${cupT10('Bed','취침')}</label><input type="time" value="${P.bed}" onchange="cupPlanSet('bed',this.value)"></div></div>
+      <div class="cup-pl-tg">${[['gf',cupT10('Time with her','여자친구와')],['workout',cupT10('Workouts','운동')],['friends',cupT10('Friends','친구')]].map(([k,l])=>`<label><span>${l}</span><select onchange="cupPlanTg('${k}',this.value)">${[0,1,2,3,4,5,6,7].map(n=>`<option ${P.tg[k]==n?'selected':''}>${n}</option>`).join('')}</select><em>${cupT10('/ week','/ 주')}</em></label>`).join('')}</div>
+      <div class="cup-pl-hint">${cupT10('Order of importance: commitments → habits → school & career → girlfriend · sleep → workout → friends.','우선순위: 약속·의무 → 습관 → 학업·커리어 → 여자친구·수면 → 운동 → 친구.')}${R.undated?` ${cupT10(`${R.undated} undated task${R.undated>1?'s':''} aren’t scheduled.`,`날짜 없는 할 일 ${R.undated}개는 계획에 넣지 않았어요.`)}`:''}</div></details>`;
+  if(typeof cupIsKo==='function' && cupIsKo() && typeof cupKoWalk==='function') cupKoWalk(host);
+}
+function cupPlanSet(k,v){ cupPln()[k]=v; save(); cupPlanRender(); }
+function cupPlanTg(k,v){ cupPln().tg[k]=+v||0; save(); cupPlanRender(); }
+function cupPlanCap(d){ const P=cupPln(); P.cap=Math.max(60,Math.min(540,P.cap+d)); save(); cupPlanRender(); }
+
+// ── asking where a task belongs ──
+function cupPlanAsk(){
+  const list=cupPlnBuild(7).ask.slice(0,12);
+  cupMnModal('mCupPlanAsk', cupT10('Where does each belong?','어디에 속하나요?'), list.length?list.map(t=>`<div class="cup-pl-q" data-id="${t.id}"><b>${esc(t.title)}</b><div class="cup-mn-chips">${CUP_CATS.map(([k])=>`<button type="button" onclick="cupPlanCat('${t.id}','${k}',this)">${cupCatName(k)}</button>`).join('')}</div></div>`).join(''):`<div class="cup-dim">${cupT10('Everything has a category.','모두 분류됐어요.')}</div>`, `<button class="btn btn-accent" onclick="closeModal('mCupPlanAsk');cupPlanRender()">${cupT10('Done','완료')}</button>`);
+}
+function cupPlanCat(id,k,btn){ const t=S.tasks.find(x=>x.id===id); if(!t) return; t.cat=k; save(); btn.closest('.cup-pl-q')?.remove(); }
+
+// ── evening check-in → calibration ──
+function cupPlanRate(n){
+  const P=cupPln(), td=todayStr(), foc=cupPlnFocus();
+  const planned=S.events.filter(e=>e.auto&&e.cat==='work'&&e.date===td).reduce((a,e)=>a+Math.max(0,cupFitMin(e.endTime)-cupFitMin(e.time)),0);
+  const done=(S.sessions||[]).filter(s=>s.date===td&&s.type==='focus'&&s.completed).reduce((a,s)=>a+(s.dur||0),0);
+  P.log[td]={ score:n, planned, done };
+  const recent=Object.keys(P.log).sort().slice(-5).map(k=>P.log[k]), avg=recent.reduce((a,r)=>a+r.score,0)/recent.length;
+  let msg=cupT10('Thanks — logged.','기록했어요.');
+  if(n<=4 || (recent.length>=3 && avg<=5)){ P.cap=Math.max(90,P.cap-30); msg=cupT10(`That was a lot — your daily limit is now ${cupFitH(P.cap)}.`,`많이 힘들었군요 — 하루 한도를 ${cupFitH(P.cap)}로 낮췄어요.`); }
+  else if(recent.length>=3 && recent.slice(-3).every(r=>r.score>=7) && (!P.lastUp || cupMnDays(P.lastUp)<=-4)){ P.cap=Math.min(480,P.cap+15); P.lastUp=td; msg=cupT10(`Going well — limit nudged up to ${cupFitH(P.cap)}.`,`잘 되고 있어요 — 한도를 ${cupFitH(P.cap)}로 조금 올렸어요.`);
+    if(avg>=8 && recent.every(r=>!r.planned||r.done>=r.planned*0.8) && (!P.lastFocusUp || cupMnDays(P.lastFocusUp)<=-14) && foc<50){ P.focus=foc+5; P.lastFocusUp=td; msg+=' '+cupT10(`Pomodoros now ${P.focus} min.`,`뽀모도로 ${P.focus}분.`); } }
+  save(); showToast(msg); cupPlanRender();
+}
+
+// ── put it on the calendar (and today's pomodoros on the Focus page) ──
+function cupPlanClearAuto(){ const td=todayStr(); for(let i=S.events.length-1;i>=0;i--){ const e=S.events[i]; if(e.auto && e.date>=td) S.events.splice(i,1); } }
+function cupPlanRemove(){ cupPlanClearAuto(); save(); render(); cupPlanRender(); showToast(cupT10('Auto plan removed.','자동 계획을 지웠어요.')); }
+function cupPlanApply(){
+  const R=cupPlnBuild(7), td=todayStr(); cupPlanClearAuto(); let n=0;
+  R.days.forEach(d=>d.blocks.forEach(b=>{ n++; S.events.push({ id:uid(), auto:true, cat:b.cat, taskIds:b.ids||[], title:b.title, date:b.ds, endDate:b.ds, noEndDate:false, time:cupFitHM(b.s), endTime:cupFitHM(b.e), allDay:false, recurrence:'none', recurrenceDays:[], subject:'', location:'', notes:b.cat==='work'?cupT10('Planned study — run it from the Focus page.','계획된 공부 — 집중 페이지에서 시작하세요.'):'', reminder:'none', type:b.cat==='work'?'event':'personal', color:CUP_CAT_COL[b.cat] }); }));
+  try{ const slots=[]; R.days[0].blocks.filter(b=>b.cat==='work').forEach(b=>{ for(let i=0;i<b.units;i++) slots.push([b.ids[0]]); });
+    const p=cupPlan(); if(slots.length && !p.done.some(Boolean) && !(typeof cupPomoLive==='function'&&cupPomoLive())){ p.slots=slots.slice(0,12); p.done=[]; p.active=false; cupPlanSyncCycles(p); S.settings.pomo.focus=R.foc; S.settings.pomo.shortBreak=R.brk; } }catch(_){}
+  closeModal('mCupPlan'); save(); render(); showToast(cupT10(`Placed ${n} block${n===1?'':'s'}. Today’s pomodoros are ready on Focus.`,`${n}개 블록을 넣었어요. 오늘의 뽀모도로는 집중 페이지에 준비됐어요.`));
+}
+// Home chip: plan my week — and “rate today” in the evening
+{ const _hc=cupHomeChips; cupHomeChips=function(){ let h=_hc.apply(this,arguments);
+  try{ const P=cupPln(), late=cupNow().getHours()>=20 && !P.log[todayStr()];
+    const chip=`<button type="button" class="cup-hbtn ${late?'warn':''}" onclick="cupPlanOpen()">${late?cupT10('Rate today · plan week','오늘 평가 · 주간 계획'):cupT10('Plan my week','주간 계획')}</button>`;
+    h=h.replace('<div class="cup-hchips">','<div class="cup-hchips">'+chip); }catch(_){}
+  return h; }; }
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
