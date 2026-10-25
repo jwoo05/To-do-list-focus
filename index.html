@@ -27038,6 +27038,8 @@ function cupHbPlan(id){
       <label class="cup-hbm-l" for="cupHbmEnd">${cupT10('Short commitment — until','짧은 약속 — 언제까지')}</label>
       <div class="cup-hbm-end"><input id="cupHbmEnd" type="date" value="${esc(t.habitEnd||'')}" min="${todayStr()}">${[[(()=>{ const d=cupParse(todayStr()); return cupISO(new Date(d.getFullYear(),d.getMonth()+1,0)); })(),cupT10('End of month','이번 달 말')],[cupAddDays(todayStr(),13),cupT10('2 weeks','2주')],['',cupT10('No end','계속')]].map(([v,l])=>`<button type="button" onclick="document.getElementById('cupHbmEnd').value='${v}'">${l}</button>`).join('')}</div>
       <div class="cup-dim cup-hbm-hint">${cupT10('For something you do for a season — it leaves your list after this date.','한 시기 동안만 하는 것 — 이 날짜가 지나면 목록에서 빠져요.')}</div>
+      <label class="cup-hbm-l" for="cupHbmN">${cupT10('How often','얼마나 자주')}</label>
+      <select id="cupHbmN">${[[0,cupT10('On its set days','정한 요일마다')],[2,cupT10('Every other day','이틀에 한 번')],[3,cupT10('Every 3 days','3일에 한 번')]].map(([n,l])=>`<option value="${n}" ${(+t.everyN||0)===n?'selected':''}>${l}</option>`).join('')}</select>
       <label class="cup-hbm-l" for="cupHbmRt">${cupT10('Part of a routine','루틴으로 묶기')}</label>
       <div class="cup-hbm-end"><input id="cupHbmRt" maxlength="30" list="cupHbmRtList" placeholder="${cupT10('e.g. Night routine','예: 밤 루틴')}" value="${esc(t.routine||'')}"><datalist id="cupHbmRtList">${[...new Set(S.tasks.filter(x=>x.isHabit&&x.routine).map(x=>x.routine))].map(r=>`<option value="${esc(r)}">`).join('')}</datalist>${[cupT10('Morning routine','아침 루틴'),cupT10('Night routine','밤 루틴')].map(l=>`<button type="button" onclick="document.getElementById('cupHbmRt').value='${l}'">${l}</button>`).join('')}</div>
       <label class="cup-hbm-l" for="cupHbmWhy">${cupT10('Why do you do this?','이걸 왜 하나요?')}</label>
@@ -27056,6 +27058,7 @@ function cupHbPlan(id){
 }
 function cupHbPlanSave(id){
   const t=S.tasks.find(x=>x.id===id); if(!t) return;
+  const ev=+(document.getElementById('cupHbmN')?.value||0); if(ev>1){ t.everyN=ev; t.scheduledDays=[0,1,2,3,4,5,6]; if(!t.habitStart) t.habitStart=todayStr(); } else delete t.everyN;
   const rt=(document.getElementById('cupHbmRt')?.value||'').trim().slice(0,30); if(rt) t.routine=rt; else delete t.routine;
   const end=document.getElementById('cupHbmEnd')?.value||''; t.habitEnd=end; if(end && !t.habitStart) t.habitStart=todayStr();
   [['why','cupHbmWhy'],['cue','cupHbmCue'],['tiny','cupHbmTiny']].forEach(([k,i])=>{ const v=(document.getElementById(i)?.value||'').trim().slice(0,120); if(v) t[k]=v; else delete t[k]; });
@@ -27075,6 +27078,11 @@ function cupHbSetGoal(p){ cupEnsure(); S.cup.habitGoal=p; document.getElementByI
 // the Home widget / block lists captured the old function; point them at this one
 try{ if(typeof CUP_WIDGETS!=='undefined' && CUP_WIDGETS.habits) CUP_WIDGETS.habits[5]=cupHabitsHTML; }catch(_){}
 try{ if(typeof CUP_BLOCKS!=='undefined' && CUP_BLOCKS.habits) CUP_BLOCKS.habits[2]=cupHabitsHTML; }catch(_){}
+
+// every N days (e.g. drums every other day), counted from the habit's start
+{ const _hd=isHabitDueToday; isHabitDueToday=function(t, ds){ const r=_hd.apply(this,arguments);
+  if(!r || !t || !(+t.everyN>1)) return r;
+  const a=cupParse(t.habitStart||ds), d=Math.round((cupParse(ds)-a)/864e5); return d>=0 && d % (+t.everyN)===0; }; }
 
 // ════════════════════════════════════════════════════════════════════
 //  PART 14 — Money: your cards, what's due, what's coming in. Private and opt-in.
@@ -27419,7 +27427,7 @@ document.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.shiftKey&&
 //  Rule-based and private: nothing is sent anywhere. Blocks it creates are marked auto:true so a re-plan replaces them and never touches your own events.
 // ════════════════════════════════════════════════════════════════════
 // Categories anyone can use. Each person rates how much each matters (0 = don't plan it, 5 = most important); the planner follows that.
-const CUP_CATS=[['commit','Commitments','약속 · 신앙'],['habit','Habits & routines','습관 · 루틴'],['work','School & work','학업 · 일'],['life','Life admin','생활 · 볼일'],['health','Health','건강'],['close','Partner & family','연인 · 가족'],['friends','Friends','친구'],['rest','Rest','휴식']];
+const CUP_CATS=[['commit','Commitments','약속 · 신앙'],['habit','Habits & routines','습관 · 루틴'],['work','School & work','학업 · 일'],['life','Life admin','생활 · 볼일'],['health','Health','건강'],['close','Partner & family','연인 · 가족'],['friends','Friends','친구'],['rest','Hobbies & rest','취미 · 휴식']];
 const CUP_CAT_COL={ commit:'#5A4A88', habit:'#2A6B44', work:'#2C4A8B', life:'#8B6A3A', health:'#A85418', close:'#B8527A', friends:'#4A7A8B', rest:'#5A7A6A' };
 const CUP_RATE_DEF={ commit:5, habit:4, work:4, close:3, health:3, life:3, friends:2, rest:1 };
 // finer guesses fold into the 8 (and answers from earlier versions carry over)
@@ -27437,7 +27445,7 @@ const CUP_RX={
   school:/\b[A-Z]{2,5} ?\d{3}\b|class|course|lecture|homework|assignment|exam|quiz|midterm|final|essay|lab report|reading|study|registration|tut(orial)?\b|review:|\bL\d{1,2}\b|milestone|\bM\d\b|과제|공부|시험|수업|강의|수강|리포트|에세이/i,
   career:/intern|resume|cv\b|cover letter|application|apply|job|recruit|research|scholarship|fellowship|program|grant|letter writer|recommend|이력서|지원|인턴|연구|장학|스폰서|sponsor/i,
   project:/project|github|kaggle|prototype|build|repo|\bcode\b|프로젝트/i,
-  rest:/movie|game|hobby|취미|휴식|\brest\b/i };
+  rest:/movie|game|gaming|hobby|취미|휴식|\brest\b|watch|season|\bS\d\b|anime|drama|드라마|애니|영화|게임|music|drum|guitar|piano|bass|노래|드럼|기타 연습|피아노/i };
 
 function cupPln(){ cupEnsure(); let P=S.cup.plan; if(!P||typeof P!=='object') P=S.cup.plan={};
   const D={ wake:'07:00', bed:'23:30', cap:240, focus:0, over:false, lastUp:'', lastFocusUp:'', auto:true };
@@ -27454,7 +27462,7 @@ function cupCatOf(t){ const k=cupCatRaw(t); return k?(CUP_CAT_OLD[k]||k):null; }
 function cupCatRaw(t){
   if(t.cat){ const k=CUP_CAT_OLD[t.cat]||t.cat; if(CUP_CATS.some(c=>c[0]===k)) return k; }
   const txt=`${t.title||''} ${t.subject||''}`, f=((typeof cupCommit==='function'&&cupCommit(t.commitId))||{}).name||'';
-  if(t.isHabit){ for(const k of ['faith','commit','health','partner','family','friends']) if(CUP_RX[k].test(txt)) return k; return 'habit'; }
+  if(t.isHabit){ for(const k of ['faith','commit','health','partner','family','friends','rest']) if(CUP_RX[k].test(txt)) return k; return 'habit'; }
   for(const k of ['faith','commit','partner','family','friends','health','admin','errand','school','career','project','rest']) if(CUP_RX[k].test(txt)) return k;
   if(f){ for(const k of ['faith','school','career','project']) if(CUP_RX[k].test(f)) return k;
     if(/^Classes/i.test(t.subject||'')) return 'school';
