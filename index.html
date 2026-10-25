@@ -7675,6 +7675,9 @@ input[type=date]::-webkit-calendar-picker-indicator, input[type=time]::-webkit-c
 .cwk-block.sig-free{ background:repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--text3) 10%, transparent) 6px 12px) !important; border-left:2px dashed var(--text3) !important; }
 .cwk-block.sig-free .cwk-block-title{ color:var(--text2); font-weight:500; }
 .cup-free-go{ flex:none; font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); padding:2px 8px; border-radius:999px; border:1px solid var(--border); } .cup-free-go:hover{ color:var(--text); border-color:var(--accent); }
+.cup-gx-row{ display:flex; align-items:center; gap:10px; padding:6px 0; border-top:1px solid color-mix(in srgb, var(--border) 55%, transparent); font-size:calc(13px * var(--cup-fs,1)); } .cup-gx-row span{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; } .cup-gx-row em{ font-style:normal; font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); }
+.cup-gx-row button{ font-size:calc(12px * var(--cup-fs,1)); padding:3px 10px; border:1px solid var(--border); border-radius:999px; } .cup-gx-row button.q{ color:var(--text3); }
+.cup-gx-add{ align-self:flex-start; margin-top:6px; }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -27780,7 +27783,7 @@ function cupMailDecorate(){
     const id=((card.querySelector('.cup-wcard-t')?.getAttribute('onclick')||'').match(/'([^']+)'/)||[])[1], t=id&&S.tasks.find(x=>x.id===id);
     if(!t||!t.reply||!m.on) return; const r=t.reply, when=cupFmt(cupISO(new Date(r.date)));
     const box=document.createElement('div'); box.className='cup-mail-r';
-    box.innerHTML=`<b>✉ ${cupT10('Reply found','답장 발견')} · ${esc(r.from)} · ${when}</b>${r.subject?`<span class="s">${esc(r.subject)}</span>`:''}<span>${esc(r.snippet)}</span><div><a href="https://mail.google.com/mail/u/0/#all/${encodeURIComponent(r.threadId)}" target="_blank" rel="noopener">${cupT10('Open email','메일 열기')}</a><button type="button" onclick="cupMailNo('${t.id}')">${cupT10('Not it','아니에요')}</button></div>`;
+    box.innerHTML=`<b>✉ ${cupT10('Reply found','답장 발견')} · ${esc(r.from)} · ${when}</b>${r.subject?`<span class="s">${esc(r.subject)}</span>`:''}<span>${esc(r.snippet)}</span><div><a href="https://mail.google.com/mail/u/${r.acct?encodeURIComponent(r.acct):0}/#all/${encodeURIComponent(r.threadId)}" target="_blank" rel="noopener">${cupT10('Open email','메일 열기')}</a><button type="button" onclick="cupMailNo('${t.id}')">${cupT10('Not it','아니에요')}</button></div>`;
     card.querySelector('.cup-wcard-a')?.before(box); card.classList.add('has-reply'); });
 }
 { const _rw=cupRenderWaiting; cupRenderWaiting=function(){ const r=_rw.apply(this,arguments); try{ cupMailDecorate(); }catch(_){} return r; }; }
@@ -28331,10 +28334,10 @@ function cupFreeSave(){
   try{ const g=cupGc(), w=g.what||{}, since=g.since||todayStr(); Object.keys(out).forEach(k=>{ if(out[k]&&out[k].k==='event') delete out[k]; });   // one set of rules for events, both directions
     if(!w.events || (typeof cupGp==='function' && cupGp().dir==='pull')) return out;
     const put=(key,e,body)=>{ out[cupGcId(key)]={ k:'event', r:e.id, body:Object.assign({ summary:e.title||'Event' }, e.location?{ location:e.location }:{}, body) }; };
-    const linkTimes=new Set(cupGcArr(S.events).filter(e=>e&&(e.sourceId||e.icsUid||e.gcal)).map(e=>[e.time||'',cupEvCode(e)].join('|')));   // repeating copies of linked classes
-    const fromLink=new Set(cupGcArr(S.events).filter(e=>e&&(e.sourceId||e.icsUid||e.gcal)).map(e=>[e.date,e.time||'',cupEvCode(e)].join('|')));   // already in a calendar
+    const linkTimes=new Set(cupGcArr(S.events).filter(e=>e&&(e.sourceId||e.icsUid||e.gcal||e.gx)).map(e=>[e.time||'',cupEvCode(e)].join('|')));   // repeating copies of linked classes
+    const fromLink=new Set(cupGcArr(S.events).filter(e=>e&&(e.sourceId||e.icsUid||e.gcal||e.gx)).map(e=>[e.date,e.time||'',cupEvCode(e)].join('|')));   // already in a calendar
     cupGcArr(S.events).forEach(e=>{
-      if(!e || !e.id || e.type==='focus_block' || e.type==='class' || e.auto || e.sourceId || e.icsUid || e.gcal || e.cupFolder || !e.date) return;
+      if(!e || !e.id || e.type==='focus_block' || e.type==='class' || e.auto || e.sourceId || e.icsUid || e.gcal || e.gx || e.cupFolder || !e.date) return;
       if(fromLink.has([e.date,e.time||'',cupEvCode(e)].join('|'))) return;
       if(e.recurrence && e.recurrence!=='none' && linkTimes.has([e.time||'',cupEvCode(e)].join('|'))) return;
       const rec=(e.recurrence||'').toLowerCase(), repeats=rec && rec!=='none';
@@ -28350,6 +28353,87 @@ function cupFreeSave(){
   try{ if(r && r.kind==='task' && ev && ev.startTime){ const text=[ev.summary,ev.description,ev.url,ev.location].filter(Boolean).join(' ').toLowerCase();
       if(!/canvas|instructure|assignment_group|assignments\/|submissions?/.test(text)) return { kind:'event', type:'event' }; } }catch(_){}
   return r; }; }
+
+// ════════════════════════════════════════════════════════════════════
+//  PART 25 — More Google accounts. Your main account syncs both ways as before; each extra account is read-only:
+//  its calendars come in as events (fixed commitments for the planner) and Gmail looks there for Waiting-on replies too.
+//  The long-lived keys stay on the server (gcalExtra/<uid>/<acct>); here we keep only { acct, email }.
+// ════════════════════════════════════════════════════════════════════
+const CUP_GX_SCOPES=['openid','email','https://www.googleapis.com/auth/calendar.readonly','https://www.googleapis.com/auth/gmail.readonly'];
+function cupGX(){ cupEnsure(); let x=S.cup.gx; if(!x||typeof x!=='object') x=S.cup.gx={}; if(!Array.isArray(x.accts)) x.accts=Object.values(x.accts||{}); if(!x.mail||typeof x.mail!=='object') x.mail={am:'',pm:''}; return x; }
+const cupGXTok={};
+async function cupGXToken(a){ const t=cupGXTok[a]; if(t&&t.exp>Date.now()) return t.t; const j=await cupGcSrvCall('token',{ acct:a }); cupGXTok[a]={ t:j.access_token, exp:Date.now()+((+j.expires_in||3600)-60)*1000 }; return j.access_token; }
+async function cupGXApi(a, url){ const tk=await cupGXToken(a); const r=await fetch(url,{ headers:{ Authorization:'Bearer '+tk } }); const j=await r.json().catch(()=>null);
+  if(!r.ok){ const e=new Error((j&&j.error&&j.error.message)||('HTTP '+r.status)); e.status=r.status; throw e; } return j; }
+
+// add — must start in a tap (Google opens a small window and lets you pick the account)
+function cupGXAdd(){
+  const oa=window.google&&google.accounts&&google.accounts.oauth2, cid=cupGcClientId();
+  if(!oa || !cid || !cupGcSrvOn()){ cupGcLoadGis().catch(()=>{}); cupGcSrvLoad(); showToast(cupT10('Google is still loading — tap again.','Google을 불러오는 중이에요 — 다시 눌러 주세요.')); return; }
+  oa.initCodeClient({ client_id:cid, scope:CUP_GX_SCOPES.join(' '), ux_mode:'popup', select_account:true,
+    callback:r=>{ if(!r||r.error||!r.code){ showToast(cupT10('No account was added.','계정을 추가하지 않았어요.')); return; }
+      cupGcSrvCall('exchange',{ code:r.code, acct:'new' }).then(j=>{ const x=cupGX(); if(!x.accts.some(a=>a.acct===j.acct)) x.accts.push({ acct:j.acct, email:j.email });
+        cupGXTok[j.acct]={ t:j.access_token, exp:Date.now()+((+j.expires_in||3600)-60)*1000 }; save(); cupGXPaint();
+        showToast(cupT10(`Added ${j.email} — bringing in its calendar.`,`${j.email} 추가 — 캘린더를 가져와요.`)); cupGXSync(true); })
+      .catch(e=>showToast(cupT10('Couldn’t add that account.','계정을 추가하지 못했어요.')+(e&&e.reason?` (${e.reason})`:''))); },
+    error_callback:()=>{} }).requestCode();
+}
+async function cupGXRemove(a){
+  try{ await cupGcSrvCall('revoke',{ acct:a }); }catch(_){}
+  const x=cupGX(); x.accts=x.accts.filter(y=>y.acct!==a); delete cupGXTok[a];
+  for(let i=S.events.length-1;i>=0;i--) if(S.events[i]&&S.events[i].gx&&S.events[i].gx.acct===a) S.events.splice(i,1);
+  save(); render(); cupGXPaint(); showToast(cupT10('Account removed.','계정을 뺐어요.'));
+}
+
+// calendars → events (past week to two months ahead), replaced each time so edits and deletes on Google show up
+let cupGXBusy=false, cupGXAt=0;
+async function cupGXSync(force){
+  const x=cupGX(); if(!x.accts.length || cupGXBusy) return; if(!force && Date.now()-cupGXAt<10*60000) return;
+  if(!(typeof firebase!=='undefined'&&firebase.auth&&firebase.auth().currentUser)) return;
+  await cupGcSrvLoad(); if(!cupGcSrvOn()) return;
+  cupGXBusy=true; cupGXAt=Date.now();
+  const tMin=cupParse(cupAddDays(todayStr(),-7)).toISOString(), tMax=cupParse(cupAddDays(todayStr(),60)).toISOString();
+  try{
+    for(const a of x.accts){ try{
+      const cl=await cupGXApi(a.acct,'https://www.googleapis.com/calendar/v3/users/me/calendarList?minAccessRole=reader');
+      const cals=(cl.items||[]).filter(c=>c.selected!==false && !/#holiday|#contacts|#weather/i.test(c.id)).slice(0,8), got=[];
+      for(const c of cals){ const ev=await cupGXApi(a.acct,`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(c.id)}/events?singleEvents=true&orderBy=startTime&maxResults=250&timeMin=${encodeURIComponent(tMin)}&timeMax=${encodeURIComponent(tMax)}`);
+        (ev.items||[]).forEach(g=>{ const e=cupGpFromGoogle(g,{ id:c.id, color:c.backgroundColor||'' }); if(!e) return; delete e.gcal; e.id='gx_'+cupGcHash(a.acct+'|'+c.id+'|'+g.id); e.gx={ acct:a.acct, cal:c.id, id:g.id }; got.push(e); }); }
+      for(let i=S.events.length-1;i>=0;i--) if(S.events[i]&&S.events[i].gx&&S.events[i].gx.acct===a.acct) S.events.splice(i,1);
+      got.forEach(e=>S.events.push(e)); a.at=Date.now(); a.n=got.length; a.err='';
+    }catch(e){ a.err=e.status===401?'reconnect':'error'; } }
+    // Gmail in these accounts: morning and evening, like the main one
+    const h=cupNow().getHours(), slot=h>=17?'pm':h>=5?'am':'';
+    if(slot && x.mail[slot]!==todayStr()){ x.mail[slot]=todayStr(); if(slot==='pm') x.mail.am=todayStr(); await cupGXMail(); }
+    save(); render(); cupGXPaint();
+  }finally{ cupGXBusy=false; }
+}
+async function cupGXMail(){
+  const x=cupGX(); let found=0; if(!x.accts.length) return 0;
+  const items=S.tasks.filter(t=>t.waiting&&!cupDone(t)&&!t.outcome&&!t.reply).slice(0,25);
+  for(const a of x.accts){ for(const t of items){ if(t.reply) continue; const q=cupMailQuery(t); if(!q) continue;
+    try{ const j=await cupGXApi(a.acct,'https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=5&q='+encodeURIComponent(q)), no=t.replyNo||[];
+      const id=((j&&j.messages)||[]).map(m=>m.id).find(i=>!no.includes(i)); if(!id) continue;
+      const g=await cupGXApi(a.acct,'https://gmail.googleapis.com/gmail/v1/users/me/messages/'+id+'?format=metadata&metadataHeaders=From&metadataHeaders=Subject');
+      const H=n=>((g.payload&&g.payload.headers||[]).find(x=>x.name.toLowerCase()===n.toLowerCase())||{}).value||'';
+      t.reply={ id, threadId:g.threadId||id, from:cupMailFrom(H('From')), subject:H('Subject').slice(0,120), snippet:String(g.snippet||'').slice(0,160), date:+g.internalDate||Date.now(), found:Date.now(), acct:a.email }; found++;
+    }catch(e){ if(e.status===401||e.status===403) break; } } }
+  if(found){ save(); render(); showToast(cupT10(`${found} possible repl${found>1?'ies':'y'} found in your other accounts.`,`다른 계정에서 답장 ${found}개를 찾았어요.`), cupT10('Open','열기'), ()=>cupWaitOpen('')); }
+  return found;
+}
+{ const _mc=cupMailCheck; cupMailCheck=async function(manual){ const r=await _mc.apply(this,arguments); try{ const n=await cupGXMail(); if(manual&&n) render(); }catch(_){} return r; }; }
+setInterval(()=>cupGXSync(false), 10*60*1000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) setTimeout(()=>cupGXSync(false),3000); }); setTimeout(()=>cupGXSync(true), 9000);
+
+// Settings → Data & Account, under Google Calendar
+function cupGXPaint(){
+  const gc=document.getElementById('cupGc'); if(!gc) return; let el=document.getElementById('cupGX');
+  if(!el){ el=document.createElement('div'); el.id='cupGX'; el.className='cup-pref cup-pref-stack cup-gx'; gc.after(el); }
+  const x=cupGX(), st=a=>a.err==='reconnect'?`<em class="cup-late">${cupT10('sign in again','다시 로그인')}</em>`:a.at?`<em>${cupT10(`${a.n||0} events`,`일정 ${a.n||0}개`)}</em>`:`<em>${cupT10('not synced yet','아직 동기화 전')}</em>`;
+  el.innerHTML=`<span><b>${cupT10('Other Google accounts','다른 Google 계정')}</b><em>${cupT10('Read-only: their calendars come in as events, and Gmail looks for Waiting-on replies there too. Your main account above still syncs both ways.','읽기 전용: 캘린더는 일정으로 가져오고, 답변 대기 답장도 찾아요. 위의 기본 계정은 그대로 양방향이에요.')}</em></span>
+    ${x.accts.map(a=>`<div class="cup-gx-row"><span>${esc(a.email)}</span>${st(a)}${a.err==='reconnect'?`<button type="button" onclick="cupGXAdd()">${cupT10('Sign in','로그인')}</button>`:''}<button type="button" class="q" onclick="cupGXRemove('${a.acct}')">${cupT10('Remove','빼기')}</button></div>`).join('')}
+    <button type="button" class="btn btn-ghost cup-gx-add" onclick="cupGXAdd()">+ ${cupT10('Add another Google account','다른 Google 계정 추가')}</button>`;
+}
+{ const _gr=cupGcRender; cupGcRender=function(){ const r=_gr.apply(this,arguments); try{ cupGXPaint(); }catch(_){} return r; }; }
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.

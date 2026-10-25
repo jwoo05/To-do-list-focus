@@ -15,6 +15,11 @@
 //   POST { action:'exchange', code }    → { access_token, expires_in, scope }
 //   POST { action:'token' }             → { access_token, expires_in, scope }  | 401 { error:'reconnect' }
 //   POST { action:'revoke' }            → { ok:true }
+//   Extra Google accounts (read-only: their calendars and Gmail) — add  acct  to the same calls:
+//   POST { action:'exchange', code, acct:'new' } → { access_token, …, acct, email }   (stored at gcalExtra/<uid>/<acct>)
+//   POST { action:'token',  acct }               → { access_token, … } | 401 { error:'reconnect' }
+//   POST { action:'revoke', acct }               → { ok:true }
+//   POST { action:'accounts' }                   → { accounts:[{ acct, email }] }
 
 import admin from 'firebase-admin';
 
@@ -36,8 +41,16 @@ const realDeps = {
   verify: (idToken) => { ensureApp(); return admin.auth().verifyIdToken(idToken); },
   read: async (uid) => { ensureApp(); return (await admin.database().ref('gcalSecrets/' + uid).get()).val(); },
   write: (uid, v) => { ensureApp(); return admin.database().ref('gcalSecrets/' + uid).set(v); },
-  remove: (uid) => { ensureApp(); return admin.database().ref('gcalSecrets/' + uid).remove(); }
+  remove: (uid) => { ensureApp(); return admin.database().ref('gcalSecrets/' + uid).remove(); },
+  readX: async (uid, a) => { ensureApp(); return (await admin.database().ref('gcalExtra/' + uid + '/' + a).get()).val(); },
+  writeX: (uid, a, v) => { ensureApp(); return admin.database().ref('gcalExtra/' + uid + '/' + a).set(v); },
+  removeX: (uid, a) => { ensureApp(); return admin.database().ref('gcalExtra/' + uid + '/' + a).remove(); },
+  listX: async (uid) => { ensureApp(); return (await admin.database().ref('gcalExtra/' + uid).get()).val() || {}; }
 };
+// the email inside Google's id_token (it came straight from Google's token endpoint over TLS)
+const emailOf = (idt) => { try { return JSON.parse(Buffer.from(String(idt).split('.')[1], 'base64url').toString('utf8')).email || ''; } catch (_) { return ''; } };
+const acctKey = (email) => String(email || '').toLowerCase().replace(/[^a-z0-9]/g, '_').slice(0, 80);
+const okAcct = (a) => typeof a === 'string' && /^[a-z0-9_]{1,80}$/.test(a);
 
 async function google(deps, params) {
   const r = await deps.fetch(TOKEN_URL, {
@@ -65,6 +78,39 @@ export function makeHandler(deps) {
 
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     try {
+      // ── extra accounts ──
+      if (body.action === 'accounts') {
+        const all = await deps.listX(uid);
+        return res.status(200).json({ accounts: Object.keys(all).map(a => ({ acct: a, email: (all[a] && all[a].email) || '' })) });
+      }
+      if (body.acct) {
+        if (body.action === 'exchange' && body.acct === 'new') {
+          if (!body.code || typeof body.code !== 'string') return res.status(400).json({ error: 'code' });
+          const g = await google(deps, { code: body.code, grant_type: 'authorization_code', redirect_uri: 'postmessage' });
+          if (!g.ok) return res.status(400).json({ error: g.j.error || 'exchange' });
+          const email = emailOf(g.j.id_token), a = acctKey(email);
+          if (!a) return res.status(400).json({ error: 'no-email' });
+          const old = await deps.readX(uid, a), rt = g.j.refresh_token || (old && old.rt);
+          if (!rt) return res.status(400).json({ error: 'no-refresh' });
+          await deps.writeX(uid, a, { rt, scope: g.j.scope || '', email, at: Date.now() });
+          return res.status(200).json(Object.assign(tokenOut(g.j), { acct: a, email }));
+        }
+        if (!okAcct(body.acct)) return res.status(400).json({ error: 'acct' });
+        if (body.action === 'token') {
+          const s = await deps.readX(uid, body.acct);
+          if (!s || !s.rt) return res.status(401).json({ error: 'reconnect' });
+          const g = await google(deps, { refresh_token: s.rt, grant_type: 'refresh_token' });
+          if (!g.ok) { if (g.j.error === 'invalid_grant') { await deps.removeX(uid, body.acct); return res.status(401).json({ error: 'reconnect' }); } return res.status(502).json({ error: g.j.error || 'google' }); }
+          return res.status(200).json(tokenOut(g.j));
+        }
+        if (body.action === 'revoke') {
+          const s = await deps.readX(uid, body.acct);
+          if (s && s.rt) await deps.fetch(REVOKE_URL + '?token=' + encodeURIComponent(s.rt), { method: 'POST' }).catch(() => {});
+          await deps.removeX(uid, body.acct);
+          return res.status(200).json({ ok: true });
+        }
+        return res.status(400).json({ error: 'action' });
+      }
       if (body.action === 'exchange') {
         if (!body.code || typeof body.code !== 'string') return res.status(400).json({ error: 'code' });
         const g = await google(deps, { code: body.code, grant_type: 'authorization_code', redirect_uri: 'postmessage' });
