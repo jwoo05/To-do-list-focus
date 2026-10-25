@@ -10371,7 +10371,7 @@ function normalizeState(state){
   }, e));
   const remainingEvents=[];
   state.events.forEach(e=>{
-    if(['test','event','class','deadline','personal'].includes(e.type||'event')){
+    if(['test','event','class','deadline','personal','focus_block','meeting','office_hours'].includes(e.type||'event')){
       e.color=e.color||eventColorForType(e.type||'event');
       remainingEvents.push(e);
       return;
