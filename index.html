@@ -7547,6 +7547,14 @@ body.cup-on-pomo #cupSessBar{ display:none !important; }
 .cup-rev-sec > *, .cup-pm-slot > *, .cup-pl-days > *, .cup-pl-day > *{ min-width:0; }
 .cup-pl-dh{ min-width:0; } .cup-pl-dh > b{ flex:none; } .cup-pl-bar{ min-width:40px; flex:1 1 60px; } .cup-pl-dh em{ white-space:nowrap; flex:none; }
 
+/* Minimal pass */
+.sidebar .cup-nav-x{ display:none; } .sidebar .cup-nav-open .cup-nav-x{ display:flex; }
+.cup-nav-more{ color:var(--text3); position:relative; } .cup-nav-more span{ width:18px; text-align:center; } .cup-nav-dot{ width:6px; height:6px; border-radius:50%; background:var(--pace-ok, var(--green,#4dd49a)); margin-left:6px; }
+#themeBtn{ font-size:0; width:34px; height:34px; padding:0; flex:none; display:grid; place-items:center; } #themeBtn::before{ content:'◐'; font-size:calc(15px * var(--cup-fs,1)); }
+.sidebar-actions:has(#themeBtn){ justify-content:flex-end; }
+@media (hover:hover){ .cup-pm-pool .cup-pm-add, #cupPmPool .cup-pm-add{ opacity:0; transition:opacity .12s; } #cupPmPool .cup-pm-task:hover .cup-pm-add, #cupPmPool .cup-pm-add:focus-visible{ opacity:1; } }
+#themeBtn{ font-size:0 !important; line-height:0 !important; color:var(--text2); } #themeBtn::before{ font-size:calc(15px * var(--cup-fs,1)) !important; line-height:1 !important; } .cup-todo[hidden]{ display:none !important; }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -20615,12 +20623,11 @@ function cupUpcomingHTML(list, compact){
 }
 function cupDeadlinesHTML(){
   const lim=cupTSDate(+cupPref('deadlineDays',30)||30);
-  const td=todayStr(); const list=cupOpenTasks().filter(t=>!t.waiting&&t.due&&t.due>=td&&t.due<=lim)   /* late items live in Tasks › Overdue */.sort((a,b)=>(a.due+(a.dueTime||'99')).localeCompare(b.due+(b.dueTime||'99'))).slice(0,8);
-  return `<div class="cup-dl-head"><span>Task</span><span>Date</span></div>`
-    + (list.length?list.map(t=>{ const d=cupDays(t.due), late=cupPastDue(t);
+  const td=todayStr(); const list=cupOpenTasks().filter(t=>!t.waiting&&t.due&&t.due>td&&t.due<=lim&&!(t.scheduledDates||[]).includes(td))   /* today's are already in To do today */   /* late items live in Tasks › Overdue */.sort((a,b)=>(a.due+(a.dueTime||'99')).localeCompare(b.due+(b.dueTime||'99'))).slice(0,8);
+  return (list.length?list.map(t=>{ const d=cupDays(t.due), late=cupPastDue(t);
       return `<div class="cup-dl"><button class="cup-check2" onclick="toggleTask('${t.id}')" aria-label="Done"></button><button class="t" onclick="editTask('${t.id}')">${esc(t.title)}${cupCommit(t.commitId)?`<span class="cup-dl-f">${esc(cupCommit(t.commitId).name.split(' · ')[0])}</span>`:''}</button>
         <span class="cup-dl-date ${late?'cup-late':d<=1?'soon':''}">${d===0?'Today':d===1?'Tomorrow':d<0?`${-d}d late`:cupParse(t.due).toLocaleDateString(undefined,{month:'short',day:'numeric'})}${t.dueTime?' · '+cupT12(t.dueTime):''}</span></div>`; }).join('')
-      : '<div class="cup-dim" style="padding:6px 0">No deadlines coming up.</div>')
+      : '<div class="cup-dim" style="padding:6px 0">Nothing due after today.</div>')
     + `<button class="cup-more-btn" onclick="cupOpenTaskSheet(null,{due:'${cupTSDate(1)}'})">+ Add a deadline</button>`;
 }
 // Goals: title + current / target (numbers or money)
@@ -21879,7 +21886,7 @@ function cupPrefsRender(){
     <div class="cup-pref"><span><b>Text size</b><em>Applies to everything, including small labels.</em></span>
       <span class="cup-seg">${[['compact','S'],['normal','M'],['spacious','L']].map(([v,l])=>`<button type="button" class="${dens===v?'on':''}" onclick="setDensity('${v}')">${l}</button>`).join('')}</span></div>
     ${tog('easyRead','Easy-read text','Roomier spacing and a more open typeface.')}
-    ${tog('extras','Extra tools','Shows the S/M/L and shortcut buttons, the Focus page, Upcoming in the sidebar, Home blocks, Prep, Gentle day and the Home filter.')}
+    ${tog('extras','Extra tools','Shows the S/M/L and shortcut buttons, Upcoming in the sidebar, Home blocks, Prep, Gentle day and the Home filter.')}
     ${tog('minimal','Minimal mode','Home is one card: your next task with Focus and Later. Pages and Search stay in the sidebar.')}
     ${tog('gentle','Gentle late tasks','Late tasks show “from Oct 12” in a soft color instead of a red alarm.')}
     ${tog('gardenOn','Garden, gems and streaks','Turn off to remove all streak and tree pressure. Rest days keep a streak safe.')}
@@ -25652,7 +25659,7 @@ function cupW3Settings(){
   // the developer OAuth client ID field moves from Google Calendar to Advanced
   let cid=document.getElementById('cupW3Cid'); const need=!!document.getElementById('cupGcClient');
   if(need && !cid){ cid=document.createElement('div'); cid.id='cupW3Cid'; cid.className='cup-pref'; body.appendChild(cid); }
-  if(cid){ cid.hidden=!need; put(cid,970,1);
+  if(cid){ cid.hidden=!need || (typeof cupGcSrvOn==='function' && cupGcSrvOn());   /* the app's own sign-in is set up: nobody needs this */ put(cid,970,1);
     const v=(cupGc().clientId||''), html=`<span><b>${cupW3T('Google OAuth client ID (developers)','Google OAuth 클라이언트 ID (개발자용)')}</b><em>${cupW3T('Only needed if you run your own copy of Focus Hub.','Focus Hub를 직접 운영할 때만 필요해요.')}</em></span>
       <input type="text" spellcheck="false" autocomplete="off" placeholder="…apps.googleusercontent.com" value="${esc(v)}" onchange="cupGcSetClient(this.value)" aria-label="OAuth client ID" style="max-width:220px">`;
     if(cid._h!==html && !cid.contains(document.activeElement)){ cid.innerHTML=html; cid._h=html; } }
@@ -26218,7 +26225,7 @@ cupReviewHTML=function(){
   return `<div class="cup-rev-h"><b>${cupT10('Today in review','오늘 돌아보기')}</b><button type="button" class="cup-rev-x" onclick="cupReviewHide()" aria-label="${cupT10('Hide until tomorrow','내일까지 숨기기')}" title="${cupT10('Hide until tomorrow','내일까지 숨기기')}">✕</button></div>
     <div class="cup-rev-sum"><span>${sum}${mins?`<span class="cup-dim"> · ${cupHrs(mins)} ${cupT10('focused','집중')}</span>`:''}</span>${total?`<span class="cup-rev-bar"><i style="width:${pct}%"></i></span>`:''}</div>
     ${open.length?`<div class="cup-rev-sec"><div class="cup-rev-st"><span>${cupT10('Still open','남은 일')} <em>${open.length}</em></span><button type="button" class="cup-hbtn" onclick="cupRevPush()">${cupT10('Move to tomorrow','내일로 옮기기')}</button></div>
-      ${open.slice(0,5).map(row).join('')}${open.length>5?`<button type="button" class="cup-more-btn" onclick="showPage('todo')">${cupT10(`+ ${open.length-5} more`,`+ ${open.length-5}개 더`)}</button>`:''}</div>`:''}
+      </div>`:''}
     ${done.length?`<div class="cup-rev-sec"><div class="cup-rev-st"><span>${cupT10('Done','완료')} <em>${done.length}</em></span></div><div class="cup-rev-done">${done.slice(0,6).map(t=>`<button type="button" onclick="editTask('${t.id}')" data-keep>✓ ${esc(t.title)}</button>`).join('')}${done.length>6?`<span class="cup-dim">+${done.length-6}</span>`:''}</div></div>`:''}
     <div class="cup-rev-sec"><div class="cup-rev-st"><span>${cupT10('Tomorrow','내일')}</span></div><div class="cup-rev-tmr">${tmr}</div></div>
     ${lines.length?`<div class="cup-rev-j"><span>${cupT10(`From your journal: make ${lines.length} task${lines.length===1?'':'s'} for tomorrow?`,`일기에서 내일 할 일 ${lines.length}개를 만들까요?`)}</span><ul>${lines.map(s=>`<li data-keep>${esc(s)}</li>`).join('')}</ul><button type="button" class="btn btn-accent" onclick="cupJTomorrowMake(todayStr())">${cupT10('Add to tomorrow','내일에 추가')}</button></div>`
@@ -27592,6 +27599,44 @@ function cupMailDecorate(){
 }
 { const _rw=cupRenderWaiting; cupRenderWaiting=function(){ const r=_rw.apply(this,arguments); try{ cupMailDecorate(); }catch(_){} return r; }; }
 try{ cupGcLoadGis().catch(()=>{}); cupGcSrvLoad(); }catch(_){}
+
+// ════════════════════════════════════════════════════════════════════
+//  PART 18 — Minimal pass: fewer things on screen at once, nothing removed.
+//   · Sidebar: Home, Tasks & Calendar, Focus, Journal up front; Goals, Waiting on, Money, Friends fold under “More”
+//     (opens by itself when you're on one of them; a dot shows when a Waiting reply was found).
+//   · Home: the task in “Do this next” isn't listed again right below it.
+//   · Settings is a gear (it looked like a sun next to the theme button); the theme button is a small icon.
+// ════════════════════════════════════════════════════════════════════
+const CUP_NAV_MORE=['compass','waiting','money','friends'];
+let cupNavMore=false; try{ cupNavMore=localStorage.getItem('cup_nav_more')==='1'; }catch(_){}
+function cupNavMoreTog(){ cupNavMore=!cupNavMore; try{ localStorage.setItem('cup_nav_more',cupNavMore?'1':'0'); }catch(_){} cupNavTidy(); }
+function cupNavTidy(){
+  const nav=document.querySelector('.sidebar nav, .sidebar .nav'); if(!nav) return;
+  let more=nav.querySelector('.cup-nav-more');
+  if(!more){ more=document.createElement('button'); more.type='button'; more.className='nav-item cup-nav-more'; more.setAttribute('onclick','cupNavMoreTog()'); }
+  const items=CUP_NAV_MORE.map(p=>nav.querySelector(`.nav-item[data-page="${p}"]`)).filter(Boolean);
+  if(!items.length){ more.remove(); return; }
+  const anchor=nav.querySelector('.nav-item[data-page="journal"]')||items[0].previousElementSibling;
+  if(more.previousElementSibling!==anchor) anchor.after(more);
+  let at=more; items.forEach(b=>{ b.classList.add('cup-nav-x'); if(at.nextElementSibling!==b) at.after(b); at=b; });
+  const here=typeof currentPage!=='undefined' && CUP_NAV_MORE.includes(currentPage), open=cupNavMore||here;
+  nav.classList.toggle('cup-nav-open', open);
+  const dot=S.tasks.some(t=>t.waiting&&!cupDone(t)&&t.reply);
+  more.innerHTML=`<span>${open?'−':'+'}</span> ${cupT10('More','더보기')}${dot&&!open?'<i class="cup-nav-dot"></i>':''}`;
+  more.setAttribute('aria-expanded', open?'true':'false');
+  // gear for Settings, small icon for theme
+  const set=document.querySelector('.sidebar-action-btn[title="Settings"]');
+  if(set && !set.dataset.gear){ set.dataset.gear='1'; set.innerHTML='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'; }
+  const th=document.getElementById('themeBtn'); if(th){ th.title=th.getAttribute('aria-label')||cupT10('Light / dark','라이트 / 다크'); th.setAttribute('aria-label',cupT10('Switch light / dark','라이트 / 다크 전환')); }
+}
+{ const _rc=renderCup; renderCup=function(){ const r=_rc.apply(this,arguments); try{ cupNavTidy(); cupHomeDedup(); }catch(_){} return r; }; }
+{ const _sp=showPage; showPage=function(){ const r=_sp.apply(this,arguments); try{ cupNavTidy(); }catch(_){} return r; }; }
+// the “Do this next” task isn't repeated in To do today right below it
+function cupHomeDedup(){
+  const box=document.getElementById('cupW3Today'); if(!box) return; const first=(cupNextQueue()[0]||{}).t;
+  box.querySelectorAll('.cup-todo').forEach(r=>{ r.style.display=(first && r.innerHTML.includes(`'${first.id}'`))?'none':''; });
+}
+{ const _rh=cupRenderHome; cupRenderHome=function(){ const r=_rh.apply(this,arguments); try{ cupHomeDedup(); }catch(_){} return r; }; }
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
