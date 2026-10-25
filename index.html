@@ -7589,6 +7589,8 @@ body.cup-on-pomo #cupSessBar{ display:none !important; }
 .cup-fb-when{ font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text3); margin-bottom:6px; }
 .cup-fb-row{ display:flex; align-items:center; gap:10px; padding:8px 0; border-top:1px solid color-mix(in srgb, var(--border) 55%, transparent); }
 .cup-fb-n{ width:24px; font-size:calc(11.5px * var(--cup-fs,1)); color:var(--text3); font-variant-numeric:tabular-nums; } .cup-fb-t{ flex:1; min-width:0; text-align:left; font-size:calc(14px * var(--cup-fs,1)); } .cup-fb-row.d .cup-fb-t{ color:var(--text3); text-decoration:line-through; }
+.cup-fb-tm{ width:104px; flex:none; font-size:calc(12px * var(--cup-fs,1)); color:var(--text2); font-variant-numeric:tabular-nums; }
+.cup-pl-pace{ display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end; } .cup-pl-pace button{ padding:5px 11px; border:1px solid var(--border); border-radius:999px; font-size:calc(12px * var(--cup-fs,1)); color:var(--text2); } .cup-pl-pace button.on{ border-color:var(--accent); color:var(--text); background:color-mix(in srgb, var(--accent) 12%, transparent); }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -27493,6 +27495,8 @@ function cupPlnGaps(ds, busy, len, minStart, maxEnd){
 // ── the planner ──
 function cupPlnBuild(nDays){
   const P=cupPln(), td=todayStr(), foc=cupPlnFocus(), brk=Math.max(3,Math.round(foc/5)), capU=Math.max(1,Math.floor(P.cap/foc));
+  // pace: how long a focus block runs before a real rest, and how long that rest is — tired days get shorter blocks and longer gaps
+  const pace=Math.max(0,Math.min(3,(+P.space||0)+(typeof cupEnergyLow==='function'&&cupEnergyLow()?1:0))), blockMax=[4,3,2,2][pace], rest=[15,25,40,60][pace];
   const days=Array.from({length:nDays||7},(_,i)=>{ const ds=cupAddDays(td,i); return { ds, busy:cupPlnBusy(ds), blocks:[], units:0, cap:(i===0&&typeof cupEnergyLow==='function'&&cupEnergyLow())?Math.max(1,Math.floor(capU/2)):capU }; });
   const ask=[], work=[], skipped=[];
   S.tasks.forEach(t=>{ if(cupDone(t)||t.isHabit||t.waiting) return; const c=cupCatOf(t); if(!c){ ask.push(t); return; } if(c!=='commit' && cupRate(c)>0) work.push(t); });
@@ -27503,13 +27507,16 @@ function cupPlnBuild(nDays){
   const todo=work.filter(t=>t.due && t.due<=horizon).sort((a,b)=>urg(a)-urg(b) || a.due.localeCompare(b.due));
   const undated=work.filter(t=>!t.due).length, far=work.filter(t=>t.due && t.due>horizon).length;
   const put=(day,len,title,cat,ids,units,minStart,maxEnd)=>{ const g=cupPlnGaps(day.ds,day.busy,len,minStart,maxEnd)[0]; if(!g) return false;
-    const b={ ds:day.ds, s:g.s, e:g.s+len, title, cat, ids, units:units||0 }; day.busy.push({s:b.s,e:b.e+brk}); day.blocks.push(b); return true; };
+    const b={ ds:day.ds, s:g.s, e:g.s+len, title, cat, ids, units:units||0 };
+    if(units){ day.runU=(day.runEnd===b.s?day.runU||0:0)+units; }                 // pomodoros in a row so far
+    const full=units && day.runU>=blockMax; if(full) day.runU=0;
+    day.runEnd=full?null:b.e+brk; day.busy.push({s:b.s,e:b.e+brk+(full||!units?rest:0)}); day.blocks.push(b); return true; };
   todo.forEach(t=>{ let left=Math.ceil(cupFitEff(t)/foc);
     const lastIdx=t.due<td?Math.min(days.length-1,2):Math.max(0,Math.min(days.length-1,days.findIndex(d=>d.ds===t.due)<0?days.length-1:days.findIndex(d=>d.ds===t.due)));
     let guard=0;
     while(left>0 && guard++<30){ let ok=false;
       const order=days.slice(0,lastIdx+1).map((d,i)=>[d,i]).filter(([d])=>P.over||d.units<d.cap).sort((a,b)=>a[0].units-b[0].units||a[1]-b[1]);
-      for(const [d] of order){ let chunk=Math.min(left,4,P.over?4:d.cap-d.units);
+      for(const [d] of order){ let chunk=Math.min(left,blockMax,P.over?blockMax:d.cap-d.units);
         while(chunk>=1){ const len=chunk*foc+(chunk-1)*brk; const cc=cupCatOf(t), win=cc==='life'?[9*60,20*60]:[9*60,22*60]; if(put(d,len,t.title,cc,[t.id],chunk,win[0],win[1])){ d.units+=chunk; left-=chunk; ok=true; break; } chunk--; }
         if(ok) break; }
       if(!ok) break; }
@@ -27523,7 +27530,7 @@ function cupPlnBuild(nDays){
       if(ok) placed++; }
     if(placed<(+n||0)) noRoom.push([cat,(+n||0)-placed]); });
   days.forEach(d=>d.blocks.sort((a,b)=>a.s-b.s));
-  return { days, skipped, ask, foc, brk, capU, undated, far, noRoom };
+  return { days, skipped, ask, foc, brk, capU, undated, far, noRoom, pace, blockMax, rest };
 }
 
 // ── the sheet ──
@@ -27543,6 +27550,8 @@ function cupPlanRender(){
   host.innerHTML=`
     <section class="cup-pl-cal"><div><b>${cupT10('Your capacity','내 용량')}</b><span>${cupT10(`${capH} of study a day · ${R.foc}-minute pomodoros`,`하루 공부 ${capH} · 뽀모도로 ${R.foc}분`)}</span></div>
       <div class="cup-pl-step"><button type="button" onclick="cupPlanCap(-30)" aria-label="less">−</button><button type="button" onclick="cupPlanCap(30)" aria-label="more">+</button></div></section>
+    <section class="cup-pl-cal"><div><b>${cupT10('Pace','속도')}</b><span>${cupT10(`Blocks of up to ${R.blockMax} pomodoros, then ${R.rest} min rest`,`블록당 최대 ${R.blockMax}뽀모도로, 그다음 ${R.rest}분 휴식`)}</span></div>
+      <div class="cup-pl-pace">${[[0,cupT10('Steady','보통')],[1,cupT10('More breaks','여유')],[2,cupT10('Gentle','가볍게')]].map(([v,l])=>`<button type="button" class="${Math.min(2,+P.space||0)===v?'on':''}" onclick="cupPlanSet('space',${v})">${l}</button>`).join('')}</div></section>
     <section class="cup-pl-sec"><b>${logged?cupT10(`Today felt ${logged.score}/10`,`오늘 ${logged.score}/10`):cupT10('End-of-day condition (1 drained · 10 great)','하루 끝 컨디션 (1 지침 · 10 최고)')}</b>
       <div class="cup-pl-rate">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="${logged&&logged.score===n?'on':''}" onclick="cupPlanRate(${n})">${n}</button>`).join('')}</div>
       <div class="cup-pl-hint">${cupT10('Each evening’s number nudges tomorrow’s limit — down when it was too much, up slowly when it felt easy.','저녁마다 숫자로 내일의 한도를 조절해요. 힘들었으면 줄이고, 여유로우면 천천히 늘려요.')}</div></section>
@@ -27579,7 +27588,8 @@ function cupPlanRate(n){
   P.log[td]={ score:n, planned, done };
   const recent=Object.keys(P.log).sort().slice(-5).map(k=>P.log[k]), avg=recent.reduce((a,r)=>a+r.score,0)/recent.length;
   let msg=cupT10('Thanks — logged.','기록했어요.');
-  if(n<=4 || (recent.length>=3 && avg<=5)){ P.cap=Math.max(90,P.cap-30); msg=cupT10(`That was a lot — your daily limit is now ${cupFitH(P.cap)}.`,`많이 힘들었군요 — 하루 한도를 ${cupFitH(P.cap)}로 낮췄어요.`); }
+  if(n<=4 || (recent.length>=3 && avg<=5)){ P.space=Math.min(3,(+P.space||0)+1); P.cap=Math.max(90,P.cap-30); msg=cupT10(`That was a lot — tomorrow has shorter blocks, longer breaks, and ${cupFitH(P.cap)} of study.`,`많이 힘들었군요 — 내일은 블록을 짧게, 쉬는 시간을 길게, 공부는 ${cupFitH(P.cap)}로 줄였어요.`); }
+  else if(recent.length>=3 && recent.slice(-3).every(r=>r.score>=7) && (+P.space||0)>0){ P.space=(+P.space)-1; msg=cupT10('Feeling better — blocks are a little longer again.','좋아졌어요 — 블록을 다시 조금 길게 잡을게요.'); }
   else if(recent.length>=3 && recent.slice(-3).every(r=>r.score>=7) && (!P.lastUp || cupMnDays(P.lastUp)<=-4)){ P.cap=Math.min(480,P.cap+15); P.lastUp=td; msg=cupT10(`Going well — limit nudged up to ${cupFitH(P.cap)}.`,`잘 되고 있어요 — 한도를 ${cupFitH(P.cap)}로 조금 올렸어요.`);
     if(avg>=8 && recent.every(r=>!r.planned||r.done>=r.planned*0.8) && (!P.lastFocusUp || cupMnDays(P.lastFocusUp)<=-14) && foc<50){ P.focus=foc+5; P.lastFocusUp=td; msg+=' '+cupT10(`Pomodoros now ${P.focus} min.`,`뽀모도로 ${P.focus}분.`); } }
   save(); showToast(msg); cupPlanRender();
@@ -27737,10 +27747,10 @@ function cupHomeDedup(){
 const cupAutoOn = () => !!cupPln().auto;
 const cupAutoId = b => 'auto_'+cupGcHash([b.cat,(b.ids||[]).join(','),b.ds,b.s]);
 // back-to-back task chunks become one focus block: its pomodoros carry the tasks, in order (one cycle: up to 4 per block)
-function cupFocusMerge(blocks, foc, brk){
+function cupFocusMerge(blocks, foc, brk, max){
   const out=[], tasks=blocks.filter(b=>(b.ids||[]).length).sort((a,b)=>a.s-b.s); let cur=null;
   tasks.forEach(b=>{ const slots=Array.from({length:b.units||1},()=>[b.ids[0]]);
-    if(cur && b.s-cur.e<=brk+1 && cur.slots.length+slots.length<=4){ cur.e=b.e; cur.slots.push(...slots); }
+    if(cur && b.s-cur.e<=brk+1 && cur.slots.length+slots.length<=(max||4)){ cur.e=b.e; cur.slots.push(...slots); }
     else { cur={ ds:b.ds, s:b.s, e:b.e, cat:'focus', slots }; out.push(cur); } });
   out.forEach(f=>{ f.ids=[...new Set(f.slots.flat())]; f.units=f.slots.length; f.title=cupT10(`Focus · ${f.units}×${foc}`,`집중 · ${f.units}×${foc}`); });
   return out.concat(blocks.filter(b=>!(b.ids||[]).length));
@@ -27748,7 +27758,7 @@ function cupFocusMerge(blocks, foc, brk){
 let cupAutoSig='', cupAutoT=0, cupAutoBusy=false, cupAutoInfo={ skipped:0, ask:0 };
 function cupAutoSync(){
   const R=cupPlnBuild(7), td=todayStr(), n=cupNow(), nowM=n.getHours()*60+n.getMinutes(), want=new Map(); let ch=0;
-  R.days.forEach(d=>{ d.blocks=cupFocusMerge(d.blocks,R.foc,R.brk); d.blocks.forEach(b=>want.set(cupAutoId(b),b)); });
+  R.days.forEach(d=>{ d.blocks=cupFocusMerge(d.blocks,R.foc,R.brk,R.blockMax); d.blocks.forEach(b=>want.set(cupAutoId(b),b)); });
   for(let i=S.events.length-1;i>=0;i--){ const e=S.events[i]; if(!e.auto || e.date<td) continue;
     if(e.date===td && cupFitMin(e.endTime)<=nowM){ const ids=e.taskIds||[]; if(!ids.length || ids.every(id=>{ const t=S.tasks.find(x=>x.id===id); return !t||cupDone(t); })) continue; }   // history stays; a missed block moves
     const b=want.get(e.id); if(b){ if(e.title!==b.title){ e.title=b.title; ch++; } want.delete(e.id); continue; }
@@ -27814,7 +27824,7 @@ function cupAutoChip(){
 { const _ai=cupAgItems; cupAgItems=function(ds){ const out=_ai.apply(this,arguments), inBlock=new Set();
   out.forEach(it=>{ if(!it.ev) return; const e=S.events.find(x=>x.id===it.id); if(!e||!e.auto||!(e.taskIds||[]).length) return;
     const ts=e.taskIds.map(id=>S.tasks.find(x=>x.id===id)).filter(Boolean); ts.forEach(t=>inBlock.add(t.id));
-    it.focus=e.id; it.done=ts.length&&ts.every(cupDone); it.meta=ts.map(t=>t.title).join(' · '); });
+    it.focus=e.id; it.done=ts.length&&ts.every(cupDone); const open=ts.filter(t=>!cupDone(t)); it.title='◎ '+(open.length?open[0].title+(open.length>1?` +${open.length-1}`:''):cupT10('Focus — all done','집중 — 모두 완료')); it.meta=e.title; });
   return out.filter(it=>it.ev||!inBlock.has(it.id)); }; }   // a to-do inside a focus block isn't listed again on its own
 { const _ar=cupAgRow; cupAgRow=function(it,ds){ const h=_ar.apply(this,arguments); return it.focus?h.replace(`onclick="editEvent('${it.id}')"`,`onclick="cupFocusBlockOpen('${it.id}')"`):h; }; }
 // a focus block is an event with tasks inside: tapping it shows them (✓ each), Start focus on the day, or edit the time
@@ -27822,7 +27832,8 @@ function cupFocusBlockOpen(id){
   const e=S.events.find(x=>x.id===id); if(!e) return; const td=todayStr(), live=typeof cupPomoLive==='function'&&cupPomoLive();
   const slots=(e.slots||(e.taskIds||[]).map(x=>[x]));
   const rows=slots.map((ids,i)=>ids.map(tid=>{ const t=S.tasks.find(y=>y.id===tid); if(!t) return ''; const d=cupDone(t);
-    return `<div class="cup-fb-row ${d?'d':''}"><span class="cup-fb-n">#${i+1}</span><button type="button" class="cup-check2 ${d?'d':''}" onclick="toggleTask('${t.id}');cupFocusBlockOpen('${id}')" aria-label="${cupT10('Done','완료')}"></button><button type="button" class="cup-fb-t" onclick="closeModal('mCupFB');editTask('${t.id}')">${esc(t.title)}</button></div>`; }).join('')).join('');
+    const st=cupFitMin(e.time)+i*(cupPlnFocus()+Math.max(3,Math.round(cupPlnFocus()/5)));
+    return `<div class="cup-fb-row ${d?'d':''}"><span class="cup-fb-n">#${i+1}</span><span class="cup-fb-tm">${cupT12(cupFitHM(st))}–${cupT12(cupFitHM(st+cupPlnFocus()))}</span><button type="button" class="cup-check2 ${d?'d':''}" onclick="toggleTask('${t.id}');cupFocusBlockOpen('${id}')" aria-label="${cupT10('Done','완료')}"></button><button type="button" class="cup-fb-t" onclick="closeModal('mCupFB');editTask('${t.id}')">${esc(t.title)}</button></div>`; }).join('')).join('');
   cupMnModal('mCupFB', esc(e.title), `<div class="cup-fb-when">${cupWd(e.date)} ${cupFmt(e.date)} · ${cupT12(e.time)}–${cupT12(e.endTime)}</div>${rows||`<div class="cup-dim">${cupT10('Every task in this block is done.','이 블록의 할 일을 모두 끝냈어요.')}</div>`}`,
     `<button class="btn btn-ghost" onclick="closeModal('mCupFB');cupFBRaw=true;editEvent('${id}')">${cupT10('Change time','시간 바꾸기')}</button>${e.date===td?`<button class="btn btn-accent" onclick="cupFocusBlockStart('${id}')">${live?cupT10('Open Focus','집중 열기'):cupT10('Start focus','집중 시작')}</button>`:`<button class="btn btn-accent" onclick="closeModal('mCupFB')">${cupT10('Done','완료')}</button>`}`);
 }
@@ -27904,6 +27915,18 @@ let cupTLCatAll={};
       return `<section class="cup-tl-sec"><div class="cup-tl-h">${head}</div>${shown.map(t=>cupTLRow(t,true)).join('')}${ts.length>6&&!all?`<button type="button" class="cup-more-btn cup-tl-more" onclick="cupTLCatAll['${k}']=true;cupRenderTaskList()">${cupT10(`Show all ${ts.length}`,`${ts.length}개 모두 보기`)}</button>`:''}</section>`; }).join('');
     top.insertAdjacentHTML('afterend', html); cupTLDnD();
   }catch(e){ console.warn(e); } return r; }; }
+
+// Day / Week / Month read cleanly: a focus block is named by its tasks; the all-day lane skips what's already in a block and untimed habits (Home has those)
+let cupInAg=false;
+{ const _ai2=cupAgItems; cupAgItems=function(){ cupInAg=true; try{ return _ai2.apply(this,arguments); } finally{ cupInAg=false; } }; }
+{ const _ct=cupCalTasksOn; cupCalTasksOn=function(ds){ let l=_ct.apply(this,arguments); if(cupInAg) return l;
+  try{ const inBlk=new Set(); S.events.forEach(e=>{ if(e.auto && e.date===ds) (e.taskIds||[]).forEach(id=>inBlk.add(id)); });
+    l=l.filter(t=>!(t.isHabit && !t.scheduledTime) && !inBlk.has(t.id)); }catch(_){} return l; }; }
+{ const _ti=collectTimedItems; collectTimedItems=function(ds){ const out=_ti.apply(this,arguments);
+  try{ out.forEach(it=>{ if(it.kind!=='event') return; const e=S.events.find(x=>x.id===it.id); if(!e||!e.auto||!(e.taskIds||[]).length) return;
+    const ts=e.taskIds.map(id=>S.tasks.find(x=>x.id===id)).filter(t=>t&&!cupDone(t));
+    it.title='◎ '+(ts.length?ts[0].title+(ts.length>1?` +${ts.length-1}`:''):cupT10('Focus — all done','집중 — 모두 완료')); it.isFocus=false; it.taskIds=[]; it.onClick=`cupFocusBlockOpen('${e.id}')`; }); }catch(_){}
+  return out; }; }
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
