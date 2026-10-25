@@ -7585,6 +7585,7 @@ body.cup-on-pomo #cupSessBar{ display:none !important; }
 .cup-hb-until{ font-size:calc(11.5px * var(--cup-fs,1)); color:var(--accent); margin-left:8px; white-space:nowrap; }
 .cup-hbm-end{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; } .cup-hbm-end input{ flex:1 1 150px; } .cup-hbm-end button{ padding:5px 11px; border:1px solid var(--border); border-radius:999px; font-size:calc(12px * var(--cup-fs,1)); color:var(--text2); } .cup-hbm-end button:hover{ border-color:var(--accent); }
 .cup-hbm-hint{ font-size:calc(12px * var(--cup-fs,1)); margin:4px 0 6px; }
+.cup-hb-g em{ font-style:normal; margin-left:auto; letter-spacing:0; text-transform:none; }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -26976,7 +26977,8 @@ function cupHabitsHTML(){
   const first=cupDaysIntoWeek()===1; if(first) sm.pct=Math.round(doneN/hab.length*100);   // day 1 of the week: there's no week yet, so show today
   const hit=sm.pct!==null && sm.pct>=sm.goal;
   // grouped by category, the ones you rate highest first (Faith, Appointments, Habits, Health…)
-  const catOf=t=>t.habitEnd?'_short':((typeof cupCatOf==='function'&&cupCatOf(t))||'habit'), rateOf=k=>k==='_short'?9:typeof cupRate==='function'?cupRate(k):3;
+  const catOf=t=>t.habitEnd?'_short':t.routine?'r:'+t.routine:((typeof cupCatOf==='function'&&cupCatOf(t))||'habit'), rateOf=k=>k==='_short'?9:k.startsWith('r:')?8:typeof cupRate==='function'?cupRate(k):3;
+  const gN={}, gD={}; hab.forEach(t=>{ const k=catOf(t); gN[k]=(gN[k]||0)+1; if(cupHabitDoneToday(t)) gD[k]=(gD[k]||0)+1; });
   hab.sort((a,b)=>rateOf(catOf(b))-rateOf(catOf(a)) || catOf(a).localeCompare(catOf(b)) || (a.scheduledTime||'12:00').localeCompare(b.scheduledTime||'12:00'));
   const groups=new Set(hab.map(catOf)).size>1;
   const dots=hab.map(t=>`<i class="${cupHabitDoneToday(t)?'d':''}"></i>`).join('');
@@ -26990,7 +26992,7 @@ function cupHabitsHTML(){
     <div class="cup-hb-bar ${hit?'hit':''}" role="img" aria-label="${cupT10('Habit rate this week','이번 주 습관 달성률')} ${sm.pct||0}%, ${cupT10('goal','목표')} ${sm.goal}%"><i style="width:${Math.min(100,sm.pct||0)}%"></i><u style="left:${sm.goal}%"></u></div></div>`;
   let lastCat='';
   const rows=hab.map(t=>{ const d=cupHabitDoneToday(t), w=cupHbWeek(t), miss=d?0:cupHbMisses(t), cat=catOf(t);
-    const gh=groups&&cat!==lastCat?`<div class="cup-hb-g"><i style="background:${cat==='_short'?'var(--accent)':(typeof CUP_CAT_COL!=='undefined'&&CUP_CAT_COL[cat])||'var(--text3)'}"></i>${cat==='_short'?cupT10('Short commitments','짧은 약속'):typeof cupCatName==='function'?cupCatName(cat):cat}</div>`:''; lastCat=cat;
+    const gh=groups&&cat!==lastCat?`<div class="cup-hb-g"><i style="background:${cat==='_short'||cat.startsWith('r:')?'var(--accent)':(typeof CUP_CAT_COL!=='undefined'&&CUP_CAT_COL[cat])||'var(--text3)'}"></i>${cat==='_short'?cupT10('Short commitments','짧은 약속'):cat.startsWith('r:')?esc(cat.slice(2)):typeof cupCatName==='function'?cupCatName(cat):cat}${gN[cat]>1?`<em>${gD[cat]||0}/${gN[cat]}</em>`:''}</div>`:''; lastCat=cat;
     const rate = w.pct!==null ? `<span class="cup-hb-rate ${w.pct>=sm.goal?'ok':''}">${w.pct}%</span>` : `<span class="cup-hb-rate dim">${cupWeekCount(t)}</span>`;
     const count = t.weeklyGoal ? `${cupWeekCount(t)}/${t.weeklyGoal}` : (w.plan?`${w.got}/${w.plan}`:'');
     const total=cupHbTotal(t);
@@ -27036,6 +27038,8 @@ function cupHbPlan(id){
       <label class="cup-hbm-l" for="cupHbmEnd">${cupT10('Short commitment — until','짧은 약속 — 언제까지')}</label>
       <div class="cup-hbm-end"><input id="cupHbmEnd" type="date" value="${esc(t.habitEnd||'')}" min="${todayStr()}">${[[(()=>{ const d=cupParse(todayStr()); return cupISO(new Date(d.getFullYear(),d.getMonth()+1,0)); })(),cupT10('End of month','이번 달 말')],[cupAddDays(todayStr(),13),cupT10('2 weeks','2주')],['',cupT10('No end','계속')]].map(([v,l])=>`<button type="button" onclick="document.getElementById('cupHbmEnd').value='${v}'">${l}</button>`).join('')}</div>
       <div class="cup-dim cup-hbm-hint">${cupT10('For something you do for a season — it leaves your list after this date.','한 시기 동안만 하는 것 — 이 날짜가 지나면 목록에서 빠져요.')}</div>
+      <label class="cup-hbm-l" for="cupHbmRt">${cupT10('Part of a routine','루틴으로 묶기')}</label>
+      <div class="cup-hbm-end"><input id="cupHbmRt" maxlength="30" list="cupHbmRtList" placeholder="${cupT10('e.g. Night routine','예: 밤 루틴')}" value="${esc(t.routine||'')}"><datalist id="cupHbmRtList">${[...new Set(S.tasks.filter(x=>x.isHabit&&x.routine).map(x=>x.routine))].map(r=>`<option value="${esc(r)}">`).join('')}</datalist>${[cupT10('Morning routine','아침 루틴'),cupT10('Night routine','밤 루틴')].map(l=>`<button type="button" onclick="document.getElementById('cupHbmRt').value='${l}'">${l}</button>`).join('')}</div>
       <label class="cup-hbm-l" for="cupHbmWhy">${cupT10('Why do you do this?','이걸 왜 하나요?')}</label>
       <input id="cupHbmWhy" maxlength="120" placeholder="${cupT10('One line — the reason you’d tell a friend','한 줄로 — 친구에게 말할 이유')}" value="${esc(t.why||'')}">
       <label class="cup-hbm-l" for="cupHbmCue">${cupT10('After… (your cue)','…하고 나서 (신호)')}</label>
@@ -27052,6 +27056,7 @@ function cupHbPlan(id){
 }
 function cupHbPlanSave(id){
   const t=S.tasks.find(x=>x.id===id); if(!t) return;
+  const rt=(document.getElementById('cupHbmRt')?.value||'').trim().slice(0,30); if(rt) t.routine=rt; else delete t.routine;
   const end=document.getElementById('cupHbmEnd')?.value||''; t.habitEnd=end; if(end && !t.habitStart) t.habitStart=todayStr();
   [['why','cupHbmWhy'],['cue','cupHbmCue'],['tiny','cupHbmTiny']].forEach(([k,i])=>{ const v=(document.getElementById(i)?.value||'').trim().slice(0,120); if(v) t[k]=v; else delete t[k]; });
   closeModal('mCupHabit'); save(); cupRenderHome();
@@ -27414,10 +27419,11 @@ document.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.shiftKey&&
 //  Rule-based and private: nothing is sent anywhere. Blocks it creates are marked auto:true so a re-plan replaces them and never touches your own events.
 // ════════════════════════════════════════════════════════════════════
 // Categories anyone can use. Each person rates how much each matters (0 = don't plan it, 5 = most important); the planner follows that.
-const CUP_CATS=[['commit','Appointments & shifts','약속 · 근무'],['faith','Faith','신앙'],['habit','Habits','습관'],['school','School','학업'],['career','Career & applications','커리어 · 지원'],['project','Projects','프로젝트'],['admin','Money & admin','돈 · 서류'],['errand','Errands & chores','볼일 · 집안일'],['health','Health & workout','건강 · 운동'],['partner','Partner','연인'],['family','Family','가족'],['friends','Friends','친구'],['rest','Rest & hobbies','휴식 · 취미']];
-const CUP_CAT_COL={ commit:'#5A4A88', faith:'#7A5AA8', habit:'#2A6B44', school:'#2C4A8B', career:'#3A6A9B', project:'#4A5A8B', admin:'#6B6B2A', errand:'#8B6A3A', health:'#A85418', partner:'#B8527A', family:'#A8607A', friends:'#4A7A8B', rest:'#5A7A6A' };
-const CUP_RATE_DEF={ commit:5, faith:5, habit:4, school:4, career:4, project:3, admin:3, errand:3, health:3, partner:3, family:3, friends:2, rest:1 };
-const CUP_CAT_OLD={ work:'school', gf:'partner', workout:'health' };   // answers from the first version
+const CUP_CATS=[['commit','Commitments','약속 · 신앙'],['habit','Habits & routines','습관 · 루틴'],['work','School & work','학업 · 일'],['life','Life admin','생활 · 볼일'],['health','Health','건강'],['close','Partner & family','연인 · 가족'],['friends','Friends','친구'],['rest','Rest','휴식']];
+const CUP_CAT_COL={ commit:'#5A4A88', habit:'#2A6B44', work:'#2C4A8B', life:'#8B6A3A', health:'#A85418', close:'#B8527A', friends:'#4A7A8B', rest:'#5A7A6A' };
+const CUP_RATE_DEF={ commit:5, habit:4, work:4, close:3, health:3, life:3, friends:2, rest:1 };
+// finer guesses fold into the 8 (and answers from earlier versions carry over)
+const CUP_CAT_OLD={ gf:'close', workout:'health', faith:'commit', partner:'close', family:'close', admin:'life', errand:'life', school:'work', career:'work', project:'work' };
 const cupCatName = k => { const c=CUP_CATS.find(x=>x[0]===k); return c?cupT10(c[1],c[2]):k; };
 const CUP_RX={
   faith:/QT|말씀|묵상|교회|예배|기도|성경|찬양|church|prayer|bible|worship/i,
@@ -27438,13 +27444,14 @@ function cupPln(){ cupEnsure(); let P=S.cup.plan; if(!P||typeof P!=='object') P=
   Object.keys(D).forEach(k=>{ if(P[k]===undefined) P[k]=D[k]; });
   if(!P.tg||typeof P.tg!=='object') P.tg={ partner:2, health:3, friends:1 };
   if('gf' in P.tg){ P.tg.partner=P.tg.gf; delete P.tg.gf; } if('workout' in P.tg){ P.tg.health=P.tg.workout; delete P.tg.workout; }
-  if(!P.rate||typeof P.rate!=='object') P.rate={}; CUP_CATS.forEach(([k])=>{ if(P.rate[k]===undefined) P.rate[k]=CUP_RATE_DEF[k]; });
+  if(!P.rate||typeof P.rate!=='object') P.rate={}; CUP_CATS.forEach(([k])=>{ if(P.rate[k]===undefined) P.rate[k]=CUP_RATE_DEF[k]; }); Object.keys(P.rate).forEach(k=>{ if(!CUP_CATS.some(c=>c[0]===k)) delete P.rate[k]; });
   if(!P.log||typeof P.log!=='object') P.log={}; return P; }
 const cupRate = k => { const r=cupPln().rate[k]; return r===undefined?3:+r; };
 const cupPlnFocus = () => { const P=cupPln(); return P.focus||Math.max(10,Math.min(60,Math.round((typeof getPomoConfig==='function'?getPomoConfig().focus:25)||25))); };
 
 // which category a task is in — null means “ask me”
-function cupCatOf(t){
+function cupCatOf(t){ const k=cupCatRaw(t); return k?(CUP_CAT_OLD[k]||k):null; }
+function cupCatRaw(t){
   if(t.cat){ const k=CUP_CAT_OLD[t.cat]||t.cat; if(CUP_CATS.some(c=>c[0]===k)) return k; }
   const txt=`${t.title||''} ${t.subject||''}`, f=((typeof cupCommit==='function'&&cupCommit(t.commitId))||{}).name||'';
   if(t.isHabit){ for(const k of ['faith','commit','health','partner','family','friends']) if(CUP_RX[k].test(txt)) return k; return 'habit'; }
@@ -27492,16 +27499,16 @@ function cupPlnBuild(nDays){
     while(left>0 && guard++<30){ let ok=false;
       const order=days.slice(0,lastIdx+1).map((d,i)=>[d,i]).filter(([d])=>P.over||d.units<d.cap).sort((a,b)=>a[0].units-b[0].units||a[1]-b[1]);
       for(const [d] of order){ let chunk=Math.min(left,4,P.over?4:d.cap-d.units);
-        while(chunk>=1){ const len=chunk*foc+(chunk-1)*brk; const cc=cupCatOf(t), win=cc==='admin'||cc==='errand'?[9*60,20*60]:[9*60,22*60]; if(put(d,len,t.title,cc,[t.id],chunk,win[0],win[1])){ d.units+=chunk; left-=chunk; ok=true; break; } chunk--; }
+        while(chunk>=1){ const len=chunk*foc+(chunk-1)*brk; const cc=cupCatOf(t), win=cc==='life'?[9*60,20*60]:[9*60,22*60]; if(put(d,len,t.title,cc,[t.id],chunk,win[0],win[1])){ d.units+=chunk; left-=chunk; ok=true; break; } chunk--; }
         if(ok) break; }
       if(!ok) break; }
     if(left>0) skipped.push({ t, left }); });
   // wishes, in your order — only on days with room and no big test tomorrow
   const hasTestNext=ds=>S.events.some(e=>e.type==='test' && e.date===cupAddDays(ds,1));
-  const wishes=[['partner',P.tg.partner,120,17*60,23*60],['health',P.tg.health,45,7*60,20*60+30],['friends',P.tg.friends,120,17*60,23*60]].filter(w=>cupRate(w[0])>0).sort((a,b)=>cupRate(b[0])-cupRate(a[0])), noRoom=[];
+  const wishes=[['close',P.tg.partner,120,17*60,23*60],['health',P.tg.health,45,7*60,20*60+30],['friends',P.tg.friends,120,17*60,23*60]].filter(w=>cupRate(w[0])>0).sort((a,b)=>cupRate(b[0])-cupRate(a[0])), noRoom=[];
   wishes.forEach(([cat,n,len,minStart,maxEnd])=>{ let placed=0;
     for(let k=0;k<(+n||0);k++){ const cand=days.filter(d=>d.units<=d.cap*0.9 && !(cat!=='health'&&hasTestNext(d.ds)) && !d.blocks.some(b=>b.cat===cat)).sort((a,b)=>(a.units+a.blocks.length)-(b.units+b.blocks.length)||a.ds.localeCompare(b.ds));
-      let ok=false; for(const d of cand){ if(put(d,len,({partner:cupT10('Partner time','연인과'),health:cupT10('Workout','운동'),friends:cupT10('Friends','친구')})[cat],cat,[],0,minStart,maxEnd)){ ok=true; break; } }
+      let ok=false; for(const d of cand){ if(put(d,len,({close:cupT10('Partner time','연인과'),health:cupT10('Workout','운동'),friends:cupT10('Friends','친구')})[cat],cat,[],0,minStart,maxEnd)){ ok=true; break; } }
       if(ok) placed++; }
     if(placed<(+n||0)) noRoom.push([cat,(+n||0)-placed]); });
   days.forEach(d=>d.blocks.sort((a,b)=>a.s-b.s));
