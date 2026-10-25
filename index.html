@@ -7576,6 +7576,12 @@ body.cup-on-pomo #cupSessBar{ display:none !important; }
 .cup-pl-rt button{ width:16px; height:16px; border-radius:50%; border:1px solid var(--border); padding:0; font-size:calc(10px * var(--cup-fs,1)); line-height:14px; color:var(--text3); }
 .cup-pl-rt button.fill{ background:var(--accent); border-color:var(--accent); } .cup-pl-rt button:first-child{ border:0; width:14px; } .cup-pl-rt button:first-child.on{ color:var(--must,#e5484d); }
 .cup-pl-rt button:hover{ border-color:var(--accent); }
+/* habits grouped by category; the plan link only when you point at a habit */
+.cup-hb-g{ display:flex; align-items:center; gap:7px; padding:12px 2px 2px; font-size:calc(11.5px * var(--cup-fs,1)); letter-spacing:.04em; text-transform:uppercase; color:var(--text3); } .cup-hb-g i{ width:7px; height:7px; border-radius:50%; }
+@media (hover:hover){ .cup-hb-row .cup-hb-plan{ opacity:0; transition:opacity .12s; } .cup-hb-row:hover .cup-hb-plan, .cup-hb-plan:focus-visible{ opacity:1; } }
+/* tasks: by date / by category */
+.cup-tl-by{ display:flex; gap:2px; padding:2px; border:1px solid var(--border); border-radius:999px; flex:none; } .cup-tl-by button{ padding:4px 10px; border-radius:999px; font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); } .cup-tl-by button.on{ background:var(--bg2); color:var(--text); }
+.cup-tl-cdot{ display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:7px; vertical-align:1px; } .cup-tl-rate{ margin-left:auto; font-size:calc(8px * var(--cup-fs,1)); letter-spacing:2px; color:var(--text3); }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -26963,7 +26969,13 @@ function cupHabitsHTML(){
   const td=todayStr();
   const hab=S.tasks.filter(t=>t.isHabit&&!t.archived&&cupHabitDueToday(t)).sort((a,b)=>(a.scheduledTime||'12:00').localeCompare(b.scheduledTime||'12:00'));
   if(!hab.length) return `<div class="cup-dim">${cupT10('No habits due today.','오늘 할 습관이 없어요.')}</div>`;
-  const sm=cupHbSummary(), hit=sm.pct!==null && sm.pct>=sm.goal, doneN=hab.filter(cupHabitDoneToday).length, open=!!cupHabitsOpen;
+  const doneN=hab.filter(cupHabitDoneToday).length, open=!!cupHabitsOpen, sm=Object.assign({}, cupHbSummary());
+  const first=cupDaysIntoWeek()===1; if(first) sm.pct=Math.round(doneN/hab.length*100);   // day 1 of the week: there's no week yet, so show today
+  const hit=sm.pct!==null && sm.pct>=sm.goal;
+  // grouped by category, the ones you rate highest first (Faith, Appointments, Habits, Health…)
+  const catOf=t=>(typeof cupCatOf==='function'&&cupCatOf(t))||'habit', rateOf=k=>typeof cupRate==='function'?cupRate(k):3;
+  hab.sort((a,b)=>rateOf(catOf(b))-rateOf(catOf(a)) || catOf(a).localeCompare(catOf(b)) || (a.scheduledTime||'12:00').localeCompare(b.scheduledTime||'12:00'));
+  const groups=new Set(hab.map(catOf)).size>1;
   const dots=hab.map(t=>`<i class="${cupHabitDoneToday(t)?'d':''}"></i>`).join('');
   const line=`<button type="button" class="cup-hb-line ${doneN===hab.length?'all':''}" onclick="cupHbToggle()" aria-expanded="${open}">
       <span class="cup-fold-chev ${open?'open':''}">›</span><b>${cupT10('Habits','습관')}</b><span class="cup-hb-ldots" aria-hidden="true">${dots}</span>
@@ -26971,9 +26983,11 @@ function cupHabitsHTML(){
       ${sm.pct!==null?`<span class="cup-hb-lp ${hit?'ok':''}">${sm.pct}%</span>`:''}</button>`;
   if(!open) return `<div class="cup-hb closed">${line}</div>`;
   const head=`<div class="cup-hb-sum">
-    <div class="cup-hb-sl"><b>${sm.pct===null?'—':sm.pct+'%'}</b><span>${cupT10('this week','이번 주')}</span><button type="button" class="cup-hb-goal" onclick="cupHbGoalMenu(this)" title="${cupT10('Change your weekly goal','주간 목표 바꾸기')}">${cupT10('goal','목표')} ${sm.goal}% ▾</button></div>
+    <div class="cup-hb-sl"><b>${sm.pct===null?'—':sm.pct+'%'}</b><span>${first?cupT10('today','오늘'):cupT10('this week','이번 주')}</span><button type="button" class="cup-hb-goal" onclick="cupHbGoalMenu(this)" title="${cupT10('Change your weekly goal','주간 목표 바꾸기')}">${cupT10('goal','목표')} ${sm.goal}% ▾</button></div>
     <div class="cup-hb-bar ${hit?'hit':''}" role="img" aria-label="${cupT10('Habit rate this week','이번 주 습관 달성률')} ${sm.pct||0}%, ${cupT10('goal','목표')} ${sm.goal}%"><i style="width:${Math.min(100,sm.pct||0)}%"></i><u style="left:${sm.goal}%"></u></div></div>`;
-  const rows=hab.map(t=>{ const d=cupHabitDoneToday(t), w=cupHbWeek(t), miss=d?0:cupHbMisses(t);
+  let lastCat='';
+  const rows=hab.map(t=>{ const d=cupHabitDoneToday(t), w=cupHbWeek(t), miss=d?0:cupHbMisses(t), cat=catOf(t);
+    const gh=groups&&cat!==lastCat?`<div class="cup-hb-g"><i style="background:${(typeof CUP_CAT_COL!=='undefined'&&CUP_CAT_COL[cat])||'var(--text3)'}"></i>${typeof cupCatName==='function'?cupCatName(cat):cat}</div>`:''; lastCat=cat;
     const rate = w.pct!==null ? `<span class="cup-hb-rate ${w.pct>=sm.goal?'ok':''}">${w.pct}%</span>` : `<span class="cup-hb-rate dim">${cupWeekCount(t)}</span>`;
     const count = t.weeklyGoal ? `${cupWeekCount(t)}/${t.weeklyGoal}` : (w.plan?`${w.got}/${w.plan}`:'');
     const total=cupHbTotal(t);
@@ -26986,7 +27000,7 @@ function cupHabitsHTML(){
     else if(t.weeklyGoal && !d && total && !cupWeekCount(t) && cupDaysIntoWeek()>=3) nudge=cupT10('Nothing yet this week — a small one today keeps it alive.','이번 주 아직 없어요 — 오늘 작게라도 하면 이어져요.');
     const info=[ t.cue?`<span class="cup-hb-cue">${esc(t.cue)}</span>`:'', t.tiny?`<span>${cupT10('Tiny version','작은 버전')}: ${esc(t.tiny)}</span>`:'' ].filter(Boolean).join('<i>·</i>');
     const made = t.why||t.cue||t.tiny;
-    return `<div class="cup-hb-row ${d?'d':''}">
+    return gh+`<div class="cup-hb-row ${d?'d':''}">
       <button type="button" class="cup-hb-main" onclick="cupHbTick('${t.id}')" title="${d?cupT10('Done — tap to undo','완료 — 눌러서 취소'):cupT10('Tap when done','끝나면 누르세요')}">
         <span class="cup-hcheck ${d?'d':''}"></span><span class="cup-hb-t">${esc(t.title)}</span>${t.scheduledTime&&!d?`<span class="cup-dim">${cupT12(t.scheduledTime)}</span>`:''}</button>
       <span class="cup-hb-st">${cupHbDots(w)}<span class="cup-hb-n">${count}</span>${rate}</span>
@@ -26994,7 +27008,7 @@ function cupHabitsHTML(){
         ${t.why?`<button type="button" class="cup-hb-why" onclick="cupHbPlan('${t.id}')" title="${cupT10('Edit your plan for this habit','이 습관 계획 고치기')}">${esc(t.why)}</button>`:''}
         ${info?`<div class="cup-hb-info">${info}</div>`:''}
         ${nudge?`<div class="cup-hb-nudge">${nudge}</div>`:''}
-        <button type="button" class="cup-hb-plan ${made?'':'add'}" onclick="cupHbPlan('${t.id}')">${made?`✎ ${cupT10('Edit','고치기')}`:`＋ ${cupT10('Make it stick — your why, cue and tiny version','잘 이어가기 — 이유, 신호, 작은 버전')}`}${total?` <em>· ${cupT10(`day ${Math.min(total,CUP_HB_DAYS)} of ~${CUP_HB_DAYS}`,`${Math.min(total,CUP_HB_DAYS)}일째 / 약 ${CUP_HB_DAYS}일`)}</em>`:''}</button>
+        <button type="button" class="cup-hb-plan ${made?'':'add'}" onclick="cupHbPlan('${t.id}')">${made?`✎ ${cupT10('Edit','고치기')}`:`＋ ${cupT10('Why & cue','이유 · 신호')}`}${total?` <em>· ${cupT10(`day ${Math.min(total,CUP_HB_DAYS)} of ~${CUP_HB_DAYS}`,`${Math.min(total,CUP_HB_DAYS)}일째 / 약 ${CUP_HB_DAYS}일`)}</em>`:''}</button>
       </div></div>`; }).join('');
   return `<div class="cup-hb open">${line}${head}${rows}</div>`;
 }
@@ -27426,7 +27440,7 @@ const cupPlnFocus = () => { const P=cupPln(); return P.focus||Math.max(10,Math.m
 function cupCatOf(t){
   if(t.cat){ const k=CUP_CAT_OLD[t.cat]||t.cat; if(CUP_CATS.some(c=>c[0]===k)) return k; }
   const txt=`${t.title||''} ${t.subject||''}`, f=((typeof cupCommit==='function'&&cupCommit(t.commitId))||{}).name||'';
-  if(t.isHabit) return CUP_RX.faith.test(txt)?'faith':CUP_RX.commit.test(txt)?'commit':'habit';
+  if(t.isHabit){ for(const k of ['faith','commit','health','partner','family','friends']) if(CUP_RX[k].test(txt)) return k; return 'habit'; }
   for(const k of ['faith','commit','partner','family','friends','health','admin','errand','school','career','project','rest']) if(CUP_RX[k].test(txt)) return k;
   if(f){ for(const k of ['faith','school','career','project']) if(CUP_RX[k].test(f)) return k;
     if(/^Classes/i.test(t.subject||'')) return 'school';
@@ -27835,6 +27849,26 @@ function cupTLDropSet(id, ds){
   showToast(cupT10(`“${t.title}” → ${ds?cupFmt(ds):'no date'}`,`“${t.title}” → ${ds?cupFmt(ds):'날짜 없음'}`), cupT10('Undo','되돌리기'), ()=>{ t.due=prev[0]; t.scheduledDates=prev[1]; save(); render(); });
 }
 { const _tl=cupRenderTaskList; cupRenderTaskList=function(){ const r=_tl.apply(this,arguments); try{ cupTLDnD(); }catch(_){} return r; }; }
+
+// Tasks: “By date” (as before) or “By category” — categories in the order you rated them
+let cupTLBy='date'; try{ cupTLBy=localStorage.getItem('cup_tl_by')||'date'; }catch(_){}
+function cupTLSetBy(v){ cupTLBy=v; try{ localStorage.setItem('cup_tl_by',v); }catch(_){} cupRenderTaskList(); }
+let cupTLCatAll={};
+{ const _tl=cupRenderTaskList; cupRenderTaskList=function(){ const r=_tl.apply(this,arguments);
+  try{ const host=document.getElementById('cupTaskList'), top=host&&host.querySelector('.cup-tl-top'); if(!top || typeof cupCatOf!=='function') return r;
+    if(!top.querySelector('.cup-tl-by')){ const sw=document.createElement('div'); sw.className='cup-tl-by'; top.appendChild(sw); }
+    top.querySelector('.cup-tl-by').innerHTML=[['date',cupT10('By date','날짜별')],['cat',cupT10('By category','종류별')]].map(([k,l])=>`<button type="button" class="${cupTLBy===k?'on':''}" onclick="cupTLSetBy('${k}')">${l}</button>`).join('');
+    if(cupTLBy!=='cat' || cupTLQuery) return r;
+    const list=cupOpenTasks().filter(t=>!t.waiting&&!t.isHabit&&cupTLMatch(t)).sort((a,b)=>(cupTLDate(a)||'9999').localeCompare(cupTLDate(b)||'9999'));
+    const by={}; list.forEach(t=>{ const k=cupCatOf(t)||'_ask'; (by[k]=by[k]||[]).push(t); });
+    const keys=Object.keys(by).sort((a,b)=>(a==='_ask')-(b==='_ask') || cupRate(b)-cupRate(a));
+    host.querySelectorAll('.cup-tl-sec').forEach(x=>x.remove());
+    const html=keys.map(k=>{ const ts=by[k], all=cupTLCatAll[k], shown=all?ts:ts.slice(0,6);
+      const head=k==='_ask'?`<span>${cupT10('Needs a category','분류 필요')}</span><span class="cup-tl-n">${ts.length}</span><button class="cup-tl-fresh" onclick="cupPlanAsk()">${cupT10('Sort','분류하기')}</button>`
+        :`<span><i class="cup-tl-cdot" style="background:${CUP_CAT_COL[k]}"></i>${cupCatName(k)}</span><span class="cup-tl-n">${ts.length}</span><span class="cup-tl-rate">${'●'.repeat(cupRate(k))}</span>`;
+      return `<section class="cup-tl-sec"><div class="cup-tl-h">${head}</div>${shown.map(t=>cupTLRow(t,true)).join('')}${ts.length>6&&!all?`<button type="button" class="cup-more-btn cup-tl-more" onclick="cupTLCatAll['${k}']=true;cupRenderTaskList()">${cupT10(`Show all ${ts.length}`,`${ts.length}개 모두 보기`)}</button>`:''}</section>`; }).join('');
+    top.insertAdjacentHTML('afterend', html); cupTLDnD();
+  }catch(e){ console.warn(e); } return r; }; }
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
