@@ -28330,10 +28330,12 @@ function cupFreeSave(){
 { const _gw=cupGcWant; cupGcWant=function(){ const out=_gw.apply(this,arguments);
   try{ const g=cupGc(), w=g.what||{}, since=g.since||todayStr(); if(!w.events) return out;
     const put=(key,e,body)=>{ out[cupGcId(key)]={ k:'event', r:e.id, body:Object.assign({ summary:e.title||'Event' }, e.location?{ location:e.location }:{}, body) }; };
+    const linkTimes=new Set(cupGcArr(S.events).filter(e=>e&&(e.sourceId||e.icsUid||e.gcal)).map(e=>[e.time||'',cupEvCode(e)].join('|')));   // repeating copies of linked classes
     const fromLink=new Set(cupGcArr(S.events).filter(e=>e&&(e.sourceId||e.icsUid||e.gcal)).map(e=>[e.date,e.time||'',cupEvCode(e)].join('|')));   // already in a calendar
     cupGcArr(S.events).forEach(e=>{
       if(!e || !e.id || e.type==='focus_block' || e.type==='class' || e.auto || e.sourceId || e.icsUid || e.gcal || e.cupFolder || !e.date) return;
       if(fromLink.has([e.date,e.time||'',cupEvCode(e)].join('|'))) return;
+      if(e.recurrence && e.recurrence!=='none' && linkTimes.has([e.time||'',cupEvCode(e)].join('|'))) return;
       const rec=(e.recurrence||'').toLowerCase(), repeats=rec && rec!=='none';
       if(e.allDay || !e.time){ if(e.date<since && !repeats) return; put('e:'+e.id, e, { start:{ date:e.date }, end:{ date:cupAddDays(e.endDate&&e.endDate>e.date?e.endDate:e.date,1) } }); return; }
       const s=timeStrToMinutes(e.time); if(s===null) return; let en=timeStrToMinutes(e.endTime); if(en===null||en<=s) en=s+60;
