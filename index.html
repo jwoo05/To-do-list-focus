@@ -27387,8 +27387,10 @@ function cupCatOf(t){
   const txt=`${t.title||''} ${t.subject||''}`;
   if(t.isHabit) return CUP_RX.commit.test(txt)?'commit':'habit';
   for(const k of ['commit','gf','workout','friends']) if(CUP_RX[k].test(txt)) return k;
-  if(/^(Classes|Internships|Competitions|Work)\b/i.test(t.subject||'') || /\b[A-Z]{2,5} ?\d{3}\b/.test(txt) || /essay|assignment|homework|exam|study|resume|과제|공부|시험|이력서|리포트|paper|reading/i.test(txt)) return 'work';
-  if(/^Church/i.test(t.subject||'')) return 'commit';
+  if(/^(Classes|Internships|Competitions|Work)\b/i.test(t.subject||'') || /\b[A-Z]{2,5} ?\d{3}\b/.test(txt) || /essay|assignment|homework|exam|study|resume|class|registration|schedule|kaggle|과제|공부|시험|이력서|리포트|수강|paper|reading/i.test(txt)) return 'work';
+  const f=((typeof cupCommit==='function'&&cupCommit(t.commitId))||{}).name||'';
+  if(/church|교회|예배/i.test(f) || /^Church/i.test(t.subject||'')) return 'commit';
+  if(f && !/personal life|^personal$|habit|health|family|friend|home|생활/i.test(f)) return 'work';   // a folder for a class, lab, application or club = school & career
   return null;
 }
 
