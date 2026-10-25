@@ -7597,6 +7597,12 @@ body.cup-on-pomo #cupSessBar{ display:none !important; }
 .cup-spot{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:calc(13.5px * var(--cup-fs,1)); }
 .cup-spot b{ font-weight:600; min-width:92px; } .cup-spot span{ flex:1; color:var(--text2); font-variant-numeric:tabular-nums; } .cup-spot em{ font-style:normal; font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); }
 .cup-spot.first{ border-color:var(--accent); background:color-mix(in srgb, var(--accent) 8%, transparent); } .cup-spot:hover{ border-color:var(--accent); } .cup-spot:hover em{ color:var(--accent); }
+/* sidebar: one line per item, quiet counts, even rows */
+.sidebar .nav-item{ min-height:36px; white-space:nowrap; font-weight:500; }
+.sidebar .nav-item .cup-nav-lbl{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sidebar .nav-item .nav-badge{ background:none !important; min-width:0; padding:0 2px; font-size:calc(11.5px * var(--cup-fs,1)); font-weight:500; color:var(--text3); }
+.sidebar .nav-item.active .nav-badge{ color:var(--text2); }
+.sidebar .nav-item[data-page="dashboard"] .nav-badge{ display:none; }   /* one count is enough: today's to-dos sit on Calendar */
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -27731,6 +27737,9 @@ function cupNavTidy(){
   const dot=S.tasks.some(t=>t.waiting&&!cupDone(t)&&t.reply);
   more.innerHTML=`<span>${open?'−':'+'}</span> ${cupT10('More','더보기')}${dot&&!open?'<i class="cup-nav-dot"></i>':''}`;
   more.setAttribute('aria-expanded', open?'true':'false');
+  // the calendar is the to-do list now: one short name, one line
+  const cal=nav.querySelector('.nav-item[data-page="todo"]'), lbl=cal&&cal.querySelector('.cup-nav-lbl'), nm=cupT10('Calendar','캘린더');
+  if(lbl && lbl.textContent!==nm){ lbl.textContent=nm; cal.title=nm; cal.setAttribute('aria-label',nm); }
   // gear for Settings, small icon for theme
   const set=document.querySelector('.sidebar-action-btn[title="Settings"]');
   if(set && !set.dataset.gear){ set.dataset.gear='1'; set.innerHTML='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'; }
