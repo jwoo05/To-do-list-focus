@@ -7665,6 +7665,12 @@ input[type=date]::-webkit-calendar-picker-indicator, input[type=time]::-webkit-c
   #page-dashboard.cup-fit .cup-today-habits .cup-hb-ldots{ display:none; }
   #page-dashboard.cup-fit .cup-today-habits .cup-hb-line{ flex-wrap:nowrap; white-space:nowrap; }
 }
+/* folder picker: all at once */
+.cup-fsearch{ width:100%; box-sizing:border-box; padding:8px 12px; font-size:calc(13.5px * var(--cup-fs,1)); margin-bottom:8px; }
+.cup-fchips{ display:flex; flex-wrap:wrap; gap:6px; max-height:220px; overflow-y:auto; overscroll-behavior:contain; padding:2px; }
+.cup-fchip{ display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border:1px solid var(--border); border-radius:999px; font-size:calc(13px * var(--cup-fs,1)); color:var(--text2); } .cup-fchip:hover{ border-color:var(--text3); color:var(--text); } .cup-fchip.on{ border-color:var(--accent); color:var(--text); background:color-mix(in srgb, var(--accent) 12%, transparent); }
+.cup-fchips-h{ flex-basis:100%; font-size:calc(11px * var(--cup-fs,1)); letter-spacing:.05em; text-transform:uppercase; color:var(--text3); margin-top:6px; }
+.cup-fnew2{ display:flex; gap:6px; margin-top:8px; } .cup-fnew2 input{ flex:1; min-width:0; padding:7px 10px; font-size:calc(13px * var(--cup-fs,1)); border-style:dashed; } .cup-fnew2 select{ padding:6px 8px; font-size:calc(12.5px * var(--cup-fs,1)); }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -22320,7 +22326,7 @@ function cupFreshOpen(){
   el.innerHTML=`<div class="modal cup-pace-modal"><div class="modal-header"><span class="modal-title">Reschedule overdue tasks</span><button class="modal-close" onclick="closeModal('mCupFresh')" aria-label="Close">✕</button></div>
     <div class="modal-body"><p class="cup-org-sub">${late.length} things slipped past their date. That’s normal. Pick how to reset them. Nothing is deleted.</p>
     <div class="cup-org-ways">
-      <button class="cup-org-way main" onclick="cupFresh('spread')"><b>Spread them over the next 7 days</b><span>At most 3 a day, oldest first, so tomorrow isn’t a pile.</span></button>
+      <button class="cup-org-way main" onclick="cupFresh('spread')"><b>Spread them over the next days</b><span>Most important first, filling each day only up to your daily limit.</span></button>
       <button class="cup-org-way" onclick="cupFresh('today')"><b>Move them all to today</b><span>If they really are today’s work.</span></button>
       <button class="cup-org-way" onclick="cupFresh('someday')" ${late.length?'':'disabled'}><b>Let go of the dates</b><span>They stay on your list, with no due date, so they stop nagging${old?` (${old} are over 2 weeks old)`:''}.</span></button>
     </div></div></div>`;
@@ -28240,6 +28246,50 @@ function cupPriAsk(){
 
 // date & time fields: one tap opens the picker
 document.addEventListener('click', e=>{ const i=e.target; if(i && i.tagName==='INPUT' && (i.type==='date'||i.type==='time'||i.type==='datetime-local') && typeof i.showPicker==='function'){ try{ i.showPicker(); }catch(_){} } }, true);
+
+// ── Folder picker: every folder at once (most used first), a quick search, No folder up front ──
+let cupTSFQ='';
+function cupTSFolderHTML(){
+  const s=cupTS, cs=cupActive(), use={}; S.tasks.forEach(t=>{ if(t.commitId) use[t.commitId]=(use[t.commitId]||0)+1; });
+  const q=cupTSFQ.trim().toLowerCase(), hit=n=>!q||String(n).toLowerCase().includes(q);
+  const fol=cs.filter(f=>hit(f.name)).sort((a,b)=>(use[b.id]||0)-(use[a.id]||0)||cupByName(a,b));
+  const areas=CUP_AREAS.filter(([k,n])=>hit(n));
+  const chip=(v,label,dot)=>`<button type="button" class="cup-fchip ${s.folder===v?'on':''}" onclick="cupTS.folder='${v}';cupTS.open='';cupTSFQ='';cupTSRender()">${dot?`<span class="cup-pri-dot" style="background:${dot}"></span>`:''}${esc(label)}</button>`;
+  const ak=(s.folder.startsWith('folder:')?(cupCommit(s.folder.slice(7))||{}).area:s.folder.slice(5))||CUP_AREAS[0][0];
+  return `<input class="cup-fsearch" placeholder="${cupT10('Find a folder…','폴더 찾기…')}" value="${esc(cupTSFQ)}" oninput="if(event.isComposing)return;cupTSFQ=this.value;cupTSFolderPaint()" oncompositionend="cupTSFQ=this.value;cupTSFolderPaint()">
+    <div class="cup-fchips">${q?'':chip('',cupT10('No folder','폴더 없음'),'')}${fol.map(f=>chip('folder:'+f.id,f.name,cupSphColor(f.area))).join('')}${areas.length?`<span class="cup-fchips-h">${cupT10('Areas','영역')}</span>`+areas.map(([k,n])=>chip('area:'+k,n,cupSphColor(k))).join(''):''}${!fol.length&&!areas.length?`<span class="cup-dim">${cupT10('No folder by that name.','그런 폴더가 없어요.')}</span>`:''}</div>
+    <div class="cup-fnew2"><input placeholder="${cupT10('+ New folder — Enter','+ 새 폴더 — Enter')}" value="${q?esc(cupTSFQ):''}" onkeydown="if(event.key==='Enter'){event.preventDefault();cupTSNewFolder(this.nextElementSibling.value,this.value)}"><select aria-label="${cupT10('Area','영역')}">${CUP_AREAS.map(([k,n])=>`<option value="${k}" ${k===ak?'selected':''}>${esc(n)}</option>`).join('')}</select></div>`;
+}
+function cupTSFolderPaint(){ const box=document.getElementById('cupTSFolders'); if(!box) return; const pos=box.querySelector('.cup-fsearch')?.selectionStart; box.innerHTML=cupTSFolderHTML(); const i=box.querySelector('.cup-fsearch'); if(i){ i.focus(); try{ i.setSelectionRange(pos,pos); }catch(_){} } }
+{ const _tr=cupTSRender; cupTSRender=function(){ const r=_tr.apply(this,arguments);
+  try{ const tab=document.querySelector('.cup-gtab'); if(!tab) return r; const bar=tab.parentElement, list=document.querySelector('.cup-flist-area')?.parentElement;
+    bar.style.display='none'; if(list){ list.id='cupTSFolders'; list.innerHTML=cupTSFolderHTML(); } }catch(e){ console.warn(e); } return r; }; }
+
+// ── Rescheduling follows priority: the most important goes first, the rest flows to later days within your daily limit ──
+const cupPriRank = t => ({must:0,MUST:0,high:1,medium:2,low:3})[t.priority] ?? 2;
+const cupByImportance = (a,b) => cupPriRank(a)-cupPriRank(b) || cupRate(cupCatOf(b)||'work')-cupRate(cupCatOf(a)||'work') || (a.due||'9').localeCompare(b.due||'9');
+function cupSpreadDays(list, start){                       // fills each day up to your daily limit, most important first
+  const cap=Math.max(60,cupPln().cap), out=[]; let day=start, used=0;
+  list.slice().sort(cupByImportance).forEach(t=>{ const m=cupFitEff(t); if(used && used+m>cap){ day++; used=0; } out.push([t, cupTSDate(day)]); used+=m; });
+  return out;
+}
+cupFresh=function(mode){
+  const late=cupLateTasks(), snap=late.map(t=>[t, t.due, [...(t.scheduledDates||[])], t.dueTime||'']);
+  if(mode==='someday') late.forEach(t=>{ t.due=''; t.dueTime=''; });
+  else if(mode==='today') late.forEach(t=>{ const ds=cupTSDate(0); t.due=ds; t.scheduledDates=[ds]; t.dueTime=''; });
+  else cupSpreadDays(late, 0).forEach(([t,ds])=>{ t.due=ds; t.scheduledDates=[ds]; t.dueTime=''; });
+  save(); if(document.getElementById('mCupFresh')) closeModal('mCupFresh'); render();
+  if(!late.length){ showToast(cupT10('Nothing overdue to move.','옮길 밀린 일이 없어요.')); return; }
+  showToast(cupT10(`Moved ${late.length} — most important first.`,`${late.length}개를 옮겼어요 — 중요한 것부터.`), cupT10('Undo','되돌리기'), ()=>{ snap.forEach(([t,d,s,tm])=>{ t.due=d; t.scheduledDates=s; t.dueTime=tm; }); save(); render(); });
+};
+cupRevPush=function(){
+  const td=todayStr(), list=cupTodayTasks().concat(cupOverdueTasks()).filter((t,i,a)=>a.indexOf(t)===i); if(!list.length) return;
+  const snap=list.map(t=>[t,t.due||'',[...(t.scheduledDates||[])]]), plan=cupSpreadDays(list, 1);
+  plan.forEach(([t,ds])=>{ if(t.due&&t.due<=td) t.due=ds; t.scheduledDates=[...(t.scheduledDates||[]).filter(d=>d>td&&d!==ds), ds]; });
+  const tmN=plan.filter(x=>x[1]===cupTSDate(1)).length;
+  save(); render();
+  showToast(cupT10(`${tmN} most important → tomorrow${plan.length>tmN?`, ${plan.length-tmN} after`:''}.`,`중요한 ${tmN}개는 내일${plan.length>tmN?`, ${plan.length-tmN}개는 그 뒤로`:''}.`), cupT10('Undo','되돌리기'), ()=>{ snap.forEach(([t,d,s])=>{ t.due=d; t.scheduledDates=s; }); save(); render(); });
+};
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
