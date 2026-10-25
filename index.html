@@ -27798,8 +27798,8 @@ try{ cupGcLoadGis().catch(()=>{}); cupGcSrvLoad(); }catch(_){}
 //   · Settings is a gear (it looked like a sun next to the theme button); the theme button is a small icon.
 // ════════════════════════════════════════════════════════════════════
 const CUP_NAV_MORE=['compass','waiting','money','friends'];
-let cupNavMore=false; try{ cupNavMore=localStorage.getItem('cup_nav_more')==='1'; }catch(_){}
-function cupNavMoreTog(){ cupNavMore=!cupNavMore; try{ localStorage.setItem('cup_nav_more',cupNavMore?'1':'0'); }catch(_){} cupNavTidy(); }
+let cupNavMore=false;   // starts collapsed every time; opens on its own while you're on one of its pages
+function cupNavMoreTog(){ cupNavMore=!cupNavMore; cupNavTidy(); }
 function cupNavTidy(){
   const nav=document.querySelector('.sidebar nav, .sidebar .nav'); if(!nav) return;
   let more=nav.querySelector('.cup-nav-more');
