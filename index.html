@@ -7557,6 +7557,18 @@ body.cup-on-pomo #cupSessBar{ display:none !important; }
 .cup-pl-auto{ display:flex; align-items:center; gap:14px; border:1px solid var(--accent); border-radius:12px; padding:12px 14px; margin-bottom:10px; cursor:pointer; background:color-mix(in srgb, var(--accent) 6%, transparent); }
 .cup-pl-auto span{ flex:1; display:grid; gap:2px; } .cup-pl-auto b{ font-size:calc(14px * var(--cup-fs,1)); } .cup-pl-auto em{ font-style:normal; font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); line-height:1.45; } .cup-pl-auto input{ width:18px; height:18px; flex:none; }
 
+/* calendar as the to-do list */
+.cup-auto-bar{ display:flex; align-items:center; gap:8px; width:100%; text-align:left; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text2); padding:7px 12px; margin:0 0 8px; border:1px solid var(--border); border-radius:10px; background:color-mix(in srgb, var(--accent) 5%, transparent); }
+.cup-auto-bar:hover{ border-color:var(--accent); } .cup-auto-bar em{ font-style:normal; color:var(--text3); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .cup-auto-bar b.w{ color:var(--orange,#d9822b); font-weight:500; }
+.cup-auto-dot{ width:7px; height:7px; border-radius:50%; background:var(--accent); flex:none; } .cup-auto-go{ color:var(--text3); flex:none; }
+.cup-ag-ck{ flex:none; margin-right:6px; align-self:center; }
+.cup-tl-row[draggable=true]{ cursor:grab; } .cup-tl-row.dragging{ opacity:.4; }
+.cup-tl-drop{ position:fixed; left:50%; bottom:24px; transform:translateX(-50%); z-index:1500; display:flex; gap:6px; padding:6px; border:1px solid var(--border); border-radius:14px; background:var(--bg1, var(--bg)); box-shadow:0 10px 30px rgba(0,0,0,.25); }
+.cup-tl-drop div{ padding:10px 16px; border:1px dashed var(--border); border-radius:10px; font-size:calc(13px * var(--cup-fs,1)); color:var(--text2); } .cup-tl-drop div.over{ border-style:solid; border-color:var(--accent); color:var(--text); background:color-mix(in srgb, var(--accent) 12%, transparent); }
+/* the Schedule picker opens inside its row, not floating */
+.cup-sched-pop.inline{ position:static; width:auto; margin:4px 0 8px 30px; box-shadow:none; }
+@media (max-width:760px){ .cup-auto-bar em{ white-space:normal; } .cup-sched-pop.inline{ margin-left:0; } }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -25220,6 +25232,8 @@ function cupSchedOpen(id, btn){
   const sync=()=>p.querySelectorAll('.cup-sp-q button').forEach(b=>b.classList.toggle('on', b.dataset.d===p.querySelector('#cupSpDate').value));
   p.querySelectorAll('.cup-sp-q button').forEach(b=>b.onclick=()=>{ p.querySelector('#cupSpDate').value=b.dataset.d; sync(); });
   p.querySelector('#cupSpDate').oninput=sync; p.onkeydown=e=>{ if(e.key==='Escape') cupSchedClose(); if(e.key==='Enter'&&e.target.tagName==='INPUT') cupSchedSave(id); };
+  const row=btn&&btn.closest('.cup-tl-row, .cal-task-item, .cup-todo');
+  if(row){ p.classList.add('inline'); row.after(p); sync(); setTimeout(()=>p.querySelector('#cupSpTime')?.focus({ preventScroll:true }), 30); return; }   // opens inside the list, under its row
   document.body.appendChild(p); sync();
   if(innerWidth<700) p.classList.add('sheet');
   else if(btn){ const r=btn.getBoundingClientRect(), w=p.offsetWidth, h=p.offsetHeight;
@@ -27376,7 +27390,7 @@ const cupCatName = k => { const c=CUP_CATS.find(x=>x[0]===k); return c?cupT10(c[
 const CUP_RX={ commit:/QT|말씀|묵상|교회|예배|church|알바|shift|meeting|미팅|면담|interview|office hours|출근/i, gf:/여자친구|여친|girlfriend|\bgf\b|데이트|date night/i, workout:/운동|헬스|러닝|gym|workout|\brun\b|\barm\b|\bcore\b|lift/i, friends:/친구|friend|hang ?out|밥약|brunch|dinner with/i };
 
 function cupPln(){ cupEnsure(); let P=S.cup.plan; if(!P||typeof P!=='object') P=S.cup.plan={};
-  const D={ wake:'07:00', bed:'23:30', cap:240, focus:0, over:false, lastUp:'', lastFocusUp:'' };
+  const D={ wake:'07:00', bed:'23:30', cap:240, focus:0, over:false, lastUp:'', lastFocusUp:'', auto:true };
   Object.keys(D).forEach(k=>{ if(P[k]===undefined) P[k]=D[k]; });
   if(!P.tg||typeof P.tg!=='object') P.tg={ gf:2, workout:3, friends:1 }; if(!P.log||typeof P.log!=='object') P.log={}; return P; }
 const cupPlnFocus = () => { const P=cupPln(); return P.focus||Math.max(10,Math.min(60,Math.round((typeof getPomoConfig==='function'?getPomoConfig().focus:25)||25))); };
@@ -27419,7 +27433,9 @@ function cupPlnBuild(nDays){
   S.tasks.forEach(t=>{ if(cupDone(t)||t.isHabit||t.waiting) return; const c=cupCatOf(t); if(!c){ ask.push(t); return; } if(c==='work') work.push(t); });
   const pri={high:0,medium:1,low:2};
   const horizon=cupAddDays(td,(nDays||7)-1+2);
-  const todo=work.filter(t=>t.due && t.due<=horizon).sort((a,b)=>(a.due<td?td:a.due).localeCompare(b.due<td?td:b.due) || (pri[a.priority]??1)-(pri[b.priority]??1));
+  // urgency with priority folded in: a High task counts as 2 days sooner, a Low one 2 days later — so when time runs short, Low work is what gets pushed out
+  const bonus={must:3,MUST:3,high:2,medium:0,low:-2}, urg=t=>Math.max(0,cupMnDays(t.due))-(bonus[t.priority]??0);
+  const todo=work.filter(t=>t.due && t.due<=horizon).sort((a,b)=>urg(a)-urg(b) || a.due.localeCompare(b.due));
   const undated=work.filter(t=>!t.due).length, far=work.filter(t=>t.due && t.due>horizon).length;
   const put=(day,len,title,cat,ids,units,minStart,maxEnd)=>{ const g=cupPlnGaps(day.ds,day.busy,len,minStart,maxEnd)[0]; if(!g) return false;
     const b={ ds:day.ds, s:g.s, e:g.s+len, title, cat, ids, units:units||0 }; day.busy.push({s:b.s,e:b.e+brk}); day.blocks.push(b); return true; };
@@ -27691,8 +27707,10 @@ function cupAutoChip(){
   const t=(on?(issues?'! ':'● '):'')+cupT10('Auto','자동'); if(b.textContent!==t) b.textContent=t;
   b.classList.toggle('on', on && !issues); b.classList.toggle('warn', !!issues);
   b.title=!on?cupT10('Let the calendar schedule your to-dos by priority','우선순위대로 할 일을 캘린더에 자동 배치'):issues?cupT10(`${cupAutoInfo.skipped?cupAutoInfo.skipped+' don’t fit · ':''}${cupAutoInfo.ask?cupAutoInfo.ask+' need a category':''} — tap to see`,`${cupAutoInfo.skipped?cupAutoInfo.skipped+'개 자리 없음 · ':''}${cupAutoInfo.ask?cupAutoInfo.ask+'개 분류 필요':''}`):cupT10('Auto-schedule is on','자동 일정 켜짐');
-  const ref=gc||filt; if(b.nextSibling!==ref) ref.before(b);
-  b.style.right=(innerWidth>760 && filt.offsetWidth) ? (74+filt.offsetWidth+6+(gc?gc.offsetWidth+6:0))+'px' : '';
+  const ref=(gc&&gc.parentElement===filt.parentElement)?gc:filt; if(b.nextSibling!==ref || b.parentElement!==ref.parentElement) ref.before(b);
+  b.style.right=(innerWidth>760 && filt.offsetWidth) ? (74+filt.offsetWidth+6+(ref===gc?gc.offsetWidth+6:0))+'px' : '';
+}
+{ const _g=cupGcChip; cupGcChip=function(){ const r=_g.apply(this,arguments); try{ cupAutoChip(); }catch(_){} return r; };
 }
 { const _rc=renderCalendar; renderCalendar=function(){ const r=_rc.apply(this,arguments); try{ cupAutoChip(); }catch(_){} return r; }; }
 { const _rc=renderCup; renderCup=function(){ const r=_rc.apply(this,arguments); try{ cupAutoKick(); cupAutoChip(); }catch(_){} return r; }; }
@@ -27707,6 +27725,68 @@ function cupAutoChip(){
     host.prepend(row);
     const f=document.querySelector('#mCupPlan .modal-footer'); if(f) f.innerHTML=on?`<button class="btn btn-accent" onclick="closeModal('mCupPlan')">${cupT10('Done','완료')}</button>`:`<button class="btn btn-ghost" onclick="closeModal('mCupPlan')">${cupT10('Close','닫기')}</button><button class="btn btn-accent" onclick="cupPlanApply()">${cupT10('Put it on my calendar once','한 번만 캘린더에 넣기')}</button>`;
   }catch(_){} return r; }; }
+
+// ════════════════════════════════════════════════════════════════════
+//  PART 20 — The calendar as the to-do list
+//   · A to-do the planner placed shows once in the day list — as its time block, with a ✓ to finish it.
+//   · A short line on top of the calendar says what the plan did (placed / pushed out / needs a category).
+//   · Adding a task tells you where it landed.
+//   · Tasks list: drag a row onto Today / Tomorrow / … / No date.
+// ════════════════════════════════════════════════════════════════════
+{ const _ai=cupAgItems; cupAgItems=function(ds){ const out=_ai.apply(this,arguments), shown=new Set();
+  out.forEach(it=>{ if(!it.ev) return; const e=S.events.find(x=>x.id===it.id), tid=e&&e.auto&&(e.taskIds||[])[0], t=tid&&S.tasks.find(x=>x.id===tid);
+    if(t){ it.task=t.id; it.done=cupDone(t); it.meta=(cupCommit(t.commitId)||{}).name||t.subject||''; shown.add(t.id); } });
+  return out.filter(it=>it.ev||!shown.has(it.id)); }; }
+{ const _ar=cupAgRow; cupAgRow=function(it,ds){ let h=_ar.apply(this,arguments); if(!it.task) return h;
+  return h.replace(`onclick="editEvent('${it.id}')"`,`onclick="editTask('${it.task}')"`).replace('<span class="cup-ag-time">',`<button type="button" class="cup-check2 cup-ag-ck ${it.done?'d':''}" onclick="event.stopPropagation();toggleTask('${it.task}')" aria-label="${cupT10('Done','완료')}"></button><span class="cup-ag-time">`); }; }
+
+// what the plan did, in one line above the calendar
+function cupAutoBanner(){
+  const panel=document.getElementById('calPanel'); if(!panel) return; let b=document.getElementById('cupAutoBar');
+  if(!cupAutoOn()){ b?.remove(); return; }
+  if(!b){ b=document.createElement('button'); b.type='button'; b.id='cupAutoBar'; b.className='cup-auto-bar'; b.onclick=()=>cupPlanOpen(); }
+  const td=todayStr(), wk=cupAddDays(td,6), placed=new Set(S.events.filter(e=>e.auto&&e.date>=td&&e.date<=wk&&(e.taskIds||[]).length).map(e=>e.taskIds[0])).size, i=cupAutoInfo;
+  const bits=[cupT10(`${placed} to-do${placed===1?'':'s'} planned this week`,`이번 주 할 일 ${placed}개 배치`)];
+  if(i.skipped) bits.push(`<b class="w">${cupT10(`${i.skipped} pushed out — not enough time`,`${i.skipped}개는 시간이 부족해 뺐어요`)}</b>`);
+  if(i.ask) bits.push(`<b class="w">${cupT10(`${i.ask} need a category`,`${i.ask}개 분류 필요`)}</b>`);
+  const html=`<span class="cup-auto-dot"></span><span>${cupT10('Auto plan','자동 계획')}</span><em>${bits.join(' · ')}</em><span class="cup-auto-go">${cupT10('Review','보기')} →</span>`;
+  if(b._h!==html){ b.innerHTML=html; b._h=html; }
+  if(b.parentElement!==panel || panel.firstElementChild!==b) panel.prepend(b);
+}
+{ const _rc=renderCalendar; renderCalendar=function(){ const r=_rc.apply(this,arguments); try{ cupAutoBanner(); }catch(_){} return r; }; }
+
+// a new to-do says where it landed
+let cupAutoKnown=null;
+{ const _as=cupAutoSync; cupAutoSync=function(){ const before=cupAutoKnown, r=_as.apply(this,arguments);
+  try{ const ids=new Set(S.tasks.filter(t=>!t.isHabit).map(t=>t.id)); cupAutoKnown=ids;
+    if(before){ const fresh=S.tasks.filter(t=>!t.isHabit&&!cupDone(t)&&!before.has(t.id)); const t=fresh[fresh.length-1];
+      if(t){ const e=S.events.filter(x=>x.auto&&(x.taskIds||[])[0]===t.id).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))[0];
+        if(e) showToast(cupT10(`“${t.title}” → ${cupWd(e.date)} ${cupFmt(e.date)} ${cupT12(e.time)}`,`“${t.title}” → ${cupFmt(e.date)} ${cupT12(e.time)}`), cupT10('See','보기'), ()=>{ try{ calSelectedDate=e.date; }catch(_){} showPage('todo'); });
+        else if(cupCatOf(t)==='work' && t.due) showToast(cupT10(`“${t.title}” doesn’t fit before ${cupFmt(t.due)} — tap Auto to make room.`,`“${t.title}”은(는) ${cupFmt(t.due)} 전에 자리가 없어요.`)); } } }catch(_){}
+  return r; }; }
+
+// Tasks list: drag a row onto a day
+function cupTLDnD(){
+  const host=document.getElementById('cupTaskList'); if(!host) return;
+  host.querySelectorAll('.cup-tl-row').forEach(r=>{ if(r.dataset.dnd) return; const id=((r.querySelector('.cup-check2')?.getAttribute('onclick')||'').match(/'([^']+)'/)||[])[1]; if(!id) return;
+    r.dataset.dnd=id; r.draggable=true;
+    r.addEventListener('dragstart',e=>{ e.dataTransfer.setData('text/plain',id); e.dataTransfer.effectAllowed='move'; r.classList.add('dragging'); setTimeout(()=>cupTLDropBar(true),0); });
+    r.addEventListener('dragend',()=>{ r.classList.remove('dragging'); cupTLDropBar(false); }); });
+}
+function cupTLDropBar(on){
+  document.getElementById('cupTLDrop')?.remove(); if(!on) return;
+  const td=todayStr(), d2=cupAddDays(td,2), opts=[[td,cupT10('Today','오늘')],[cupAddDays(td,1),cupT10('Tomorrow','내일')],[d2,cupWd(d2)],[cupAddDays(td,7),cupT10('Next week','다음 주')],['',cupT10('No date','날짜 없음')]];
+  const b=document.createElement('div'); b.id='cupTLDrop'; b.className='cup-tl-drop'; b.innerHTML=opts.map(([d,l])=>`<div data-d="${d}">${l}</div>`).join('');
+  b.querySelectorAll('div').forEach(z=>{ z.ondragover=e=>{ e.preventDefault(); z.classList.add('over'); }; z.ondragleave=()=>z.classList.remove('over');
+    z.ondrop=e=>{ e.preventDefault(); cupTLDropSet(e.dataTransfer.getData('text/plain'), z.dataset.d); cupTLDropBar(false); }; });
+  document.body.appendChild(b);
+}
+function cupTLDropSet(id, ds){
+  const t=S.tasks.find(x=>x.id===id); if(!t) return; const prev=[t.due||'',[...(t.scheduledDates||[])]];
+  t.due=ds; t.scheduledDates=ds?[ds]:[]; save(); render();
+  showToast(cupT10(`“${t.title}” → ${ds?cupFmt(ds):'no date'}`,`“${t.title}” → ${ds?cupFmt(ds):'날짜 없음'}`), cupT10('Undo','되돌리기'), ()=>{ t.due=prev[0]; t.scheduledDates=prev[1]; save(); render(); });
+}
+{ const _tl=cupRenderTaskList; cupRenderTaskList=function(){ const r=_tl.apply(this,arguments); try{ cupTLDnD(); }catch(_){} return r; }; }
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
