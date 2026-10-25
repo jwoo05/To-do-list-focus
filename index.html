@@ -7609,6 +7609,13 @@ body.cup-on-pomo #cupSessBar{ display:none !important; }
 .cup-dash-tg{ display:flex; align-items:center; gap:8px; width:100%; text-align:left; padding:10px 4px; font-size:calc(13px * var(--cup-fs,1)); color:var(--text3); }
 .cup-dash-tg em{ font-style:normal; font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); opacity:.8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; } .cup-dash-tg:hover{ color:var(--text); }
 #cupDash.cup-dash-closed{ display:none !important; }
+/* overlapping calendar blocks: solid, separated, title first */
+.cwk-block{ box-shadow:0 0 0 1px var(--bg); }
+.cwk-block.cwk-narrow{ padding:3px 5px; } .cwk-block.cwk-narrow .cwk-block-time{ display:none; }
+.cwk-block.cwk-narrow .cwk-block-title{ white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; font-size:calc(10.5px * var(--cup-fs,1)); }
+.cwk-block.cwk-short{ flex-direction:row; align-items:center; gap:6px; padding-top:2px; padding-bottom:2px; } .cwk-block.cwk-short .cwk-block-time{ flex:none; }
+.cwk-block.cwk-short.cwk-narrow .cwk-block-title{ -webkit-line-clamp:1; }
+.cup-auto-bar{ margin:10px 0 0; }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -27746,6 +27753,7 @@ function cupNavTidy(){
   // the calendar is the to-do list now: one short name, one line
   const cal=nav.querySelector('.nav-item[data-page="todo"]'), lbl=cal&&cal.querySelector('.cup-nav-lbl'), nm=cupT10('Calendar','캘린더');
   if(lbl && lbl.textContent!==nm){ lbl.textContent=nm; cal.title=nm; cal.setAttribute('aria-label',nm); }
+  const vt=document.querySelector('#page-todo .view-title'); if(vt && vt.textContent!==nm) vt.textContent=nm;
   // gear for Settings, small icon for theme
   const set=document.querySelector('.sidebar-action-btn[title="Settings"]');
   if(set && !set.dataset.gear){ set.dataset.gear='1'; set.innerHTML='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'; }
@@ -27875,7 +27883,7 @@ function cupAutoChip(){
 { const _ai=cupAgItems; cupAgItems=function(ds){ const out=_ai.apply(this,arguments), inBlock=new Set();
   out.forEach(it=>{ if(!it.ev) return; const e=S.events.find(x=>x.id===it.id); if(!e||!e.auto||!(e.taskIds||[]).length) return;
     const ts=e.taskIds.map(id=>S.tasks.find(x=>x.id===id)).filter(Boolean); ts.forEach(t=>inBlock.add(t.id));
-    it.focus=e.id; it.done=ts.length&&ts.every(cupDone); const open=ts.filter(t=>!cupDone(t)); it.title='◎ '+(open.length?open[0].title+(open.length>1?` +${open.length-1}`:''):cupT10('Focus — all done','집중 — 모두 완료')); it.meta=e.sub||e.title; });
+    it.focus=e.id; it.done=ts.length&&ts.every(cupDone); const open=ts.filter(t=>!cupDone(t)); it.title='◎ '+(open.length?open[0].title+(open.length>1?` +${open.length-1}`:''):cupT10('Focus — all done','집중 — 모두 완료')); it.meta=(e.sub||'').replace(/^(Focus|집중) · /,''); });
   return out.filter(it=>it.ev||!inBlock.has(it.id)); }; }   // a to-do inside a focus block isn't listed again on its own
 { const _ar=cupAgRow; cupAgRow=function(it,ds){ const h=_ar.apply(this,arguments); return it.focus?h.replace(`onclick="editEvent('${it.id}')"`,`onclick="cupFocusBlockOpen('${it.id}')"`):h; }; }
 // a focus block is an event with tasks inside: tapping it shows them (✓ each), Start focus on the day, or edit the time
@@ -27910,7 +27918,7 @@ function cupAutoBanner(){
   if(i.ask) bits.push(`<b class="w">${cupT10(`${i.ask} need a category`,`${i.ask}개 분류 필요`)}</b>`);
   const html=`<span class="cup-auto-dot"></span><span>${cupT10('Auto plan','자동 계획')}</span><em>${bits.join(' · ')}</em><span class="cup-auto-go">${cupT10('Review','보기')} →</span>`;
   if(b._h!==html){ b.innerHTML=html; b._h=html; }
-  if(b.parentElement!==panel || panel.firstElementChild!==b) panel.prepend(b);
+  if(b.parentElement!==panel) panel.appendChild(b);
 }
 { const _rc=renderCalendar; renderCalendar=function(){ const r=_rc.apply(this,arguments); try{ cupAutoBanner(); }catch(_){} return r; }; }
 
@@ -27985,6 +27993,21 @@ let cupInAg=false;
     const blk=S.events.filter(e=>e.auto&&e.date===td&&(e.taskIds||[]).length&&cupFitMin(e.endTime)>now).sort((a,b)=>a.time.localeCompare(b.time))[0]; if(!blk) return q;
     const t=(blk.slots||blk.taskIds.map(x=>[x])).flat().map(id=>S.tasks.find(x=>x.id===id)).find(x=>x&&!cupDone(x)); if(!t) return q;
     return [{ ...(q.find(x=>x.t===t)||{}), t }].concat(q.filter(x=>x.t!==t)); }catch(_){ return q; } }; }
+
+// What matters first: opening Calendar lands on today's list (Agenda, today at the top) — switch views any time during the visit
+{ const _sp=showPage; showPage=function(p){ const was=typeof currentPage!=='undefined'?currentPage:''; const r=_sp.apply(this,arguments);
+  try{ if(p==='todo' && was!=='todo'){ if(typeof cupSetMCol==='function' && cupMCol!=='cal') cupSetMCol('cal'); if(calLayout!=='agenda') setCalLayout('agenda'); else { calViewDate=cupNow(); renderCalendar(); } } }catch(_){}
+  return r; }; }
+// the plan line sits under the day, not in front of it
+{ const _ab=cupAutoBanner; cupAutoBanner=function(){ const r=_ab.apply(this,arguments); try{ const b=document.getElementById('cupAutoBar'), p=document.getElementById('calPanel'); if(b&&p&&p.lastElementChild!==b) p.appendChild(b); }catch(_){} return r; }; }
+// overlapping blocks stay readable: narrow ones drop the time and wrap the title to two lines; very short ones show one line
+{ const _rw=renderWeekView; renderWeekView=function(){ const r=_rw.apply(this,arguments);
+  try{ document.querySelectorAll('#calWeekGrid .cwk-day-col').forEach(col=>{ const cw=col.getBoundingClientRect().width||1;
+    col.querySelectorAll('.cwk-block').forEach((b,i)=>{ const w=b.getBoundingClientRect().width, h=parseFloat(b.style.height)||0;
+      b.classList.toggle('cwk-narrow', w<cw*0.6); b.classList.toggle('cwk-short', h<34); b.title=b.innerText.replace(/\s+/g,' ').trim(); }); }); }catch(_){}
+  return r; }; }
+// the view switcher always highlights the view you're on
+{ const _rcl=renderCalendar; renderCalendar=function(){ const r=_rcl.apply(this,arguments); try{ document.querySelectorAll('#calPanel .clt-opt[data-layout]').forEach(b=>b.classList.toggle('active', b.dataset.layout===calLayout)); }catch(_){} return r; }; }
 
 // ════════════════════════════════════════════════════════════════════
 //  PART 21 — “When’s the next open spot to …?”
