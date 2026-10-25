@@ -7523,6 +7523,14 @@ body.cup-on-pomo #cupSessBar{ display:none !important; }
 .cup-pl-q{ padding:8px 0; border-top:1px solid color-mix(in srgb, var(--border) 55%, transparent); display:grid; gap:6px; } .cup-pl-q > b{ font-size:calc(13.5px * var(--cup-fs,1)); font-weight:550; }
 @media (max-width:760px){ .cup-pl-rate button{ padding:9px 0; } }
 
+/* Waiting on · email replies */
+.cup-mail-bar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; border:1px solid var(--border); border-radius:12px; padding:8px 14px; margin-bottom:12px; font-size:calc(13px * var(--cup-fs,1)); color:var(--text2); } .cup-mail-bar span{ flex:1 1 auto; min-width:0; } .cup-mail-bar em{ font-style:normal; color:var(--text3); font-size:calc(12px * var(--cup-fs,1)); }
+.cup-mail-bar button{ padding:5px 12px; border:1px solid var(--border); border-radius:99px; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text); } .cup-mail-bar button:hover{ border-color:var(--accent); } .cup-mail-bar button.q{ color:var(--text3); }
+.cup-wcard.has-reply{ border-color:color-mix(in srgb, var(--pace-ok, var(--green,#4dd49a)) 55%, var(--border)); }
+.cup-mail-r{ display:grid; gap:3px; margin:6px 0 2px; padding:8px 10px; border-radius:10px; background:color-mix(in srgb, var(--pace-ok, var(--green,#4dd49a)) 8%, transparent); font-size:calc(12px * var(--cup-fs,1)); color:var(--text2); line-height:1.45; }
+.cup-mail-r b{ font-size:calc(12px * var(--cup-fs,1)); color:var(--text); font-weight:600; } .cup-mail-r .s{ color:var(--text); } .cup-mail-r > span:not(.s){ color:var(--text3); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.cup-mail-r div{ display:flex; gap:10px; margin-top:2px; } .cup-mail-r a, .cup-mail-r button{ font-size:calc(12px * var(--cup-fs,1)); color:var(--accent); text-decoration:underline; } .cup-mail-r button{ color:var(--text3); }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -27475,6 +27483,93 @@ function cupPlanApply(){
     const chip=`<button type="button" class="cup-hbtn ${late?'warn':''}" onclick="cupPlanOpen()">${late?cupT10('Rate today · plan week','오늘 평가 · 주간 계획'):cupT10('Plan my week','주간 계획')}</button>`;
     h=h.replace('<div class="cup-hchips">','<div class="cup-hchips">'+chip); }catch(_){}
   return h; }; }
+
+// ════════════════════════════════════════════════════════════════════
+//  PART 17 — Waiting on: look for replies in your email
+//  Optional and read-only (Gmail “readonly” via the same Google sign-in as the calendar). Twice a day — the first time you open the app
+//  after 5 am and again after 5 pm — and on “Check now”, each open Waiting item is searched for a message that came after you sent it,
+//  from that person or with the same subject words. A match is attached to the item (sender, subject, a short snippet, a link) and flagged
+//  “Reply found”. Nothing is ever sent, deleted or changed in your mailbox; “Not it” hides a wrong match.
+//    S.cup.mail = { on, last:{am,pm}, at, need }      task.reply = { id, threadId, from, subject, snippet, date, found }     task.replyNo = [ids]
+// ════════════════════════════════════════════════════════════════════
+const CUP_GM_SCOPE='https://www.googleapis.com/auth/gmail.readonly';
+function cupMail(){ cupEnsure(); let m=S.cup.mail; if(!m||typeof m!=='object') m=S.cup.mail={}; if(!m.last||typeof m.last!=='object') m.last={am:'',pm:''}; if(m.on===undefined) m.on=false; return m; }
+{ const _ms=cupGcMoreScopes; cupGcMoreScopes=function(){ const a=_ms.apply(this,arguments)||[]; return cupMail().on?[...a,CUP_GM_SCOPE]:a; }; }
+
+const CUP_MAIL_STOP=new Set(['email','send','sent','reply','the','for','and','with','form','application','apply','follow','waiting','from','that','this','about','your','submit','submitted','check']);
+function cupMailQuery(t){
+  const since=t.submitted||(t.createdAt?cupISO(new Date(t.createdAt)):''); if(!since) return '';
+  const terms=[], p=(t.person||'').trim();
+  if(p) terms.push(p.includes('@')?`from:${p.replace(/[^\w.@+-]/g,'')}`:`from:"${p.replace(/["\\]/g,'')}"`);
+  const kw=[...new Set((t.title||'').toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(w=>(/[\uac00-\ud7a3]/.test(w)?w.length>=2:w.length>=4) && !CUP_MAIL_STOP.has(w)))].slice(0,3);
+  if(kw.length>=2) terms.push(`subject:(${kw.join(' ')})`);
+  if(!terms.length) return '';
+  return `after:${since.replace(/-/g,'/')} -from:me -category:promotions (${terms.join(' OR ')})`;
+}
+async function cupMailApi(path){
+  if(!(await cupGcEnsureTok()) ){ const e=new Error('signed out'); e.status=401; throw e; }
+  const r=await fetch('https://gmail.googleapis.com/gmail/v1/users/me'+path, { headers:{ Authorization:'Bearer '+cupGcTok.t } });
+  const j=await r.json().catch(()=>null);
+  if(!r.ok){ const e=new Error((j&&j.error&&j.error.message)||('HTTP '+r.status)); e.status=r.status; throw e; }
+  return j;
+}
+const cupMailFrom = h => { const m=String(h||'').match(/^\s*"?([^"<]*?)"?\s*<([^>]+)>/); return (m&&(m[1].trim()||m[2]))||String(h||'').trim(); };
+let cupMailBusy=false;
+async function cupMailCheck(manual){
+  const m=cupMail(); if(!m.on || cupMailBusy) return 0; cupMailBusy=true; let found=0;
+  try{
+    const items=S.tasks.filter(t=>t.waiting&&!cupDone(t)&&!t.outcome).slice(0,25);
+    for(const t of items){ const q=cupMailQuery(t); if(!q) continue;
+      const j=await cupMailApi('/messages?maxResults=5&q='+encodeURIComponent(q)), no=t.replyNo||[];
+      const id=((j&&j.messages)||[]).map(x=>x.id).find(i=>!no.includes(i)); if(!id || (t.reply&&t.reply.id===id)) continue;
+      const g=await cupMailApi('/messages/'+id+'?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date');
+      const H=n=>((g.payload&&g.payload.headers||[]).find(h=>h.name.toLowerCase()===n.toLowerCase())||{}).value||'';
+      t.reply={ id, threadId:g.threadId||id, from:cupMailFrom(H('From')), subject:H('Subject').slice(0,120), snippet:String(g.snippet||'').slice(0,160), date:+g.internalDate||Date.now(), found:Date.now() }; found++; }
+    m.need=false; m.at=Date.now(); save();
+    if(found){ render(); showToast(cupT10(`${found} possible repl${found>1?'ies':'y'} found for Waiting on.`,`답변 대기 중인 것에서 답장 ${found}개를 찾았어요.`), cupT10('Open','열기'), ()=>cupWaitOpen('')); }
+    else if(manual) showToast(cupT10('No new replies yet.','새 답장이 아직 없어요.'));
+  }catch(e){ if(e.status===401||e.status===403){ m.need=true; save(); if(manual) showToast(cupT10('Reconnect Gmail to keep checking.','Gmail을 다시 연결해 주세요.')); } else if(manual) showToast(cupT10('Couldn’t check just now.','지금은 확인하지 못했어요.')); }
+  finally{ cupMailBusy=false; try{ if(typeof currentPage!=='undefined'&&currentPage==='waiting') cupRenderWaiting(); }catch(_){} }
+  return found;
+}
+// the morning and evening check
+function cupMailAuto(){
+  try{ const m=cupMail(); if(!m.on||m.need||document.hidden) return; const n=cupNow(), td=todayStr(), h=n.getHours();
+    if(!(typeof firebase!=='undefined'&&firebase.auth&&firebase.auth().currentUser)) return;
+    const slot=h>=17?'pm':h>=5?'am':''; if(!slot||m.last[slot]===td) return;
+    m.last[slot]=td; if(slot==='pm') m.last.am=td; save(); cupMailCheck(false); }catch(_){}
+}
+setInterval(cupMailAuto, 5*60*1000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) setTimeout(cupMailAuto,2500); }); setTimeout(cupMailAuto, 9000);
+
+// connect — must start in a tap (Google opens a small window)
+async function cupMailConnect(){
+  const m=cupMail(), was=m.on; m.on=true;
+  try{ await cupGcSrvLoad(); await cupGcAuth('consent'); m.need=false; m.last={am:'',pm:''}; save(); showToast(cupT10('Gmail connected — checking now.','Gmail이 연결됐어요 — 확인 중.')); cupMailCheck(true); }
+  catch(e){ m.on=was; save(); showToast(e&&e.message==='loading'?cupT10('Google is still loading — tap again.','Google을 불러오는 중이에요 — 다시 눌러 주세요.'):cupT10('Gmail wasn’t connected.','Gmail이 연결되지 않았어요.')); }
+  try{ cupRenderWaiting(); }catch(_){}
+}
+function cupMailOff(){ const m=cupMail(); m.on=false; m.need=false; S.tasks.forEach(t=>{ delete t.reply; }); save(); render(); try{ cupRenderWaiting(); }catch(_){} showToast(cupT10('Email check is off.','이메일 확인을 껐어요.')); }
+function cupMailNo(id){ const t=S.tasks.find(x=>x.id===id); if(!t||!t.reply) return; t.replyNo=[...(t.replyNo||[]), t.reply.id]; delete t.reply; save(); cupRenderWaiting(); }
+
+// the Waiting page: a quiet status line on top, and the reply under each item it belongs to
+function cupMailDecorate(){
+  const host=document.getElementById('cupWaitPage'); if(!host) return; const m=cupMail();
+  host.querySelector('.cup-mail-bar')?.remove();
+  const n=S.tasks.filter(t=>t.waiting&&!cupDone(t)&&t.reply).length, at=m.at?cupT12(cupFitHM(new Date(m.at).getHours()*60+new Date(m.at).getMinutes())):'';
+  const bar=document.createElement('div'); bar.className='cup-mail-bar';
+  bar.innerHTML=!m.on?`<span>✉ ${cupT10('Find replies in your email and attach them here.','이메일에서 답장을 찾아 여기에 붙여 줘요.')}</span><button type="button" onclick="cupMailConnect()">${cupT10('Connect Gmail','Gmail 연결')}</button>`
+    : m.need?`<span>✉ ${cupT10('Gmail needs you to sign in again.','Gmail 로그인이 필요해요.')}</span><button type="button" onclick="cupMailConnect()">${cupT10('Resume','다시 연결')}</button>`
+    : `<span>✉ ${n?cupT10(`${n} reply found`,`답장 ${n}개 발견`)+' · ':''}${at?cupT10(`checked ${at}`,`${at}에 확인`):cupT10('not checked yet','아직 확인 전')} <em>${cupT10('(morning & evening)','(아침·저녁)')}</em></span><button type="button" onclick="cupMailCheck(true)">${cupT10('Check now','지금 확인')}</button><button type="button" class="q" onclick="cupMailOff()">${cupT10('Turn off','끄기')}</button>`;
+  host.prepend(bar);
+  host.querySelectorAll('.cup-wcard').forEach(card=>{
+    const id=((card.querySelector('.cup-wcard-t')?.getAttribute('onclick')||'').match(/'([^']+)'/)||[])[1], t=id&&S.tasks.find(x=>x.id===id);
+    if(!t||!t.reply||!m.on) return; const r=t.reply, when=cupFmt(cupISO(new Date(r.date)));
+    const box=document.createElement('div'); box.className='cup-mail-r';
+    box.innerHTML=`<b>✉ ${cupT10('Reply found','답장 발견')} · ${esc(r.from)} · ${when}</b>${r.subject?`<span class="s">${esc(r.subject)}</span>`:''}<span>${esc(r.snippet)}</span><div><a href="https://mail.google.com/mail/u/0/#all/${encodeURIComponent(r.threadId)}" target="_blank" rel="noopener">${cupT10('Open email','메일 열기')}</a><button type="button" onclick="cupMailNo('${t.id}')">${cupT10('Not it','아니에요')}</button></div>`;
+    card.querySelector('.cup-wcard-a')?.before(box); card.classList.add('has-reply'); });
+}
+{ const _rw=cupRenderWaiting; cupRenderWaiting=function(){ const r=_rw.apply(this,arguments); try{ cupMailDecorate(); }catch(_){} return r; }; }
+try{ cupGcLoadGis().catch(()=>{}); cupGcSrvLoad(); }catch(_){}
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
