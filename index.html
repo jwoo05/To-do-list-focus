@@ -7530,6 +7530,22 @@ body.cup-on-pomo #cupSessBar{ display:none !important; }
 .cup-mail-r{ display:grid; gap:3px; margin:6px 0 2px; padding:8px 10px; border-radius:10px; background:color-mix(in srgb, var(--pace-ok, var(--green,#4dd49a)) 8%, transparent); font-size:calc(12px * var(--cup-fs,1)); color:var(--text2); line-height:1.45; }
 .cup-mail-r b{ font-size:calc(12px * var(--cup-fs,1)); color:var(--text); font-weight:600; } .cup-mail-r .s{ color:var(--text); } .cup-mail-r > span:not(.s){ color:var(--text3); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
 .cup-mail-r div{ display:flex; gap:10px; margin-top:2px; } .cup-mail-r a, .cup-mail-r button{ font-size:calc(12px * var(--cup-fs,1)); color:var(--accent); text-decoration:underline; } .cup-mail-r button{ color:var(--text3); }
+.cup-mn-tithe{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; border:1px solid var(--border); border-radius:14px; padding:12px 14px; }
+.cup-mn-tithe > div{ flex:1 1 180px; display:grid; gap:2px; min-width:0; } .cup-mn-tithe span{ font-size:calc(11.5px * var(--cup-fs,1)); letter-spacing:.04em; color:var(--text3); } .cup-mn-tithe b{ font-family:'Source Serif 4',Georgia,serif; font-size:22px; font-weight:600; font-variant-numeric:tabular-nums; } .cup-mn-tithe em{ font-style:normal; font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); }
+.cup-mn-tithe .cup-mn-in{ width:120px; } .cup-mn-tithe .btn[disabled]{ opacity:.45; }
+/* Focus: the To-do column keeps its list inside the column (scrolls there) and the search box stays inside it */
+.cup-pm-q{ width:auto; box-sizing:border-box; }
+#page-pomo .cup-pm-col:last-child{ position:sticky; top:12px; max-height:calc(100vh - 32px); grid-template-rows:auto minmax(0,1fr); overflow:hidden; }
+#cupPmPool{ min-height:0; overflow-y:auto; overscroll-behavior:contain; padding-right:2px; }
+@media (max-width:760px){ #page-pomo .cup-pm-col:last-child{ position:static; max-height:70vh; } }
+.cup-pl-fit{ border-color:var(--border); background:transparent; color:var(--text2); }
+/* phone overflow: grid columns sized to their content pushed Today in review, Focus and the Plan/Money sheets past the screen */
+.cup-review, .cup-pm-col, .cup-mnm .modal-body{ grid-template-columns:minmax(0,1fr); }
+.cup-review > *, .cup-pm-col > *, .cup-mnm .modal-body > *{ min-width:0; }
+@media (max-width:760px){ .cup-pm-cols{ grid-template-columns:minmax(0,1fr); } .cup-pm-h{ flex-wrap:wrap; } }
+.cup-rev-sec, .cup-pm-slot, .cup-pl-days, .cup-pl-day, .cup-pl-sec, .cup-mn-sec, .cup-mn-card{ grid-template-columns:minmax(0,1fr); }
+.cup-rev-sec > *, .cup-pm-slot > *, .cup-pl-days > *, .cup-pl-day > *{ min-width:0; }
+.cup-pl-dh{ min-width:0; } .cup-pl-dh > b{ flex:none; } .cup-pl-bar{ min-width:40px; flex:1 1 60px; } .cup-pl-dh em{ white-space:nowrap; flex:none; }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -14858,8 +14874,8 @@ function renderCalendar(){
   for(let i=0;i<firstDay;i++) html+=`<div class="cal-cell other-month"></div>`;
   for(let d=1;d<=daysInMonth;d++){
     const ds=y+'-'+pad(mo+1)+'-'+pad(d);
-    const allDayTasks=cupCalTasksOn(ds);
-    const allDayEvents=cupCalEventsOn(ds);
+    const allDayTasks=(typeof cupCalTasksOn==='function'?cupCalTasksOn(ds):S.tasks.filter(t=>!t.archived&&(t.scheduledDates?.includes(ds)||(t.due===ds&&!isDueSignalDone(t,ds))||isHabitDueToday(t,ds))));
+    const allDayEvents=(typeof cupCalEventsOn==='function'?cupCalEventsOn(ds):S.events.filter(e=>eventOccursOn(e,ds)));
     const dayTasks = calViewMode==='events' ? [] : allDayTasks;
     const dayEvents = calViewMode==='tasks' ? [] : allDayEvents;
     const hasTasks=dayTasks.length>0 || dayEvents.length>0;
@@ -14915,8 +14931,8 @@ function renderCalendar(){
   renderCalDayTasks();
 }
 function calendarItemsForDate(ds){
-  const allDayTasks=cupCalTasksOn(ds);
-  const allDayEvents=cupCalEventsOn(ds);
+  const allDayTasks=(typeof cupCalTasksOn==='function'?cupCalTasksOn(ds):S.tasks.filter(t=>!t.archived&&(t.scheduledDates?.includes(ds)||(t.due===ds&&!isDueSignalDone(t,ds))||isHabitDueToday(t,ds))));
+  const allDayEvents=(typeof cupCalEventsOn==='function'?cupCalEventsOn(ds):S.events.filter(e=>eventOccursOn(e,ds)));
   return {
     tasks: calViewMode==='events' ? [] : allDayTasks,
     events: calViewMode==='tasks' ? [] : allDayEvents
@@ -15656,8 +15672,8 @@ function setupCalViewResizeSync(){
 }
 function renderCalDayTasks(){
   const ds=calSelectedDate;
-  const tasks = calViewMode==='events' ? [] : cupCalTasksOn(ds);
-  const events = calViewMode==='tasks' ? [] : cupCalEventsOn(ds);
+  const tasks = calViewMode==='events' ? [] : (typeof cupCalTasksOn==='function'?cupCalTasksOn(ds):S.tasks.filter(t=>!t.archived&&(t.scheduledDates?.includes(ds)||(t.due===ds&&!isDueSignalDone(t,ds))||isHabitDueToday(t,ds))));
+  const events = calViewMode==='tasks' ? [] : (typeof cupCalEventsOn==='function'?cupCalEventsOn(ds):S.events.filter(e=>eventOccursOn(e,ds)));
   const wrap=document.getElementById('calDayTasks');
   if(!tasks.length && !events.length){ wrap.innerHTML=`<div class="cal-day-title">${fmtDate(ds)}</div><div class="empty" style="font-size:11px;padding:12px 0">No ${currentPage==='calendar'?'events':'tasks or tests'}</div>`; return; }
   wrap.innerHTML=`<div class="cal-day-title">${fmtDate(ds)}</div>`+
@@ -27023,7 +27039,7 @@ const cupMnRole = k => { const r=CUP_MN_ROLES.find(x=>x[0]===k); return r?cupT10
 function cupMoney(){
   cupEnsure(); let m=S.cup.money; if(!m || typeof m!=='object') m=S.cup.money={};
   if(!Array.isArray(m.cards)) m.cards=Object.values(m.cards||{}); if(!Array.isArray(m.items)) m.items=Object.values(m.items||{});
-  if(typeof m.cash!=='number') m.cash=+m.cash||0; if(m.cur!=='KRW') m.cur='USD';
+  if(typeof m.cash!=='number') m.cash=+m.cash||0; m.tithe=+m.tithe||0; if(!Array.isArray(m.given)) m.given=Object.values(m.given||{}); if(m.cur!=='KRW') m.cur='USD';
   m.cards=m.cards.filter(Boolean); m.items=m.items.filter(Boolean); return m;
 }
 function cupMnFmt(n){ const m=cupMoney(); n=+n||0; try{ return new Intl.NumberFormat(m.cur==='KRW'?'ko-KR':'en-US',{ style:'currency', currency:m.cur, maximumFractionDigits:m.cur==='KRW'?0:2, minimumFractionDigits:(m.cur==='KRW'||Number.isInteger(n))?0:2 }).format(n); }catch(_){ return (m.cur==='KRW'?'₩':'$')+n; } }
@@ -27091,7 +27107,7 @@ function cupRenderMoney(){
   const debit=m.cards.filter(c=>c.type==='debit').reduce((a,c)=>a+(+c.balance||0),0), credit=m.cards.filter(c=>c.type!=='debit').reduce((a,c)=>a+(+c.balance||0),0);
   const debts=m.items.filter(i=>i.kind==='debt'&&!i.done), debtSum=debts.reduce((a,i)=>a+(+i.amount||0),0);
   const dueSoon=up.filter(u=>u.amount<0 && u.date<=win).reduce((a,u)=>a+(-u.amount),0), inSoon=up.filter(u=>u.amount>0 && u.date<=win).reduce((a,u)=>a+u.amount,0);
-  const avail=m.cash+debit;
+  const avail=m.cash+debit-m.tithe;
   const stat=(v,l,cls)=>`<div class="cup-mn-stat ${cls||''}"><b>${v}</b><span>${l}</span></div>`;
   const actOf=u=>u.k==='card' ? `cupMnPaidCard('${u.id}','${u.date}')` : `cupMnDone('${u.id}')`;
   const nameOf=u=>u.k==='card'?esc(u.label):esc(u.label);
@@ -27121,7 +27137,9 @@ function cupRenderMoney(){
   host.innerHTML=`
     <div class="cup-mn-add"><button type="button" onclick="cupMnItemSheet('','bill')">+ ${cupT10('Bill','낼 돈')}</button><button type="button" onclick="cupMnItemSheet('','in')">+ ${cupT10('Money in','들어올 돈')}</button><button type="button" onclick="cupMnItemSheet('','debt')">+ ${cupT10('Debt','빚')}</button><button type="button" onclick="cupMnCardSheet('')">+ ${cupT10('Card','카드')}</button></div>
     ${hero}
-    <div class="cup-mn-stats">${stat(cupMnFmt(dueSoon),cupT10('due in 14 days','14일 안에 낼 돈'),dueSoon>avail&&avail>=0?'warn':'')}${stat(cupMnFmt(credit+debtSum),cupT10('owed (cards + debt)','갚을 돈 (카드 + 빚)'))}${stat(cupMnFmt(avail),cupT10('available (cash + debit)','쓸 수 있는 돈'))}${inSoon>0?stat(cupMnFmt(inSoon),cupT10('coming in, 14 days','14일 안에 들어올 돈'),'in'):''}</div>
+    <section class="cup-mn-tithe"><div><span>${cupT10('Tithe to give · 십일조','십일조 · 드릴 헌금')}</span><b>${cupMnFmt(m.tithe)}</b><em>${cupT10('10% of each income you mark received','받은 수입의 10%')}${m.given.length?` · ${cupT10('last given','마지막 헌금')} ${cupFmt(m.given[m.given.length-1].date)}`:''}</em></div>
+      <input class="cup-mn-in" inputmode="decimal" placeholder="${cupT10('+ Income','+ 수입')}" onchange="cupMnTitheAdd(this.value);this.value=''" aria-label="${cupT10('Income received','받은 수입')}"><button type="button" class="btn btn-accent" ${m.tithe>0?'':'disabled'} onclick="cupMnTitheGive()">${cupT10('Given','헌금 완료')}</button></section>
+    <div class="cup-mn-stats">${stat(cupMnFmt(dueSoon),cupT10('due in 14 days','14일 안에 낼 돈'),dueSoon>avail&&avail>=0?'warn':'')}${stat(cupMnFmt(credit+debtSum),cupT10('owed (cards + debt)','갚을 돈 (카드 + 빚)'))}${stat(cupMnFmt(avail),cupT10(m.tithe>0?'available after tithe':'available (cash + debit)',m.tithe>0?'십일조 빼고 쓸 수 있는 돈':'쓸 수 있는 돈'))}${inSoon>0?stat(cupMnFmt(inSoon),cupT10('coming in, 14 days','14일 안에 들어올 돈'),'in'):''}</div>
     ${rest.length?`<section class="cup-mn-sec"><div class="cup-mn-h"><b>${cupT10('After that','그 다음')}</b><em>${rest.length}</em></div>${upRows}
       ${rest.length>6?`<button type="button" class="cup-more-btn" onclick="cupMnAll=${!cupMnAll};cupRenderMoney()">${cupMnAll?cupT10('Show less','접기'):cupT10(`Show all ${rest.length}`,`${rest.length}개 모두 보기`)}</button>`:''}</section>`:''}
     <section class="cup-mn-sec"><div class="cup-mn-h"><b>${cupT10('My cards','내 카드')}</b><em>${m.cards.length}</em><span class="cup-mn-hint">${cupT10('Tap a number to update it','숫자를 눌러 바로 수정')}</span></div>
@@ -27138,8 +27156,15 @@ function cupRenderMoney(){
 // ── actions ──
 function cupMnCash(v){ cupMoney().cash=cupMnNum(v); save(); cupRenderMoney(); }
 function cupMnCur(v){ cupMoney().cur=v==='KRW'?'KRW':'USD'; save(); cupRenderMoney(); }
-function cupMnDone(id){ const it=cupMoney().items.find(x=>x.id===id); if(!it) return; it.done=true; save(); cupRenderMoney();
-  showToast(it.kind==='in'?cupT10('Marked received.','받았다고 표시했어요.'):cupT10('Marked paid.','냈다고 표시했어요.'), cupT10('Undo','되돌리기'), ()=>{ it.done=false; save(); cupRenderMoney(); }); }
+const cupMnR2 = n => Math.round(n*100)/100;
+function cupMnDone(id){ const m=cupMoney(), it=m.items.find(x=>x.id===id); if(!it) return; it.done=true;
+  const ti=it.kind==='in'?cupMnR2((+it.amount||0)*0.1):0; m.tithe=cupMnR2(m.tithe+ti); save(); cupRenderMoney();
+  showToast(it.kind==='in'?cupT10(`Marked received${ti?` · ${cupMnFmt(ti)} set aside for tithe`:''}.`,`받았어요${ti?` · 십일조 ${cupMnFmt(ti)} 따로 둠`:''}.`):cupT10('Marked paid.','냈다고 표시했어요.'), cupT10('Undo','되돌리기'), ()=>{ it.done=false; m.tithe=cupMnR2(Math.max(0,m.tithe-ti)); save(); cupRenderMoney(); }); }
+// 십일조: 10% of every income you mark received (or type in) waits here until you press “Given”
+function cupMnTitheAdd(v){ const n=cupMnNum(v); if(!(n>0)) return; const m=cupMoney(), ti=cupMnR2(n*0.1); m.tithe=cupMnR2(m.tithe+ti); save(); cupRenderMoney();
+  showToast(cupT10(`${cupMnFmt(ti)} set aside for tithe.`,`십일조 ${cupMnFmt(ti)} 따로 뒀어요.`), cupT10('Undo','되돌리기'), ()=>{ m.tithe=cupMnR2(Math.max(0,m.tithe-ti)); save(); cupRenderMoney(); }); }
+function cupMnTitheGive(){ const m=cupMoney(), a=m.tithe; if(!(a>0)) return; m.given.push({ date:todayStr(), amount:a }); m.tithe=0; save(); cupRenderMoney();
+  showToast(cupT10(`Tithe given · ${cupMnFmt(a)}.`,`헌금 완료 · ${cupMnFmt(a)}.`), cupT10('Undo','되돌리기'), ()=>{ m.given.pop(); m.tithe=a; save(); cupRenderMoney(); }); }
 function cupMnPaidCard(id, ds){ const c=cupMoney().cards.find(x=>x.id===id); if(!c) return; c.paid=Object.assign({}, c.paid||{}, {[ds]:true}); save(); cupRenderMoney();
   showToast(cupT10(`${c.name} paid for ${cupFmt(ds)}.`,`${c.name} ${cupFmt(ds)} 결제 완료.`), cupT10('Undo','되돌리기'), ()=>{ delete c.paid[ds]; save(); cupRenderMoney(); }); }
 
@@ -27321,16 +27346,12 @@ function cupFitUse(ds, s){ cupFit.date=ds; if(cupFit.tab==='hang'){ const len=cu
   cupFitOpen(cupFit.tab); }
 function cupFitAdd(){
   cupFitRun(); const p=cupFitPlan, f=cupFit; if(!p) return;
-  const title=f.tab==='hang'?f.title:cupT10(`Focus · ${f.poms}×25`,`집중 · ${f.poms}×25`), type=f.tab==='hang'?'personal':'event';
+  const title=f.tab==='hang'?f.title:cupT10(`Focus · ${f.poms}×25`,`집중 · ${f.poms}×25`), type=f.tab==='hang'?'personal':'focus_block';
   S.events.push({ id:uid(), title, date:p.ds, endDate:p.ds, noEndDate:false, time:cupFitHM(p.s), endTime:cupFitHM(p.e), allDay:false, recurrence:'none', recurrenceDays:[], subject:'', location:'', notes:f.tab==='focus'?cupT10('Focus block — set up the pomodoros on the Focus page.','집중 시간 — 집중 페이지에서 뽀모도로를 정하세요.'):'', reminder:'none', type, color:eventColorForType(type) });
   if(f.tab==='hang') f.title='';
   closeModal('mCupFit'); save(); render(); showToast(cupT10(`Added “${title}” to ${cupFmt(p.ds)}.`,`“${title}”을(를) ${cupFmt(p.ds)}에 추가했어요.`));
 }
-// entry points: a chip on Home, and ⌘/Ctrl+Shift+F
-{ const _hc=cupHomeChips; cupHomeChips=function(){ let h=_hc.apply(this,arguments);
-  try{ const chip=`<button type="button" class="cup-hbtn" onclick="cupFitOpen('hang')" title="${cupT10('Check if you have time for plans','약속할 시간이 되는지 확인')}">${cupT10('Can I fit…?','시간 될까?')}</button>`;
-    h=h.replace('<div class="cup-hchips">','<div class="cup-hchips">'+chip); }catch(_){}
-  return h; }; }
+// entry points: “Can I fit something in?” inside Plan my week, and ⌘/Ctrl+Shift+F
 document.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.shiftKey&&(e.key==='F'||e.key==='f')&&!/INPUT|TEXTAREA|SELECT/.test((e.target||{}).tagName||'')){ e.preventDefault(); cupFitOpen('hang'); } });
 
 // ════════════════════════════════════════════════════════════════════
@@ -27382,7 +27403,7 @@ function cupPlnGaps(ds, busy, len, minStart, maxEnd){
 // ── the planner ──
 function cupPlnBuild(nDays){
   const P=cupPln(), td=todayStr(), foc=cupPlnFocus(), brk=Math.max(3,Math.round(foc/5)), capU=Math.max(1,Math.floor(P.cap/foc));
-  const days=Array.from({length:nDays||7},(_,i)=>{ const ds=cupAddDays(td,i); return { ds, busy:cupPlnBusy(ds), blocks:[], units:0 }; });
+  const days=Array.from({length:nDays||7},(_,i)=>{ const ds=cupAddDays(td,i); return { ds, busy:cupPlnBusy(ds), blocks:[], units:0, cap:(i===0&&typeof cupEnergyLow==='function'&&cupEnergyLow())?Math.max(1,Math.floor(capU/2)):capU }; });
   const ask=[], work=[], skipped=[];
   S.tasks.forEach(t=>{ if(cupDone(t)||t.isHabit||t.waiting) return; const c=cupCatOf(t); if(!c){ ask.push(t); return; } if(c==='work') work.push(t); });
   const pri={high:0,medium:1,low:2};
@@ -27395,8 +27416,8 @@ function cupPlnBuild(nDays){
     const lastIdx=t.due<td?Math.min(days.length-1,2):Math.max(0,Math.min(days.length-1,days.findIndex(d=>d.ds===t.due)<0?days.length-1:days.findIndex(d=>d.ds===t.due)));
     let guard=0;
     while(left>0 && guard++<30){ let ok=false;
-      const order=days.slice(0,lastIdx+1).map((d,i)=>[d,i]).filter(([d])=>P.over||d.units<capU).sort((a,b)=>a[0].units-b[0].units||a[1]-b[1]);
-      for(const [d] of order){ let chunk=Math.min(left,4,P.over?4:capU-d.units);
+      const order=days.slice(0,lastIdx+1).map((d,i)=>[d,i]).filter(([d])=>P.over||d.units<d.cap).sort((a,b)=>a[0].units-b[0].units||a[1]-b[1]);
+      for(const [d] of order){ let chunk=Math.min(left,4,P.over?4:d.cap-d.units);
         while(chunk>=1){ const len=chunk*foc+(chunk-1)*brk; if(put(d,len,`${cupT10('Study','공부')} · ${t.title}`,'work',[t.id],chunk,9*60,22*60)){ d.units+=chunk; left-=chunk; ok=true; break; } chunk--; }
         if(ok) break; }
       if(!ok) break; }
@@ -27405,7 +27426,7 @@ function cupPlnBuild(nDays){
   const hasTestNext=ds=>S.events.some(e=>e.type==='test' && e.date===cupAddDays(ds,1));
   const wishes=[['gf',P.tg.gf,120,17*60,23*60],['workout',P.tg.workout,45,7*60,20*60+30],['friends',P.tg.friends,120,17*60,23*60]], noRoom=[];
   wishes.forEach(([cat,n,len,minStart,maxEnd])=>{ let placed=0;
-    for(let k=0;k<(+n||0);k++){ const cand=days.filter(d=>d.units<=capU*0.9 && !(cat!=='workout'&&hasTestNext(d.ds)) && !d.blocks.some(b=>b.cat===cat)).sort((a,b)=>(a.units+a.blocks.length)-(b.units+b.blocks.length)||a.ds.localeCompare(b.ds));
+    for(let k=0;k<(+n||0);k++){ const cand=days.filter(d=>d.units<=d.cap*0.9 && !(cat!=='workout'&&hasTestNext(d.ds)) && !d.blocks.some(b=>b.cat===cat)).sort((a,b)=>(a.units+a.blocks.length)-(b.units+b.blocks.length)||a.ds.localeCompare(b.ds));
       let ok=false; for(const d of cand){ if(put(d,len,({gf:cupT10('Time with her','여자친구와'),workout:cupT10('Workout','운동'),friends:cupT10('Friends','친구')})[cat],cat,[],0,minStart,maxEnd)){ ok=true; break; } }
       if(ok) placed++; }
     if(placed<(+n||0)) noRoom.push([cat,(+n||0)-placed]); });
@@ -27430,9 +27451,10 @@ function cupPlanRender(){
   host.innerHTML=`
     <section class="cup-pl-cal"><div><b>${cupT10('Your capacity','내 용량')}</b><span>${cupT10(`${capH} of study a day · ${R.foc}-minute pomodoros`,`하루 공부 ${capH} · 뽀모도로 ${R.foc}분`)}</span></div>
       <div class="cup-pl-step"><button type="button" onclick="cupPlanCap(-30)" aria-label="less">−</button><button type="button" onclick="cupPlanCap(30)" aria-label="more">+</button></div></section>
-    <section class="cup-pl-sec"><b>${logged?cupT10(`Today felt ${logged.score}/10`,`오늘 ${logged.score}/10`):cupT10('How was today? (1 drained · 10 great)','오늘 어땠나요? (1 지침 · 10 최고)')}</b>
+    <section class="cup-pl-sec"><b>${logged?cupT10(`Today felt ${logged.score}/10`,`오늘 ${logged.score}/10`):cupT10('End-of-day condition (1 drained · 10 great)','하루 끝 컨디션 (1 지침 · 10 최고)')}</b>
       <div class="cup-pl-rate">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="${logged&&logged.score===n?'on':''}" onclick="cupPlanRate(${n})">${n}</button>`).join('')}</div>
       <div class="cup-pl-hint">${cupT10('Each evening’s number nudges tomorrow’s limit — down when it was too much, up slowly when it felt easy.','저녁마다 숫자로 내일의 한도를 조절해요. 힘들었으면 줄이고, 여유로우면 천천히 늘려요.')}</div></section>
+    <button type="button" class="cup-pl-ask cup-pl-fit" onclick="closeModal('mCupPlan');cupFitOpen('hang')">${cupT10('Can I fit something in? — check a hangout or plan','시간 될까? — 약속이나 일정 확인')} →</button>
     ${ask}${sk}${nr}
     <div class="cup-pl-days">${rows}</div>
     <label class="cup-mn-chk cup-pl-over"><input type="checkbox" ${P.over?'checked':''} onchange="cupPlanSet('over',this.checked)"> ${cupT10('Let me overload a day (override)','무리해서 넣기 (한도 무시)')}</label>
@@ -27472,7 +27494,7 @@ function cupPlanClearAuto(){ const td=todayStr(); for(let i=S.events.length-1;i>
 function cupPlanRemove(){ cupPlanClearAuto(); save(); render(); cupPlanRender(); showToast(cupT10('Auto plan removed.','자동 계획을 지웠어요.')); }
 function cupPlanApply(){
   const R=cupPlnBuild(7), td=todayStr(); cupPlanClearAuto(); let n=0;
-  R.days.forEach(d=>d.blocks.forEach(b=>{ n++; S.events.push({ id:uid(), auto:true, cat:b.cat, taskIds:b.ids||[], title:b.title, date:b.ds, endDate:b.ds, noEndDate:false, time:cupFitHM(b.s), endTime:cupFitHM(b.e), allDay:false, recurrence:'none', recurrenceDays:[], subject:'', location:'', notes:b.cat==='work'?cupT10('Planned study — run it from the Focus page.','계획된 공부 — 집중 페이지에서 시작하세요.'):'', reminder:'none', type:b.cat==='work'?'event':'personal', color:CUP_CAT_COL[b.cat] }); }));
+  R.days.forEach(d=>d.blocks.forEach(b=>{ n++; S.events.push({ id:uid(), auto:true, cat:b.cat, taskIds:b.ids||[], title:b.title, date:b.ds, endDate:b.ds, noEndDate:false, time:cupFitHM(b.s), endTime:cupFitHM(b.e), allDay:false, recurrence:'none', recurrenceDays:[], subject:'', location:'', notes:b.cat==='work'?cupT10('Planned study — run it from the Focus page.','계획된 공부 — 집중 페이지에서 시작하세요.'):'', reminder:'none', type:b.cat==='work'?'focus_block':'personal', color:CUP_CAT_COL[b.cat] }); }));
   try{ const slots=[]; R.days[0].blocks.filter(b=>b.cat==='work').forEach(b=>{ for(let i=0;i<b.units;i++) slots.push([b.ids[0]]); });
     const p=cupPlan(); if(slots.length && !p.done.some(Boolean) && !(typeof cupPomoLive==='function'&&cupPomoLive())){ p.slots=slots.slice(0,12); p.done=[]; p.active=false; cupPlanSyncCycles(p); S.settings.pomo.focus=R.foc; S.settings.pomo.shortBreak=R.brk; } }catch(_){}
   closeModal('mCupPlan'); save(); render(); showToast(cupT10(`Placed ${n} block${n===1?'':'s'}. Today’s pomodoros are ready on Focus.`,`${n}개 블록을 넣었어요. 오늘의 뽀모도로는 집중 페이지에 준비됐어요.`));
