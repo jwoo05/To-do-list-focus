@@ -7623,6 +7623,17 @@ body.cup-on-pomo #cupSessBar{ display:none !important; }
 .cup-fb-add{ width:100%; margin-top:10px; padding:8px 10px; font-size:calc(13px * var(--cup-fs,1)); } .cup-fb-pin{ font-size:calc(12px * var(--cup-fs,1)); margin-top:8px; } .cup-fb-pin button{ font-size:calc(12px * var(--cup-fs,1)); color:var(--accent); text-decoration:underline; margin-left:6px; }
 /* long blocks keep their title on screen while you scroll the day */
 .cwk-block .cwk-block-title{ position:sticky; top:0; }
+/* priority row + “Is this …?” */
+.cup-pri-ask{ margin:4px 0 2px; padding:10px 12px; border:1px solid var(--accent); border-radius:12px; background:color-mix(in srgb, var(--accent) 7%, transparent); display:grid; gap:8px; font-size:calc(13.5px * var(--cup-fs,1)); }
+.cup-pri-tag{ color:var(--accent); }
+.cup-pri-opts{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; } .cup-pri-opts button{ padding:4px 12px; border:1px solid var(--border); border-radius:999px; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text2); } .cup-pri-opts button.on{ border-color:var(--accent); color:var(--text); background:color-mix(in srgb, var(--accent) 14%, transparent); }
+.cup-pri-opts select{ padding:4px 10px; font-size:calc(12.5px * var(--cup-fs,1)); border-radius:999px; }
+.cup-pri-go{ display:flex; align-items:center; gap:10px; } .cup-pri-go .btn{ padding:6px 14px; }
+/* date/time fields: no blue segment highlight — tap opens the picker */
+input[type=date], input[type=time]{ cursor:pointer; }
+input[type=date]::-webkit-datetime-edit-month-field:focus, input[type=date]::-webkit-datetime-edit-day-field:focus, input[type=date]::-webkit-datetime-edit-year-field:focus,
+input[type=time]::-webkit-datetime-edit-hour-field:focus, input[type=time]::-webkit-datetime-edit-minute-field:focus, input[type=time]::-webkit-datetime-edit-ampm-field:focus{ background:transparent; color:inherit; }
+input[type=date]::-webkit-calendar-picker-indicator, input[type=time]::-webkit-calendar-picker-indicator{ cursor:pointer; }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -27478,7 +27489,7 @@ const CUP_RX={
   friends:/친구|friend|hang ?out|밥약|brunch|dinner with|생일파티/i,
   health:/운동|헬스|러닝|gym|workout|\brun\b|\barm\b|\bcore\b|lift|doctor|병원|therapy|sleep|수면/i,
   admin:/bank|\bira\b|roth|fidelity|tax|bill|insurance|송금|계좌|보험|세금|돈|\$\d|paperwork|renew|visa|과외 내역/i,
-  errand:/장보기|grocer|shopping|수리|repair|\bcar\b|세탁|laundry|clean|청소|pick up|return|선물|gift|order/i,
+  errand:/장보기|grocer|shopping|ticket|티켓|flight|비행기|뱅기|항공|booking|예약|reserve|pack|짐|수리|repair|\bcar\b|세탁|laundry|clean|청소|pick up|return|선물|gift|order/i,
   school:/\b[A-Z]{2,5} ?\d{3}\b|class|course|lecture|homework|assignment|exam|quiz|midterm|final|essay|lab report|reading|study|registration|tut(orial)?\b|review:|\bL\d{1,2}\b|milestone|\bM\d\b|과제|공부|시험|수업|강의|수강|리포트|에세이/i,
   career:/intern|resume|cv\b|cover letter|application|apply|job|recruit|research|scholarship|fellowship|program|grant|letter writer|recommend|이력서|지원|인턴|연구|장학|스폰서|sponsor/i,
   project:/project|github|kaggle|prototype|build|repo|\bcode\b|프로젝트/i,
@@ -28147,6 +28158,56 @@ const cupFBAdd = (id,tid) => { if(!tid) return; cupFBEdit(id, e=>{ e.slots.push(
 function cupFBUnpin(id){ const e=S.events.find(x=>x.id===id); if(!e) return; delete e.pinned; closeModal('mCupFB'); cupAutoSig=''; save(); cupAutoRun(); }
 // dragging an auto block to a new time keeps it there
 { const _cd=onCalDrop; onCalDrop=async function(e, ds){ const id=cupDragEvent, r=await _cd.apply(this,arguments); try{ const ev=id&&S.events.find(x=>x.id===id); if(ev&&ev.auto){ ev.pinned=true; save(); } }catch(_){} return r; }; }
+
+// ════════════════════════════════════════════════════════════════════
+//  PART 23 — Adding a to-do: priority in one tap, and a gentle “Is this …?” when you skip it
+//  + date/time fields open their picker on one tap (no fiddly month/day/year segments)
+// ════════════════════════════════════════════════════════════════════
+const CUP_PRI3=[['low','Low','낮음'],['medium','Medium','보통'],['high','High','높음']];
+let cupPri={ v:'', cat:'', asked:false };
+function cupPriMount(){
+  const box=document.querySelector('#cupPlus .cup-plus-box'); if(!box || document.getElementById('cupPlusPri')) return;
+  const row=document.createElement('div'); row.id='cupPlusPri'; row.className='cup-plus-when cup-plus-pri';
+  row.innerHTML=`<span class="cup-plus-lbl">${cupT10('Priority','중요도')}</span>`+CUP_PRI3.map(([k,en,ko])=>`<button type="button" class="cup-when-chip" data-p="${k}" onmousedown="event.preventDefault()" onclick="cupPriSet('${k}')">${cupT10(en,ko)}</button>`).join('');
+  const when=document.getElementById('cupPlusWhen'); (when||document.getElementById('cupPlusTypes')).after(row);
+}
+function cupPriSet(k){ cupPri.v=cupPri.v===k?'':k; cupPriPaint(); document.getElementById('cupPlusInput')?.focus(); }
+function cupPriPaint(){ const row=document.getElementById('cupPlusPri'); if(!row) return; const on=/^(task|waiting|application)$/.test(cupPlusType);
+  row.style.display=on?'':'none'; row.querySelectorAll('[data-p]').forEach(b=>b.classList.toggle('on', b.dataset.p===cupPri.v));
+  document.getElementById('cupPriAsk')?.remove(); cupPri.asked=false; }
+// what we'd assume if you don't say
+function cupPriGuess(text){
+  const d=cupWhen&&cupWhen.date, days=d?cupMnDays(d):null, cat=cupCatOf({ title:text, subject:(document.getElementById('cupPlusWhere')?.selectedOptions?.[0]?.text)||'' })||'work';
+  const p = cat==='rest'||cat==='friends' ? 'low' : days!==null && days<=1 ? 'high' : days!==null && days<=7 ? 'medium' : d ? 'low' : 'medium';
+  return { p, cat };
+}
+function cupPriAsk(){
+  const text=(document.getElementById('cupPlusInput')?.value||'').trim(); if(!text) return false;
+  const g=cupPriGuess(text); cupPri.v=g.p; cupPri.cat=g.cat; cupPri.asked=true;
+  let el=document.getElementById('cupPriAsk'); if(!el){ el=document.createElement('div'); el.id='cupPriAsk'; el.className='cup-pri-ask'; document.getElementById('cupPlusPri').after(el); }
+  const paint=()=>{ el.innerHTML=`<b>${cupT10('Is this','이건')} <span class="cup-pri-tag">${cupT10(CUP_PRI3.find(x=>x[0]===cupPri.v)[1],CUP_PRI3.find(x=>x[0]===cupPri.v)[2])}</span> · <span class="cup-pri-tag">${cupCatName(cupPri.cat)}</span>?</b>
+      <div class="cup-pri-opts">${CUP_PRI3.map(([k,en,ko])=>`<button type="button" class="${cupPri.v===k?'on':''}" onmousedown="event.preventDefault()" data-k="${k}">${cupT10(en,ko)}</button>`).join('')}
+      <select aria-label="${cupT10('Category','종류')}">${CUP_CATS.map(([k])=>`<option value="${k}" ${cupPri.cat===k?'selected':''}>${cupCatName(k)}</option>`).join('')}</select></div>
+      <div class="cup-pri-go"><button type="button" class="btn btn-accent" onmousedown="event.preventDefault()" onclick="cupPlusGo()">${cupT10('Yes, add','네, 추가')}</button><span class="cup-dim">Enter</span></div>`;
+    el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{ cupPri.v=b.dataset.k; paint(); document.querySelectorAll('#cupPlusPri [data-p]').forEach(x=>x.classList.toggle('on',x.dataset.p===cupPri.v)); });
+    el.querySelector('select').onchange=e=>{ cupPri.cat=e.target.value; paint(); }; };
+  paint(); document.querySelectorAll('#cupPlusPri [data-p]').forEach(x=>x.classList.toggle('on',x.dataset.p===cupPri.v));
+  return true;
+}
+{ const _o=cupPlusOpen; cupPlusOpen=function(){ cupPri={ v:'', cat:'', asked:false }; const r=_o.apply(this,arguments); cupPriMount(); cupPriPaint(); return r; }; }
+{ const _s=cupPlusSync; cupPlusSync=function(){ const r=_s.apply(this,arguments); cupPriMount(); const asked=cupPri.asked; cupPriPaint(); if(asked) cupPriAsk(); return r; }; }
+{ const _go=cupPlusGo; cupPlusGo=function(){
+  const isTask=/^(task|waiting|application)$/.test(cupPlusType);
+  if(isTask && !cupPri.v && !cupPri.asked && cupPriAsk()) return;            // first Enter without a priority: ask, don't add yet
+  const pri=isTask?cupPri.v:'', cat=isTask?cupPri.cat:'', before=new Set(S.tasks.map(t=>t.id));
+  const r=_go.apply(this,arguments);
+  if(pri){ const apply=()=>{ let n=0; S.tasks.forEach(t=>{ if(!before.has(t.id) && !t._priSet){ t.priority=pri; if(cat) t.cat=cat; t._priSet=1; n++; } }); if(n){ S.tasks.forEach(t=>{ delete t._priSet; }); save(); render(); } };
+    apply(); setTimeout(apply,2500); setTimeout(apply,7000); }                   // the AI path adds a moment later
+  cupPri={ v:'', cat:'', asked:false }; document.getElementById('cupPriAsk')?.remove();
+  return r; }; }
+
+// date & time fields: one tap opens the picker
+document.addEventListener('click', e=>{ const i=e.target; if(i && i.tagName==='INPUT' && (i.type==='date'||i.type==='time'||i.type==='datetime-local') && typeof i.showPicker==='function'){ try{ i.showPicker(); }catch(_){} } }, true);
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
