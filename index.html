@@ -27800,8 +27800,6 @@ function cupFocusMerge(blocks, foc, brk, max){
 }
 let cupAutoSig='', cupAutoT=0, cupAutoBusy=false, cupAutoInfo={ skipped:0, ask:0 };
 function cupAutoSync(){
-  // an older copy of the app (another device not yet reloaded) turns focus blocks into tasks — clear those copies
-  for(let i=S.tasks.length-1;i>=0;i--){ const t=S.tasks[i]; if(t && t.type==='assignment' && t.calendarSignal==='due' && !t.subject && !t.commitId && /^(◎ |Focus · |집중 · )/.test(t.title||'')) S.tasks.splice(i,1); }
   const R=cupPlnBuild(7), td=todayStr(), n=cupNow(), nowM=n.getHours()*60+n.getMinutes(), want=new Map(); let ch=0;
   R.days.forEach(d=>{ d.blocks=cupFocusMerge(d.blocks,R.foc,R.brk,R.blockMax); d.blocks.forEach(b=>want.set(cupAutoId(b),b)); });
   for(let i=S.events.length-1;i>=0;i--){ const e=S.events[i]; if(!e.auto || e.date<td) continue;
@@ -27818,7 +27816,10 @@ function cupAutoKey(){ const P=cupPln(), n=cupNow();
   return JSON.stringify([todayStr(), Math.floor((n.getHours()*60+n.getMinutes())/30), P.cap, P.focus, P.over, P.wake, P.bed, P.tg, P.rate, typeof cupEnergyLow==='function'&&cupEnergyLow(),
     S.tasks.map(t=>[t.id,t.due,t.priority,t.effort,t.completed,t.archived,t.waiting,t.cat,t.scheduledTime,t.title,(t.scheduledDates||[]).join(),t.isHabit?(t.scheduledDays||[]).join():0]),
     S.events.filter(e=>!e.auto).map(e=>[e.id,e.date,e.time,e.endTime,e.recurrence,e.allDay]), S.events.filter(e=>e.auto).length]); }   // auto blocks gone (another device) → re-plan
+// an older copy of the app (another device not yet reloaded) turns focus blocks into tasks — clear those copies whenever data arrives
+function cupAutoJunk(){ let n=0; for(let i=S.tasks.length-1;i>=0;i--){ const t=S.tasks[i]; if(t && t.type==='assignment' && t.calendarSignal==='due' && !t.subject && !t.commitId && /^(◎ |Focus · |집중 · )/.test(t.title||'')){ S.tasks.splice(i,1); n++; } } return n; }
 function cupAutoRun(){
+  try{ if(cupAutoJunk()){ save(); render(); } }catch(_){}
   if(cupAutoBusy || !cupAutoOn()) return; const k=cupAutoKey(); if(k===cupAutoSig) return;
   cupAutoBusy=true; try{ cupAutoSig=k; if(cupAutoSync()){ save(); render(); } }catch(e){ console.warn('[auto]',e); } finally{ cupAutoBusy=false; }
 }
