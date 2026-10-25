@@ -7586,6 +7586,9 @@ body.cup-on-pomo #cupSessBar{ display:none !important; }
 .cup-hbm-end{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; } .cup-hbm-end input{ flex:1 1 150px; } .cup-hbm-end button{ padding:5px 11px; border:1px solid var(--border); border-radius:999px; font-size:calc(12px * var(--cup-fs,1)); color:var(--text2); } .cup-hbm-end button:hover{ border-color:var(--accent); }
 .cup-hbm-hint{ font-size:calc(12px * var(--cup-fs,1)); margin:4px 0 6px; }
 .cup-hb-g em{ font-style:normal; margin-left:auto; letter-spacing:0; text-transform:none; }
+.cup-fb-when{ font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text3); margin-bottom:6px; }
+.cup-fb-row{ display:flex; align-items:center; gap:10px; padding:8px 0; border-top:1px solid color-mix(in srgb, var(--border) 55%, transparent); }
+.cup-fb-n{ width:24px; font-size:calc(11.5px * var(--cup-fs,1)); color:var(--text3); font-variant-numeric:tabular-nums; } .cup-fb-t{ flex:1; min-width:0; text-align:left; font-size:calc(14px * var(--cup-fs,1)); } .cup-fb-row.d .cup-fb-t{ color:var(--text3); text-decoration:line-through; }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -27814,10 +27817,20 @@ function cupAutoChip(){
     it.focus=e.id; it.done=ts.length&&ts.every(cupDone); it.meta=ts.map(t=>t.title).join(' · '); });
   return out.filter(it=>it.ev||!inBlock.has(it.id)); }; }   // a to-do inside a focus block isn't listed again on its own
 { const _ar=cupAgRow; cupAgRow=function(it,ds){ const h=_ar.apply(this,arguments); return it.focus?h.replace(`onclick="editEvent('${it.id}')"`,`onclick="cupFocusBlockOpen('${it.id}')"`):h; }; }
-// opening a focus block = Focus mode with its tasks already in the pomodoros
+// a focus block is an event with tasks inside: tapping it shows them (✓ each), Start focus on the day, or edit the time
 function cupFocusBlockOpen(id){
-  const e=S.events.find(x=>x.id===id); if(!e) return; const td=todayStr();
-  if(e.date!==td){ showToast(cupT10(`This focus block is on ${cupFmt(e.date)} — it opens in Focus mode that day.`,`${cupFmt(e.date)}의 집중 블록이에요 — 그날 집중 모드로 열려요.`), cupT10('Edit','수정'), ()=>editEvent(id)); return; }
+  const e=S.events.find(x=>x.id===id); if(!e) return; const td=todayStr(), live=typeof cupPomoLive==='function'&&cupPomoLive();
+  const slots=(e.slots||(e.taskIds||[]).map(x=>[x]));
+  const rows=slots.map((ids,i)=>ids.map(tid=>{ const t=S.tasks.find(y=>y.id===tid); if(!t) return ''; const d=cupDone(t);
+    return `<div class="cup-fb-row ${d?'d':''}"><span class="cup-fb-n">#${i+1}</span><button type="button" class="cup-check2 ${d?'d':''}" onclick="toggleTask('${t.id}');cupFocusBlockOpen('${id}')" aria-label="${cupT10('Done','완료')}"></button><button type="button" class="cup-fb-t" onclick="closeModal('mCupFB');editTask('${t.id}')">${esc(t.title)}</button></div>`; }).join('')).join('');
+  cupMnModal('mCupFB', esc(e.title), `<div class="cup-fb-when">${cupWd(e.date)} ${cupFmt(e.date)} · ${cupT12(e.time)}–${cupT12(e.endTime)}</div>${rows||`<div class="cup-dim">${cupT10('Every task in this block is done.','이 블록의 할 일을 모두 끝냈어요.')}</div>`}`,
+    `<button class="btn btn-ghost" onclick="closeModal('mCupFB');cupFBRaw=true;editEvent('${id}')">${cupT10('Change time','시간 바꾸기')}</button>${e.date===td?`<button class="btn btn-accent" onclick="cupFocusBlockStart('${id}')">${live?cupT10('Open Focus','집중 열기'):cupT10('Start focus','집중 시작')}</button>`:`<button class="btn btn-accent" onclick="closeModal('mCupFB')">${cupT10('Done','완료')}</button>`}`);
+}
+// anywhere a focus block is tapped (month, week, day) it opens as a block with its tasks
+let cupFBRaw=false;
+{ const _ee=editEvent; editEvent=function(id){ const e=S.events.find(x=>x.id===id); if(!cupFBRaw && e && e.auto && (e.taskIds||[]).length){ cupFocusBlockOpen(id); return; } cupFBRaw=false; return _ee.apply(this,arguments); }; }
+function cupFocusBlockStart(id){
+  closeModal('mCupFB'); const e=S.events.find(x=>x.id===id); if(!e) return;
   if(typeof cupPomoLive==='function' && cupPomoLive()){ showPage('pomo'); return; }
   const slots=(e.slots||(e.taskIds||[]).map(x=>[x])).map(x=>x.filter(tid=>{ const t=S.tasks.find(y=>y.id===tid); return t&&!cupDone(t); })).filter(x=>x.length);
   const p=cupPlan(); p.slots=slots.length?slots:[[]]; p.done=[]; p.active=false; cupPlanSyncCycles(p); try{ S.settings.pomo.focus=cupPlnFocus(); }catch(_){}
