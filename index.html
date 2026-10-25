@@ -28328,7 +28328,8 @@ function cupFreeSave(){
 // ── Two-way calendar: your own events go to Google too (hangouts, commutes, kept-free time, all-day, repeating).
 //    Not sent: class times from folders and calendar-link imports (they already live in a calendar), and events that came from Google.
 { const _gw=cupGcWant; cupGcWant=function(){ const out=_gw.apply(this,arguments);
-  try{ const g=cupGc(), w=g.what||{}, since=g.since||todayStr(); if(!w.events) return out;
+  try{ const g=cupGc(), w=g.what||{}, since=g.since||todayStr(); Object.keys(out).forEach(k=>{ if(out[k]&&out[k].k==='event') delete out[k]; });   // one set of rules for events, both directions
+    if(!w.events || (typeof cupGp==='function' && cupGp().dir==='pull')) return out;
     const put=(key,e,body)=>{ out[cupGcId(key)]={ k:'event', r:e.id, body:Object.assign({ summary:e.title||'Event' }, e.location?{ location:e.location }:{}, body) }; };
     const linkTimes=new Set(cupGcArr(S.events).filter(e=>e&&(e.sourceId||e.icsUid||e.gcal)).map(e=>[e.time||'',cupEvCode(e)].join('|')));   // repeating copies of linked classes
     const fromLink=new Set(cupGcArr(S.events).filter(e=>e&&(e.sourceId||e.icsUid||e.gcal)).map(e=>[e.date,e.time||'',cupEvCode(e)].join('|')));   // already in a calendar
