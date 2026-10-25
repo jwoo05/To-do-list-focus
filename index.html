@@ -7603,6 +7603,12 @@ body.cup-on-pomo #cupSessBar{ display:none !important; }
 .sidebar .nav-item .nav-badge{ background:none !important; min-width:0; padding:0 2px; font-size:calc(11.5px * var(--cup-fs,1)); font-weight:500; color:var(--text3); }
 .sidebar .nav-item.active .nav-badge{ color:var(--text2); }
 .sidebar .nav-item[data-page="dashboard"] .nav-badge{ display:none; }   /* one count is enough: today's to-dos sit on Calendar */
+.cup-mn-line{ font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text3); padding:0 4px; font-variant-numeric:tabular-nums; }
+.cup-mn-fold > summary{ cursor:pointer; list-style:none; } .cup-mn-fold > summary::-webkit-details-marker{ display:none; } .cup-mn-fold:not([open]) > summary{ padding-bottom:4px; }
+.cup-pl-all{ border-top:1px solid var(--border); margin-top:6px; padding-top:4px; } .cup-pl-all > summary{ font-size:calc(13px * var(--cup-fs,1)); color:var(--text2); }
+.cup-dash-tg{ display:flex; align-items:center; gap:8px; width:100%; text-align:left; padding:10px 4px; font-size:calc(13px * var(--cup-fs,1)); color:var(--text3); }
+.cup-dash-tg em{ font-style:normal; font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); opacity:.8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; } .cup-dash-tg:hover{ color:var(--text); }
+#cupDash.cup-dash-closed{ display:none !important; }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -27221,17 +27227,17 @@ function cupRenderMoney(){
     ${hero}
     <section class="cup-mn-tithe"><div><span>${cupT10('Tithe to give · 십일조','십일조 · 드릴 헌금')}</span><b>${cupMnFmt(m.tithe)}</b><em>${cupT10('10% of each income you mark received','받은 수입의 10%')}${m.given.length?` · ${cupT10('last given','마지막 헌금')} ${cupFmt(m.given[m.given.length-1].date)}`:''}</em></div>
       <input class="cup-mn-in" inputmode="decimal" placeholder="${cupT10('+ Income','+ 수입')}" onchange="cupMnTitheAdd(this.value);this.value=''" aria-label="${cupT10('Income received','받은 수입')}"><button type="button" class="btn btn-accent" ${m.tithe>0?'':'disabled'} onclick="cupMnTitheGive()">${cupT10('Given','헌금 완료')}</button></section>
-    <div class="cup-mn-stats">${stat(cupMnFmt(dueSoon),cupT10('due in 14 days','14일 안에 낼 돈'),dueSoon>avail&&avail>=0?'warn':'')}${stat(cupMnFmt(credit+debtSum),cupT10('owed (cards + debt)','갚을 돈 (카드 + 빚)'))}${stat(cupMnFmt(avail),cupT10(m.tithe>0?'available after tithe':'available (cash + debit)',m.tithe>0?'십일조 빼고 쓸 수 있는 돈':'쓸 수 있는 돈'))}${inSoon>0?stat(cupMnFmt(inSoon),cupT10('coming in, 14 days','14일 안에 들어올 돈'),'in'):''}</div>
+    <div class="cup-mn-line">${[cupT10(`${cupMnFmt(dueSoon)} due in 14 days`,`14일 안에 ${cupMnFmt(dueSoon)}`),cupT10(`${cupMnFmt(credit+debtSum)} owed`,`갚을 돈 ${cupMnFmt(credit+debtSum)}`),cupT10(`${cupMnFmt(avail)} available`,`쓸 수 있는 돈 ${cupMnFmt(avail)}`)].concat(inSoon>0?[cupT10(`+${cupMnFmt(inSoon)} coming in`,`+${cupMnFmt(inSoon)} 들어올 돈`)]:[]).join(' · ')}</div>
     ${rest.length?`<section class="cup-mn-sec"><div class="cup-mn-h"><b>${cupT10('After that','그 다음')}</b><em>${rest.length}</em></div>${upRows}
       ${rest.length>6?`<button type="button" class="cup-more-btn" onclick="cupMnAll=${!cupMnAll};cupRenderMoney()">${cupMnAll?cupT10('Show less','접기'):cupT10(`Show all ${rest.length}`,`${rest.length}개 모두 보기`)}</button>`:''}</section>`:''}
     <section class="cup-mn-sec"><div class="cup-mn-h"><b>${cupT10('My cards','내 카드')}</b><em>${m.cards.length}</em><span class="cup-mn-hint">${cupT10('Tap a number to update it','숫자를 눌러 바로 수정')}</span></div>
       <div class="cup-mn-cards">${cardRows||`<div class="cup-dim cup-mn-empty">${cupT10('No cards yet — add one with + Card.','카드가 아직 없어요. + 카드로 추가하세요.')}</div>`}</div></section>
-    <section class="cup-mn-sec"><div class="cup-mn-h"><b>${cupT10('Which card?','어떤 카드를 쓸까?')}</b></div>
-      ${m.cards.length?`<div class="cup-mn-cats">${cats}</div>`:''}</section>
-    <section class="cup-mn-sec"><div class="cup-mn-h"><b>${cupT10('Cash & debt','현금과 빚')}</b>
-      <span class="cup-mn-hb"><select class="cup-mn-cur" onchange="cupMnCur(this.value)" aria-label="${cupT10('Currency','통화')}"><option value="USD" ${m.cur==='USD'?'selected':''}>$ USD</option><option value="KRW" ${m.cur==='KRW'?'selected':''}>₩ KRW</option></select></span></div>
+    <details class="cup-mn-sec cup-mn-fold"><summary class="cup-mn-h"><b>${cupT10('Which card?','어떤 카드를 쓸까?')}</b></summary>
+      ${m.cards.length?`<div class="cup-mn-cats">${cats}</div>`:''}</details>
+    <details class="cup-mn-sec cup-mn-fold" ${debts.length?'open':''}><summary class="cup-mn-h"><b>${cupT10('Cash & debt','현금과 빚')}</b>
+      <span class="cup-mn-hb"><select class="cup-mn-cur" onchange="cupMnCur(this.value)" aria-label="${cupT10('Currency','통화')}"><option value="USD" ${m.cur==='USD'?'selected':''}>$ USD</option><option value="KRW" ${m.cur==='KRW'?'selected':''}>₩ KRW</option></select></span></summary>
       <div class="cup-mn-row"><span class="cup-mn-dot cash"></span><span class="cup-mn-t">${cupT10('Cash on hand','가지고 있는 현금')}</span><input class="cup-mn-in" inputmode="decimal" value="${m.cash||''}" placeholder="0" onchange="cupMnCash(this.value)" aria-label="${cupT10('Cash on hand','가지고 있는 현금')}"></div>
-      ${debtRows}</section>`;
+      ${debtRows}</details>`;
   if(typeof cupIsKo==='function' && cupIsKo() && typeof cupKoWalk==='function') cupKoWalk(host);
 }
 
@@ -27753,6 +27759,19 @@ function cupHomeDedup(){
   box.querySelectorAll('.cup-todo').forEach(r=>{ r.style.display=(first && r.innerHTML.includes(`'${first.id}'`))?'none':''; });
 }
 { const _rh=cupRenderHome; cupRenderHome=function(){ const r=_rh.apply(this,arguments); try{ cupHomeDedup(); }catch(_){} return r; }; }
+// Home's widgets fold under one line, so the page is about the one thing to do next
+let cupDashOpen=false; try{ cupDashOpen=localStorage.getItem('cup_dash_open')==='1'; }catch(_){}
+function cupDashTog(){ cupDashOpen=!cupDashOpen; try{ localStorage.setItem('cup_dash_open',cupDashOpen?'1':'0'); }catch(_){} cupDashFold(); }
+function cupDashFold(){
+  const d=document.getElementById('cupDash'); if(!d) return; let b=document.getElementById('cupDashTg');
+  if(!b){ b=document.createElement('button'); b.type='button'; b.id='cupDashTg'; b.className='cup-dash-tg'; b.onclick=cupDashTog; }
+  if(d.previousElementSibling!==b) d.before(b);
+  const names=[...d.querySelectorAll('.cup-w > h5')].map(x=>(x.childNodes[1]?.textContent||x.textContent).replace(/[^\p{L}\s&·]/gu,'').trim()).filter(Boolean).slice(0,4);
+  const t=`<span class="cup-fold-chev ${cupDashOpen?'open':''}">›</span>${cupT10('More on Home','홈 더보기')}${names.length&&!cupDashOpen?`<em>${names.map(esc).join(' · ')}</em>`:''}`;
+  if(b._h!==t){ b.innerHTML=t; b._h=t; }
+  d.classList.toggle('cup-dash-closed', !cupDashOpen);
+}
+{ const _rc2=renderCup; renderCup=function(){ const r=_rc2.apply(this,arguments); try{ cupDashFold(); }catch(_){} return r; }; }
 
 // ════════════════════════════════════════════════════════════════════
 //  PART 19 — Auto-schedule: the calendar fills itself from your to-do list and keeps re-adjusting.
@@ -27768,7 +27787,7 @@ function cupFocusMerge(blocks, foc, brk, max){
   tasks.forEach(b=>{ const slots=Array.from({length:b.units||1},()=>[b.ids[0]]);
     if(cur && b.s-cur.e<=brk+1 && cur.slots.length+slots.length<=(max||4)){ cur.e=b.e; cur.slots.push(...slots); }
     else { cur={ ds:b.ds, s:b.s, e:b.e, cat:'focus', slots }; out.push(cur); } });
-  out.forEach(f=>{ f.ids=[...new Set(f.slots.flat())]; f.units=f.slots.length; f.title=cupT10(`Focus · ${f.units}×${foc}`,`집중 · ${f.units}×${foc}`); });
+  out.forEach(f=>{ f.ids=[...new Set(f.slots.flat())]; f.units=f.slots.length; const first=(S.tasks.find(t=>t.id===f.ids[0])||{}).title||cupT10('Focus','집중'); f.title=`◎ ${first}${f.ids.length>1?` +${f.ids.length-1}`:''}`; f.sub=cupT10(`Focus · ${f.units}×${foc}`,`집중 · ${f.units}×${foc}`); });
   return out.concat(blocks.filter(b=>!(b.ids||[]).length));
 }
 let cupAutoSig='', cupAutoT=0, cupAutoBusy=false, cupAutoInfo={ skipped:0, ask:0 };
@@ -27777,9 +27796,9 @@ function cupAutoSync(){
   R.days.forEach(d=>{ d.blocks=cupFocusMerge(d.blocks,R.foc,R.brk,R.blockMax); d.blocks.forEach(b=>want.set(cupAutoId(b),b)); });
   for(let i=S.events.length-1;i>=0;i--){ const e=S.events[i]; if(!e.auto || e.date<td) continue;
     if(e.date===td && cupFitMin(e.endTime)<=nowM){ const ids=e.taskIds||[]; if(!ids.length || ids.every(id=>{ const t=S.tasks.find(x=>x.id===id); return !t||cupDone(t); })) continue; }   // history stays; a missed block moves
-    const b=want.get(e.id); if(b){ if(e.title!==b.title){ e.title=b.title; ch++; } want.delete(e.id); continue; }
+    const b=want.get(e.id); if(b){ if(e.title!==b.title||(b.sub&&e.sub!==b.sub)){ e.title=b.title; if(b.sub) e.sub=b.sub; ch++; } want.delete(e.id); continue; }
     S.events.splice(i,1); ch++; }
-  want.forEach((b,id)=>{ ch++; S.events.push({ id, auto:true, cat:b.cat, taskIds:b.ids||[], slots:b.slots||null, title:b.title, date:b.ds, endDate:b.ds, noEndDate:false, time:cupFitHM(b.s), endTime:cupFitHM(b.e), allDay:false, recurrence:'none', recurrenceDays:[], subject:'', location:'', notes:'', reminder:'none', type:(b.ids||[]).length?'focus_block':'personal', color:b.cat==='focus'?'#2C4A8B':CUP_CAT_COL[b.cat] }); });
+  want.forEach((b,id)=>{ ch++; S.events.push({ id, auto:true, cat:b.cat, taskIds:b.ids||[], slots:b.slots||null, sub:b.sub||'', title:b.title, date:b.ds, endDate:b.ds, noEndDate:false, time:cupFitHM(b.s), endTime:cupFitHM(b.e), allDay:false, recurrence:'none', recurrenceDays:[], subject:'', location:'', notes:'', reminder:'none', type:(b.ids||[]).length?'focus_block':'personal', color:b.cat==='focus'?'#2C4A8B':CUP_CAT_COL[b.cat] }); });
   try{ const slots=[]; R.days[0].blocks.filter(b=>b.slots).forEach(b=>b.slots.forEach(x=>slots.push([...x])));
     const p=cupPlan(); if(slots.length && !p.done.some(Boolean) && !(typeof cupPomoLive==='function'&&cupPomoLive()) && JSON.stringify(p.slots)!==JSON.stringify(slots.slice(0,12))){ p.slots=slots.slice(0,12); p.done=[]; p.active=false; cupPlanSyncCycles(p); S.settings.pomo.focus=R.foc; S.settings.pomo.shortBreak=R.brk; ch++; } }catch(_){}
   cupAutoInfo={ skipped:R.skipped.length, ask:R.ask.length };
@@ -27830,6 +27849,20 @@ function cupAutoChip(){
     const f=document.querySelector('#mCupPlan .modal-footer'); if(f) f.innerHTML=on?`<button class="btn btn-accent" onclick="closeModal('mCupPlan')">${cupT10('Done','완료')}</button>`:`<button class="btn btn-ghost" onclick="closeModal('mCupPlan')">${cupT10('Close','닫기')}</button><button class="btn btn-accent" onclick="cupPlanApply()">${cupT10('Put it on my calendar once','한 번만 캘린더에 넣기')}</button>`;
   }catch(_){} return r; }; }
 
+// With Auto on, the sheet is short: the switch, what needs you (category questions, what didn't fit), the evening check-in,
+// and “Find an open spot”. The week itself is on the calendar; capacity, pace, ratings and sleep fold into one Settings row.
+{ const _pr2=cupPlanRender; cupPlanRender=function(){ const r=_pr2.apply(this,arguments);
+  try{ const host=document.getElementById('cupPlanBody'); if(!host || !cupAutoOn()) return r;
+    host.querySelector('.cup-pl-days')?.remove();
+    const chk=[...host.querySelectorAll('.cup-pl-sec')].find(x=>x.querySelector('.cup-pl-rate')), logged=cupPln().log[todayStr()];
+    if(chk && cupNow().getHours()<17 && !logged) chk.remove();                       // the check-in shows in the evening
+    const sk=host.querySelector('.cup-pl-sec.warn'); if(sk){ const rows=[...sk.querySelectorAll('.cup-pl-sk')]; rows.slice(5).forEach(x=>x.remove()); if(rows.length>5) sk.querySelector('.cup-pl-hint')?.insertAdjacentHTML('beforebegin',`<div class="cup-dim cup-pl-sk">+ ${rows.length-5} ${cupT10('more','개 더')}</div>`); }
+    const det=document.createElement('details'); det.className='cup-pl-set cup-pl-all'; det.innerHTML=`<summary>${cupT10('Settings — capacity, pace, what matters, sleep','설정 — 용량, 속도, 중요도, 수면')}</summary>`;
+    [...host.querySelectorAll('.cup-pl-cal, .cup-pl-over, .cup-pl-rates, .cup-pl-set:not(.cup-pl-all)')].forEach(x=>det.appendChild(x));
+    det.querySelector('.cup-pl-rates')?.removeAttribute('open');
+    host.appendChild(det);
+  }catch(e){ console.warn(e); } return r; }; }
+
 // ════════════════════════════════════════════════════════════════════
 //  PART 20 — The calendar as the to-do list
 //   · A to-do the planner placed shows once in the day list — as its time block, with a ✓ to finish it.
@@ -27840,7 +27873,7 @@ function cupAutoChip(){
 { const _ai=cupAgItems; cupAgItems=function(ds){ const out=_ai.apply(this,arguments), inBlock=new Set();
   out.forEach(it=>{ if(!it.ev) return; const e=S.events.find(x=>x.id===it.id); if(!e||!e.auto||!(e.taskIds||[]).length) return;
     const ts=e.taskIds.map(id=>S.tasks.find(x=>x.id===id)).filter(Boolean); ts.forEach(t=>inBlock.add(t.id));
-    it.focus=e.id; it.done=ts.length&&ts.every(cupDone); const open=ts.filter(t=>!cupDone(t)); it.title='◎ '+(open.length?open[0].title+(open.length>1?` +${open.length-1}`:''):cupT10('Focus — all done','집중 — 모두 완료')); it.meta=e.title; });
+    it.focus=e.id; it.done=ts.length&&ts.every(cupDone); const open=ts.filter(t=>!cupDone(t)); it.title='◎ '+(open.length?open[0].title+(open.length>1?` +${open.length-1}`:''):cupT10('Focus — all done','집중 — 모두 완료')); it.meta=e.sub||e.title; });
   return out.filter(it=>it.ev||!inBlock.has(it.id)); }; }   // a to-do inside a focus block isn't listed again on its own
 { const _ar=cupAgRow; cupAgRow=function(it,ds){ const h=_ar.apply(this,arguments); return it.focus?h.replace(`onclick="editEvent('${it.id}')"`,`onclick="cupFocusBlockOpen('${it.id}')"`):h; }; }
 // a focus block is an event with tasks inside: tapping it shows them (✓ each), Start focus on the day, or edit the time
@@ -27943,6 +27976,13 @@ let cupInAg=false;
     const ts=e.taskIds.map(id=>S.tasks.find(x=>x.id===id)).filter(t=>t&&!cupDone(t));
     it.title='◎ '+(ts.length?ts[0].title+(ts.length>1?` +${ts.length-1}`:''):cupT10('Focus — all done','집중 — 모두 완료')); it.isFocus=false; it.taskIds=[]; it.onClick=`cupFocusBlockOpen('${e.id}')`; }); }catch(_){}
   return out; }; }
+
+// one thing: with Auto on, “Do this next” is the first open task of the focus block you're in (or the next one today)
+{ const _nq=cupNextQueue; cupNextQueue=function(){ const q=_nq.apply(this,arguments);
+  try{ if(!cupAutoOn() || (q[0]&&q[0].pinned)) return q; const td=todayStr(), n=cupNow(), now=n.getHours()*60+n.getMinutes();
+    const blk=S.events.filter(e=>e.auto&&e.date===td&&(e.taskIds||[]).length&&cupFitMin(e.endTime)>now).sort((a,b)=>a.time.localeCompare(b.time))[0]; if(!blk) return q;
+    const t=(blk.slots||blk.taskIds.map(x=>[x])).flat().map(id=>S.tasks.find(x=>x.id===id)).find(x=>x&&!cupDone(x)); if(!t) return q;
+    return [{ ...(q.find(x=>x.t===t)||{}), t }].concat(q.filter(x=>x.t!==t)); }catch(_){ return q; } }; }
 
 // ════════════════════════════════════════════════════════════════════
 //  PART 21 — “When’s the next open spot to …?”
