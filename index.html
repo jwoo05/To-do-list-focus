@@ -7561,13 +7561,21 @@ body.cup-on-pomo #cupSessBar{ display:none !important; }
 .cup-auto-bar{ display:flex; align-items:center; gap:8px; width:100%; text-align:left; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text2); padding:7px 12px; margin:0 0 8px; border:1px solid var(--border); border-radius:10px; background:color-mix(in srgb, var(--accent) 5%, transparent); }
 .cup-auto-bar:hover{ border-color:var(--accent); } .cup-auto-bar em{ font-style:normal; color:var(--text3); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .cup-auto-bar b.w{ color:var(--orange,#d9822b); font-weight:500; }
 .cup-auto-dot{ width:7px; height:7px; border-radius:50%; background:var(--accent); flex:none; } .cup-auto-go{ color:var(--text3); flex:none; }
-.cup-ag-ck{ flex:none; margin-right:6px; align-self:center; }
+
 .cup-tl-row[draggable=true]{ cursor:grab; } .cup-tl-row.dragging{ opacity:.4; }
 .cup-tl-drop{ position:fixed; left:50%; bottom:24px; transform:translateX(-50%); z-index:1500; display:flex; gap:6px; padding:6px; border:1px solid var(--border); border-radius:14px; background:var(--bg1, var(--bg)); box-shadow:0 10px 30px rgba(0,0,0,.25); }
 .cup-tl-drop div{ padding:10px 16px; border:1px dashed var(--border); border-radius:10px; font-size:calc(13px * var(--cup-fs,1)); color:var(--text2); } .cup-tl-drop div.over{ border-style:solid; border-color:var(--accent); color:var(--text); background:color-mix(in srgb, var(--accent) 12%, transparent); }
 /* the Schedule picker opens inside its row, not floating */
 .cup-sched-pop.inline{ position:static; width:auto; margin:4px 0 8px 30px; box-shadow:none; }
 @media (max-width:760px){ .cup-auto-bar em{ white-space:normal; } .cup-sched-pop.inline{ margin-left:0; } }
+/* What matters to you — 0–5 per category */
+.cup-pl-rates{ border:1px solid var(--border); border-radius:12px; padding:6px 14px 10px; margin-bottom:10px; } .cup-pl-rates summary{ font-size:calc(13.5px * var(--cup-fs,1)); color:var(--text); }
+.cup-pl-rt{ display:flex; align-items:center; gap:10px; padding:5px 0; font-size:calc(13px * var(--cup-fs,1)); border-top:1px solid color-mix(in srgb, var(--border) 50%, transparent); }
+.cup-pl-rt > i{ width:8px; height:8px; border-radius:50%; flex:none; } .cup-pl-rt > span{ flex:1; min-width:0; }
+.cup-pl-rt > div{ display:flex; gap:5px; align-items:center; }
+.cup-pl-rt button{ width:16px; height:16px; border-radius:50%; border:1px solid var(--border); padding:0; font-size:calc(10px * var(--cup-fs,1)); line-height:14px; color:var(--text3); }
+.cup-pl-rt button.fill{ background:var(--accent); border-color:var(--accent); } .cup-pl-rt button:first-child{ border:0; width:14px; } .cup-pl-rt button:first-child.on{ color:var(--must,#e5484d); }
+.cup-pl-rt button:hover{ border-color:var(--accent); }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -27384,27 +27392,45 @@ document.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.shiftKey&&
 //    task.cat = 'commit'|'habit'|'work'|'gf'|'workout'|'friends'   (asked once when it can't be guessed)
 //  Rule-based and private: nothing is sent anywhere. Blocks it creates are marked auto:true so a re-plan replaces them and never touches your own events.
 // ════════════════════════════════════════════════════════════════════
-const CUP_CATS=[['commit','Commitments','약속 · 의무'],['habit','Habits','습관'],['work','School & career','학업 · 커리어'],['gf','Girlfriend','여자친구'],['workout','Workout','운동'],['friends','Friends','친구']];
-const CUP_CAT_COL={ commit:'#5A4A88', habit:'#2A6B44', work:'#2C4A8B', gf:'#B8527A', workout:'#A85418', friends:'#4A7A8B' };
+// Categories anyone can use. Each person rates how much each matters (0 = don't plan it, 5 = most important); the planner follows that.
+const CUP_CATS=[['commit','Appointments & shifts','약속 · 근무'],['faith','Faith','신앙'],['habit','Habits','습관'],['school','School','학업'],['career','Career & applications','커리어 · 지원'],['project','Projects','프로젝트'],['admin','Money & admin','돈 · 서류'],['errand','Errands & chores','볼일 · 집안일'],['health','Health & workout','건강 · 운동'],['partner','Partner','연인'],['family','Family','가족'],['friends','Friends','친구'],['rest','Rest & hobbies','휴식 · 취미']];
+const CUP_CAT_COL={ commit:'#5A4A88', faith:'#7A5AA8', habit:'#2A6B44', school:'#2C4A8B', career:'#3A6A9B', project:'#4A5A8B', admin:'#6B6B2A', errand:'#8B6A3A', health:'#A85418', partner:'#B8527A', family:'#A8607A', friends:'#4A7A8B', rest:'#5A7A6A' };
+const CUP_RATE_DEF={ commit:5, faith:5, habit:4, school:4, career:4, project:3, admin:3, errand:3, health:3, partner:3, family:3, friends:2, rest:1 };
+const CUP_CAT_OLD={ work:'school', gf:'partner', workout:'health' };   // answers from the first version
 const cupCatName = k => { const c=CUP_CATS.find(x=>x[0]===k); return c?cupT10(c[1],c[2]):k; };
-const CUP_RX={ commit:/QT|말씀|묵상|교회|예배|church|알바|shift|meeting|미팅|면담|interview|office hours|출근/i, gf:/여자친구|여친|girlfriend|\bgf\b|데이트|date night/i, workout:/운동|헬스|러닝|gym|workout|\brun\b|\barm\b|\bcore\b|lift/i, friends:/친구|friend|hang ?out|밥약|brunch|dinner with/i };
+const CUP_RX={
+  faith:/QT|말씀|묵상|교회|예배|기도|성경|찬양|church|prayer|bible|worship/i,
+  commit:/알바|shift|meeting|미팅|면담|interview|office hours|출근|appointment|진료|dentist|약속/i,
+  partner:/여자친구|여친|남자친구|남친|girlfriend|boyfriend|\bgf\b|\bbf\b|데이트|date night|anniversary|기념일|\d+일 준비/i,
+  family:/엄마|아빠|부모|가족|동생|할머니|할아버지|\bmom\b|\bdad\b|family|parents/i,
+  friends:/친구|friend|hang ?out|밥약|brunch|dinner with|생일파티/i,
+  health:/운동|헬스|러닝|gym|workout|\brun\b|\barm\b|\bcore\b|lift|doctor|병원|therapy|sleep|수면/i,
+  admin:/bank|\bira\b|roth|fidelity|tax|bill|insurance|송금|계좌|보험|세금|돈|\$\d|paperwork|renew|visa|과외 내역/i,
+  errand:/장보기|grocer|shopping|수리|repair|\bcar\b|세탁|laundry|clean|청소|pick up|return|선물|gift|order/i,
+  school:/\b[A-Z]{2,5} ?\d{3}\b|class|course|lecture|homework|assignment|exam|quiz|midterm|final|essay|lab report|reading|study|registration|과제|공부|시험|수업|강의|수강|리포트|에세이/i,
+  career:/intern|resume|cv\b|cover letter|application|apply|job|recruit|research|scholarship|fellowship|program|이력서|지원|인턴|연구|장학|스폰서|sponsor/i,
+  project:/project|github|kaggle|prototype|build|repo|\bcode\b|프로젝트/i,
+  rest:/movie|game|hobby|취미|휴식|\brest\b/i };
 
 function cupPln(){ cupEnsure(); let P=S.cup.plan; if(!P||typeof P!=='object') P=S.cup.plan={};
   const D={ wake:'07:00', bed:'23:30', cap:240, focus:0, over:false, lastUp:'', lastFocusUp:'', auto:true };
   Object.keys(D).forEach(k=>{ if(P[k]===undefined) P[k]=D[k]; });
-  if(!P.tg||typeof P.tg!=='object') P.tg={ gf:2, workout:3, friends:1 }; if(!P.log||typeof P.log!=='object') P.log={}; return P; }
+  if(!P.tg||typeof P.tg!=='object') P.tg={ partner:2, health:3, friends:1 };
+  if('gf' in P.tg){ P.tg.partner=P.tg.gf; delete P.tg.gf; } if('workout' in P.tg){ P.tg.health=P.tg.workout; delete P.tg.workout; }
+  if(!P.rate||typeof P.rate!=='object') P.rate={}; CUP_CATS.forEach(([k])=>{ if(P.rate[k]===undefined) P.rate[k]=CUP_RATE_DEF[k]; });
+  if(!P.log||typeof P.log!=='object') P.log={}; return P; }
+const cupRate = k => { const r=cupPln().rate[k]; return r===undefined?3:+r; };
 const cupPlnFocus = () => { const P=cupPln(); return P.focus||Math.max(10,Math.min(60,Math.round((typeof getPomoConfig==='function'?getPomoConfig().focus:25)||25))); };
 
-// which of your six kinds a task is — null means “ask me”
+// which category a task is in — null means “ask me”
 function cupCatOf(t){
-  if(t.cat && CUP_CATS.some(c=>c[0]===t.cat)) return t.cat;
-  const txt=`${t.title||''} ${t.subject||''}`;
-  if(t.isHabit) return CUP_RX.commit.test(txt)?'commit':'habit';
-  for(const k of ['commit','gf','workout','friends']) if(CUP_RX[k].test(txt)) return k;
-  if(/^(Classes|Internships|Competitions|Work)\b/i.test(t.subject||'') || /\b[A-Z]{2,5} ?\d{3}\b/.test(txt) || /essay|assignment|homework|exam|study|resume|class|registration|schedule|kaggle|과제|공부|시험|이력서|리포트|수강|paper|reading/i.test(txt)) return 'work';
-  const f=((typeof cupCommit==='function'&&cupCommit(t.commitId))||{}).name||'';
-  if(/church|교회|예배/i.test(f) || /^Church/i.test(t.subject||'')) return 'commit';
-  if(f && !/personal life|^personal$|habit|health|family|friend|home|생활/i.test(f)) return 'work';   // a folder for a class, lab, application or club = school & career
+  if(t.cat){ const k=CUP_CAT_OLD[t.cat]||t.cat; if(CUP_CATS.some(c=>c[0]===k)) return k; }
+  const txt=`${t.title||''} ${t.subject||''}`, f=((typeof cupCommit==='function'&&cupCommit(t.commitId))||{}).name||'';
+  if(t.isHabit) return CUP_RX.faith.test(txt)?'faith':CUP_RX.commit.test(txt)?'commit':'habit';
+  for(const k of ['faith','commit','partner','family','friends','health','admin','errand','school','career','project','rest']) if(CUP_RX[k].test(txt)) return k;
+  if(f){ for(const k of ['faith','school','career','project']) if(CUP_RX[k].test(f)) return k;
+    if(/^Classes/i.test(t.subject||'')) return 'school';
+    if(!/personal life|^personal$|habit|health|family|friend|home|생활/i.test(f)) return 'career'; }   // a folder for a lab, club, competition or application
   return null;
 }
 
@@ -27430,11 +27456,11 @@ function cupPlnBuild(nDays){
   const P=cupPln(), td=todayStr(), foc=cupPlnFocus(), brk=Math.max(3,Math.round(foc/5)), capU=Math.max(1,Math.floor(P.cap/foc));
   const days=Array.from({length:nDays||7},(_,i)=>{ const ds=cupAddDays(td,i); return { ds, busy:cupPlnBusy(ds), blocks:[], units:0, cap:(i===0&&typeof cupEnergyLow==='function'&&cupEnergyLow())?Math.max(1,Math.floor(capU/2)):capU }; });
   const ask=[], work=[], skipped=[];
-  S.tasks.forEach(t=>{ if(cupDone(t)||t.isHabit||t.waiting) return; const c=cupCatOf(t); if(!c){ ask.push(t); return; } if(c==='work') work.push(t); });
+  S.tasks.forEach(t=>{ if(cupDone(t)||t.isHabit||t.waiting) return; const c=cupCatOf(t); if(!c){ ask.push(t); return; } if(c!=='commit' && cupRate(c)>0) work.push(t); });
   const pri={high:0,medium:1,low:2};
   const horizon=cupAddDays(td,(nDays||7)-1+2);
   // urgency with priority folded in: a High task counts as 2 days sooner, a Low one 2 days later — so when time runs short, Low work is what gets pushed out
-  const bonus={must:3,MUST:3,high:2,medium:0,low:-2}, urg=t=>Math.max(0,cupMnDays(t.due))-(bonus[t.priority]??0);
+  const bonus={must:3,MUST:3,high:2,medium:0,low:-2}, urg=t=>Math.max(0,cupMnDays(t.due))-(bonus[t.priority]??0)-(cupRate(cupCatOf(t))-3)*2;   // what you rate higher counts as sooner
   const todo=work.filter(t=>t.due && t.due<=horizon).sort((a,b)=>urg(a)-urg(b) || a.due.localeCompare(b.due));
   const undated=work.filter(t=>!t.due).length, far=work.filter(t=>t.due && t.due>horizon).length;
   const put=(day,len,title,cat,ids,units,minStart,maxEnd)=>{ const g=cupPlnGaps(day.ds,day.busy,len,minStart,maxEnd)[0]; if(!g) return false;
@@ -27445,16 +27471,16 @@ function cupPlnBuild(nDays){
     while(left>0 && guard++<30){ let ok=false;
       const order=days.slice(0,lastIdx+1).map((d,i)=>[d,i]).filter(([d])=>P.over||d.units<d.cap).sort((a,b)=>a[0].units-b[0].units||a[1]-b[1]);
       for(const [d] of order){ let chunk=Math.min(left,4,P.over?4:d.cap-d.units);
-        while(chunk>=1){ const len=chunk*foc+(chunk-1)*brk; if(put(d,len,t.title,'work',[t.id],chunk,9*60,22*60)){ d.units+=chunk; left-=chunk; ok=true; break; } chunk--; }
+        while(chunk>=1){ const len=chunk*foc+(chunk-1)*brk; const cc=cupCatOf(t), win=cc==='admin'||cc==='errand'?[9*60,20*60]:[9*60,22*60]; if(put(d,len,t.title,cc,[t.id],chunk,win[0],win[1])){ d.units+=chunk; left-=chunk; ok=true; break; } chunk--; }
         if(ok) break; }
       if(!ok) break; }
     if(left>0) skipped.push({ t, left }); });
   // wishes, in your order — only on days with room and no big test tomorrow
   const hasTestNext=ds=>S.events.some(e=>e.type==='test' && e.date===cupAddDays(ds,1));
-  const wishes=[['gf',P.tg.gf,120,17*60,23*60],['workout',P.tg.workout,45,7*60,20*60+30],['friends',P.tg.friends,120,17*60,23*60]], noRoom=[];
+  const wishes=[['partner',P.tg.partner,120,17*60,23*60],['health',P.tg.health,45,7*60,20*60+30],['friends',P.tg.friends,120,17*60,23*60]].filter(w=>cupRate(w[0])>0).sort((a,b)=>cupRate(b[0])-cupRate(a[0])), noRoom=[];
   wishes.forEach(([cat,n,len,minStart,maxEnd])=>{ let placed=0;
-    for(let k=0;k<(+n||0);k++){ const cand=days.filter(d=>d.units<=d.cap*0.9 && !(cat!=='workout'&&hasTestNext(d.ds)) && !d.blocks.some(b=>b.cat===cat)).sort((a,b)=>(a.units+a.blocks.length)-(b.units+b.blocks.length)||a.ds.localeCompare(b.ds));
-      let ok=false; for(const d of cand){ if(put(d,len,({gf:cupT10('Time with her','여자친구와'),workout:cupT10('Workout','운동'),friends:cupT10('Friends','친구')})[cat],cat,[],0,minStart,maxEnd)){ ok=true; break; } }
+    for(let k=0;k<(+n||0);k++){ const cand=days.filter(d=>d.units<=d.cap*0.9 && !(cat!=='health'&&hasTestNext(d.ds)) && !d.blocks.some(b=>b.cat===cat)).sort((a,b)=>(a.units+a.blocks.length)-(b.units+b.blocks.length)||a.ds.localeCompare(b.ds));
+      let ok=false; for(const d of cand){ if(put(d,len,({partner:cupT10('Partner time','연인과'),health:cupT10('Workout','운동'),friends:cupT10('Friends','친구')})[cat],cat,[],0,minStart,maxEnd)){ ok=true; break; } }
       if(ok) placed++; }
     if(placed<(+n||0)) noRoom.push([cat,(+n||0)-placed]); });
   days.forEach(d=>d.blocks.sort((a,b)=>a.s-b.s));
@@ -27482,15 +27508,19 @@ function cupPlanRender(){
       <div class="cup-pl-rate">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="${logged&&logged.score===n?'on':''}" onclick="cupPlanRate(${n})">${n}</button>`).join('')}</div>
       <div class="cup-pl-hint">${cupT10('Each evening’s number nudges tomorrow’s limit — down when it was too much, up slowly when it felt easy.','저녁마다 숫자로 내일의 한도를 조절해요. 힘들었으면 줄이고, 여유로우면 천천히 늘려요.')}</div></section>
     <button type="button" class="cup-pl-ask cup-pl-fit" onclick="closeModal('mCupPlan');cupFitOpen('hang')">${cupT10('Can I fit something in? — check a hangout or plan','시간 될까? — 약속이나 일정 확인')} →</button>
+    <details class="cup-pl-set cup-pl-rates" ${P.rateSeen?'':'open'}><summary>${cupT10('What matters to you','나에게 중요한 것')}</summary>
+      <div class="cup-pl-hint">${cupT10('Rate each kind of to-do. Higher comes first when time is short; 0 = never schedule it.','종류별로 중요도를 매겨요. 시간이 부족하면 높은 것부터, 0은 일정에 넣지 않아요.')}</div>
+      ${CUP_CATS.slice().sort((a,b)=>cupRate(b[0])-cupRate(a[0])).map(([k])=>`<div class="cup-pl-rt"><i style="background:${CUP_CAT_COL[k]}"></i><span>${cupCatName(k)}</span><div>${[0,1,2,3,4,5].map(n=>`<button type="button" class="${cupRate(k)===n?'on':''} ${n&&cupRate(k)>=n?'fill':''}" onclick="cupPlanRate2('${k}',${n})" aria-label="${n}">${n?'':'×'}</button>`).join('')}</div></div>`).join('')}</details>
     ${ask}${sk}${nr}
     <div class="cup-pl-days">${rows}</div>
     <label class="cup-mn-chk cup-pl-over"><input type="checkbox" ${P.over?'checked':''} onchange="cupPlanSet('over',this.checked)"> ${cupT10('Let me overload a day (override)','무리해서 넣기 (한도 무시)')}</label>
     <details class="cup-pl-set"><summary>${cupT10('Sleep & weekly wishes','수면 · 주간 바람')}</summary>
       <div class="cup-mn-two"><div><label class="cup-hbm-l">${cupT10('Wake up','기상')}</label><input type="time" value="${P.wake}" onchange="cupPlanSet('wake',this.value)"></div><div><label class="cup-hbm-l">${cupT10('Bed','취침')}</label><input type="time" value="${P.bed}" onchange="cupPlanSet('bed',this.value)"></div></div>
-      <div class="cup-pl-tg">${[['gf',cupT10('Time with her','여자친구와')],['workout',cupT10('Workouts','운동')],['friends',cupT10('Friends','친구')]].map(([k,l])=>`<label><span>${l}</span><select onchange="cupPlanTg('${k}',this.value)">${[0,1,2,3,4,5,6,7].map(n=>`<option ${P.tg[k]==n?'selected':''}>${n}</option>`).join('')}</select><em>${cupT10('/ week','/ 주')}</em></label>`).join('')}</div>
-      <div class="cup-pl-hint">${cupT10('Order of importance: commitments → habits → school & career → girlfriend · sleep → workout → friends.','우선순위: 약속·의무 → 습관 → 학업·커리어 → 여자친구·수면 → 운동 → 친구.')}${R.undated?` ${cupT10(`${R.undated} undated task${R.undated>1?'s':''} aren’t scheduled.`,`날짜 없는 할 일 ${R.undated}개는 계획에 넣지 않았어요.`)}`:''}</div></details>`;
+      <div class="cup-pl-tg">${[['partner',cupT10('Partner time','연인과')],['health',cupT10('Workouts','운동')],['friends',cupT10('Friends','친구')]].map(([k,l])=>`<label><span>${l}</span><select onchange="cupPlanTg('${k}',this.value)">${[0,1,2,3,4,5,6,7].map(n=>`<option ${P.tg[k]==n?'selected':''}>${n}</option>`).join('')}</select><em>${cupT10('/ week','/ 주')}</em></label>`).join('')}</div>
+      <div class="cup-pl-hint">${cupT10('Sleep is always protected.','수면 시간은 항상 지켜요.')}${R.undated?` ${cupT10(`${R.undated} undated task${R.undated>1?'s':''} aren’t scheduled.`,`날짜 없는 할 일 ${R.undated}개는 계획에 넣지 않았어요.`)}`:''}</div></details>`;
   if(typeof cupIsKo==='function' && cupIsKo() && typeof cupKoWalk==='function') cupKoWalk(host);
 }
+function cupPlanRate2(k,n){ const P=cupPln(); P.rate[k]=n; P.rateSeen=true; save(); cupPlanRender(); }
 function cupPlanSet(k,v){ cupPln()[k]=v; save(); cupPlanRender(); }
 function cupPlanTg(k,v){ cupPln().tg[k]=+v||0; save(); cupPlanRender(); }
 function cupPlanCap(d){ const P=cupPln(); P.cap=Math.max(60,Math.min(540,P.cap+d)); save(); cupPlanRender(); }
@@ -27505,7 +27535,7 @@ function cupPlanCat(id,k,btn){ const t=S.tasks.find(x=>x.id===id); if(!t) return
 // ── evening check-in → calibration ──
 function cupPlanRate(n){
   const P=cupPln(), td=todayStr(), foc=cupPlnFocus();
-  const planned=S.events.filter(e=>e.auto&&e.cat==='work'&&e.date===td).reduce((a,e)=>a+Math.max(0,cupFitMin(e.endTime)-cupFitMin(e.time)),0);
+  const planned=S.events.filter(e=>e.auto&&(e.taskIds||[]).length&&e.date===td).reduce((a,e)=>a+Math.max(0,cupFitMin(e.endTime)-cupFitMin(e.time)),0);
   const done=(S.sessions||[]).filter(s=>s.date===td&&s.type==='focus'&&s.completed).reduce((a,s)=>a+(s.dur||0),0);
   P.log[td]={ score:n, planned, done };
   const recent=Object.keys(P.log).sort().slice(-5).map(k=>P.log[k]), avg=recent.reduce((a,r)=>a+r.score,0)/recent.length;
@@ -27521,8 +27551,8 @@ function cupPlanClearAuto(){ const td=todayStr(); for(let i=S.events.length-1;i>
 function cupPlanRemove(){ cupPlanClearAuto(); save(); render(); cupPlanRender(); showToast(cupT10('Auto plan removed.','자동 계획을 지웠어요.')); }
 function cupPlanApply(){
   const R=cupPlnBuild(7), td=todayStr(); cupPlanClearAuto(); let n=0;
-  R.days.forEach(d=>d.blocks.forEach(b=>{ n++; S.events.push({ id:uid(), auto:true, cat:b.cat, taskIds:b.ids||[], title:b.title, date:b.ds, endDate:b.ds, noEndDate:false, time:cupFitHM(b.s), endTime:cupFitHM(b.e), allDay:false, recurrence:'none', recurrenceDays:[], subject:'', location:'', notes:b.cat==='work'?cupT10('Planned study — run it from the Focus page.','계획된 공부 — 집중 페이지에서 시작하세요.'):'', reminder:'none', type:b.cat==='work'?'focus_block':'personal', color:CUP_CAT_COL[b.cat] }); }));
-  try{ const slots=[]; R.days[0].blocks.filter(b=>b.cat==='work').forEach(b=>{ for(let i=0;i<b.units;i++) slots.push([b.ids[0]]); });
+  R.days.forEach(d=>d.blocks.forEach(b=>{ n++; S.events.push({ id:uid(), auto:true, cat:b.cat, taskIds:b.ids||[], title:b.title, date:b.ds, endDate:b.ds, noEndDate:false, time:cupFitHM(b.s), endTime:cupFitHM(b.e), allDay:false, recurrence:'none', recurrenceDays:[], subject:'', location:'', notes:b.cat==='work'?cupT10('Planned study — run it from the Focus page.','계획된 공부 — 집중 페이지에서 시작하세요.'):'', reminder:'none', type:(b.ids||[]).length?'focus_block':'personal', color:CUP_CAT_COL[b.cat] }); }));
+  try{ const slots=[]; R.days[0].blocks.filter(b=>(b.ids||[]).length).forEach(b=>{ for(let i=0;i<b.units;i++) slots.push([b.ids[0]]); });
     const p=cupPlan(); if(slots.length && !p.done.some(Boolean) && !(typeof cupPomoLive==='function'&&cupPomoLive())){ p.slots=slots.slice(0,12); p.done=[]; p.active=false; cupPlanSyncCycles(p); S.settings.pomo.focus=R.foc; S.settings.pomo.shortBreak=R.brk; } }catch(_){}
   closeModal('mCupPlan'); save(); render(); showToast(cupT10(`Placed ${n} block${n===1?'':'s'}. Today’s pomodoros are ready on Focus.`,`${n}개 블록을 넣었어요. 오늘의 뽀모도로는 집중 페이지에 준비됐어요.`));
 }
@@ -27666,23 +27696,32 @@ function cupHomeDedup(){
 //  Blocks get stable ids, so only what actually changed moves (and Google sees few changes). Blocks for finished work stay as history.
 // ════════════════════════════════════════════════════════════════════
 const cupAutoOn = () => !!cupPln().auto;
-const cupAutoId = b => 'auto_'+cupGcHash([b.cat,(b.ids||[])[0]||'',b.ds,b.s]);
+const cupAutoId = b => 'auto_'+cupGcHash([b.cat,(b.ids||[]).join(','),b.ds,b.s]);
+// back-to-back task chunks become one focus block: its pomodoros carry the tasks, in order (one cycle: up to 4 per block)
+function cupFocusMerge(blocks, foc, brk){
+  const out=[], tasks=blocks.filter(b=>(b.ids||[]).length).sort((a,b)=>a.s-b.s); let cur=null;
+  tasks.forEach(b=>{ const slots=Array.from({length:b.units||1},()=>[b.ids[0]]);
+    if(cur && b.s-cur.e<=brk+1 && cur.slots.length+slots.length<=4){ cur.e=b.e; cur.slots.push(...slots); }
+    else { cur={ ds:b.ds, s:b.s, e:b.e, cat:'focus', slots }; out.push(cur); } });
+  out.forEach(f=>{ f.ids=[...new Set(f.slots.flat())]; f.units=f.slots.length; f.title=cupT10(`Focus · ${f.units}×${foc}`,`집중 · ${f.units}×${foc}`); });
+  return out.concat(blocks.filter(b=>!(b.ids||[]).length));
+}
 let cupAutoSig='', cupAutoT=0, cupAutoBusy=false, cupAutoInfo={ skipped:0, ask:0 };
 function cupAutoSync(){
   const R=cupPlnBuild(7), td=todayStr(), n=cupNow(), nowM=n.getHours()*60+n.getMinutes(), want=new Map(); let ch=0;
-  R.days.forEach(d=>d.blocks.forEach(b=>want.set(cupAutoId(b),b)));
+  R.days.forEach(d=>{ d.blocks=cupFocusMerge(d.blocks,R.foc,R.brk); d.blocks.forEach(b=>want.set(cupAutoId(b),b)); });
   for(let i=S.events.length-1;i>=0;i--){ const e=S.events[i]; if(!e.auto || e.date<td) continue;
-    if(e.date===td && cupFitMin(e.endTime)<=nowM){ const tid=(e.taskIds||[])[0], t=tid&&S.tasks.find(x=>x.id===tid); if(!tid || (t&&cupDone(t))) continue; }   // history stays; a missed block moves
+    if(e.date===td && cupFitMin(e.endTime)<=nowM){ const ids=e.taskIds||[]; if(!ids.length || ids.every(id=>{ const t=S.tasks.find(x=>x.id===id); return !t||cupDone(t); })) continue; }   // history stays; a missed block moves
     const b=want.get(e.id); if(b){ if(e.title!==b.title){ e.title=b.title; ch++; } want.delete(e.id); continue; }
     S.events.splice(i,1); ch++; }
-  want.forEach((b,id)=>{ ch++; S.events.push({ id, auto:true, cat:b.cat, taskIds:b.ids||[], title:b.title, date:b.ds, endDate:b.ds, noEndDate:false, time:cupFitHM(b.s), endTime:cupFitHM(b.e), allDay:false, recurrence:'none', recurrenceDays:[], subject:'', location:'', notes:'', reminder:'none', type:b.cat==='work'?'focus_block':'personal', color:CUP_CAT_COL[b.cat] }); });
-  try{ const slots=[]; R.days[0].blocks.filter(b=>b.cat==='work').forEach(b=>{ for(let i=0;i<b.units;i++) slots.push([b.ids[0]]); });
+  want.forEach((b,id)=>{ ch++; S.events.push({ id, auto:true, cat:b.cat, taskIds:b.ids||[], slots:b.slots||null, title:b.title, date:b.ds, endDate:b.ds, noEndDate:false, time:cupFitHM(b.s), endTime:cupFitHM(b.e), allDay:false, recurrence:'none', recurrenceDays:[], subject:'', location:'', notes:'', reminder:'none', type:(b.ids||[]).length?'focus_block':'personal', color:b.cat==='focus'?'#2C4A8B':CUP_CAT_COL[b.cat] }); });
+  try{ const slots=[]; R.days[0].blocks.filter(b=>b.slots).forEach(b=>b.slots.forEach(x=>slots.push([...x])));
     const p=cupPlan(); if(slots.length && !p.done.some(Boolean) && !(typeof cupPomoLive==='function'&&cupPomoLive()) && JSON.stringify(p.slots)!==JSON.stringify(slots.slice(0,12))){ p.slots=slots.slice(0,12); p.done=[]; p.active=false; cupPlanSyncCycles(p); S.settings.pomo.focus=R.foc; S.settings.pomo.shortBreak=R.brk; ch++; } }catch(_){}
   cupAutoInfo={ skipped:R.skipped.length, ask:R.ask.length };
   return ch;
 }
 function cupAutoKey(){ const P=cupPln(), n=cupNow();
-  return JSON.stringify([todayStr(), Math.floor((n.getHours()*60+n.getMinutes())/30), P.cap, P.focus, P.over, P.wake, P.bed, P.tg, typeof cupEnergyLow==='function'&&cupEnergyLow(),
+  return JSON.stringify([todayStr(), Math.floor((n.getHours()*60+n.getMinutes())/30), P.cap, P.focus, P.over, P.wake, P.bed, P.tg, P.rate, typeof cupEnergyLow==='function'&&cupEnergyLow(),
     S.tasks.map(t=>[t.id,t.due,t.priority,t.effort,t.completed,t.archived,t.waiting,t.cat,t.scheduledTime,t.title,(t.scheduledDates||[]).join(),t.isHabit?(t.scheduledDays||[]).join():0]),
     S.events.filter(e=>!e.auto).map(e=>[e.id,e.date,e.time,e.endTime,e.recurrence,e.allDay])]); }
 function cupAutoRun(){
@@ -27733,12 +27772,21 @@ function cupAutoChip(){
 //   · Adding a task tells you where it landed.
 //   · Tasks list: drag a row onto Today / Tomorrow / … / No date.
 // ════════════════════════════════════════════════════════════════════
-{ const _ai=cupAgItems; cupAgItems=function(ds){ const out=_ai.apply(this,arguments), shown=new Set();
-  out.forEach(it=>{ if(!it.ev) return; const e=S.events.find(x=>x.id===it.id), tid=e&&e.auto&&(e.taskIds||[])[0], t=tid&&S.tasks.find(x=>x.id===tid);
-    if(t){ it.task=t.id; it.done=cupDone(t); it.meta=(cupCommit(t.commitId)||{}).name||t.subject||''; shown.add(t.id); } });
-  return out.filter(it=>it.ev||!shown.has(it.id)); }; }
-{ const _ar=cupAgRow; cupAgRow=function(it,ds){ let h=_ar.apply(this,arguments); if(!it.task) return h;
-  return h.replace(`onclick="editEvent('${it.id}')"`,`onclick="editTask('${it.task}')"`).replace('<span class="cup-ag-time">',`<button type="button" class="cup-check2 cup-ag-ck ${it.done?'d':''}" onclick="event.stopPropagation();toggleTask('${it.task}')" aria-label="${cupT10('Done','완료')}"></button><span class="cup-ag-time">`); }; }
+{ const _ai=cupAgItems; cupAgItems=function(ds){ const out=_ai.apply(this,arguments), inBlock=new Set();
+  out.forEach(it=>{ if(!it.ev) return; const e=S.events.find(x=>x.id===it.id); if(!e||!e.auto||!(e.taskIds||[]).length) return;
+    const ts=e.taskIds.map(id=>S.tasks.find(x=>x.id===id)).filter(Boolean); ts.forEach(t=>inBlock.add(t.id));
+    it.focus=e.id; it.done=ts.length&&ts.every(cupDone); it.meta=ts.map(t=>t.title).join(' · '); });
+  return out.filter(it=>it.ev||!inBlock.has(it.id)); }; }   // a to-do inside a focus block isn't listed again on its own
+{ const _ar=cupAgRow; cupAgRow=function(it,ds){ const h=_ar.apply(this,arguments); return it.focus?h.replace(`onclick="editEvent('${it.id}')"`,`onclick="cupFocusBlockOpen('${it.id}')"`):h; }; }
+// opening a focus block = Focus mode with its tasks already in the pomodoros
+function cupFocusBlockOpen(id){
+  const e=S.events.find(x=>x.id===id); if(!e) return; const td=todayStr();
+  if(e.date!==td){ showToast(cupT10(`This focus block is on ${cupFmt(e.date)} — it opens in Focus mode that day.`,`${cupFmt(e.date)}의 집중 블록이에요 — 그날 집중 모드로 열려요.`), cupT10('Edit','수정'), ()=>editEvent(id)); return; }
+  if(typeof cupPomoLive==='function' && cupPomoLive()){ showPage('pomo'); return; }
+  const slots=(e.slots||(e.taskIds||[]).map(x=>[x])).map(x=>x.filter(tid=>{ const t=S.tasks.find(y=>y.id===tid); return t&&!cupDone(t); })).filter(x=>x.length);
+  const p=cupPlan(); p.slots=slots.length?slots:[[]]; p.done=[]; p.active=false; cupPlanSyncCycles(p); try{ S.settings.pomo.focus=cupPlnFocus(); }catch(_){}
+  save(); showPage('pomo');
+}
 
 // what the plan did, in one line above the calendar
 function cupAutoBanner(){
@@ -27760,9 +27808,9 @@ let cupAutoKnown=null;
 { const _as=cupAutoSync; cupAutoSync=function(){ const before=cupAutoKnown, r=_as.apply(this,arguments);
   try{ const ids=new Set(S.tasks.filter(t=>!t.isHabit).map(t=>t.id)); cupAutoKnown=ids;
     if(before){ const fresh=S.tasks.filter(t=>!t.isHabit&&!cupDone(t)&&!before.has(t.id)); const t=fresh[fresh.length-1];
-      if(t){ const e=S.events.filter(x=>x.auto&&(x.taskIds||[])[0]===t.id).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))[0];
-        if(e) showToast(cupT10(`“${t.title}” → ${cupWd(e.date)} ${cupFmt(e.date)} ${cupT12(e.time)}`,`“${t.title}” → ${cupFmt(e.date)} ${cupT12(e.time)}`), cupT10('See','보기'), ()=>{ try{ calSelectedDate=e.date; }catch(_){} showPage('todo'); });
-        else if(cupCatOf(t)==='work' && t.due) showToast(cupT10(`“${t.title}” doesn’t fit before ${cupFmt(t.due)} — tap Auto to make room.`,`“${t.title}”은(는) ${cupFmt(t.due)} 전에 자리가 없어요.`)); } } }catch(_){}
+      if(t){ const e=S.events.filter(x=>x.auto&&(x.taskIds||[]).includes(t.id)).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))[0];
+        if(e) showToast(cupT10(`“${t.title}” → focus block ${cupWd(e.date)} ${cupFmt(e.date)} ${cupT12(e.time)}`,`“${t.title}” → ${cupFmt(e.date)} ${cupT12(e.time)}`), cupT10('See','보기'), ()=>{ try{ calSelectedDate=e.date; }catch(_){} showPage('todo'); });
+        else if(cupCatOf(t) && cupCatOf(t)!=='commit' && t.due) showToast(cupT10(`“${t.title}” doesn’t fit before ${cupFmt(t.due)} — tap Auto to make room.`,`“${t.title}”은(는) ${cupFmt(t.due)} 전에 자리가 없어요.`)); } } }catch(_){}
   return r; }; }
 
 // Tasks list: drag a row onto a day
