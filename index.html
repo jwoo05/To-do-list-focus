@@ -7671,6 +7671,10 @@ input[type=date]::-webkit-calendar-picker-indicator, input[type=time]::-webkit-c
 .cup-fchip{ display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border:1px solid var(--border); border-radius:999px; font-size:calc(13px * var(--cup-fs,1)); color:var(--text2); } .cup-fchip:hover{ border-color:var(--text3); color:var(--text); } .cup-fchip.on{ border-color:var(--accent); color:var(--text); background:color-mix(in srgb, var(--accent) 12%, transparent); }
 .cup-fchips-h{ flex-basis:100%; font-size:calc(11px * var(--cup-fs,1)); letter-spacing:.05em; text-transform:uppercase; color:var(--text3); margin-top:6px; }
 .cup-fnew2{ display:flex; gap:6px; margin-top:8px; } .cup-fnew2 input{ flex:1; min-width:0; padding:7px 10px; font-size:calc(13px * var(--cup-fs,1)); border-style:dashed; } .cup-fnew2 select{ padding:6px 8px; font-size:calc(12.5px * var(--cup-fs,1)); }
+/* kept-free time */
+.cwk-block.sig-free{ background:repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--text3) 10%, transparent) 6px 12px) !important; border-left:2px dashed var(--text3) !important; }
+.cwk-block.sig-free .cwk-block-title{ color:var(--text2); font-weight:500; }
+.cup-free-go{ flex:none; font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); padding:2px 8px; border-radius:999px; border:1px solid var(--border); } .cup-free-go:hover{ color:var(--text); border-color:var(--accent); }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -28290,6 +28294,36 @@ cupRevPush=function(){
   save(); render();
   showToast(cupT10(`${tmN} most important → tomorrow${plan.length>tmN?`, ${plan.length-tmN} after`:''}.`,`중요한 ${tmN}개는 내일${plan.length>tmN?`, ${plan.length-tmN}개는 그 뒤로`:''}.`), cupT10('Undo','되돌리기'), ()=>{ snap.forEach(([t,d,s])=>{ t.due=d; t.scheduledDates=s; }); save(); render(); });
 };
+
+// ════════════════════════════════════════════════════════════════════
+//  PART 24 — Keep time free. Mark a stretch as open (a break, a commute, “nothing here”) and Auto plans around it.
+//  It's a quiet, dashed block on the calendar — not a task, not a commitment.
+// ════════════════════════════════════════════════════════════════════
+function cupFreeOpen(ds){
+  const d=ds||todayStr(), n=cupNow(), h=Math.min(22,n.getHours()+1);
+  cupMnModal('mCupFree', cupT10('Keep time free','시간 비워두기'), `
+    <div class="cup-mn-two"><div><label class="cup-hbm-l" for="cfrD">${cupT10('Day','날짜')}</label><input id="cfrD" type="date" value="${d}"></div>
+      <div><label class="cup-hbm-l" for="cfrL">${cupT10('Label (optional)','이름 (선택)')}</label><input id="cfrL" maxlength="40" placeholder="${cupT10('Free · Commute · Lunch','여유 · 이동 · 점심')}"></div></div>
+    <div class="cup-mn-two"><div><label class="cup-hbm-l" for="cfrA">${cupT10('From','시작')}</label><input id="cfrA" type="time" value="${String(h).padStart(2,'0')}:00"></div><div><label class="cup-hbm-l" for="cfrB">${cupT10('To','끝')}</label><input id="cfrB" type="time" value="${String(h+1).padStart(2,'0')}:00"></div></div>
+    <div class="cup-dim cup-hbm-hint">${cupT10('Nothing gets planned here. Anything planned there now moves.','여기엔 아무것도 잡지 않아요. 지금 잡힌 건 옮겨져요.')}</div>`,
+    `<button class="btn btn-ghost" onclick="closeModal('mCupFree')">${cupT10('Cancel','취소')}</button><button class="btn btn-accent" onclick="cupFreeSave()">${cupT10('Keep free','비워두기')}</button>`);
+}
+function cupFreeAdd(ds, from, to, label){
+  const ev={ id:uid(), free:true, title:label||cupT10('Free','여유'), date:ds, endDate:ds, noEndDate:false, time:from, endTime:to, allDay:false, recurrence:'none', recurrenceDays:[], subject:'', location:'', notes:'', reminder:'none', type:'personal', color:'#6B7280' };
+  S.events.push(ev);
+  S.events.forEach(e=>{ if(e.auto && e.pinned && e.date===ds && e.time<to && e.endTime>from) delete e.pinned; });   // your own blocks there move too
+  return ev;
+}
+function cupFreeSave(){
+  const g=i=>document.getElementById(i), ds=g('cfrD').value, a=g('cfrA').value, b=g('cfrB').value; if(!ds||!a||!b||b<=a){ g('cfrB').focus(); return; }
+  const ev=cupFreeAdd(ds,a,b,(g('cfrL').value||'').trim().slice(0,40)); closeModal('mCupFree'); cupAutoSig=''; save(); render(); cupAutoRun();
+  showToast(cupT10(`${cupT12(a)}–${cupT12(b)} kept free.`,`${cupT12(a)}–${cupT12(b)} 비워뒀어요.`), cupT10('Undo','되돌리기'), ()=>{ const i=S.events.indexOf(ev); if(i>=0) S.events.splice(i,1); cupAutoSig=''; save(); render(); cupAutoRun(); });
+}
+// on the calendar: a quiet dashed block; in lists: “Free”
+{ const _ti=collectTimedItems; collectTimedItems=function(ds){ const out=_ti.apply(this,arguments); try{ out.forEach(it=>{ const e=it.kind==='event'&&S.events.find(x=>x.id===it.id); if(e&&e.free) it.sig='free'; }); }catch(_){} return out; }; }
+// where to find it: the Auto line on the calendar and the Auto sheet
+{ const _ab2=cupAutoBanner; cupAutoBanner=function(){ const r=_ab2.apply(this,arguments); try{ const b=document.getElementById('cupAutoBar'); if(b && !b.querySelector('.cup-free-go')){ const x=document.createElement('span'); x.className='cup-free-go'; x.setAttribute('role','button'); x.textContent=cupT10('+ Keep time free','+ 시간 비우기'); x.onclick=ev=>{ ev.stopPropagation(); cupFreeOpen(typeof calSelectedDate!=='undefined'&&calSelectedDate||todayStr()); }; b.insertBefore(x, b.querySelector('.cup-auto-go')); } }catch(_){} return r; }; }
+{ const _pr4=cupPlanRender; cupPlanRender=function(){ const r=_pr4.apply(this,arguments); try{ const host=document.getElementById('cupPlanBody'), ask=host&&host.querySelector('.cup-pl-fit'); if(ask && !host.querySelector('.cup-pl-free')) ask.insertAdjacentHTML('afterend',`<button type="button" class="cup-pl-ask cup-pl-fit cup-pl-free" onclick="closeModal('mCupPlan');cupFreeOpen()">${cupT10('Keep a stretch of time free','시간 비워두기')} →</button>`); }catch(_){} return r; }; }
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
