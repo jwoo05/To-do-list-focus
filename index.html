@@ -26982,9 +26982,9 @@ function cupHabitsHTML(){
   const first=cupDaysIntoWeek()===1; if(first) sm.pct=Math.round(doneN/hab.length*100);   // day 1 of the week: there's no week yet, so show today
   const hit=sm.pct!==null && sm.pct>=sm.goal;
   // grouped by category, the ones you rate highest first (Faith, Appointments, Habits, Health…)
-  const catOf=t=>t.habitEnd?'_short':t.routine?'r:'+t.routine:((typeof cupCatOf==='function'&&cupCatOf(t))||'habit'), rateOf=k=>k==='_short'?9:k.startsWith('r:')?8:typeof cupRate==='function'?cupRate(k):3;
+  const catOf=t=>t.habitEnd?'_short':t.routine?'r:'+t.routine:((typeof cupCatOf==='function'&&cupCatOf(t))||'habit'), rateOf=k=>k==='_short'?9:k.startsWith('r:')?4.5:typeof cupRate==='function'?cupRate(k):3, idx=k=>typeof cupCatIdx==='function'?cupCatIdx(k):0;
   const gN={}, gD={}; hab.forEach(t=>{ const k=catOf(t); gN[k]=(gN[k]||0)+1; if(cupHabitDoneToday(t)) gD[k]=(gD[k]||0)+1; });
-  hab.sort((a,b)=>rateOf(catOf(b))-rateOf(catOf(a)) || catOf(a).localeCompare(catOf(b)) || (a.scheduledTime||'12:00').localeCompare(b.scheduledTime||'12:00'));
+  hab.sort((a,b)=>rateOf(catOf(b))-rateOf(catOf(a)) || idx(catOf(a))-idx(catOf(b)) || catOf(a).localeCompare(catOf(b)) || (a.scheduledTime||'12:00').localeCompare(b.scheduledTime||'12:00'));
   const groups=new Set(hab.map(catOf)).size>1;
   const dots=hab.map(t=>`<i class="${cupHabitDoneToday(t)?'d':''}"></i>`).join('');
   const line=`<button type="button" class="cup-hb-line ${doneN===hab.length?'all':''}" onclick="cupHbToggle()" aria-expanded="${open}">
@@ -27432,11 +27432,11 @@ document.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.shiftKey&&
 //  Rule-based and private: nothing is sent anywhere. Blocks it creates are marked auto:true so a re-plan replaces them and never touches your own events.
 // ════════════════════════════════════════════════════════════════════
 // Categories anyone can use. Each person rates how much each matters (0 = don't plan it, 5 = most important); the planner follows that.
-const CUP_CATS=[['commit','Commitments','약속 · 신앙'],['habit','Habits & routines','습관 · 루틴'],['work','School & work','학업 · 일'],['life','Life admin','생활 · 볼일'],['health','Health','건강'],['close','Partner & family','연인 · 가족'],['friends','Friends','친구'],['rest','Hobbies & rest','취미 · 휴식']];
-const CUP_CAT_COL={ commit:'#5A4A88', habit:'#2A6B44', work:'#2C4A8B', life:'#8B6A3A', health:'#A85418', close:'#B8527A', friends:'#4A7A8B', rest:'#5A7A6A' };
-const CUP_RATE_DEF={ commit:5, habit:4, work:4, close:3, health:3, life:3, friends:2, rest:1 };
+const CUP_CATS=[['faith','Faith','신앙'],['commit','Commitments','약속'],['habit','Habits & routines','습관 · 루틴'],['work','School & work','학업 · 일'],['life','Life admin','생활 · 볼일'],['health','Health','건강'],['close','Partner & family','연인 · 가족'],['friends','Friends','친구'],['rest','Hobbies & rest','취미 · 휴식']];
+const CUP_CAT_COL={ faith:'#7A5AA8', commit:'#5A4A88', habit:'#2A6B44', work:'#2C4A8B', life:'#8B6A3A', health:'#A85418', close:'#B8527A', friends:'#4A7A8B', rest:'#5A7A6A' };
+const CUP_RATE_DEF={ faith:3, commit:5, habit:4, work:4, close:3, health:3, life:3, friends:2, rest:1 };
 // finer guesses fold into the 8 (and answers from earlier versions carry over)
-const CUP_CAT_OLD={ gf:'close', workout:'health', faith:'commit', partner:'close', family:'close', admin:'life', errand:'life', school:'work', career:'work', project:'work' };
+const CUP_CAT_OLD={ gf:'close', workout:'health', partner:'close', family:'close', admin:'life', errand:'life', school:'work', career:'work', project:'work' };
 const cupCatName = k => { const c=CUP_CATS.find(x=>x[0]===k); return c?cupT10(c[1],c[2]):k; };
 const CUP_RX={
   faith:/QT|말씀|묵상|교회|예배|기도|성경|찬양|church|prayer|bible|worship/i,
@@ -27459,6 +27459,7 @@ function cupPln(){ cupEnsure(); let P=S.cup.plan; if(!P||typeof P!=='object') P=
   if('gf' in P.tg){ P.tg.partner=P.tg.gf; delete P.tg.gf; } if('workout' in P.tg){ P.tg.health=P.tg.workout; delete P.tg.workout; }
   if(!P.rate||typeof P.rate!=='object') P.rate={}; CUP_CATS.forEach(([k])=>{ if(P.rate[k]===undefined) P.rate[k]=CUP_RATE_DEF[k]; }); Object.keys(P.rate).forEach(k=>{ if(!CUP_CATS.some(c=>c[0]===k)) delete P.rate[k]; });
   if(!P.log||typeof P.log!=='object') P.log={}; return P; }
+const cupCatIdx = k => { const i=CUP_CATS.findIndex(c=>c[0]===k); return i<0?99:i; };
 const cupRate = k => { const r=cupPln().rate[k]; return r===undefined?3:+r; };
 const cupPlnFocus = () => { const P=cupPln(); return P.focus||Math.max(10,Math.min(60,Math.round((typeof getPomoConfig==='function'?getPomoConfig().focus:25)||25))); };
 
@@ -27503,7 +27504,7 @@ function cupPlnBuild(nDays){
   const pri={high:0,medium:1,low:2};
   const horizon=cupAddDays(td,(nDays||7)-1+2);
   // urgency with priority folded in: a High task counts as 2 days sooner, a Low one 2 days later — so when time runs short, Low work is what gets pushed out
-  const bonus={must:3,MUST:3,high:2,medium:0,low:-2}, urg=t=>Math.max(0,cupMnDays(t.due))-(bonus[t.priority]??0)-(cupRate(cupCatOf(t))-3)*2;   // what you rate higher counts as sooner
+  const bonus={must:3,MUST:3,high:2,medium:0,low:-2}, urg=t=>Math.max(0,cupMnDays(t.due))-(bonus[t.priority]??0)-(cupRate(cupCatOf(t))-3)*2-(cupCatOf(t)==='faith'&&cupRate('faith')>=5?1:0);   // Faith wins a tie   // what you rate higher counts as sooner
   const todo=work.filter(t=>t.due && t.due<=horizon).sort((a,b)=>urg(a)-urg(b) || a.due.localeCompare(b.due));
   const undated=work.filter(t=>!t.due).length, far=work.filter(t=>t.due && t.due>horizon).length;
   const put=(day,len,title,cat,ids,units,minStart,maxEnd)=>{ const g=cupPlnGaps(day.ds,day.busy,len,minStart,maxEnd)[0]; if(!g) return false;
@@ -27907,7 +27908,7 @@ let cupTLCatAll={};
     if(cupTLBy!=='cat' || cupTLQuery) return r;
     const list=cupOpenTasks().filter(t=>!t.waiting&&!t.isHabit&&cupTLMatch(t)).sort((a,b)=>(cupTLDate(a)||'9999').localeCompare(cupTLDate(b)||'9999'));
     const by={}; list.forEach(t=>{ const k=cupCatOf(t)||'_ask'; (by[k]=by[k]||[]).push(t); });
-    const keys=Object.keys(by).sort((a,b)=>(a==='_ask')-(b==='_ask') || cupRate(b)-cupRate(a));
+    const keys=Object.keys(by).sort((a,b)=>(a==='_ask')-(b==='_ask') || cupRate(b)-cupRate(a) || cupCatIdx(a)-cupCatIdx(b));
     host.querySelectorAll('.cup-tl-sec').forEach(x=>x.remove());
     const html=keys.map(k=>{ const ts=by[k], all=cupTLCatAll[k], shown=all?ts:ts.slice(0,6);
       const head=k==='_ask'?`<span>${cupT10('Needs a category','분류 필요')}</span><span class="cup-tl-n">${ts.length}</span><button class="cup-tl-fresh" onclick="cupPlanAsk()">${cupT10('Sort','분류하기')}</button>`
