@@ -7591,6 +7591,12 @@ body.cup-on-pomo #cupSessBar{ display:none !important; }
 .cup-fb-n{ width:24px; font-size:calc(11.5px * var(--cup-fs,1)); color:var(--text3); font-variant-numeric:tabular-nums; } .cup-fb-t{ flex:1; min-width:0; text-align:left; font-size:calc(14px * var(--cup-fs,1)); } .cup-fb-row.d .cup-fb-t{ color:var(--text3); text-decoration:line-through; }
 .cup-fb-tm{ width:104px; flex:none; font-size:calc(12px * var(--cup-fs,1)); color:var(--text2); font-variant-numeric:tabular-nums; }
 .cup-pl-pace{ display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end; } .cup-pl-pace button{ padding:5px 11px; border:1px solid var(--border); border-radius:999px; font-size:calc(12px * var(--cup-fs,1)); color:var(--text2); } .cup-pl-pace button.on{ border-color:var(--accent); color:var(--text); background:color-mix(in srgb, var(--accent) 12%, transparent); }
+/* next open spot */
+.cup-spot-opts{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; } .cup-spot-opts select{ flex:1 1 110px; padding:7px 10px; font-size:calc(13px * var(--cup-fs,1)); }
+.cup-spot-h{ font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text3); margin-bottom:2px; }
+.cup-spot{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:calc(13.5px * var(--cup-fs,1)); }
+.cup-spot b{ font-weight:600; min-width:92px; } .cup-spot span{ flex:1; color:var(--text2); font-variant-numeric:tabular-nums; } .cup-spot em{ font-style:normal; font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); }
+.cup-spot.first{ border-color:var(--accent); background:color-mix(in srgb, var(--accent) 8%, transparent); } .cup-spot:hover{ border-color:var(--accent); } .cup-spot:hover em{ color:var(--accent); }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -27422,7 +27428,7 @@ function cupFitAdd(){
   closeModal('mCupFit'); save(); render(); showToast(cupT10(`Added “${title}” to ${cupFmt(p.ds)}.`,`“${title}”을(를) ${cupFmt(p.ds)}에 추가했어요.`));
 }
 // entry points: “Can I fit something in?” inside Plan my week, and ⌘/Ctrl+Shift+F
-document.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.shiftKey&&(e.key==='F'||e.key==='f')&&!/INPUT|TEXTAREA|SELECT/.test((e.target||{}).tagName||'')){ e.preventDefault(); cupFitOpen('hang'); } });
+document.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.shiftKey&&(e.key==='F'||e.key==='f')&&!/INPUT|TEXTAREA|SELECT/.test((e.target||{}).tagName||'')){ e.preventDefault(); cupFitOpen('spot'); } });
 
 // ════════════════════════════════════════════════════════════════════
 //  PART 16 — Plan my week: an automatic planner that places everything by YOUR priority order, keeps the day within
@@ -27504,7 +27510,7 @@ function cupPlnBuild(nDays){
   const pri={high:0,medium:1,low:2};
   const horizon=cupAddDays(td,(nDays||7)-1+2);
   // urgency with priority folded in: a High task counts as 2 days sooner, a Low one 2 days later — so when time runs short, Low work is what gets pushed out
-  const bonus={must:3,MUST:3,high:2,medium:0,low:-2}, urg=t=>Math.max(0,cupMnDays(t.due))-(bonus[t.priority]??0)-(cupRate(cupCatOf(t))-3)*2-(cupCatOf(t)==='faith'&&cupRate('faith')>=5?1:0);   // Faith wins a tie   // what you rate higher counts as sooner
+  const bonus={must:3,MUST:3,high:2,medium:0,low:-2}, urg=t=>Math.max(0,cupMnDays(t.due))-(bonus[t.priority]??0)-(cupRate(cupCatOf(t))-3)*2-(cupCatOf(t)==='commit'?1:0);   // a commitment wins a tie (Faith never pushes one aside); events are never moved   // what you rate higher counts as sooner
   const todo=work.filter(t=>t.due && t.due<=horizon).sort((a,b)=>urg(a)-urg(b) || a.due.localeCompare(b.due));
   const undated=work.filter(t=>!t.due).length, far=work.filter(t=>t.due && t.due>horizon).length;
   const put=(day,len,title,cat,ids,units,minStart,maxEnd)=>{ const g=cupPlnGaps(day.ds,day.busy,len,minStart,maxEnd)[0]; if(!g) return false;
@@ -27556,7 +27562,7 @@ function cupPlanRender(){
     <section class="cup-pl-sec"><b>${logged?cupT10(`Today felt ${logged.score}/10`,`오늘 ${logged.score}/10`):cupT10('End-of-day condition (1 drained · 10 great)','하루 끝 컨디션 (1 지침 · 10 최고)')}</b>
       <div class="cup-pl-rate">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="${logged&&logged.score===n?'on':''}" onclick="cupPlanRate(${n})">${n}</button>`).join('')}</div>
       <div class="cup-pl-hint">${cupT10('Each evening’s number nudges tomorrow’s limit — down when it was too much, up slowly when it felt easy.','저녁마다 숫자로 내일의 한도를 조절해요. 힘들었으면 줄이고, 여유로우면 천천히 늘려요.')}</div></section>
-    <button type="button" class="cup-pl-ask cup-pl-fit" onclick="closeModal('mCupPlan');cupFitOpen('hang')">${cupT10('Can I fit something in? — check a hangout or plan','시간 될까? — 약속이나 일정 확인')} →</button>
+    <button type="button" class="cup-pl-ask cup-pl-fit" onclick="closeModal('mCupPlan');cupFitOpen('spot')">${cupT10('Find the next open spot — or check if a plan fits','다음 빈 시간 찾기 — 일정이 맞는지 확인')} →</button>
     <details class="cup-pl-set cup-pl-rates" ${P.rateSeen?'':'open'}><summary>${cupT10('What matters to you','나에게 중요한 것')}</summary>
       <div class="cup-pl-hint">${cupT10('Rate each kind of to-do. Higher comes first when time is short; 0 = never schedule it.','종류별로 중요도를 매겨요. 시간이 부족하면 높은 것부터, 0은 일정에 넣지 않아요.')}</div>
       ${CUP_CATS.slice().sort((a,b)=>cupRate(b[0])-cupRate(a[0])).map(([k])=>`<div class="cup-pl-rt"><i style="background:${CUP_CAT_COL[k]}"></i><span>${cupCatName(k)}</span><div>${[0,1,2,3,4,5].map(n=>`<button type="button" class="${cupRate(k)===n?'on':''} ${n&&cupRate(k)>=n?'fill':''}" onclick="cupPlanRate2('${k}',${n})" aria-label="${n}">${n?'':'×'}</button>`).join('')}</div></div>`).join('')}</details>
@@ -27928,6 +27934,67 @@ let cupInAg=false;
     const ts=e.taskIds.map(id=>S.tasks.find(x=>x.id===id)).filter(t=>t&&!cupDone(t));
     it.title='◎ '+(ts.length?ts[0].title+(ts.length>1?` +${ts.length-1}`:''):cupT10('Focus — all done','집중 — 모두 완료')); it.isFocus=false; it.taskIds=[]; it.onClick=`cupFocusBlockOpen('${e.id}')`; }); }catch(_){}
   return out; }; }
+
+// ════════════════════════════════════════════════════════════════════
+//  PART 21 — “When’s the next open spot to …?”
+//  Type it your way: “finish assignment due today”, “hang out with friends in the evening 5-11pm”, “play games for 2 hours”,
+//  “practice drums for fun”. It reads the length, the time window and the deadline, guesses the kind (you can change it),
+//  and lists the next open slots. Events never move. Lower-priority things (games, hangouts) don't take time your
+//  focus blocks need; school & work can use it (the plan re-flows around them).
+// ════════════════════════════════════════════════════════════════════
+let cupSpot={ text:'', len:60, win:'any', from:0, to:1440, days:14, cat:'', before:'' };
+const CUP_SPOT_WIN=[['any','Any time','아무 때나',0,1440],['morning','Morning','오전',7*60,12*60],['afternoon','Afternoon','오후',12*60,17*60],['evening','Evening','저녁',17*60,23*60]];
+function cupSpotParse(text){
+  const q={ text, len:60, win:'any', from:0, to:1440, days:14, cat:'', before:'' }, lo=text.toLowerCase(), td=todayStr();
+  const h=lo.match(/(\d+(?:\.\d+)?)\s*(h\b|hr|hrs|hour|hours|시간)/), m=lo.match(/(\d+)\s*(m\b|min|mins|minutes|분)/);
+  if(h) q.len=Math.round(parseFloat(h[1])*60)+(m?+m[1]:0); else if(m) q.len=+m[1];
+  const r=lo.match(/(\d{1,2})(?::(\d\d))?\s*(am|pm)?\s*(?:-|–|~|to)\s*(\d{1,2})(?::(\d\d))?\s*(am|pm)/);
+  if(r){ const ap2=r[6], ap1=r[3]||ap2, hm=(H,M,ap)=>((+H%12)+(ap==='pm'?12:0))*60+(+M||0); q.from=hm(r[1],r[2],ap1); q.to=hm(r[4],r[5],ap2); if(q.to<=q.from) q.to=Math.min(1440,q.from+180); q.win='custom'; }
+  else { for(const [k,,,a,b] of CUP_SPOT_WIN.slice(1)) if(lo.includes(k)||(k==='evening'&&/저녁|tonight/.test(lo))||(k==='morning'&&/아침|오전/.test(lo))||(k==='afternoon'&&/오후/.test(lo))){ q.win=k; q.from=a; q.to=b; break; } }
+  if(/due today|today|오늘/.test(lo)){ q.days=1; q.before=td; } else if(/tomorrow|내일/.test(lo)){ q.days=2; q.before=cupAddDays(td,1); } else if(/this week|이번 주/.test(lo)) q.days=7;
+  q.cat=/for fun|재미/.test(lo)?'rest':/perform|recital|concert|audition|연주회|공연|assignment|homework|과제|due/.test(lo)?'work':(cupCatOf({ title:text })||'rest');
+  if(q.win==='any'){ if(q.cat==='rest'){ q.from=12*60; q.to=23*60; } else if(q.cat==='friends'||q.cat==='close'){ q.win='evening'; q.from=17*60; q.to=23*60; } else q.from=8*60; }   // leisure lands in the afternoon/evening unless you say otherwise
+  return q;
+}
+function cupSpotFind(q){
+  const out=[], td=todayStr(), low=cupRate(q.cat||'rest')<cupRate('work');
+  for(let i=0;i<q.days && out.length<4;i++){ const ds=cupAddDays(td,i); if(q.before && ds>q.before) break;
+    const busy=cupPlnBusy(ds).concat(low?S.events.filter(e=>e.auto&&e.date===ds&&e.time).map(e=>({ s:cupFitMin(e.time), e:cupFitMin(e.endTime) })):[]);
+    const g=cupPlnGaps(ds,busy,q.len,q.from,q.to)[0]; if(g) out.push({ ds, s:g.s, e:g.s+q.len }); }
+  return out;
+}
+function cupSpotRun(){
+  const out=document.getElementById('cupFitOut'); if(!out) return; const g=i=>document.getElementById(i);
+  const text=(g('csText')?.value||'').trim();
+  if(text!==cupSpot.text){ const p=cupSpotParse(text); Object.assign(cupSpot,p); if(g('csLen')) g('csLen').value=String(p.len); if(g('csWin')) g('csWin').value=p.win; if(g('csCat')) g('csCat').value=p.cat; }
+  else { cupSpot.len=+(g('csLen')?.value||60); const w=g('csWin')?.value||'any'; if(w!=='custom'){ const W=CUP_SPOT_WIN.find(x=>x[0]===w); cupSpot.win=w; cupSpot.from=W[3]; cupSpot.to=W[4]; } cupSpot.cat=g('csCat')?.value||cupSpot.cat; }
+  if(!text){ out.innerHTML=`<div class="cup-dim">${cupT10('Try “play games for 2 hours” or “hang out with friends 5-11pm”.','예: “게임 2시간” · “친구랑 저녁 5-11pm”')}</div>`; return; }
+  const res=cupSpotFind(cupSpot), when=cupSpot.before?cupT10(` by ${cupFmt(cupSpot.before)}`,` ${cupFmt(cupSpot.before)}까지`):'';
+  out.innerHTML=res.length?`<div class="cup-spot-h">${cupT10(`Next open ${cupFitH(cupSpot.len)}${when}`,`다음 빈 ${cupFitH(cupSpot.len)}${when}`)}</div>`+res.map((r,i)=>`<button type="button" class="cup-spot ${i?'':'first'}" onclick="cupSpotAdd('${r.ds}',${r.s},${r.e})"><b>${r.ds===todayStr()?cupT10('Today','오늘'):cupWd(r.ds)+' '+cupFmt(r.ds)}</b><span>${cupT12(cupFitHM(r.s))}–${cupT12(cupFitHM(r.e))}</span><em>${cupT10('Add','추가')} +</em></button>`).join('')
+    :`<div class="cup-fit-v no"><b>${cupT10('No open spot','빈 시간이 없어요')}</b><span>${cupT10(`Nothing free for ${cupFitH(cupSpot.len)}${when} in that window.`,`그 시간대에 ${cupFitH(cupSpot.len)} 빈 곳이 없어요.`)}</span></div>`;
+  if(typeof cupIsKo==='function' && cupIsKo() && typeof cupKoWalk==='function') cupKoWalk(out);
+}
+function cupSpotAdd(ds, s, e){
+  const raw=(document.getElementById('csText')?.value||'').trim();
+  const title=(raw.replace(/^(when('?s| is)?\s+(the\s+)?)?(next\s+)?(open\s+)?(spot|time|slot)\s+(to|for)\s+/i,'').replace(/\?+$/,'').replace(/\s+(for\s+)?\d+(\.\d+)?\s*(h|hr|hrs|hours?|min|mins|minutes|시간|분)\b.*$/i,'').trim()||cupT10('Plan','일정')).slice(0,60);
+  const work=cupSpot.cat==='work', type=work?'focus_block':'personal';
+  S.events.push({ id:uid(), title:title.charAt(0).toUpperCase()+title.slice(1), date:ds, endDate:ds, noEndDate:false, time:cupFitHM(s), endTime:cupFitHM(e), allDay:false, recurrence:'none', recurrenceDays:[], subject:'', location:'', notes:'', reminder:'none', type, cat:cupSpot.cat, color:(typeof CUP_CAT_COL!=='undefined'&&CUP_CAT_COL[cupSpot.cat])||eventColorForType(type) });
+  closeModal('mCupFit'); save(); render(); showToast(cupT10(`Added · ${cupWd(ds)} ${cupFmt(ds)} ${cupT12(cupFitHM(s))}`,`추가했어요 · ${cupFmt(ds)} ${cupT12(cupFitHM(s))}`));
+}
+// a “Next open spot” tab, first in the Can I fit it? sheet
+{ const _fo=cupFitOpen; cupFitOpen=function(tab){ const r=_fo.call(this, tab==='spot'?'hang':tab);
+  try{ const el=document.getElementById('mCupFit'), tabs=el.querySelector('.cup-fit-tabs');
+    tabs.insertAdjacentHTML('afterbegin',`<button type="button" id="cfTabS" onclick="cupFitTab('spot')">${cupT10('Next open spot','다음 빈 시간')}</button>`);
+    tabs.insertAdjacentHTML('afterend',`<div id="cfSpot" hidden><label class="cup-hbm-l" for="csText">${cupT10('When’s the next open spot to…','다음 빈 시간은 언제? …')}</label><input id="csText" maxlength="120" placeholder="${cupT10('play games for 2 hours','게임 2시간')}" value="${esc(cupSpot.text)}" oninput="cupSpotRun()">
+      <div class="cup-spot-opts"><select id="csLen" onchange="cupSpotRun()">${[15,30,45,60,90,120,180,240].map(n=>`<option value="${n}" ${cupSpot.len===n?'selected':''}>${cupFitH(n)}</option>`).join('')}${[15,30,45,60,90,120,180,240].includes(cupSpot.len)?'':`<option value="${cupSpot.len}" selected>${cupFitH(cupSpot.len)}</option>`}</select>
+        <select id="csWin" onchange="cupSpotRun()">${CUP_SPOT_WIN.map(([k,en,ko])=>`<option value="${k}" ${cupSpot.win===k?'selected':''}>${cupT10(en,ko)}</option>`).join('')}<option value="custom" ${cupSpot.win==='custom'?'selected':''}>${cupT10('As typed','입력한 시간')}</option></select>
+        <select id="csCat" onchange="cupSpotRun()">${CUP_CATS.map(([k])=>`<option value="${k}" ${cupSpot.cat===k?'selected':''}>${cupCatName(k)}</option>`).join('')}</select></div></div>`);
+    if(tab==='spot' || !tab) cupFitTab('spot');
+  }catch(e){ console.warn(e); } return r; }; }
+{ const _ft=cupFitTab; cupFitTab=function(t){ const g=i=>document.getElementById(i);
+  if(t==='spot'){ cupFit.tab='spot'; ['cfHang','cfFocus'].forEach(i=>{ if(g(i)) g(i).hidden=true; }); if(g('cfSpot')) g('cfSpot').hidden=false; ['cfTabH','cfTabF'].forEach(i=>g(i)?.classList.remove('on')); g('cfTabS')?.classList.add('on'); const a=g('cfAdd'); if(a) a.style.display='none'; cupSpotRun(); setTimeout(()=>g('csText')?.focus(),60); return; }
+  if(g('cfSpot')) g('cfSpot').hidden=true; g('cfTabS')?.classList.remove('on'); const a=g('cfAdd'); if(a) a.style.display=''; return _ft.apply(this,arguments); }; }
+{ const _fr=cupFitRun; cupFitRun=function(){ if(cupFit.tab==='spot') return cupSpotRun(); return _fr.apply(this,arguments); }; }
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
