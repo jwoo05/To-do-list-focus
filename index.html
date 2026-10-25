@@ -7678,6 +7678,7 @@ input[type=date]::-webkit-calendar-picker-indicator, input[type=time]::-webkit-c
 .cup-gx-row{ display:flex; align-items:center; gap:10px; padding:6px 0; border-top:1px solid color-mix(in srgb, var(--border) 55%, transparent); font-size:calc(13px * var(--cup-fs,1)); } .cup-gx-row span{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; } .cup-gx-row em{ font-style:normal; font-size:calc(12px * var(--cup-fs,1)); color:var(--text3); }
 .cup-gx-row button{ font-size:calc(12px * var(--cup-fs,1)); padding:3px 10px; border:1px solid var(--border); border-radius:999px; } .cup-gx-row button.q{ color:var(--text3); }
 .cup-gx-add{ align-self:flex-start; margin-top:6px; }
+.cup-next-from{ margin-left:8px; font-size:calc(11.5px * var(--cup-fs,1)); color:var(--accent); padding:1px 8px; border:1px solid color-mix(in srgb, var(--accent) 45%, var(--border)); border-radius:999px; } .cup-next-from:hover{ background:color-mix(in srgb, var(--accent) 10%, transparent); }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -28052,12 +28053,23 @@ let cupInAg=false;
     it.title='◎ '+(ts.length?ts[0].title+(ts.length>1?` +${ts.length-1}`:''):cupT10('Focus — all done','집중 — 모두 완료')); it.isFocus=false; it.taskIds=[]; it.onClick=`cupFocusBlockOpen('${e.id}')`; }); }catch(_){}
   return out; }; }
 
-// one thing: with Auto on, “Do this next” is the first open task of the focus block you're in (or the next one today)
-{ const _nq=cupNextQueue; cupNextQueue=function(){ const q=_nq.apply(this,arguments);
-  try{ if(!cupAutoOn() || (q[0]&&q[0].pinned)) return q; const td=todayStr(), n=cupNow(), now=n.getHours()*60+n.getMinutes();
-    const blk=S.events.filter(e=>e.auto&&e.date===td&&(e.taskIds||[]).length&&cupFitMin(e.endTime)>now).sort((a,b)=>a.time.localeCompare(b.time))[0]; if(!blk) return q;
-    const t=(blk.slots||blk.taskIds.map(x=>[x])).flat().map(id=>S.tasks.find(x=>x.id===id)).find(x=>x&&!cupDone(x)); if(!t) return q;
-    return [{ ...(q.find(x=>x.t===t)||{}), t }].concat(q.filter(x=>x.t!==t)); }catch(_){ return q; } }; }
+// one thing: with Auto on, “Do this next” is the first open task of the focus block you're in — or the next one (today, or the next planned day)
+let cupNextBlk=null;
+function cupNextFocus(){ const td=todayStr(), n=cupNow(), now=n.getHours()*60+n.getMinutes();
+  const blks=S.events.filter(e=>e.auto&&(e.taskIds||[]).length&&(e.date>td||(e.date===td&&cupFitMin(e.endTime)>now))).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  for(const b of blks){ const t=(b.slots||b.taskIds.map(x=>[x])).flat().map(id=>S.tasks.find(x=>x.id===id)).find(x=>x&&!cupDone(x)); if(t) return { b, t }; }
+  return null; }
+{ const _nq=cupNextQueue; cupNextQueue=function(){ const q=_nq.apply(this,arguments); cupNextBlk=null;
+  try{ if(!cupAutoOn() || (q[0]&&q[0].pinned)) return q; const f=cupNextFocus(); if(!f) return q; cupNextBlk=f.b;
+    return [{ ...(q.find(x=>x.t===f.t)||{}), t:f.t }].concat(q.filter(x=>x.t!==f.t)); }catch(_){ return q; } }; }
+// the card says which block it came from
+{ const _rh=cupRenderHome; cupRenderHome=function(){ const r=_rh.apply(this,arguments);
+  try{ const lab=document.querySelector('#cupNextUp .cup-next-label'), b=cupNextBlk; document.querySelector('#cupNextUp .cup-next-from')?.remove();
+    if(lab && b){ const td=todayStr(), when=(b.date===td?'':cupWd(b.date)+' ')+cupTShort(b.time);
+      lab.insertAdjacentHTML('afterend',`<button type="button" class="cup-next-from" onclick="cupFocusBlockOpen('${b.id}')" title="${cupT10('Open this focus block','이 집중 블록 열기')}">◎ ${when} ${cupT10('focus block','집중 블록')}</button>`); } }catch(_){}
+  return r; }; }
+// when a block ends, Do this next moves on by itself
+setInterval(()=>{ try{ if(typeof currentPage!=='undefined' && currentPage==='dashboard' && !document.hidden) cupRenderHome(); }catch(_){} }, 60*1000);
 
 // What matters first: opening Calendar lands on today's list (Agenda, today at the top) — switch views any time during the visit
 { const _sp=showPage; showPage=function(p){ const was=typeof currentPage!=='undefined'?currentPage:''; const r=_sp.apply(this,arguments);
