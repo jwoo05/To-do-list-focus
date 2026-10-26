@@ -7679,6 +7679,7 @@ input[type=date]::-webkit-calendar-picker-indicator, input[type=time]::-webkit-c
 .cup-gx-row button{ font-size:calc(12px * var(--cup-fs,1)); padding:3px 10px; border:1px solid var(--border); border-radius:999px; } .cup-gx-row button.q{ color:var(--text3); }
 .cup-gx-add{ align-self:flex-start; margin-top:6px; }
 .cup-next-from{ margin-left:8px; font-size:calc(11.5px * var(--cup-fs,1)); color:var(--accent); padding:1px 8px; border:1px solid color-mix(in srgb, var(--accent) 45%, var(--border)); border-radius:999px; } .cup-next-from:hover{ background:color-mix(in srgb, var(--accent) 10%, transparent); }
+.cup-fb-skip{ margin-right:auto; color:var(--text3); }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -27683,7 +27684,7 @@ function cupPlanRender(){
     <details class="cup-pl-set"><summary>${cupT10('Sleep & weekly wishes','수면 · 주간 바람')}</summary>
       <div class="cup-mn-two"><div><label class="cup-hbm-l">${cupT10('Wake up','기상')}</label><input type="time" value="${P.wake}" onchange="cupPlanSet('wake',this.value)"></div><div><label class="cup-hbm-l">${cupT10('Bed','취침')}</label><input type="time" value="${P.bed}" onchange="cupPlanSet('bed',this.value)"></div></div>
       <div class="cup-pl-tg">${[['partner',cupT10('Partner time','연인과')],['health',cupT10('Workouts','운동')],['friends',cupT10('Friends','친구')]].map(([k,l])=>`<label><span>${l}</span><select onchange="cupPlanTg('${k}',this.value)">${[0,1,2,3,4,5,6,7].map(n=>`<option ${P.tg[k]==n?'selected':''}>${n}</option>`).join('')}</select><em>${cupT10('/ week','/ 주')}</em></label>`).join('')}</div>
-      <div class="cup-pl-hint">${cupT10('Sleep is always protected.','수면 시간은 항상 지켜요.')}${R.undated?` ${cupT10(`${R.undated} undated task${R.undated>1?'s':''} aren’t scheduled.`,`날짜 없는 할 일 ${R.undated}개는 계획에 넣지 않았어요.`)}`:''}</div></details>`;
+      <div class="cup-pl-hint">${cupT10('Sleep is always protected.','수면 시간은 항상 지켜요.')}${R.undated?` ${cupT10(`${R.undated} undated task${R.undated>1?'s':''} use leftover time.`,`날짜 없는 할 일 ${R.undated}개는 남는 시간에 넣어요.`)}`:''}</div></details>`;
   if(typeof cupIsKo==='function' && cupIsKo() && typeof cupKoWalk==='function') cupKoWalk(host);
 }
 function cupPlanRate2(k,n){ const P=cupPln(); P.rate[k]=n; P.rateSeen=true; save(); cupPlanRender(); }
@@ -28482,6 +28483,44 @@ function cupGXPaint(){
 
 // after data comes in from the cloud, the next save writes everything once (so the cloud and this device match exactly)
 { const _ld=loadUserDataFromFirebase; loadUserDataFromFirebase=function(){ try{ cupCloudBase=null; }catch(_){} return _ld.apply(this,arguments); }; }
+
+// ════════════════════════════════════════════════════════════════════
+//  PART 26 — Housekeeping that runs by itself
+//   · priority follows the deadline: High/MUST more than two weeks out rests at Medium, and comes back as the date nears
+//   · Waiting items get a “person” from their title (the company or the name), so Gmail can match replies
+//   · Deleted items empty out after 30 days
+//   · a focus block you can't do: skip it — its tasks re-plan into the next free time; the block is an event, not a task
+// ════════════════════════════════════════════════════════════════════
+function cupPriTide(){ let n=0;
+  S.tasks.forEach(t=>{ if(!t||t.isHabit||cupDone(t)) return; const far=!!(t.due && cupMnDays(t.due)>14);
+    if(t.priBase && t.priority!=='medium'){ delete t.priBase; n++; return; }                         // you changed it yourself — yours wins
+    if(far && !t.priBase && /^(high|must)$/i.test(t.priority||'')){ t.priBase=t.priority; t.priority='medium'; n++; }
+    else if(t.priBase && !far){ t.priority=t.priBase; delete t.priBase; n++; } });
+  return n; }
+const CUP_ROLE=/^(intern|internship|internships|swe|sde|engineer|engineering|neuroengineer|analyst|analytics|data|software|application|applications|talent|technical|support|mts|general|critical|ground|enterprise|research|scientist|fellow|fellowship|program|developer|product|design|writer|bci|fdse|science|role|position|summer|new|grad|co-op)$/i;
+function cupPersonGuess(t){
+  const x=String(t.title||'').trim();
+  const m=x.match(/^(?:email|ask|follow up with|reply from|hear from|contact|message|call|text|ping)\s+(.+?)(?:\s+(?:about|re|for|letter|reply|writer|recommender)\b.*)?$/i); if(m) return m[1].trim().slice(0,40);
+  const w=x.split(/\s+/), i=w.findIndex(z=>CUP_ROLE.test(z.replace(/[^\w-]/g,'')));
+  const name=(i>0?w.slice(0,i):w.slice(0,1)).join(' ').replace(/[·:|,-]+$/,'').trim(); return name.length>=2?name.slice(0,40):''; }
+function cupPersonFill(){ let n=0; S.tasks.forEach(t=>{ if(!t||!t.waiting||cupDone(t)||t.person) return; const p=cupPersonGuess(t); if(p){ t.person=p; t.personAuto=true; n++; } }); return n; }
+function cupTrashPrune(){ if(!Array.isArray(S.deleted)) return 0; const cut=Date.now()-30*864e5, before=S.deleted.length; S.deleted=S.deleted.filter(d=>!d||!d.deletedAt||d.deletedAt>=cut); return before-S.deleted.length; }
+function cupHousekeep(){ try{ if(!S||!Array.isArray(S.tasks)) return; const n=cupPriTide()+cupPersonFill()+cupTrashPrune(); if(n){ save(); render(); } }catch(e){ console.warn('[housekeep]',e); } }
+setInterval(cupHousekeep, 10*60*1000); setTimeout(cupHousekeep, 7000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) setTimeout(cupHousekeep,4000); });
+// a new Waiting item gets its person right away
+{ const _sv=save; save=function(){ try{ S.tasks.forEach(t=>{ if(t&&t.waiting&&!t.person&&!cupDone(t)){ const p=cupPersonGuess(t); if(p){ t.person=p; t.personAuto=true; } } }); }catch(_){} return _sv.apply(this,arguments); }; }
+
+// ── skipping a focus block: the time is held, the tasks go to the next free time ──
+function cupPlnSkips(){ const P=cupPln(), td=todayStr(); if(!Array.isArray(P.skips)) P.skips=[]; P.skips=P.skips.filter(x=>x&&x.ds>=td); return P.skips; }
+{ const _pb=cupPlnBusy; cupPlnBusy=function(ds){ const out=_pb.apply(this,arguments); try{ cupPlnSkips().forEach(x=>{ if(x.ds===ds) out.push({ s:x.s, e:x.e, title:'', cat:'commit' }); }); }catch(_){} return out; }; }
+function cupFocusBlockSkip(id){
+  const i=S.events.findIndex(x=>x.id===id); if(i<0) return; const e=S.events[i], sk={ ds:e.date, s:cupFitMin(e.time), e:cupFitMin(e.endTime) };
+  S.events.splice(i,1); cupPlnSkips().push(sk); closeModal('mCupFB'); cupAutoSig=''; save(); render(); cupAutoRun();
+  showToast(cupT10('Block skipped — its tasks moved to the next free time.','블록을 건너뛰었어요 — 할 일은 다음 빈 시간으로 옮겼어요.'), cupT10('Undo','되돌리기'), ()=>{ const P=cupPln(); P.skips=(P.skips||[]).filter(x=>x!==sk); S.events.push(e); cupAutoSig=''; save(); render(); cupAutoRun(); });
+}
+{ const _fo2=cupFocusBlockOpen; cupFocusBlockOpen=function(id){ const r=_fo2.apply(this,arguments);
+  try{ const f=document.querySelector('#mCupFB .modal-footer'); if(f && !f.querySelector('.cup-fb-skip')) f.insertAdjacentHTML('afterbegin',`<button class="btn btn-ghost cup-fb-skip" onclick="cupFocusBlockSkip('${id}')" title="${cupT10('Can’t do it then — its tasks move to the next free time','그때 못 해요 — 할 일은 다음 빈 시간으로')}">${cupT10('Skip block','블록 건너뛰기')}</button>`); }catch(_){}
+  return r; }; }
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
