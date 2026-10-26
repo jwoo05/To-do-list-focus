@@ -28410,6 +28410,25 @@ function cupFreeSave(){
       if(!/canvas|instructure|assignment_group|assignments\/|submissions?/.test(text)) return { kind:'event', type:'event' }; } }catch(_){}
   return r; }; }
 
+// ── Google: no stale copies, no doubles ──
+// · “From Google” used to stop sending entirely — so blocks it had already put on Google stayed frozen in old places (overlapping your
+//   real events). Now, in that mode, it takes back everything it had sent (only its own copies, in its own “Focus Hub” calendar).
+// · an earlier connection could leave a second “Focus Hub” calendar showing every item twice: any other calendar of that name is hidden
+//   from view (not deleted — Google Calendar → Settings can show it again).
+let cupGcCleanOnly=false, cupGcOldDone=false;
+{ const _w=cupGcWant; cupGcWant=function(){ return cupGcCleanOnly ? {} : _w.apply(this,arguments); }; }
+async function cupGcHideOld(){
+  const g=cupGc(); if(cupGcOldDone || !g.on || !g.calId || !cupGcHasTok()) return; cupGcOldDone=true;
+  try{ const j=await cupGcApi('GET','/users/me/calendarList?minAccessRole=owner');
+    for(const c of (j&&j.items)||[]){ if(c.id===g.calId || !/^focus hub$/i.test(String(c.summary||'').trim()) || (c.hidden && c.selected===false)) continue;
+      try{ await cupGcApi('PATCH','/users/me/calendarList/'+encodeURIComponent(c.id),{ selected:false, hidden:true }); }catch(_){} } }catch(_){ cupGcOldDone=false; }
+}
+{ const _r=cupGcRun; cupGcRun=async function(){ const p=cupGp(), g=cupGc();
+  if(g.on && p.dir==='pull' && Object.keys(g.ev||{}).length){ cupGcCleanOnly=true; p.dir='both'; try{ cupGcMassOk=true; }catch(_){}
+    try{ await _r.apply(this,arguments); }finally{ p.dir='pull'; cupGcCleanOnly=false; } }
+  else await _r.apply(this,arguments);
+  try{ await cupGcHideOld(); }catch(_){} }; }
+
 // ════════════════════════════════════════════════════════════════════
 //  PART 25 — More Google accounts. Your main account syncs both ways as before; each extra account is read-only:
 //  its calendars come in as events (fixed commitments for the planner) and Gmail looks there for Waiting-on replies too.
