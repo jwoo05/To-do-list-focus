@@ -7685,6 +7685,11 @@ input[type=date]::-webkit-calendar-picker-indicator, input[type=time]::-webkit-c
 @media (hover:hover){ .cup-pm-slot .cup-pm-ext{ opacity:0; } .cup-pm-slot .cup-pm-task:hover .cup-pm-ext, .cup-pm-ext:focus-visible{ opacity:1; } }
 .cup-mine-tg.on{ border-color:#B8862C; color:var(--text); background:color-mix(in srgb, #B8862C 16%, transparent); }
 .cup-mine-load{ font-size:calc(12px * var(--cup-fs,1)); padding:4px 8px; border-radius:999px; max-width:180px; }
+/* Focus: span picker, continued rows, delete */
+.cup-pm-spansel{ flex:none; font-size:calc(11.5px * var(--cup-fs,1)); padding:1px 4px; border-radius:999px; border:1px solid var(--border); background:transparent; color:var(--text2); }
+.cup-pm-cont{ flex:none; font-size:calc(11px * var(--cup-fs,1)); color:var(--text3); }
+.cup-pm-del, .cup-tl-del{ flex:none; width:24px; height:24px; display:grid; place-items:center; border-radius:6px; color:var(--text3); } .cup-pm-del:hover, .cup-tl-del:hover{ color:var(--must,#e5484d); background:color-mix(in srgb, var(--must,#e5484d) 10%, transparent); }
+@media (hover:hover){ .cup-pm-task .cup-pm-del, .cup-tl-row .cup-tl-del{ opacity:0; } .cup-pm-task:hover .cup-pm-del, .cup-tl-row:hover .cup-tl-del, .cup-pm-del:focus-visible, .cup-tl-del:focus-visible{ opacity:1; } }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -28637,6 +28642,63 @@ function cupFocusBlockNow(id){ closeModal('mCupFB'); cupMineLoad(id); showPage('
 { const _nf=cupNextFocus; cupNextFocus=function(){ const p=S.cup&&S.cup.pomoPlan, mine=p&&p.mine&&S.events.find(e=>e.id===CUP_MINE);
   if(mine){ const t=(mine.slots||[]).flat().map(id=>S.tasks.find(x=>x.id===id)).find(x=>x&&!cupDone(x)); if(t) return { b:mine, t }; }
   return _nf.apply(this,arguments); }; }
+
+// ════════════════════════════════════════════════════════════════════
+//  PART 29 — Focus works the way you'd expect
+//   · ✓ in a pomodoro finishes the task and takes it out (Undo for a few seconds)
+//   · ✕ takes it out of THAT pomodoro only — the same task in another pomodoro, and every other task, stay
+//   · “×2 ▾” on a task: how many pomodoros in a row it runs (1–4), replacing +1
+//   · 🗑 deletes a task (Deleted items, with Undo) — on the Focus page and in Calendar → Tasks
+//   · any change you make to the plan makes it your next block (calendar + Home follow);  ↑ Do next resets the pomodoros to that task
+// ════════════════════════════════════════════════════════════════════
+const cupMineOn = () => { const p=cupPlan(); p.mine=true; };
+cupPlanMove=function(id, from, to){
+  const p=cupPlan();
+  if(from>=0 && p.slots[from]) p.slots[from]=p.slots[from].filter(x=>x!==id);                 // only this pomodoro's entry
+  if(to>=0){ if(!p.slots[to]) return; if(!p.slots[to].includes(id)) p.slots[to].push(id); if(p.done[to] && from!==to) p.done[to]=false; }
+  if(from<0 && to<0) p.slots=p.slots.map(s=>s.filter(x=>x!==id));
+  cupMineOn(); save(); cupRenderPomo(true);
+};
+function cupPlanDone(id, from){
+  const t=S.tasks.find(x=>x.id===id); if(!t) return; const p=cupPlan(), snap=JSON.stringify(p.slots), was=cupDone(t);
+  if(!was) toggleTask(id);
+  if(cupDone(t)){ p.slots=p.slots.map(s=>s.filter(x=>x!==id)); save(); cupRenderPomo(true);
+    showToast(cupT10(`“${t.title}” done ✓`,`“${t.title}” 완료 ✓`), cupT10('Undo','되돌리기'), ()=>{ if(cupDone(t)) toggleTask(id); const pp=cupPlan(); pp.slots=JSON.parse(snap); save(); cupRenderPomo(true); }); }
+}
+// how many pomodoros in a row, starting where it first appears
+function cupPlanSetSpan(id, n){
+  n=Math.max(1,Math.min(4,+n||1)); const p=cupPlan(); let f=p.slots.findIndex(s=>s.includes(id)); if(f<0) f=p.slots.findIndex((s,k)=>!p.done[k]&&!s.length); if(f<0) f=p.slots.length;
+  p.slots=p.slots.map(s=>s.filter(x=>x!==id));
+  for(let k=0;k<n && f+k<12;k++){ const j=f+k; while(p.slots.length<=j) p.slots.push([]); if(p.done[j]) p.done[j]=false; p.slots[j].push(id); }
+  cupPlanSyncCycles(p); cupMineOn(); save(); cupRenderPomo(true);
+}
+function cupTaskTrash(id){ const p=S.cup&&S.cup.pomoPlan; if(p&&Array.isArray(p.slots)) p.slots=p.slots.map(s=>(s||[]).filter(x=>x!==id)); softDeleteTask(id); try{ cupRenderPomo(true); }catch(_){} }
+const CUP_TRASH='<svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"/></svg>';
+{ const _row=cupPmRow; cupPmRow=function(t, from, opts){ let h=_row.apply(this,arguments);
+  h=h.replace(/<span class="cup-pm-span"[^>]*>[^<]*<\/span>/,'').replace(/<button type="button" class="cup-pm-ext"[\s\S]*?>\+1<\/button>/,'');
+  const del=`<button type="button" class="cup-pm-del" onclick="cupTaskTrash('${t.id}')" title="${cupT10('Delete task','할 일 삭제')}" aria-label="${cupT10('Delete task','할 일 삭제')}">${CUP_TRASH}</button>`;
+  if(from<0) return h.replace(`<button type="button" class="cup-pm-add"`, del+`<button type="button" class="cup-pm-add"`);
+  if(cupDone(t)) return h;
+  const p=cupPlan(), first=p.slots.findIndex(s=>s.includes(t.id)), n=p.slots.filter(s=>s.includes(t.id)).length;
+  h=h.replace(`onclick="toggleTask('${t.id}')"`, `onclick="cupPlanDone('${t.id}',${from})"`);
+  const ctl = first===from
+    ? `<select class="cup-pm-spansel" onchange="cupPlanSetSpan('${t.id}',this.value)" title="${cupT10('How many pomodoros in a row','몇 개 포모도로에 걸쳐')}" aria-label="${cupT10('Pomodoros','포모도로 수')}">${[1,2,3,4].map(k=>`<option value="${k}" ${k===n?'selected':''}>×${k}</option>`).join('')}</select>`
+    : `<span class="cup-pm-cont">↳ ${cupT10('continued','이어서')}</span>`;
+  return h.replace(`<button type="button" class="cup-pm-x"`, ctl+`<button type="button" class="cup-pm-x"`); }; }
+// Calendar → Tasks: a delete button on each row
+{ const _tr=cupTLRow; cupTLRow=function(t, showDate){ const h=_tr.apply(this,arguments); return h.replace('<span class="cup-tl-act">',`<span class="cup-tl-act"><button type="button" class="cup-tl-del" onclick="event.stopPropagation();cupTaskTrash('${t.id}')" title="${cupT10('Delete task','할 일 삭제')}" aria-label="${cupT10('Delete task','할 일 삭제')}">${CUP_TRASH}</button>`); }; }
+// your edits make the plan your next block; Clear hands back to Auto
+{ const _f=cupPlanFill; cupPlanFill=function(){ const r=_f.apply(this,arguments); try{ cupMineOn(); save(); }catch(_){} return r; }; }
+{ const _c=cupPlanClear; cupPlanClear=function(){ const r=_c.apply(this,arguments); try{ cupPlan().mine=false; save(); }catch(_){} return r; }; }
+{ const _e=cupPlanExtend; cupPlanExtend=function(){ const r=_e.apply(this,arguments); try{ cupMineOn(); save(); }catch(_){} return r; }; }
+{ const _s=cupPlanSpan; cupPlanSpan=function(){ const r=_s.apply(this,arguments); try{ cupMineOn(); save(); }catch(_){} return r; }; }
+// ↑ Do next: the pomodoros reset to that task (as many as it needs) and it goes on the calendar as your next block
+{ const _pin=cupPin; cupPin=function(id){ const r=_pin.apply(this,arguments);
+  try{ const t=id&&S.tasks.find(x=>x.id===id); if(!t || cupDone(t) || (typeof cupPomoLive==='function'&&cupPomoLive())) return r;
+    const foc=cupPlnFocus(), n=Math.max(1,Math.min(4,Math.ceil(cupFitEff(t)/foc))), p=cupPlan();
+    p.slots=Array.from({length:n},()=>[t.id]); p.done=[]; p.active=false; p.mine=true; cupPlanSyncCycles(p); save(); cupAutoRun(); render();
+    const ev=S.events.find(e=>e.id==='mine_block'); if(ev) showToast(cupT10(`“${t.title}” is next — ${cupWd(ev.date)} ${cupT12(ev.time)}, ${n} pomodoro${n>1?'s':''}.`,`“${t.title}” 다음 — ${cupFmt(ev.date)} ${cupT12(ev.time)}, 포모도로 ${n}개.`));
+  }catch(e){ console.warn(e); } return r; }; }
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
