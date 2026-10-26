@@ -24195,18 +24195,23 @@ function cupRevWatch(){
 }
 // Send only what changed. The first save after loading (or another device's change) writes everything; after that
 // a tick sends one task, an added task sends just the new one. Big or shifting changes fall back to a full write.
+// Firebase refuses keys with . # $ [ ] / (e.g. Google calendar ids like name@gmail.com): encode them going up, decode coming down
+const cupKeyEnc = k => /[.#$\[\]\/%]/.test(k) ? k.replace(/[.#$\[\]\/%]/g, c=>'%'+c.charCodeAt(0).toString(16).toUpperCase()) : k;
+const cupKeyDec = k => /%(2E|23|24|5B|5D|2F|25)/.test(k) ? k.replace(/%(2E|23|24|5B|5D|2F|25)/g,(m,h)=>String.fromCharCode(parseInt(h,16))) : k;
+function cupCloudClean(v){ if(Array.isArray(v)) return v.map(x=>x===undefined?null:cupCloudClean(x)); if(v&&typeof v==='object'){ const o={}; for(const k in v){ const x=v[k]; if(x===undefined) continue; o[cupKeyEnc(k)]=cupCloudClean(x); } return o; } return v; }
+function cupKeysFix(o){ if(!o||typeof o!=='object') return; Object.keys(o).forEach(k=>{ const d=cupKeyDec(k); if(d!==k){ o[d]=o[k]; delete o[k]; } }); }
 let cupCloudBase=null, cupCloudUid=null;
-function cupCloudSnap(){ const out={}; for(const k in S){ const v=S[k]; if(v===undefined) continue; out[k]=Array.isArray(v)?{ arr:v.map(x=>JSON.stringify(x===undefined?null:x)) }:{ one:JSON.stringify(v) }; } return out; }
+function cupCloudSnap(X){ const out={}; for(const k in X){ const v=X[k]; if(v===undefined) continue; out[k]=Array.isArray(v)?{ arr:v.map(x=>JSON.stringify(x===undefined?null:x)) }:{ one:JSON.stringify(v) }; } return out; }
 async function cupCloudWrite(ref){
-  const now=cupCloudSnap(), uid=currentUser.uid;
-  if(!cupCloudBase || cupCloudUid!==uid){ await ref.set(S); cupCloudBase=now; cupCloudUid=uid; return 'full'; }
+  const C=cupCloudClean(S), now=cupCloudSnap(C), uid=currentUser.uid;
+  if(!cupCloudBase || cupCloudUid!==uid){ await ref.set(C); cupCloudBase=now; cupCloudUid=uid; return 'full'; }
   const up={}; let n=0;
   for(const k in now){ const a=now[k], b=cupCloudBase[k];
-    if(a.arr && b && b.arr && a.arr.length>=b.arr.length && b.arr.every((x,i)=>x===a.arr[i] || (n++, up[k+'/'+i]=S[k][i]===undefined?null:S[k][i], true))){
-      for(let i=b.arr.length;i<a.arr.length;i++){ up[k+'/'+i]=S[k][i]===undefined?null:S[k][i]; n++; } }    // same or appended: send only changed / new items
-    else if(!b || (a.arr ? (!b.arr || a.arr.length!==b.arr.length || a.arr.some((x,i)=>x!==b.arr[i])) : a.one!==b.one)){ up[k]=S[k]===undefined?null:S[k]; n++; } }
+    if(a.arr && b && b.arr && a.arr.length>=b.arr.length && b.arr.every((x,i)=>x===a.arr[i] || (n++, up[k+'/'+i]=C[k][i]===undefined?null:C[k][i], true))){
+      for(let i=b.arr.length;i<a.arr.length;i++){ up[k+'/'+i]=C[k][i]===undefined?null:C[k][i]; n++; } }    // same or appended: send only changed / new items
+    else if(!b || (a.arr ? (!b.arr || a.arr.length!==b.arr.length || a.arr.some((x,i)=>x!==b.arr[i])) : a.one!==b.one)){ up[k]=C[k]===undefined?null:C[k]; n++; } }
   for(const k in cupCloudBase) if(!(k in now)){ up[k]=null; n++; }
-  if(n>400){ await ref.set(S); cupCloudBase=now; return 'full'; }
+  if(n>400){ await ref.set(C); cupCloudBase=now; return 'full'; }
   if(n) await ref.update(up);
   cupCloudBase=now; return n;
 }
@@ -24230,7 +24235,7 @@ saveUserDataToFirebase = function(){
   }, 400);
 };
 window.addEventListener('beforeunload', ()=>{ if(cupSaveTimer && typeof currentUser!=='undefined' && currentUser){ clearTimeout(cupSaveTimer); cupSaveTimer=null;
-  S._rev=Math.max(Date.now(), (cupKnownRev||0)+1); try{ database.ref('users/'+currentUser.uid).set(S); }catch(_){} } });
+  S._rev=Math.max(Date.now(), (cupKnownRev||0)+1); try{ database.ref('users/'+currentUser.uid).set(cupCloudClean(S)); }catch(_){} } });
 setInterval(cupRevWatch, 3000);
 
 // ── Home touches: garden in the header, "Now" line for the class you're in, one way to focus ──
@@ -28434,6 +28439,9 @@ async function cupGcHideOld(){
     try{ await _r.apply(this,arguments); }finally{ p.dir='pull'; cupGcCleanOnly=false; } }
   else await _r.apply(this,arguments);
   try{ await cupGcHideOld(); }catch(_){} }; }
+
+// calendar ids come back from the cloud encoded (Firebase can't store “.” in a name) — decode them where they're used
+{ const _gp=cupGp; cupGp=function(){ const g=_gp.apply(this,arguments); try{ cupKeysFix(g.pcals); cupKeysFix(g.pin); }catch(_){} return g; }; }
 
 // ════════════════════════════════════════════════════════════════════
 //  PART 25 — More Google accounts. Your main account syncs both ways as before; each extra account is read-only:
