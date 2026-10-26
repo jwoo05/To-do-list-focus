@@ -24182,6 +24182,23 @@ function cupRevWatch(){
     if(v>cupKnownRev && !cupSaveTimer){ cupKnownRev=v; try{ loadUserDataFromFirebase(); }catch(_){} }
   });
 }
+// Send only what changed. The first save after loading (or another device's change) writes everything; after that
+// a tick sends one task, an added task sends just the new one. Big or shifting changes fall back to a full write.
+let cupCloudBase=null, cupCloudUid=null;
+function cupCloudSnap(){ const out={}; for(const k in S){ const v=S[k]; if(v===undefined) continue; out[k]=Array.isArray(v)?{ arr:v.map(x=>JSON.stringify(x===undefined?null:x)) }:{ one:JSON.stringify(v) }; } return out; }
+async function cupCloudWrite(ref){
+  const now=cupCloudSnap(), uid=currentUser.uid;
+  if(!cupCloudBase || cupCloudUid!==uid){ await ref.set(S); cupCloudBase=now; cupCloudUid=uid; return 'full'; }
+  const up={}; let n=0;
+  for(const k in now){ const a=now[k], b=cupCloudBase[k];
+    if(a.arr && b && b.arr && a.arr.length>=b.arr.length && b.arr.every((x,i)=>x===a.arr[i] || (n++, up[k+'/'+i]=S[k][i]===undefined?null:S[k][i], true))){
+      for(let i=b.arr.length;i<a.arr.length;i++){ up[k+'/'+i]=S[k][i]===undefined?null:S[k][i]; n++; } }    // same or appended: send only changed / new items
+    else if(!b || (a.arr ? (!b.arr || a.arr.length!==b.arr.length || a.arr.some((x,i)=>x!==b.arr[i])) : a.one!==b.one)){ up[k]=S[k]===undefined?null:S[k]; n++; } }
+  for(const k in cupCloudBase) if(!(k in now)){ up[k]=null; n++; }
+  if(n>400){ await ref.set(S); cupCloudBase=now; return 'full'; }
+  if(n) await ref.update(up);
+  cupCloudBase=now; return n;
+}
 saveUserDataToFirebase = function(){
   try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){ console.warn('localStorage save failed:', e); }
   if(typeof currentUser==='undefined' || !currentUser) return;
@@ -24196,8 +24213,8 @@ saveUserDataToFirebase = function(){
         showToast('Loaded newer changes from your other device. Your last change here may need redoing.'); return;
       }
       S._rev=Math.max(Date.now(), remote+1); cupKnownRev=S._rev;
-      await ref.set(S);
-    }catch(err){ console.error('Firebase save error:', err); }
+      await cupCloudWrite(ref);
+    }catch(err){ cupCloudBase=null; console.error('Firebase save error:', err); }
     cupSaveTimer=null;
   }, 400);
 };
@@ -27419,7 +27436,13 @@ const CUP_FIT_DAY=360;                 // focus-able minutes in a normal day, be
 let cupFit={ tab:'hang', title:'', date:'', from:'18:00', to:'20:00', imp:'nice', poms:4 };
 const cupFitMin = t => { const p=String(t||'0:0').split(':').map(Number); return (p[0]||0)*60+(p[1]||0); };
 const cupFitHM = n => `${String(Math.floor(n/60)%24).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`;
-const cupFitEff = t => CUP_EFFORT_MIN[t.effort||'']||40;
+// how long a task takes: what you set (Easy 20 · Normal 40 · Hard 90), else a guess from the words —
+// a quick action (email, call, confirm, register, submit, 사기·연락·확인…) is short; writing, studying, projects are long
+const CUP_EFF_QUICK=/^(email|e-mail|call|text|reply|check|confirm|register|submit|send|pay|book|order|buy|ask|approve|sign|schedule|remind|print|return|pick up)\b/i;
+const CUP_EFF_EASY=/메일|연락|전화|확인|신청|등록|제출|보내|사기|예약|결제|\bemail\b|\bcall\b|\bconfirm\b/i;
+const CUP_EFF_HARD=/draft|essay|write|paper|study|review|midterm|final|exam|project|research|build|code|presentation|report|application|cover letter|resume|statement|read\b|공부|시험|과제|에세이|논문|발표|프로젝트|리포트|작성/i;
+function cupEffGuess(t){ const x=String(t.title||''); if(CUP_EFF_QUICK.test(x.trim())) return 20; if(CUP_EFF_HARD.test(x)) return 90; if(CUP_EFF_EASY.test(x)) return 20; return 40; }
+const cupFitEff = t => t.effort ? (CUP_EFFORT_MIN[t.effort]||40) : cupEffGuess(t);
 function cupFitNextFri(){ let i=0; while(cupParse(cupTSDate(i)).getDay()!==5) i++; return cupTSDate(i); }
 function cupFitBusy(ds){
   const out=[];
@@ -27611,6 +27634,11 @@ function cupPlnBuild(nDays){
         if(ok) break; }
       if(!ok) break; }
     if(left>0) skipped.push({ t, left }); });
+  // undated to-dos use whatever room is left this week, most important first (they'd otherwise never get time)
+  work.filter(t=>!t.due).sort((a,b)=>({must:0,MUST:0,high:1,medium:2,low:3}[a.priority]??2)-({must:0,MUST:0,high:1,medium:2,low:3}[b.priority]??2)||cupRate(cupCatOf(b))-cupRate(cupCatOf(a))).forEach(t=>{
+    let left=Math.ceil(cupFitEff(t)/foc);
+    for(const d of days){ if(left<=0) break; if(!P.over && d.units>=d.cap) continue; let chunk=Math.min(left,blockMax,P.over?blockMax:d.cap-d.units);
+      while(chunk>=1){ if(put(d,chunk*foc+(chunk-1)*brk,t.title,cupCatOf(t),[t.id],chunk,9*60,22*60)){ d.units+=chunk; left-=chunk; break; } chunk--; } } });
   // wishes, in your order — only on days with room and no big test tomorrow
   const hasTestNext=ds=>S.events.some(e=>e.type==='test' && e.date===cupAddDays(ds,1));
   const wishes=[['close',P.tg.partner,120,17*60,23*60],['health',P.tg.health,45,7*60,20*60+30],['friends',P.tg.friends,120,17*60,23*60]].filter(w=>cupRate(w[0])>0).sort((a,b)=>cupRate(b[0])-cupRate(a[0])), noRoom=[];
@@ -28310,6 +28338,11 @@ cupRevPush=function(){
   showToast(cupT10(`${tmN} most important → tomorrow${plan.length>tmN?`, ${plan.length-tmN} after`:''}.`,`중요한 ${tmN}개는 내일${plan.length>tmN?`, ${plan.length-tmN}개는 그 뒤로`:''}.`), cupT10('Undo','되돌리기'), ()=>{ snap.forEach(([t,d,s])=>{ t.due=d; t.scheduledDates=s; }); save(); render(); });
 };
 
+// a to-do scheduled for a past day with no due date (and no later day) isn't lost: it shows with “from earlier days”
+{ const _od=cupOverdueTasks; cupOverdueTasks=function(){ const l=_od.apply(this,arguments), td=todayStr(), have=new Set(l.map(t=>t.id));
+  cupOpenTasks().forEach(t=>{ if(have.has(t.id)||t.waiting||t.isHabit||t.due) return; const sd=t.scheduledDates||[]; if(sd.length && sd.every(d=>d<td)) l.push(t); });
+  return l; }; }
+
 // ════════════════════════════════════════════════════════════════════
 //  PART 24 — Keep time free. Mark a stretch as open (a break, a commute, “nothing here”) and Auto plans around it.
 //  It's a quiet, dashed block on the calendar — not a task, not a commitment.
@@ -28446,6 +28479,9 @@ function cupGXPaint(){
     <button type="button" class="btn btn-ghost cup-gx-add" onclick="cupGXAdd()">+ ${cupT10('Add another Google account','다른 Google 계정 추가')}</button>`;
 }
 { const _gr=cupGcRender; cupGcRender=function(){ const r=_gr.apply(this,arguments); try{ cupGXPaint(); }catch(_){} return r; }; }
+
+// after data comes in from the cloud, the next save writes everything once (so the cloud and this device match exactly)
+{ const _ld=loadUserDataFromFirebase; loadUserDataFromFirebase=function(){ try{ cupCloudBase=null; }catch(_){} return _ld.apply(this,arguments); }; }
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
