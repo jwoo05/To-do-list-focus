@@ -22252,8 +22252,8 @@ function cupLaterUntil(id, until, label){
   cupEnsure(); const t=S.tasks.find(x=>x.id===id), wasPin=S.cup.pinNext===id;
   const m=S.cup.laterUntil=Object.assign({}, S.cup.laterUntil||{}); Object.keys(m).forEach(k=>{ if(m[k]<=todayStr()) delete m[k]; });
   m[id]=until; if(wasPin) S.cup.pinNext='';
-  save(); render(); cupLaterClose();
-  showToast(`“${t?.title||''}” is off Next up ${label}.`,'Undo',()=>{ delete S.cup.laterUntil[id]; if(wasPin) S.cup.pinNext=id; save(); render(); });
+  try{ cupAutoSig=''; }catch(_){} save(); render(); cupLaterClose(); try{ setTimeout(cupAutoRun,50); }catch(_){}
+  showToast(`“${t?.title||''}” pushed back ${label}.`,'Undo',()=>{ delete S.cup.laterUntil[id]; if(wasPin) S.cup.pinNext=id; save(); render(); });
 }
 cupSkip = function(id){ cupLaterUntil(id, cupTSDate(1), 'until tomorrow'); };
 function cupLaterClose(){ document.getElementById('cupLaterMenu')?.remove(); }
@@ -22262,8 +22262,8 @@ function cupLaterMenu(id, btn){
   const t=S.tasks.find(x=>x.id===id); if(!t) return;
   const m=document.createElement('div'); m.id='cupLaterMenu'; m.className='cup-later-menu';
   m.innerHTML=`<div class="cup-lm-h">Not now. What should happen?</div>
-    <button onclick="cupLaterUntil('${id}',cupTSDate(1),'until tomorrow')"><b>Hide until tomorrow</b><span>Stays on your list and calendar</span></button>
-    <button onclick="cupLaterUntil('${id}',cupTSDate(7),'for a week')"><b>Hide for a week</b><span>Comes back ${cupFmt(cupTSDate(7))}</span></button>
+    <button onclick="cupLaterUntil('${id}',cupTSDate(1),'until tomorrow')"><b>Push to tomorrow</b><span>Leaves today’s plan; Auto finds it time tomorrow or later</span></button>
+    <button onclick="cupLaterUntil('${id}',cupTSDate(7),'for a week')"><b>Push back a week</b><span>Planned again from ${cupFmt(cupTSDate(7))}</span></button>
     ${t.due?`<label class="cup-lm-date"><b>Move its due date to…</b><input type="date" min="${todayStr()}" onchange="cupMoveDue('${id}',this.value)"></label>`:''}
     <button onclick="cupLaterClose();cupOpenTaskSheet('${id}')"><b>Edit it</b><span>Change date, folder or steps</span></button>`;
   document.body.appendChild(m);
@@ -27606,6 +27606,8 @@ function cupPlnGaps(ds, busy, len, minStart, maxEnd){
 }
 
 // ── the planner ──
+// a task you pushed back (Later, or Make room) isn't planned before that day
+const cupHoldOf = t => { const a=t.autoHold||'', l=S.cup&&S.cup.laterUntil&&S.cup.laterUntil[t.id]||'', old=S.cup&&S.cup.later&&S.cup.later[t.id]===todayStr()?cupAddDays(todayStr(),1):''; return [a,l,old].sort().pop()||''; };
 function cupPlnBuild(nDays){
   const P=cupPln(), td=todayStr(), foc=cupPlnFocus(), brk=Math.max(3,Math.round(foc/5)), capU=Math.max(1,Math.floor(P.cap/foc));
   // pace: how long a focus block runs before a real rest, and how long that rest is — tired days get shorter blocks and longer gaps
@@ -27629,7 +27631,7 @@ function cupPlnBuild(nDays){
     const lastIdx=t.due<td?Math.min(days.length-1,2):Math.max(0,Math.min(days.length-1,days.findIndex(d=>d.ds===t.due)<0?days.length-1:days.findIndex(d=>d.ds===t.due)));
     let guard=0;
     while(left>0 && guard++<30){ let ok=false;
-      const order=days.slice(0,lastIdx+1).map((d,i)=>[d,i]).filter(([d])=>!t.autoHold||d.ds>=t.autoHold).filter(([d])=>P.over||d.units<d.cap).sort((a,b)=>a[0].units-b[0].units||a[1]-b[1]);
+      const order=days.slice(0,lastIdx+1).map((d,i)=>[d,i]).filter(([d])=>!cupHoldOf(t)||d.ds>=cupHoldOf(t)).filter(([d])=>P.over||d.units<d.cap).sort((a,b)=>a[0].units-b[0].units||a[1]-b[1]);
       for(const [d] of order){ let chunk=Math.min(left,blockMax,P.over?blockMax:d.cap-d.units);
         while(chunk>=1){ const len=chunk*foc+(chunk-1)*brk; const cc=cupCatOf(t), win=cc==='life'?[9*60,20*60]:[9*60,22*60]; if(put(d,len,t.title,cc,[t.id],chunk,win[0],win[1])){ d.units+=chunk; left-=chunk; ok=true; break; } chunk--; }
         if(ok) break; }
@@ -27638,7 +27640,7 @@ function cupPlnBuild(nDays){
   // undated to-dos use whatever room is left this week, most important first (they'd otherwise never get time)
   work.filter(t=>!t.due).sort((a,b)=>({must:0,MUST:0,high:1,medium:2,low:3}[a.priority]??2)-({must:0,MUST:0,high:1,medium:2,low:3}[b.priority]??2)||cupRate(cupCatOf(b))-cupRate(cupCatOf(a))).forEach(t=>{
     let left=Math.ceil(cupFitEff(t)/foc);
-    for(const d of days){ if(left<=0) break; if(!P.over && d.units>=d.cap) continue; let chunk=Math.min(left,blockMax,P.over?blockMax:d.cap-d.units);
+    for(const d of days){ if(left<=0) break; if(!P.over && d.units>=d.cap) continue; if(cupHoldOf(t) && d.ds<cupHoldOf(t)) continue; let chunk=Math.min(left,blockMax,P.over?blockMax:d.cap-d.units);
       while(chunk>=1){ if(put(d,chunk*foc+(chunk-1)*brk,t.title,cupCatOf(t),[t.id],chunk,9*60,22*60)){ d.units+=chunk; left-=chunk; break; } chunk--; } } });
   // wishes, in your order — only on days with room and no big test tomorrow
   const hasTestNext=ds=>S.events.some(e=>e.type==='test' && e.date===cupAddDays(ds,1));
@@ -27908,7 +27910,7 @@ function cupAutoSync(){
 }
 function cupAutoKey(){ const P=cupPln(), n=cupNow();
   return JSON.stringify([todayStr(), Math.floor((n.getHours()*60+n.getMinutes())/30), P.cap, P.focus, P.over, P.wake, P.bed, P.tg, P.rate, typeof cupEnergyLow==='function'&&cupEnergyLow(),
-    S.tasks.map(t=>[t.id,t.due,t.priority,t.effort,t.completed,t.archived,t.waiting,t.cat,t.scheduledTime,t.title,(t.scheduledDates||[]).join(),t.autoHold||'',t.isHabit?(t.scheduledDays||[]).join():0]),
+    S.tasks.map(t=>[t.id,t.due,t.priority,t.effort,t.completed,t.archived,t.waiting,t.cat,t.scheduledTime,t.title,(t.scheduledDates||[]).join(),cupHoldOf(t),t.isHabit?(t.scheduledDays||[]).join():0]),
     S.events.filter(e=>!e.auto).map(e=>[e.id,e.date,e.time,e.endTime,e.recurrence,e.allDay]), S.events.filter(e=>e.auto).length, S.events.filter(e=>e.pinned).map(e=>[e.id,e.date,e.time,(e.taskIds||[]).join()])]); }   // auto blocks gone (another device) → re-plan
 // an older copy of the app (another device not yet reloaded) turns focus blocks into tasks — clear those copies whenever data arrives
 function cupAutoJunk(){ let n=0; for(let i=S.tasks.length-1;i>=0;i--){ const t=S.tasks[i]; if(t && t.type==='assignment' && t.calendarSignal==='due' && !t.subject && !t.commitId && /^(◎ |Focus · |집중 · )/.test(t.title||'')){ S.tasks.splice(i,1); n++; } } return n; }
@@ -28086,7 +28088,7 @@ let cupInAg=false;
 let cupNextBlk=null;
 function cupNextFocus(){ const td=todayStr(), n=cupNow(), now=n.getHours()*60+n.getMinutes();
   const blks=S.events.filter(e=>e.auto&&(e.taskIds||[]).length&&(e.date>td||(e.date===td&&cupFitMin(e.endTime)>now))).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
-  for(const b of blks){ const t=(b.slots||b.taskIds.map(x=>[x])).flat().map(id=>S.tasks.find(x=>x.id===id)).find(x=>x&&!cupDone(x)); if(t) return { b, t }; }
+  for(const b of blks){ const t=(b.slots||b.taskIds.map(x=>[x])).flat().map(id=>S.tasks.find(x=>x.id===id)).find(x=>x&&!cupDone(x)&&!cupSkipped.has(x.id)); if(t) return { b, t }; }   // Later = not this one now
   return null; }
 { const _nq=cupNextQueue; cupNextQueue=function(){ const q=_nq.apply(this,arguments); cupNextBlk=null;
   try{ if(!cupAutoOn() || (q[0]&&q[0].pinned)) return q; const f=cupNextFocus(); if(!f) return q; cupNextBlk=f.b;
