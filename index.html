@@ -7690,6 +7690,13 @@ input[type=date]::-webkit-calendar-picker-indicator, input[type=time]::-webkit-c
 .cup-pm-cont{ flex:none; font-size:calc(11px * var(--cup-fs,1)); color:var(--text3); }
 .cup-pm-del, .cup-tl-del{ flex:none; width:24px; height:24px; display:grid; place-items:center; border-radius:6px; color:var(--text3); } .cup-pm-del:hover, .cup-tl-del:hover{ color:var(--must,#e5484d); background:color-mix(in srgb, var(--must,#e5484d) 10%, transparent); }
 @media (hover:hover){ .cup-pm-task .cup-pm-del, .cup-tl-row .cup-tl-del{ opacity:0; } .cup-pm-task:hover .cup-pm-del, .cup-tl-row:hover .cup-tl-del, .cup-pm-del:focus-visible, .cup-tl-del:focus-visible{ opacity:1; } }
+/* pomodoro boxes: tasks stay inside */
+.cup-pm-slot{ overflow:hidden; min-width:0; } .cup-pm-slot .cup-pm-task{ min-width:0; max-width:100%; box-sizing:border-box; }
+.cup-pm-task .cup-pm-t{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cup-pm-task .cup-pm-m{ flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cup-pm-copy{ flex:none; width:24px; height:24px; display:grid; place-items:center; border-radius:6px; color:var(--text3); font-size:calc(13px * var(--cup-fs,1)); } .cup-pm-copy:hover{ color:var(--accent); background:color-mix(in srgb, var(--accent) 10%, transparent); }
+@media (hover:hover){ .cup-pm-slot .cup-pm-copy{ opacity:0; } .cup-pm-slot .cup-pm-task:hover .cup-pm-copy, .cup-pm-copy:focus-visible{ opacity:1; } }
+.cup-pm-task.dragging, .cup-pm-task[draggable=true]:active{ max-width:100%; }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -28659,6 +28666,11 @@ function cupFocusBlockNow(id){ closeModal('mCupFB'); cupMineLoad(id); showPage('
 //   · 🗑 deletes a task (Deleted items, with Undo) — on the Focus page and in Calendar → Tasks
 //   · any change you make to the plan makes it your next block (calendar + Home follow);  ↑ Do next resets the pomodoros to that task
 // ════════════════════════════════════════════════════════════════════
+{ const _pl=cupPlan; cupPlan=function(){ const pl=S.cup&&S.cup.pomoPlan;
+  if(pl && pl.slots && !Array.isArray(pl.slots)){ const o=pl.slots, n=Math.max(0,...Object.keys(o).map(Number).filter(x=>!isNaN(x)))+1; pl.slots=Array.from({length:n},(_,i)=>o[i]||[]); }
+  if(pl && Array.isArray(pl.slots)) for(let i=0;i<pl.slots.length;i++) if(!Array.isArray(pl.slots[i])) pl.slots[i]=[];
+  if(pl && pl.done && !Array.isArray(pl.done)) pl.done=Object.keys(pl.done).reduce((a,k)=>{ a[+k]=pl.done[k]; return a; },[]);
+  return _pl.apply(this,arguments); }; }
 const cupMineOn = () => { const p=cupPlan(); p.mine=true; };
 cupPlanMove=function(id, from, to){
   const p=cupPlan();
@@ -28689,9 +28701,7 @@ const CUP_TRASH='<svg viewBox="0 0 16 16" width="13" height="13" fill="none" str
   if(cupDone(t)) return h;
   const p=cupPlan(), first=p.slots.findIndex(s=>s.includes(t.id)), n=p.slots.filter(s=>s.includes(t.id)).length;
   h=h.replace(`onclick="toggleTask('${t.id}')"`, `onclick="cupPlanDone('${t.id}',${from})"`);
-  const ctl = first===from
-    ? `<select class="cup-pm-spansel" onchange="cupPlanSetSpan('${t.id}',this.value)" title="${cupT10('How many pomodoros in a row','몇 개 포모도로에 걸쳐')}" aria-label="${cupT10('Pomodoros','포모도로 수')}">${[1,2,3,4].map(k=>`<option value="${k}" ${k===n?'selected':''}>×${k}</option>`).join('')}</select>`
-    : `<span class="cup-pm-cont">↳ ${cupT10('continued','이어서')}</span>`;
+  const ctl = `${first!==from?`<span class="cup-pm-cont">↳ ${cupT10('continued','이어서')}</span>`:n>1?`<span class="cup-pm-cont">×${n}</span>`:''}<button type="button" class="cup-pm-copy" onclick="cupPlanCopyMenu(this,'${t.id}',${from})" title="${cupT10('Copy to another pomodoro (or ⌥-drag)','다른 포모도로에 복사 (또는 ⌥ 드래그)')}" aria-label="${cupT10('Copy','복사')}">⧉</button>`;
   return h.replace(`<button type="button" class="cup-pm-x"`, ctl+`<button type="button" class="cup-pm-x"`); }; }
 // Calendar → Tasks: a delete button on each row
 { const _tr=cupTLRow; cupTLRow=function(t, showDate){ const h=_tr.apply(this,arguments); return h.replace('<span class="cup-tl-act">',`<span class="cup-tl-act"><button type="button" class="cup-tl-del" onclick="event.stopPropagation();cupTaskTrash('${t.id}')" title="${cupT10('Delete task','할 일 삭제')}" aria-label="${cupT10('Delete task','할 일 삭제')}">${CUP_TRASH}</button>`); }; }
@@ -28707,6 +28717,24 @@ const CUP_TRASH='<svg viewBox="0 0 16 16" width="13" height="13" fill="none" str
     p.slots=Array.from({length:n},()=>[t.id]); p.done=[]; p.active=false; p.mine=true; cupPlanSyncCycles(p); save(); cupAutoRun(); render();
     const ev=S.events.find(e=>e.id==='mine_block'); if(ev) showToast(cupT10(`“${t.title}” is next — ${cupWd(ev.date)} ${cupT12(ev.time)}, ${n} pomodoro${n>1?'s':''}.`,`“${t.title}” 다음 — ${cupFmt(ev.date)} ${cupT12(ev.time)}, 포모도로 ${n}개.`));
   }catch(e){ console.warn(e); } return r; }; }
+
+// ⧉ Copy: put the same task in another pomodoro too (or run it over several in a row)
+function cupPlanCopy(id, to){ document.getElementById('cupPlanMenu')?.remove(); const p=cupPlan();
+  if(to<0){ if(p.slots.length>=12){ showToast(cupT10('12 pomodoros is the most for one day.','하루 최대 12개예요.')); return; } p.slots.push([]); to=p.slots.length-1; cupPlanSyncCycles(p); }
+  if(!p.slots[to].includes(id)) p.slots[to].push(id); if(p.done[to]) p.done[to]=false; cupMineOn(); save(); cupRenderPomo(true); }
+function cupPlanCopyMenu(btn, id, from){
+  document.getElementById('cupPlanMenu')?.remove(); const p=cupPlan(), m=document.createElement('div'); m.id='cupPlanMenu'; m.className='cup-later-menu cup-plan-menu'; m.setAttribute('role','menu');
+  const opts=p.slots.map((s,i)=>i).filter(i=>i!==from && !p.done[i] && !p.slots[i].includes(id));
+  m.innerHTML=`<div class="cup-lm-h">${cupT10('Also do it in…','이 일을 또…')}</div>`+opts.map(i=>`<button type="button" role="menuitem" onclick="cupPlanCopy('${id}',${i})"><b>#${i+1}</b><span>${p.slots[i].length?cupT10(`with ${p.slots[i].length} other`,`다른 ${p.slots[i].length}개와`):cupT10('empty','비어 있음')}</span></button>`).join('')
+    +`<button type="button" role="menuitem" onclick="cupPlanCopy('${id}',-1)"><b>${cupT10('+ A new pomodoro','+ 새 포모도로')}</b><span>${cupT10('at the end','맨 뒤에')}</span></button>`
+    +`<div class="cup-lm-h">${cupT10('Or run it over','또는 연속으로')}</div>`+[2,3,4].map(k=>`<button type="button" role="menuitem" onclick="document.getElementById('cupPlanMenu')?.remove();cupPlanSetSpan('${id}',${k})"><b>${cupT10(`${k} pomodoros in a row`,`포모도로 ${k}개 연속`)}</b></button>`).join('')
+    +`<div class="cup-lm-h" style="font-weight:400">${cupT10('Tip: hold ⌥ while dragging to copy','팁: ⌥ 누른 채 드래그하면 복사')}</div>`;
+  document.body.appendChild(m); const r=btn.getBoundingClientRect(); m.style.top=Math.min(r.bottom+6, innerHeight-m.offsetHeight-20)+'px'; m.style.left=Math.max(12, Math.min(r.left-180, innerWidth-m.offsetWidth-12))+'px';
+  setTimeout(()=>document.addEventListener('click', function f(ev){ if(!m.contains(ev.target)){ m.remove(); document.removeEventListener('click', f); } }), 0);
+}
+let cupDropCopy=false;
+document.addEventListener('drop', e=>{ cupDropCopy=!!(e.altKey||e.metaKey&&e.shiftKey); setTimeout(()=>{ cupDropCopy=false; },0); }, true);
+{ const _mv=cupPlanMove; cupPlanMove=function(id, from, to){ if(cupDropCopy && from>=0 && to>=0){ cupDropCopy=false; cupPlanCopy(id,to); return; } return _mv.apply(this,arguments); }; }
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
