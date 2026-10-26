@@ -22272,7 +22272,7 @@ function cupLaterMenu(id, btn){
 }
 function cupMoveDue(id, date){
   const t=S.tasks.find(x=>x.id===id); if(!t||!date) return;
-  const prev={ due:t.due, sched:[...(t.scheduledDates||[])] }; t.due=date; t.scheduledDates=(t.scheduledDates||[]).filter(d=>d>=todayStr()&&d<=date);
+  const prev={ due:t.due, sched:[...(t.scheduledDates||[])] }; t.due=date; t.scheduledDates=(t.scheduledDates||[]).filter(d=>(date>todayStr()?d>todayStr():d>=todayStr())&&d<=date);
   cupSkipped.delete(id); save(); render(); cupLaterClose();
   showToast(`Moved “${t.title}” to ${cupFmt(date)}.`,'Undo',()=>{ t.due=prev.due; t.scheduledDates=prev.sched; save(); render(); });
 }
@@ -26547,7 +26547,10 @@ function cupDueSync(){
   (S.tasks||[]).forEach(t=>{ if(!t || t.isHabit) return;
     const now=t.due||'', had=cupDueSnap.get(t.id);
     if(had!==undefined && had!==now && had){ const sd=t.scheduledDates||[];
-      if(sd.includes(had)){ const next=sd.filter(d=>d!==had); if(now && !next.includes(now)) next.push(now); t.scheduledDates=next; } }
+      let next=sd.includes(had) ? sd.filter(d=>d!==had) : sd.slice();
+      if(sd.includes(had) && now && !next.includes(now)) next.push(now);
+      if(now && now>todayStr()) next=next.filter(d=>d>todayStr() || d===now);     // moved to a later day: today (and earlier) come off
+      if(next.length!==sd.length || next.some((d,i)=>d!==sd[i])) t.scheduledDates=next; }
     cupDueSnap.set(t.id, now); });
 }
 { const _sv=save; save=function(){ try{ cupDueSync(); }catch(_){} return _sv.apply(this,arguments); }; }
