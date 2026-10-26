@@ -7683,6 +7683,8 @@ input[type=date]::-webkit-calendar-picker-indicator, input[type=time]::-webkit-c
 .cup-pm-ext{ flex:none; font-size:calc(11px * var(--cup-fs,1)); padding:1px 7px; border:1px solid var(--border); border-radius:999px; color:var(--text3); } .cup-pm-ext:hover{ color:var(--text); border-color:var(--accent); }
 .cup-pm-span{ flex:none; font-size:calc(11px * var(--cup-fs,1)); color:var(--accent); }
 @media (hover:hover){ .cup-pm-slot .cup-pm-ext{ opacity:0; } .cup-pm-slot .cup-pm-task:hover .cup-pm-ext, .cup-pm-ext:focus-visible{ opacity:1; } }
+.cup-mine-tg.on{ border-color:#B8862C; color:var(--text); background:color-mix(in srgb, #B8862C 16%, transparent); }
+.cup-mine-load{ font-size:calc(12px * var(--cup-fs,1)); padding:4px 8px; border-radius:999px; max-width:180px; }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -27910,7 +27912,7 @@ function cupAutoSync(){
     S.events.splice(i,1); ch++; }
   want.forEach((b,id)=>{ ch++; S.events.push({ id, auto:true, cat:b.cat, taskIds:b.ids||[], slots:b.slots||null, sub:b.sub||'', title:b.title, date:b.ds, endDate:b.ds, noEndDate:false, time:cupFitHM(b.s), endTime:cupFitHM(b.e), allDay:false, recurrence:'none', recurrenceDays:[], subject:'', location:'', notes:'', reminder:'none', type:(b.ids||[]).length?'focus_block':'personal', color:b.cat==='focus'?'#2C4A8B':CUP_CAT_COL[b.cat] }); });
   try{ const slots=[]; R.days[0].blocks.filter(b=>b.slots).forEach(b=>b.slots.forEach(x=>slots.push([...x])));
-    const p=cupPlan(); if(slots.length && !p.done.some(Boolean) && !(typeof cupPomoLive==='function'&&cupPomoLive()) && JSON.stringify(p.slots)!==JSON.stringify(slots.slice(0,12))){ p.slots=slots.slice(0,12); p.done=[]; p.active=false; cupPlanSyncCycles(p); S.settings.pomo.focus=R.foc; S.settings.pomo.shortBreak=R.brk; ch++; } }catch(_){}
+    const p=cupPlan(); if(slots.length && !p.mine && !p.done.some(Boolean) && !(typeof cupPomoLive==='function'&&cupPomoLive()) && JSON.stringify(p.slots)!==JSON.stringify(slots.slice(0,12))){ p.slots=slots.slice(0,12); p.done=[]; p.active=false; cupPlanSyncCycles(p); S.settings.pomo.focus=R.foc; S.settings.pomo.shortBreak=R.brk; ch++; } }catch(_){}
   cupAutoInfo={ skipped:R.skipped.length, ask:R.ask.length };
   return ch;
 }
@@ -28523,7 +28525,7 @@ function cupPlnSkips(){ const P=cupPln(), td=todayStr(); if(!Array.isArray(P.ski
 { const _pb=cupPlnBusy; cupPlnBusy=function(ds){ const out=_pb.apply(this,arguments); try{ cupPlnSkips().forEach(x=>{ if(x.ds===ds) out.push({ s:x.s, e:x.e, title:'', cat:'commit' }); }); }catch(_){} return out; }; }
 function cupFocusBlockSkip(id){
   const i=S.events.findIndex(x=>x.id===id); if(i<0) return; const e=S.events[i], sk={ ds:e.date, s:cupFitMin(e.time), e:cupFitMin(e.endTime) };
-  S.events.splice(i,1); cupPlnSkips().push(sk); closeModal('mCupFB'); cupAutoSig=''; save(); render(); cupAutoRun();
+  S.events.splice(i,1); cupPlnSkips().push(sk); if(e.mine){ const pp=S.cup&&S.cup.pomoPlan; if(pp) pp.mine=false; } closeModal('mCupFB'); cupAutoSig=''; save(); render(); cupAutoRun();
   showToast(cupT10('Block skipped — its tasks moved to the next free time.','블록을 건너뛰었어요 — 할 일은 다음 빈 시간으로 옮겼어요.'), cupT10('Undo','되돌리기'), ()=>{ const P=cupPln(); P.skips=(P.skips||[]).filter(x=>x!==sk); S.events.push(e); cupAutoSig=''; save(); render(); cupAutoRun(); });
 }
 { const _fo2=cupFocusBlockOpen; cupFocusBlockOpen=function(id){ const r=_fo2.apply(this,arguments);
@@ -28557,6 +28559,64 @@ function cupPlanSpan(id, n){
 { const _pk=cupPlanPick; cupPlanPick=function(btn, id){ const r=_pk.apply(this,arguments);
   try{ const m=document.getElementById('cupPlanMenu'); if(m) m.insertAdjacentHTML('beforeend',`<div class="cup-lm-h">${cupT10('Or spread it','또는 여러 개에 걸쳐')}</div>`+[2,3,4].map(n=>`<button type="button" role="menuitem" onclick="cupPlanSpan('${id}',${n})"><b>${cupT10(`Over ${n} pomodoros`,`${n}개 포모도로에 걸쳐`)}</b><span>${cupT10('In a row, from the next open one','다음 빈 것부터 연속으로')}</span></button>`).join('')); }catch(_){}
   return r; }; }
+
+// ════════════════════════════════════════════════════════════════════
+//  PART 28 — Your own block, up next
+//   · Focus page: “Load from calendar” brings a planned focus block into your pomodoros
+//   · “★ Next up” makes your Focus plan THE next block: it goes on the calendar at the next free time (kept as you set it),
+//     Home's “Do this next” follows it, and Auto plans everything else around it
+//   · from a block on the calendar: “Do it now” does the same with that block
+// ════════════════════════════════════════════════════════════════════
+const CUP_MINE='mine_block';
+function cupMineSlots(){ const p=cupPlan(); return p.slots.map((ids,i)=>p.done[i]?[]:ids.filter(id=>{ const t=S.tasks.find(x=>x.id===id); return t&&!cupDone(t); })).filter(x=>x.length); }
+let cupMineBusy=false;
+function cupMineSync(){
+  if(cupMineBusy) return; const p=S.cup&&S.cup.pomoPlan; if(!p) return; cupMineBusy=true;
+  try{
+    const i=S.events.findIndex(e=>e.id===CUP_MINE), old=i>=0?S.events[i]:null;
+    const slots=p.mine?cupMineSlots():[];
+    if(!p.mine || !slots.length){ if(old){ S.events.splice(i,1); } if(p.mine && !slots.length){ p.mine=false; } if(old){ cupAutoSig=''; } return; }
+    const foc=cupPlnFocus(), brk=Math.max(3,Math.round(foc/5)), len=slots.length*foc+(slots.length-1)*brk;
+    let ds=todayStr(), s=null;
+    if(old && old.date===ds && cupFitMin(old.endTime)>cupNow().getHours()*60+cupNow().getMinutes()) s=cupFitMin(old.time);     // keep its place while it lasts
+    const busy=d=>cupPlnBusy(d).filter(b=>!(old&&b.s===cupFitMin(old.time)&&b.title===old.title));
+    if(s===null){ let g=cupPlnGaps(ds,busy(ds),len)[0]; if(!g){ ds=cupAddDays(ds,1); g=cupPlnGaps(ds,busy(ds),len)[0]; } if(!g) return; s=g.s; }
+    const first=(S.tasks.find(t=>t.id===slots[0][0])||{}).title||'', ids=[...new Set(slots.flat())];
+    const ev=Object.assign(old||{ id:CUP_MINE, auto:true, pinned:true, mine:true, recurrence:'none', recurrenceDays:[], subject:'', location:'', notes:'', reminder:'none', type:'focus_block', color:'#B8862C' },
+      { date:ds, endDate:ds, time:cupFitHM(s), endTime:cupFitHM(s+len), allDay:false, slots, taskIds:ids, title:`★ ${first}${ids.length>1?` +${ids.length-1}`:''}`, sub:cupT10(`Your block · ${slots.length}×${foc}`,`내 블록 · ${slots.length}×${foc}`) });
+    if(!old) S.events.push(ev);
+    const sig=JSON.stringify([ev.date,ev.time,ev.endTime,ids]); if(sig!==p.mineSig){ p.mineSig=sig; cupAutoSig=''; }
+  }finally{ cupMineBusy=false; }
+}
+{ const _sv=save; save=function(){ try{ cupMineSync(); }catch(e){ console.warn('[mine]',e); } return _sv.apply(this,arguments); }; }
+function cupMineToggle(){ const p=cupPlan(); if(!p.mine && !cupMineSlots().length){ showToast(cupT10('Add a task to a pomodoro first.','먼저 포모도로에 할 일을 넣으세요.')); return; }
+  p.mine=!p.mine; save(); cupAutoRun(); render(); cupRenderPomo(true);
+  showToast(p.mine?cupT10('Your block is next up — on the calendar and on Home.','내 블록이 다음 차례예요 — 캘린더와 홈에.'):cupT10('Back to the automatic plan.','자동 계획으로 돌아왔어요.')); }
+// load a planned block into the pomodoros (and make it yours, next up)
+function cupMineLoad(id){
+  const e=S.events.find(x=>x.id===id); if(!e) return; if(typeof cupPomoLive==='function' && cupPomoLive()){ showToast(cupT10('End the timer first.','먼저 타이머를 끝내세요.')); return; }
+  const slots=(e.slots||(e.taskIds||[]).map(x=>[x])).map(x=>x.filter(tid=>{ const t=S.tasks.find(y=>y.id===tid); return t&&!cupDone(t); })).filter(x=>x.length); if(!slots.length) return;
+  const p=cupPlan(); p.slots=slots; p.done=[]; p.active=false; p.mine=true; cupPlanSyncCycles(p);
+  if(e.id!==CUP_MINE){ const i=S.events.indexOf(e); if(i>=0) S.events.splice(i,1); }     // the block moves to “now”, not twice
+  cupAutoSig=''; save(); cupAutoRun(); render(); if(typeof currentPage!=='undefined' && currentPage==='pomo') cupRenderPomo(true);
+  showToast(cupT10('Block loaded — it’s your next up.','블록을 불러왔어요 — 다음 차례예요.'));
+}
+function cupFocusBlockNow(id){ closeModal('mCupFB'); cupMineLoad(id); showPage('pomo'); }
+// Focus page: ★ Next up switch + Load from calendar
+{ const _rp=cupRenderPomo; cupRenderPomo=function(force){ const r=_rp.apply(this,arguments);
+  try{ const hb=document.querySelector('#cupPomoPage .cup-pm-hb'); if(!hb || hb.querySelector('.cup-mine-tg')) return r; const p=cupPlan(), td=todayStr();
+    const blks=S.events.filter(e=>e.auto&&e.id!==CUP_MINE&&(e.taskIds||[]).length&&e.date>=td&&e.date<=cupAddDays(td,2)).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).slice(0,8);
+    hb.insertAdjacentHTML('afterbegin',`<button type="button" class="cup-hbtn cup-mine-tg ${p.mine?'on':''}" onclick="cupMineToggle()" title="${cupT10('Make this plan your next block (calendar + Home)','이 계획을 다음 블록으로 (캘린더 + 홈)')}">★ ${cupT10('Next up','다음 차례')}</button>`+
+      (blks.length?`<select class="cup-mine-load" onchange="if(this.value)cupMineLoad(this.value)"><option value="">${cupT10('Load from calendar','캘린더에서 불러오기')}</option>${blks.map(e=>`<option value="${e.id}">${e.date===td?'':cupWd(e.date)+' '}${cupTShort(e.time)} · ${esc(String(e.title).replace(/^◎ /,''))}</option>`).join('')}</select>`:''));
+  }catch(_){} return r; }; }
+// a block on the calendar: “Do it now”
+{ const _fo3=cupFocusBlockOpen; cupFocusBlockOpen=function(id){ const r=_fo3.apply(this,arguments);
+  try{ const f=document.querySelector('#mCupFB .modal-footer'); if(f && id!==CUP_MINE && !f.querySelector('.cup-fb-now')) f.querySelector('.btn-accent')?.insertAdjacentHTML('beforebegin',`<button class="btn btn-ghost cup-fb-now" onclick="cupFocusBlockNow('${id}')">★ ${cupT10('Do it now','지금 하기')}</button>`); }catch(_){}
+  return r; }; }
+// Home: your own block wins “Do this next”
+{ const _nf=cupNextFocus; cupNextFocus=function(){ const p=S.cup&&S.cup.pomoPlan, mine=p&&p.mine&&S.events.find(e=>e.id===CUP_MINE);
+  if(mine){ const t=(mine.slots||[]).flat().map(id=>S.tasks.find(x=>x.id===id)).find(x=>x&&!cupDone(x)); if(t) return { b:mine, t }; }
+  return _nf.apply(this,arguments); }; }
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
