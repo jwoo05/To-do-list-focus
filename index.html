@@ -28424,6 +28424,7 @@ async function cupGcHideOld(){
       try{ await cupGcApi('PATCH','/users/me/calendarList/'+encodeURIComponent(c.id),{ selected:false, hidden:true }); }catch(_){} } }catch(_){ cupGcOldDone=false; }
 }
 { const _r=cupGcRun; cupGcRun=async function(){ const p=cupGp(), g=cupGc();
+  try{ Object.values(p.pcals||{}).forEach(c=>{ if(c && /^focus hub$/i.test(String(c.name||'').trim())) c.on=false; }); }catch(_){}   // never read the app's own calendars back in
   if(g.on && p.dir==='pull' && Object.keys(g.ev||{}).length){ cupGcCleanOnly=true; p.dir='both'; try{ cupGcMassOk=true; }catch(_){}
     try{ await _r.apply(this,arguments); }finally{ p.dir='pull'; cupGcCleanOnly=false; } }
   else await _r.apply(this,arguments);
