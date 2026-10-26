@@ -7680,6 +7680,9 @@ input[type=date]::-webkit-calendar-picker-indicator, input[type=time]::-webkit-c
 .cup-gx-add{ align-self:flex-start; margin-top:6px; }
 .cup-next-from{ margin-left:8px; font-size:calc(11.5px * var(--cup-fs,1)); color:var(--accent); padding:1px 8px; border:1px solid color-mix(in srgb, var(--accent) 45%, var(--border)); border-radius:999px; } .cup-next-from:hover{ background:color-mix(in srgb, var(--accent) 10%, transparent); }
 .cup-fb-skip{ margin-right:auto; color:var(--text3); }
+.cup-pm-ext{ flex:none; font-size:calc(11px * var(--cup-fs,1)); padding:1px 7px; border:1px solid var(--border); border-radius:999px; color:var(--text3); } .cup-pm-ext:hover{ color:var(--text); border-color:var(--accent); }
+.cup-pm-span{ flex:none; font-size:calc(11px * var(--cup-fs,1)); color:var(--accent); }
+@media (hover:hover){ .cup-pm-slot .cup-pm-ext{ opacity:0; } .cup-pm-slot .cup-pm-task:hover .cup-pm-ext, .cup-pm-ext:focus-visible{ opacity:1; } }
 
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
@@ -28525,6 +28528,34 @@ function cupFocusBlockSkip(id){
 }
 { const _fo2=cupFocusBlockOpen; cupFocusBlockOpen=function(id){ const r=_fo2.apply(this,arguments);
   try{ const f=document.querySelector('#mCupFB .modal-footer'); if(f && !f.querySelector('.cup-fb-skip')) f.insertAdjacentHTML('afterbegin',`<button class="btn btn-ghost cup-fb-skip" onclick="cupFocusBlockSkip('${id}')" title="${cupT10('Can’t do it then — its tasks move to the next free time','그때 못 해요 — 할 일은 다음 빈 시간으로')}">${cupT10('Skip block','블록 건너뛰기')}</button>`); }catch(_){}
+  return r; }; }
+
+// ════════════════════════════════════════════════════════════════════
+//  PART 27 — One task over several pomodoros
+//   · in a pomodoro, “+1” continues the task into the next one (adds a pomodoro if needed)
+//   · in the To do list, ＋ offers “Over 2 / 3 pomodoros”
+//  A task that spans pomodoros is checked off once; the timer moves past it everywhere.
+// ════════════════════════════════════════════════════════════════════
+function cupPlanExtend(id, from){
+  const p=cupPlan(); let j=from+1;
+  while(j<p.slots.length && (p.done[j] || p.slots[j].includes(id))) j++;
+  if(j>=p.slots.length){ if(p.slots.length>=12){ showToast(cupT10('12 pomodoros is the most for one day.','하루 최대 12개예요.')); return; } p.slots.push([]); cupPlanSyncCycles(p); }
+  p.slots[j].unshift(id); save(); cupRenderPomo(true);
+}
+function cupPlanSpan(id, n){
+  document.getElementById('cupPlanMenu')?.remove();
+  const p=cupPlan(); p.slots=p.slots.map(s=>s.filter(x=>x!==id));
+  let i=p.slots.findIndex((s,k)=>!p.done[k] && !s.length); if(i<0) i=p.slots.findIndex((s,k)=>!p.done[k]); if(i<0){ i=p.slots.length; }
+  for(let k=0;k<n;k++){ const j=i+k; if(j>=12) break; while(p.slots.length<=j) p.slots.push([]); p.slots[j].push(id); }
+  cupPlanSyncCycles(p); save(); cupRenderPomo(true);
+  showToast(cupT10(`Over ${n} pomodoros, from #${i+1}.`,`#${i+1}부터 ${n}개 포모도로에 걸쳐 넣었어요.`));
+}
+{ const _row=cupPmRow; cupPmRow=function(t, from, opts){ const h=_row.apply(this,arguments); if(from<0 || cupDone(t)) return h;
+  const n=cupPlan().slots.filter(s=>s.includes(t.id)).length;
+  return h.replace(`<button type="button" class="cup-pm-x" onclick="cupPlanMove('${t.id}',${from},-1)"`,
+    `${n>1?`<span class="cup-pm-span" title="${cupT10(`Runs over ${n} pomodoros`,`${n}개 포모도로에 걸쳐 있어요`)}">×${n}</span>`:''}<button type="button" class="cup-pm-ext" onclick="cupPlanExtend('${t.id}',${from})" title="${cupT10('Continue into the next pomodoro','다음 포모도로까지 이어서')}" aria-label="${cupT10('Continue into the next pomodoro','다음 포모도로까지 이어서')}">+1</button><button type="button" class="cup-pm-x" onclick="cupPlanMove('${t.id}',${from},-1)"`); }; }
+{ const _pk=cupPlanPick; cupPlanPick=function(btn, id){ const r=_pk.apply(this,arguments);
+  try{ const m=document.getElementById('cupPlanMenu'); if(m) m.insertAdjacentHTML('beforeend',`<div class="cup-lm-h">${cupT10('Or spread it','또는 여러 개에 걸쳐')}</div>`+[2,3,4].map(n=>`<button type="button" role="menuitem" onclick="cupPlanSpan('${id}',${n})"><b>${cupT10(`Over ${n} pomodoros`,`${n}개 포모도로에 걸쳐`)}</b><span>${cupT10('In a row, from the next open one','다음 빈 것부터 연속으로')}</span></button>`).join('')); }catch(_){}
   return r; }; }
 
 
