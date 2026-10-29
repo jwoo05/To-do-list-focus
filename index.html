@@ -7698,6 +7698,42 @@ input[type=date]::-webkit-calendar-picker-indicator, input[type=time]::-webkit-c
 @media (hover:hover){ .cup-pm-slot .cup-pm-copy{ opacity:0; } .cup-pm-slot .cup-pm-task:hover .cup-pm-copy, .cup-pm-copy:focus-visible{ opacity:1; } }
 .cup-pm-task.dragging, .cup-pm-task[draggable=true]:active{ max-width:100%; }
 
+/* 3 · task rows: everything on one line, nothing on top of anything */
+.cup-tl-row{ display:flex !important; align-items:center; gap:8px; }
+.cup-tl-row > .cup-check2{ flex:none; }
+.cup-tl-row > .cup-tl-t{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:left; }
+.cup-tl-row > .cup-tl-meta{ flex:0 1 auto; min-width:0; overflow:hidden; white-space:nowrap; }
+.cup-tl-row > .cup-tl-quick, .cup-tl-row > .cup-tl-act{ flex:none; width:auto !important; }
+/* no-date rows: Today · Tmrw · 📅 live inside the row's action group, so they can never sit on the icons */
+.cup-tl-act > .cup-tl-quick{ position:static !important; transform:none !important; padding:0 !important; background:none !important; display:inline-flex; gap:4px; margin-right:4px; }
+@media (hover:hover){ .cup-tl-sec.nodate .cup-tl-act > .cup-tl-quick{ opacity:1 !important; pointer-events:auto !important; } }
+@media (max-width:760px){ .cup-tl-sec.nodate .cup-tl-act{ display:flex !important; } .cup-tl-sec.nodate .cup-tl-act > button{ display:none !important; } }
+/* 4 · sidebar bottom: two equal, centered icon buttons */
+.sidebar-bottom #themeBtn, .sidebar-bottom .sidebar-action-btn[title="Settings"]{ width:40px !important; height:40px !important; padding:0 !important; margin:0 !important; display:grid !important; place-items:center !important; border-radius:10px; line-height:0 !important; }
+#themeBtn::before{ content:'' !important; display:block; width:16px; height:16px; background:currentColor;
+  -webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M8 1.5a6.5 6.5 0 1 0 0 13a6.5 6.5 0 1 0 0-13zm0 1.6v9.8a4.9 4.9 0 0 1 0-9.8z'/></svg>") center/16px no-repeat;
+          mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M8 1.5a6.5 6.5 0 1 0 0 13a6.5 6.5 0 1 0 0-13zm0 1.6v9.8a4.9 4.9 0 0 1 0-9.8z'/></svg>") center/16px no-repeat; }
+.sidebar-bottom .sidebar-action-btn[title="Settings"] svg{ display:block; }
+/* 1 · pomodoro reorder */
+.cup-pm-mv{ display:inline-flex; gap:2px; margin-left:auto; } .cup-pm-mv button{ width:22px; height:22px; border-radius:6px; color:var(--text3); font-size:calc(12px * var(--cup-fs,1)); } .cup-pm-mv button:hover{ color:var(--text); background:var(--bg2); }
+@media (hover:hover){ .cup-pm-slot .cup-pm-mv{ opacity:0; } .cup-pm-slot:hover .cup-pm-mv{ opacity:1; } }
+.cup-pm-sh[draggable=true]{ cursor:grab; } .cup-pm-slot.dragging{ opacity:.45; }
+/* 7 · habit steps */
+.cup-hb-sc{ font-size:calc(11.5px * var(--cup-fs,1)); color:var(--text3); margin-left:6px; }
+.cup-hb-steps{ grid-column:1 / -1; display:flex; flex-wrap:wrap; gap:4px 12px; padding:2px 0 6px 30px; }
+.cup-hb-step{ display:inline-flex; align-items:center; gap:6px; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text2); } .cup-hb-step .cup-hcheck{ transform:scale(.8); } .cup-hb-step.d{ color:var(--text3); text-decoration:line-through; }
+.cup-hb-steps-ed{ display:grid; gap:4px; margin-bottom:10px; } .cup-hb-step-row{ display:flex; align-items:center; gap:8px; font-size:calc(13px * var(--cup-fs,1)); padding:4px 0; border-bottom:1px solid color-mix(in srgb, var(--border) 55%, transparent); } .cup-hb-step-row span{ flex:1; } .cup-hb-step-row button{ color:var(--text3); }
+/* 5 · Settings tabs with icons */
+#cupSetTabs.cup-set-tabs{ display:grid !important; grid-template-columns:repeat(4, minmax(0,1fr)); gap:6px; }
+#cupSetTabs.cup-set-tabs button{ display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 6px; border:1px solid var(--border); border-radius:12px; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text2); }
+#cupSetTabs.cup-set-tabs button.on{ border-color:var(--accent); color:var(--text); background:color-mix(in srgb, var(--accent) 10%, transparent); }
+.cup-set-desc{ grid-column:1 / -1; font-size:calc(12.5px * var(--cup-fs,1)); color:var(--text3); margin:4px 2px 0; text-align:left; }
+#mSettings .modal-body > .form-row, #mSettings .modal-body > .toggle-row, #mSettings #cupPrefs .cup-pref{ padding-top:10px; padding-bottom:10px; border-bottom:1px solid color-mix(in srgb, var(--border) 50%, transparent); }
+.cup-ag-hcheck{ flex:none; display:grid; place-items:center; width:26px; height:26px; margin-right:2px; }
+.cup-tl-act > .cup-tl-quick button{ width:auto !important; height:24px; min-height:0; opacity:1 !important; display:inline-flex !important; align-items:center; padding:0 9px !important; font-size:calc(11.5px * var(--cup-fs,1)); white-space:nowrap; border:1px solid var(--border); border-radius:99px; color:var(--text2); background:var(--bg1, var(--bg)); }
+.cup-tl-act > .cup-tl-quick button:hover{ border-color:var(--accent); color:var(--text); background:var(--bg1, var(--bg)); }
+@media (max-width:760px){ .cup-tl-act > .cup-tl-quick button{ height:32px; padding:0 12px !important; font-size:calc(12.5px * var(--cup-fs,1)); } }
+
 /* ════════ Part 2: fixes from the persona study ════════ */
 /* settings preferences */
 #cupPrefs{ margin-bottom:6px; }
@@ -26089,7 +26125,7 @@ function cupTLPickDate(id){ cupOpenTaskSheet(id); try{ cupTS.open='due'; cupTSRe
       if(row.querySelector('.cup-tl-quick')) return;
       const q=document.createElement('span'); q.className='cup-tl-quick';
       q.innerHTML=`<button type="button" onclick="cupTLSetDate('${id}',0)">${cupT10('Today','오늘')}</button><button type="button" onclick="cupTLSetDate('${id}',1)">${cupT10('Tmrw','내일')}</button><button type="button" onclick="cupTLPickDate('${id}')" title="${cupT10('Pick a date','날짜 고르기')}" aria-label="${cupT10('Pick a date','날짜 고르기')}">📅</button>`;
-      const act=row.querySelector('.cup-tl-act'); if(act) act.before(q); else row.appendChild(q);
+      const act=row.querySelector('.cup-tl-act'); if(act) act.prepend(q); else row.appendChild(q);
     });
     if(rows.length>6 && !cupTLQuery && !none.querySelector('.cup-tl-more')) none.insertAdjacentHTML('beforeend', `<button type="button" class="cup-more-btn cup-tl-more" onclick="cupTLNoneAll=!cupTLNoneAll;cupRenderTaskList()">${cupTLNoneAll?cupT10('Show fewer','접기'):cupT10(`Show all ${rows.length}`,`${rows.length}개 모두 보기`)}</button>`);
   }
@@ -28735,6 +28771,80 @@ function cupPlanCopyMenu(btn, id, from){
 let cupDropCopy=false;
 document.addEventListener('drop', e=>{ cupDropCopy=!!(e.altKey||e.metaKey&&e.shiftKey); setTimeout(()=>{ cupDropCopy=false; },0); }, true);
 { const _mv=cupPlanMove; cupPlanMove=function(id, from, to){ if(cupDropCopy && from>=0 && to>=0){ cupDropCopy=false; cupPlanCopy(id,to); return; } return _mv.apply(this,arguments); }; }
+
+// ════════════════════════════════════════════════════════════════════
+//  PART 30 — Smoother Focus, steps inside habits, a clearer Settings
+//   1 · pomodoros reorder: ↑ ↓ on each pomodoro, or drag a pomodoro's header onto another
+//   2 · Focus To-do list: drag a task onto Today / Tomorrow / … to move its day
+//   6 · habits check AND uncheck everywhere (the calendar's habit row too)
+//   7 · a habit can hold steps (e.g. 성경 통독 → 5장 읽기 · 이웃사랑 1장 묵상); ticking every step ticks the habit
+//   5 · Settings: tabs with icons and a one-line explanation
+// ════════════════════════════════════════════════════════════════════
+// 1 · reorder pomodoros
+function cupPlanSlotMove(i, j){ const p=cupPlan(); if(j<0||j>=p.slots.length||i===j) return; const s=p.slots.splice(i,1)[0], d=p.done.splice(i,1)[0]; p.slots.splice(j,0,s); p.done.splice(j,0,d); p.mine=true; save(); cupRenderPomo(true); }
+let cupSlotDrag=-1;
+{ const _rp=cupRenderPomo; cupRenderPomo=function(force){ const r=_rp.apply(this,arguments);
+  try{ document.querySelectorAll('#cupPomoPage .cup-pm-slot').forEach((slot,i,all)=>{ const sh=slot.querySelector('.cup-pm-sh'); if(!sh || sh.querySelector('.cup-pm-mv')) return;
+      sh.insertAdjacentHTML('beforeend',`<span class="cup-pm-mv">${i?`<button type="button" onclick="cupPlanSlotMove(${i},${i-1})" title="${cupT10('Move this pomodoro earlier','앞으로')}" aria-label="${cupT10('Earlier','앞으로')}">↑</button>`:''}${i<all.length-1?`<button type="button" onclick="cupPlanSlotMove(${i},${i+1})" title="${cupT10('Move this pomodoro later','뒤로')}" aria-label="${cupT10('Later','뒤로')}">↓</button>`:''}</span>`);
+      sh.draggable=true; sh.title=cupT10('Drag to reorder pomodoros','끌어서 순서 바꾸기');
+      sh.ondragstart=e=>{ cupSlotDrag=i; e.stopPropagation(); try{ e.dataTransfer.setData('text/plain','slot:'+i); e.dataTransfer.effectAllowed='move'; }catch(_){} slot.classList.add('dragging'); };
+      sh.ondragend=()=>{ cupSlotDrag=-1; slot.classList.remove('dragging'); }; });
+  }catch(_){} return r; }; }
+{ const _dr=cupPlanDrop; cupPlanDrop=function(e, to){ if(cupSlotDrag>=0){ e.preventDefault(); const from=cupSlotDrag; cupSlotDrag=-1; document.querySelectorAll('.cup-pm-over').forEach(x=>x.classList.remove('cup-pm-over')); cupPlanSlotMove(from,to); return; } return _dr.apply(this,arguments); }; }
+{ const _ov=cupPlanOver; cupPlanOver=function(e){ if(cupSlotDrag>=0){ e.preventDefault(); e.currentTarget.classList.add('cup-pm-over'); return; } return _ov.apply(this,arguments); }; }
+
+// 2 · Focus To-do list → drag onto a day
+{ const _ds=cupPlanDragStart; cupPlanDragStart=function(e, id, from){ const r=_ds.apply(this,arguments); if(from<0) setTimeout(()=>{ try{ cupTLDropBar(true); }catch(_){} },0); return r; }; }
+{ const _de=cupPlanDragEnd; cupPlanDragEnd=function(){ const r=_de.apply(this,arguments); setTimeout(()=>{ try{ cupTLDropBar(false); }catch(_){} },0); return r; }; }
+{ const _dset=cupTLDropSet; cupTLDropSet=function(){ const r=_dset.apply(this,arguments); try{ if(typeof currentPage!=='undefined'&&currentPage==='pomo') cupRenderPomo(true); }catch(_){} return r; }; }
+
+// 6 · the calendar's habit row: tap = done / not done for that day (✎ to edit)
+function cupHabToggle(id, ds){ toggleTask(id, ds); try{ renderCalendar(); }catch(_){} try{ cupRenderHome(); }catch(_){} }
+{ const _ar=cupAgRows; cupAgRows=function(ds){ const r=_ar.apply(this,arguments);
+  try{ r.html=r.html.replace(/<button type="button" class="cup-ag-hab([^"]*)" data-keep onclick="editTask\('([^']+)'\)">/g,(m,c,id)=>`<button type="button" class="cup-ag-hab${c}" data-keep onclick="event.stopPropagation();cupHabToggle('${id}','${ds}')" ondblclick="event.stopPropagation();editTask('${id}')" title="${cupT10('Tap: done / not done · double-tap: edit','탭: 완료/취소 · 두 번 탭: 수정')}">`); }catch(_){}
+  return r; }; }
+
+// 7 · steps inside a habit
+const cupStepsOf = t => Array.isArray(t.steps) ? t.steps.filter(Boolean) : Object.values(t.steps||{}).filter(Boolean);
+const cupStepsDone = (t, ds) => { const d=t.stepDone&&t.stepDone[ds]; return Array.isArray(d)?d:Object.values(d||{}); };
+function cupStepTick(id, sid){
+  const t=S.tasks.find(x=>x.id===id); if(!t) return; const ds=todayStr(), steps=cupStepsOf(t); t.stepDone=t.stepDone&&typeof t.stepDone==='object'?t.stepDone:{};
+  const cur=new Set(cupStepsDone(t,ds)); cur.has(sid)?cur.delete(sid):cur.add(sid); t.stepDone[ds]=[...cur];
+  const all=steps.length && steps.every(s=>cur.has(s.id)), was=cupHabitDoneToday(t);
+  if(all!==was) toggleTask(id, ds); else { save(); }
+  try{ cupRenderHome(); }catch(_){}
+}
+function cupStepAdd(id, v){ const t=S.tasks.find(x=>x.id===id); v=String(v||'').trim(); if(!t||!v) return; t.steps=[...cupStepsOf(t), { id:uid(), title:v.slice(0,80) }]; save(); cupHbPlan(id); setTimeout(()=>document.getElementById('cupHbmStep')?.focus(),60); }
+function cupStepDel(id, sid){ const t=S.tasks.find(x=>x.id===id); if(!t) return; t.steps=cupStepsOf(t).filter(s=>s.id!==sid); save(); cupHbPlan(id); }
+{ const _hp=cupHbPlan; cupHbPlan=function(id){ const r=_hp.apply(this,arguments);
+  try{ const t=S.tasks.find(x=>x.id===id), body=document.querySelector('#mCupHabit .modal-body'); if(!t||!body||body.querySelector('.cup-hb-steps-ed')) return r;
+    body.insertAdjacentHTML('afterbegin',`<div class="cup-hb-steps-ed"><label class="cup-hbm-l">${cupT10('Steps (optional) — tick each one; all ticked = habit done','단계 (선택) — 하나씩 체크, 모두 체크하면 습관 완료')}</label>
+      ${cupStepsOf(t).map(s=>`<div class="cup-hb-step-row"><span>${esc(s.title)}</span><button type="button" onclick="cupStepDel('${id}','${s.id}')" aria-label="${cupT10('Remove step','단계 빼기')}">✕</button></div>`).join('')}
+      <input id="cupHbmStep" maxlength="80" placeholder="${cupT10('+ Add a step — Enter','+ 단계 추가 — Enter')}" onkeydown="if(event.key==='Enter'){event.preventDefault();event.stopPropagation();cupStepAdd('${id}',this.value)}"></div>`);
+  }catch(_){} return r; }; }
+{ const _rh=cupRenderHome; cupRenderHome=function(){ const r=_rh.apply(this,arguments);
+  try{ const ds=todayStr(); document.querySelectorAll('.cup-hb-row').forEach(row=>{ const id=((row.querySelector('.cup-hb-main')?.getAttribute('onclick')||'').match(/'([^']+)'/)||[])[1], t=id&&S.tasks.find(x=>x.id===id); if(!t) return;
+      const steps=cupStepsOf(t); if(!steps.length || row.querySelector('.cup-hb-steps')) return; const done=new Set(cupStepsDone(t,ds));
+      row.querySelector('.cup-hb-t')?.insertAdjacentHTML('afterend',`<span class="cup-hb-sc">${steps.filter(s=>done.has(s.id)).length}/${steps.length}</span>`);
+      row.insertAdjacentHTML('beforeend',`<div class="cup-hb-steps">${steps.map(s=>`<button type="button" class="cup-hb-step ${done.has(s.id)?'d':''}" onclick="cupStepTick('${id}','${s.id}')"><span class="cup-hcheck ${done.has(s.id)?'d':''}"></span>${esc(s.title)}</button>`).join('')}</div>`); });
+  }catch(_){} return r; }; }
+
+// 5 · Settings: icons on the tabs and a line that says what each holds
+const CUP_SET_ICON={ general:'<path d="M3 4h10M3 8h10M3 12h6"/>', look:'<circle cx="8" cy="8" r="5.5"/><path d="M8 2.5v11a5.5 5.5 0 0 0 0-11z" fill="currentColor"/>', focus:'<circle cx="8" cy="8" r="5.5"/><circle cx="8" cy="8" r="2"/>', data:'<rect x="2.5" y="3.5" width="11" height="10" rx="2"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/>' };
+const CUP_SET_DESC={ general:['Language, your name, week start, and which pages show up.','언어, 이름, 주 시작 요일, 보이는 페이지.'], look:['Light or dark, accent color and spacing.','라이트/다크, 강조 색, 간격.'], focus:['Pomodoro lengths, sounds, focus check and your Claude key.','뽀모도로 길이, 소리, 집중 체크, Claude 키.'], data:['Google Calendar, calendar links, backups and your account.','Google 캘린더, 캘린더 링크, 백업, 계정.'] };
+{ const _st=cupSetTabs; cupSetTabs=function(){ const r=_st.apply(this,arguments);
+  try{ const bar=document.getElementById('cupSetTabs'); if(!bar) return r; const keys=['general','look','focus','data'];
+    bar.querySelectorAll('button').forEach((b,i)=>{ const k=keys[i]; if(!k || b.querySelector('svg')) return; b.insertAdjacentHTML('afterbegin',`<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true">${CUP_SET_ICON[k]}</svg>`); });
+    let d=document.getElementById('cupSetDesc'); if(!d||d.parentNode!==bar){ d?.remove(); d=document.createElement('div'); d.id='cupSetDesc'; d.className='cup-set-desc'; bar.appendChild(d); }
+    const k=(typeof cupSetTab!=='undefined'&&cupSetTab)||'general', t=CUP_SET_DESC[k]||CUP_SET_DESC.general; d.textContent=cupT10(t[0],t[1]);
+  }catch(_){} return r; }; }
+// a single (or timed) habit row in the calendar gets its own check circle
+{ const _ag=cupAgRow; cupAgRow=function(it, ds){ const h=_ag.apply(this,arguments); const t=!it.ev&&S.tasks.find(x=>x.id===it.id); if(!t||!t.isHabit) return h;
+  const d=!!(t.completedDates&&t.completedDates[ds]);
+  return h.replace('<span class="cup-ag-time">',`<button type="button" class="cup-ag-hcheck${d?' d':''}" data-keep onclick="event.stopPropagation();cupHabToggle('${t.id}','${ds}')" aria-label="${d?cupT10('Mark not done','완료 취소'):cupT10('Mark done','완료')}"><span class="cup-hcheck ${d?'d':''}"></span></button><span class="cup-ag-time">`); }; }
+// “Other Google accounts” sits with Google Calendar in Data & Account
+{ const _gx=cupGXPaint; cupGXPaint=function(){ const r=_gx.apply(this,arguments); try{ const gc=document.getElementById('cupGc'), el=document.getElementById('cupGX'); if(gc&&el){ el.style.order=gc.style.order; el.classList.toggle('cup-tab-off', gc.classList.contains('cup-tab-off')); } }catch(_){} return r; }; }
+{ const _st2=cupSetTabs; cupSetTabs=function(){ const r=_st2.apply(this,arguments); try{ const gc=document.getElementById('cupGc'), el=document.getElementById('cupGX'); if(gc&&el){ el.style.order=gc.style.order; el.classList.toggle('cup-tab-off', gc.classList.contains('cup-tab-off')); } }catch(_){} return r; }; }
 
 
 // Korean interface strings. Keys are the exact English text shown on screen.
